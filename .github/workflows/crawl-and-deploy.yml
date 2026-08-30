@@ -1,0 +1,54 @@
+name: 24/7 Autonomous Defence Intelligence Ingestion & Deploy
+
+on:
+  schedule:
+    # Autonomous ingestion run every 20 minutes ($0 serverless GitHub Actions cron)
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  crawl-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Test Suite
+        run: npm test
+
+      - name: Run 24/7 Defence Ingestion Pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: npx vite-node crawler/ingest.ts
+
+      - name: Build Production Assets
+        run: npm run build
+
+      - name: Commit & Push Refreshed News Feed
+        run: |
+          git config user.name "DefenceWire Bot"
+          git config user.email "bot@defencewire.in"
+          git add public/data/news.json
+          if git diff --staged --quiet; then
+            echo "No feed changes detected."
+          else
+            git commit -m "chore(crawler): autonomous refresh of defence intelligence feed [skip ci]"
+            git push origin main
+          fi

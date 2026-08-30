@@ -32,14 +32,22 @@ export function initializeApp(): void {
   // Set document title
   document.title = `${STRINGS.app.name} — ${STRINGS.app.shortTagline}`;
 
-  // 2. Storage Initialization & Offline Cache
+  // 2. Storage Initialization, Offline Cache & Remote Hydration
   defaultStorageService
     .init()
     .then(async () => {
-      // Seed storage with current clusters & river items
+      try {
+        const res = await fetch('/data/news.json');
+        if (res.ok) {
+          const data = (await res.json()) as { clusters?: import('./types/news.js').StoryCluster[]; river?: import('./types/news.js').StorySourceItem[] };
+          if (data.clusters && data.clusters.length > 0) newsVm.setClusters(data.clusters);
+          if (data.river && data.river.length > 0) newsVm.setRiverItems(data.river);
+        }
+      } catch {
+        // Default seed is retained
+      }
       await defaultStorageService.saveClusters(newsVm.getAllClusters(true));
       await defaultStorageService.saveRiverItems(newsVm.getFilteredRiverItems());
-      // Prune entries older than 7 days
       await defaultStorageService.pruneOldEntries(7);
     })
     .catch(() => {

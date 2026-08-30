@@ -1,0 +1,131 @@
+{
+  "clusters": [
+    {
+      "id": "cluster-1788087017649-1-feed-pib-1788087017649-1",
+      "synthesizedHeadline": "Sensex rises 500 points in early trade amid foreign inflows",
+      "primarySource": {
+        "id": "feed-pib-1788087017649-1",
+        "title": "Sensex rises 500 points in early trade amid foreign inflows",
+        "url": "https://thehindu.com/sensex-record-high",
+        "sourceName": "PIB MoD",
+        "sourceDomain": "pib.gov.in",
+        "tier": "TIER_1_OFFICIAL",
+        "publishedAt": "2026-08-30T09:10:00.000Z",
+        "snippet": "Stock markets rallied today on strong tech earnings.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 66.5,
+      "isLeadStory": true,
+      "createdAt": "2026-08-30T09:10:00.000Z",
+      "updatedAt": "2026-08-30T09:10:00.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "gdLecturettePoints": [
+          "Self-Reliance vs Rapid Induction: Balancing indigenous timeline with operational urgency for Strategic Defence Modernization.",
+          "Impact on Joint Theatre Commands and inter-service operational synergy.",
+          "Geopolitical ramifications in the Indian Ocean Region (IOR) and Northern/Western borders."
+        ],
+        "potentialInterviewQuestions": [
+          "What are the operational capabilities and significance of Strategic Defence Modernization for India's national security?",
+          "How does this development align with the Make in India and Atmanirbhar Bharat defence initiative?",
+          "If you were tasked with tri-service integration for this capability, what primary logistical hurdles would you address?"
+        ],
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "PIB MoD report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-1788087017649-0-feed-pib-1788087017648-0",
+      "synthesizedHeadline": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
+      "primarySource": {
+        "id": "feed-pib-1788087017648-0",
+        "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
+        "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
+        "sourceName": "PIB MoD",
+        "sourceDomain": "pib.gov.in",
+        "tier": "TIER_1_OFFICIAL",
+        "publishedAt": "2026-08-30T09:00:00.000Z",
+        "snippet": "Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "airforce",
+        "tech"
+      ],
+      "entities": [
+        "Tejas Mk1A",
+        "HAL"
+      ],
+      "defenceScore": 65.1,
+      "isLeadStory": false,
+      "createdAt": "2026-08-30T09:00:00.000Z",
+      "updatedAt": "2026-08-30T09:00:00.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
+        "gdLecturettePoints": [
+          "Self-Reliance vs Rapid Induction: Balancing indigenous timeline with operational urgency for Tejas Mk1A.",
+          "Impact on Joint Theatre Commands and inter-service operational synergy.",
+          "Geopolitical ramifications in the Indian Ocean Region (IOR) and Northern/Western borders."
+        ],
+        "potentialInterviewQuestions": [
+          "What are the operational capabilities and significance of Tejas Mk1A for India's national security?",
+          "How does this development align with the Make in India and Atmanirbhar Bharat defence initiative?",
+          "If you were tasked with tri-service integration for this capability, what primary logistical hurdles would you address?"
+        ],
+        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Tejas Mk1A",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "PIB MoD report highlights critical milestone in operational deployment."
+        }
+      }
+    }
+  ],
+  "river": [
+    {
+      "id": "feed-pib-1788087017649-1",
+      "title": "Sensex rises 500 points in early trade amid foreign inflows",
+      "url": "https://thehindu.com/sensex-record-high",
+      "sourceName": "PIB MoD",
+      "sourceDomain": "pib.gov.in",
+      "tier": "TIER_1_OFFICIAL",
+      "publishedAt": "2026-08-30T09:10:00.000Z",
+      "snippet": "Stock markets rallied today on strong tech earnings."
+    },
+    {
+      "id": "feed-pib-1788087017648-0",
+      "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
+      "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
+      "sourceName": "PIB MoD",
+      "sourceDomain": "pib.gov.in",
+      "tier": "TIER_1_OFFICIAL",
+      "publishedAt": "2026-08-30T09:00:00.000Z",
+      "snippet": "Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles."
+    }
+  ],
+  "totalIngested": 2,
+  "totalFiltered": 2,
+  "activeFeedsCount": 2,
+  "durationMs": 3,
+  "generatedAt": "2026-08-30T10:50:17.649Z"
+}

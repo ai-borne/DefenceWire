@@ -190,6 +190,11 @@ export class NewsViewModel {
     this.notifyListeners();
   }
 
+  public setRiverItems(items: StorySourceItem[]): void {
+    this.riverItems = [...items];
+    this.notifyListeners();
+  }
+
   /**
    * Surgically updates a specific cluster.
    */

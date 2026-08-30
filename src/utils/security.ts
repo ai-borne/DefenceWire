@@ -68,9 +68,10 @@ export function isValidExternalUrl(urlString: string): boolean {
 }
 
 /**
- * Alias for isValidExternalUrl
+ * Aliases for isValidExternalUrl
  */
 export const isSafeHttpUrl = isValidExternalUrl;
+export const isValidUrl = isValidExternalUrl;
 
 
 /**
