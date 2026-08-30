@@ -9,6 +9,7 @@ import {
   computeContentHash,
   generateHeuristicSSBIntel,
   getSummaryMemorySize,
+  isSSBRelevant,
   summarizeWithGemini
 } from '../../crawler/summarizer.js';
 import { StoryCluster } from '../../src/types/news.js';
@@ -84,15 +85,27 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(hash1).not.toBe(hashDifferent);
   });
 
-  it('generates complete heuristic SSB intelligence with domain-specific takeaways', () => {
+  it('generates a lean heuristic summary with no GD/interview content for non-SSB clusters', () => {
+    expect(isSSBRelevant(MOCK_CLUSTER)).toBe(false);
+
     const heuristic = generateHeuristicSSBIntel(MOCK_CLUSTER);
 
     expect(heuristic.whyItMatters).toBeTruthy();
-    expect(heuristic.gdLecturettePoints.length).toBeGreaterThanOrEqual(3);
-    expect(heuristic.potentialInterviewQuestions.length).toBeGreaterThanOrEqual(3);
     expect(heuristic.strategicAngle).toBeTruthy();
     expect(heuristic.defenceTechTakeaway?.platformOrSystem).toBe('Project 75I');
     expect(heuristic.defenceTechTakeaway?.specifications.length).toBeGreaterThanOrEqual(3);
+    expect(heuristic.gdLecturettePoints).toBeUndefined();
+    expect(heuristic.potentialInterviewQuestions).toBeUndefined();
+  });
+
+  it('generates full heuristic SSB intelligence, including GD/interview content, for clusters tagged ssb', () => {
+    const ssbCluster: StoryCluster = { ...MOCK_CLUSTER, categories: [...MOCK_CLUSTER.categories, 'ssb'] };
+    expect(isSSBRelevant(ssbCluster)).toBe(true);
+
+    const heuristic = generateHeuristicSSBIntel(ssbCluster);
+
+    expect(heuristic.gdLecturettePoints?.length).toBeGreaterThanOrEqual(3);
+    expect(heuristic.potentialInterviewQuestions?.length).toBeGreaterThanOrEqual(3);
   });
 
   it('returns null without calling fetch when API key is empty', async () => {
@@ -130,6 +143,39 @@ describe('Summarizer & Content-Hash Memory', () => {
     const intel2 = await summarizeWithGemini(MOCK_CLUSTER, 'mock-api-key', mockFetch as typeof fetch);
     expect(intel2).toEqual(intel1);
     expect(callCount).toBe(1); // No new network calls!
+  });
+
+  it('omits GD/interview-question keys from the Gemini prompt schema for non-SSB clusters', async () => {
+    let capturedBody = '';
+    const capturingFetch = async (_url: string, init?: RequestInit) => {
+      capturedBody = String(init?.body || '');
+      return new Response(JSON.stringify(MOCK_GEMINI_RESPONSE), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    };
+
+    await summarizeWithGemini(MOCK_CLUSTER, 'mock-api-key', capturingFetch as typeof fetch);
+
+    expect(capturedBody).not.toContain('gdLecturettePoints');
+    expect(capturedBody).not.toContain('potentialInterviewQuestions');
+  });
+
+  it('includes GD/interview-question keys in the Gemini prompt schema for ssb-tagged clusters', async () => {
+    const ssbCluster: StoryCluster = { ...MOCK_CLUSTER, id: 'c-ssb-tagged', categories: [...MOCK_CLUSTER.categories, 'ssb'] };
+    let capturedBody = '';
+    const capturingFetch = async (_url: string, init?: RequestInit) => {
+      capturedBody = String(init?.body || '');
+      return new Response(JSON.stringify(MOCK_GEMINI_RESPONSE), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    };
+
+    await summarizeWithGemini(ssbCluster, 'mock-api-key', capturingFetch as typeof fetch);
+
+    expect(capturedBody).toContain('gdLecturettePoints');
+    expect(capturedBody).toContain('potentialInterviewQuestions');
   });
 
   it('handles invalid or unparseable Gemini responses gracefully', async () => {

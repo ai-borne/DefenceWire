@@ -36,10 +36,12 @@ export interface DefenceTechTakeaway {
 
 export interface SSBIntelligence {
   whyItMatters: string;
-  gdLecturettePoints: string[];
-  potentialInterviewQuestions: string[];
   defenceTechTakeaway?: DefenceTechTakeaway;
   strategicAngle?: string;
+  // Populated only for clusters editorially tagged with the 'ssb' category —
+  // rendered as an opt-in insight box, not shown in the default article summary.
+  gdLecturettePoints?: string[];
+  potentialInterviewQuestions?: string[];
 }
 
 export type DomainCategory =

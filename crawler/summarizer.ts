@@ -34,6 +34,10 @@ async function throttleNextRequest(): Promise<void> {
   lastRequestTimestamp = Date.now();
 }
 
+export function isSSBRelevant(cluster: StoryCluster): boolean {
+  return cluster.categories.includes('ssb');
+}
+
 export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligence {
   const primary = cluster.primarySource;
   const entities = cluster.entities;
@@ -53,22 +57,8 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
   const primaryCat = categories[0] || 'strategic';
   const strategicAngle = categoryNotes[primaryCat] || categoryNotes.strategic;
 
-  const gdPoints = [
-    `Self-Reliance vs Rapid Induction: Balancing indigenous timeline with operational urgency for ${primaryEntity}.`,
-    `Impact on Joint Theatre Commands and inter-service operational synergy.`,
-    `Geopolitical ramifications in the Indian Ocean Region (IOR) and Northern/Western borders.`
-  ];
-
-  const interviewQuestions = [
-    `What are the operational capabilities and significance of ${primaryEntity} for India's national security?`,
-    `How does this development align with the Make in India and Atmanirbhar Bharat defence initiative?`,
-    `If you were tasked with tri-service integration for this capability, what primary logistical hurdles would you address?`
-  ];
-
-  return {
+  const intel: SSBIntelligence = {
     whyItMatters: `Directly impacts India's operational readiness and strategic deterrence in the ${primaryCat.toUpperCase()} domain, reflecting contemporary national security doctrine.`,
-    gdLecturettePoints: gdPoints,
-    potentialInterviewQuestions: interviewQuestions,
     strategicAngle,
     defenceTechTakeaway: {
       platformOrSystem: primaryEntity,
@@ -80,6 +70,23 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
       keySignificance: `${primary.sourceName} report highlights critical milestone in operational deployment.`
     }
   };
+
+  // GD/interview-question framing is only useful — and only generated — for clusters
+  // editorially tagged as SSB-relevant; every other article gets the lean summary above.
+  if (isSSBRelevant(cluster)) {
+    intel.gdLecturettePoints = [
+      `Self-Reliance vs Rapid Induction: Balancing indigenous timeline with operational urgency for ${primaryEntity}.`,
+      `Impact on Joint Theatre Commands and inter-service operational synergy.`,
+      `Geopolitical ramifications in the Indian Ocean Region (IOR) and Northern/Western borders.`
+    ];
+    intel.potentialInterviewQuestions = [
+      `What are the operational capabilities and significance of ${primaryEntity} for India's national security?`,
+      `How does this development align with the Make in India and Atmanirbhar Bharat defence initiative?`,
+      `If you were tasked with tri-service integration for this capability, what primary logistical hurdles would you address?`
+    ];
+  }
+
+  return intel;
 }
 
 export async function summarizeWithGemini(
@@ -98,7 +105,13 @@ export async function summarizeWithGemini(
 
   if (!apiKey) return null;
 
-  const prompt = `You are a senior military intelligence analyst for the Indian Armed Forces and SSB (Services Selection Board) interview coach.
+  const ssbFields = isSSBRelevant(cluster)
+    ? `,
+  "gdLecturettePoints": ["Point 1 for Group Discussion / Lecturette", "Point 2", "Point 3"],
+  "potentialInterviewQuestions": ["Question 1 an Interviewing Officer (IO) might ask", "Question 2", "Question 3"]`
+    : '';
+
+  const prompt = `You are a senior defence intelligence analyst covering the Indian Armed Forces.
 Analyze this defence news story:
 Headline: ${cluster.synthesizedHeadline}
 Primary Source: ${cluster.primarySource.sourceName} - ${cluster.primarySource.title}
@@ -108,14 +121,12 @@ Entities: ${cluster.entities.join(', ')}
 Return a strict JSON object with these exact keys:
 {
   "whyItMatters": "1-2 concise sentences on national security significance",
-  "gdLecturettePoints": ["Point 1 for Group Discussion / Lecturette", "Point 2", "Point 3"],
-  "potentialInterviewQuestions": ["Question 1 an Interviewing Officer (IO) might ask", "Question 2", "Question 3"],
   "strategicAngle": "Strategic perspective on deterrence/doctrine",
   "defenceTechTakeaway": {
     "platformOrSystem": "Platform or system name",
     "specifications": ["Spec 1", "Spec 2", "Spec 3"],
     "keySignificance": "Core military significance"
-  }
+  }${ssbFields}
 }`;
 
   try {
@@ -141,13 +152,15 @@ Return a strict JSON object with these exact keys:
     if (!rawText) return null;
 
     const parsed = JSON.parse(rawText) as SSBIntelligence;
-    if (parsed.whyItMatters && Array.isArray(parsed.gdLecturettePoints)) {
+    if (parsed.whyItMatters) {
       const sanitizedIntel: SSBIntelligence = {
         whyItMatters: parsed.whyItMatters,
-        gdLecturettePoints: parsed.gdLecturettePoints,
-        potentialInterviewQuestions: parsed.potentialInterviewQuestions || [],
         strategicAngle: parsed.strategicAngle,
-        defenceTechTakeaway: parsed.defenceTechTakeaway
+        defenceTechTakeaway: parsed.defenceTechTakeaway,
+        ...(Array.isArray(parsed.gdLecturettePoints) ? { gdLecturettePoints: parsed.gdLecturettePoints } : {}),
+        ...(Array.isArray(parsed.potentialInterviewQuestions)
+          ? { potentialInterviewQuestions: parsed.potentialInterviewQuestions }
+          : {})
       };
       cache.set(hash, sanitizedIntel);
       return sanitizedIntel;

@@ -112,7 +112,7 @@ describe('Integration: Feed Rendering & UI Components', () => {
 
     const ssbDrawer = document.querySelector('.dw-ssb-drawer');
     expect(ssbDrawer).not.toBeNull();
-    expect(ssbDrawer?.textContent).toContain(STRINGS.ssb.whyItMattersHeading);
+    expect(ssbDrawer?.textContent).toContain(STRINGS.summary.whyItMattersHeading);
     expect(ssbDrawer?.textContent).toContain(STRINGS.ssb.ctaButton);
 
     const ctaLink = ssbDrawer?.querySelector('a.dw-ssb-cta-btn') as HTMLAnchorElement;

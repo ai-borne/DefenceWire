@@ -26,21 +26,29 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.nav.river).toBe('River of News');
   });
 
-  it('should have all SSB intelligence drawer headings defined', () => {
-    expect(STRINGS.ssb.drawerTitle).toBe('SSB Intelligence Briefing');
-    expect(STRINGS.ssb.whyItMattersHeading).toBeDefined();
+  it('should have all default article summary drawer headings defined', () => {
+    expect(STRINGS.summary.drawerTitle).toBe('Summary');
+    expect(STRINGS.summary.whyItMattersHeading).toBeDefined();
+    expect(STRINGS.summary.techTakeawayHeading).toBeDefined();
+    expect(STRINGS.summary.strategicAngleHeading).toBeDefined();
+  });
+
+  it('should have all opt-in SSB insight box strings defined, reserved for ssb-tagged clusters', () => {
+    expect(STRINGS.ssb.insightBadge).toBeDefined();
     expect(STRINGS.ssb.gdTopicsHeading).toBeDefined();
     expect(STRINGS.ssb.interviewQuestionsHeading).toBeDefined();
-    expect(STRINGS.ssb.techTakeawayHeading).toBeDefined();
     expect(STRINGS.ssb.ctaButton).toBeDefined();
     expect(STRINGS.ssb.ctaLink).toBe('https://ssbmax.ai');
   });
 
-  it('should have all ecosystem sponsor modules configured', () => {
+  it('should have all ecosystem sponsor modules configured with lowercase ai-borne.in branding', () => {
     expect(STRINGS.ecosystem.ssbMaxTitle).toBeDefined();
     expect(STRINGS.ecosystem.ssbMaxUrl).toBe('https://ssbmax.ai');
-    expect(STRINGS.ecosystem.aiBorneTitle).toBeDefined();
+    expect(STRINGS.ecosystem.ssbMaxDestinationId).toBe('SSBMax.ai');
+    expect(STRINGS.ecosystem.aiBorneTitle).toContain('ai-borne.in');
+    expect(STRINGS.ecosystem.aiBorneTitle).not.toContain('AI-Borne.in');
     expect(STRINGS.ecosystem.aiBorneUrl).toBe('https://ai-borne.in');
+    expect(STRINGS.ecosystem.aiBorneDestinationId).toBe('ai-borne.in');
   });
 
   it('should have all editor curation desk strings defined', () => {

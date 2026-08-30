@@ -49,17 +49,23 @@ export const STRINGS = {
     timeAgoDays: 'd ago',
     justNow: 'Just now',
     shareAriaLabel: 'Share this intelligence briefing',
-    expandSSBAriaLabel: 'Expand SSB Intelligence Briefing',
+    expandSummaryAriaLabel: 'Expand article summary',
     sourceTierTooltip: 'Institutional Reliability Tier'
   },
+  summary: {
+    drawerTitle: 'Summary',
+    collapseSuffix: 'Collapse',
+    whyItMattersHeading: 'Why It Matters',
+    techTakeawayHeading: 'Key Specifications',
+    strategicAngleHeading: 'Strategic Angle'
+  },
+  // SSB-specific framing (GD points, interview questions, coaching CTA), rendered only
+  // as an opt-in insight box on clusters editorially tagged with the 'ssb' category.
   ssb: {
-    drawerTitle: 'SSB Intelligence Briefing',
+    insightBadge: 'SSB Insight',
     drawerSubtitle: 'Curated for SSB Aspirants (NDA, CDS, AFCAT, INET, SSB Boards)',
-    whyItMattersHeading: 'Why This Matters for SSB',
     gdTopicsHeading: 'Group Discussion (GD) & Lecturette Angles',
     interviewQuestionsHeading: 'Potential IO / Interview Questions',
-    techTakeawayHeading: 'Defence Tech & Specifications',
-    strategicAngleHeading: 'Strategic & National Security Impact',
     ctaHeading: 'Deepen your SSB preparation with automated mock interviews:',
     ctaButton: 'Practice on SSBMax.ai →',
     ctaLink: 'https://ssbmax.ai'
@@ -69,11 +75,13 @@ export const STRINGS = {
     ssbMaxTitle: 'SSBMax.ai — AI SSB Interview Coach',
     ssbMaxDesc: 'Practice OIR, PPDT, Mock Interviews & GD with India’s 1st Defence AI mentor.',
     ssbMaxCta: 'Visit SSBMax.ai',
-    aiBorneTitle: 'AI-Borne.in — Sovereign AI & Defence Tech',
+    ssbMaxUrl: 'https://ssbmax.ai',
+    ssbMaxDestinationId: 'SSBMax.ai',
+    aiBorneTitle: 'ai-borne.in — Sovereign AI & Defence Tech',
     aiBorneDesc: 'Deep research into autonomous systems, counter-UAS, and sovereign defence computing.',
-    aiBorneCta: 'Explore AI-Borne.in',
+    aiBorneCta: 'Explore ai-borne.in',
     aiBorneUrl: 'https://ai-borne.in',
-    ssbMaxUrl: 'https://ssbmax.ai'
+    aiBorneDestinationId: 'ai-borne.in'
   },
   editor: {
     dashboardTitle: 'Editorial Curation Control',

@@ -1,6 +1,6 @@
 /**
  * Ecosystem Rail Component for DefenceWire.in
- * Techmeme-style minimalist text modules for SSBMax.ai and AI-Borne.in.
+ * Techmeme-style minimalist text modules for SSBMax.ai and ai-borne.in.
  * Hard limit: <= 300 LOC.
  */
 
@@ -45,7 +45,7 @@ export function renderEcosystemRail(): HTMLElement {
   ssbLink.addEventListener('click', () => {
     trackOutboundClick({
       url: ssbUrl,
-      destination: 'SSBMax.ai',
+      destination: STRINGS.ecosystem.ssbMaxDestinationId,
       medium: STRINGS.funnel.utmMediumEcosystem,
       campaign: 'sidebar'
     });
@@ -56,7 +56,7 @@ export function renderEcosystemRail(): HTMLElement {
   ssbModule.appendChild(ssbLink);
   container.appendChild(ssbModule);
 
-  // 2. AI-Borne.in Module
+  // 2. ai-borne.in Module
   const aiModule = document.createElement('div');
   aiModule.className = 'dw-ecosystem-card';
 
@@ -83,7 +83,7 @@ export function renderEcosystemRail(): HTMLElement {
   aiLink.addEventListener('click', () => {
     trackOutboundClick({
       url: aiUrl,
-      destination: 'AI-Borne.in',
+      destination: STRINGS.ecosystem.aiBorneDestinationId,
       medium: STRINGS.funnel.utmMediumEcosystem,
       campaign: 'sidebar'
     });

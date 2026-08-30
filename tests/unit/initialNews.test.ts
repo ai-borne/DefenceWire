@@ -47,8 +47,8 @@ describe('Initial Datasets Integrity', () => {
       // Check SSB intel if present
       if (cluster.ssbIntel) {
         expect(cluster.ssbIntel.whyItMatters.length).toBeGreaterThan(10);
-        expect(cluster.ssbIntel.gdLecturettePoints.length).toBeGreaterThanOrEqual(1);
-        expect(cluster.ssbIntel.potentialInterviewQuestions.length).toBeGreaterThanOrEqual(1);
+        expect(cluster.ssbIntel.gdLecturettePoints?.length).toBeGreaterThanOrEqual(1);
+        expect(cluster.ssbIntel.potentialInterviewQuestions?.length).toBeGreaterThanOrEqual(1);
       }
     }
   });

@@ -156,10 +156,10 @@ export function renderStoryCluster(
     toggleBtn.type = 'button';
     toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     toggleBtn.setAttribute('aria-controls', `ssb-drawer-${cluster.id}`);
-    toggleBtn.setAttribute('aria-label', STRINGS.story.expandSSBAriaLabel);
+    toggleBtn.setAttribute('aria-label', STRINGS.story.expandSummaryAriaLabel);
     toggleBtn.textContent = isExpanded
-      ? `▲ ${STRINGS.ssb.drawerTitle} (Collapse)`
-      : `🎯 ${STRINGS.ssb.drawerTitle} (${STRINGS.nav.ssb})`;
+      ? `▲ ${STRINGS.summary.drawerTitle} (${STRINGS.summary.collapseSuffix})`
+      : `📄 ${STRINGS.summary.drawerTitle}`;
 
     toggleBtn.addEventListener('click', () => {
       newsVm.toggleSSBDrawer(cluster.id);

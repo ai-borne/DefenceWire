@@ -96,7 +96,7 @@ export class NewsViewModel {
 
     if (cluster.ssbIntel) {
       if (cluster.ssbIntel.whyItMatters.toLowerCase().includes(queryLower)) return true;
-      if (cluster.ssbIntel.gdLecturettePoints.some((p) => p.toLowerCase().includes(queryLower))) return true;
+      if (cluster.ssbIntel.gdLecturettePoints?.some((p) => p.toLowerCase().includes(queryLower))) return true;
       if (cluster.ssbIntel.defenceTechTakeaway?.platformOrSystem.toLowerCase().includes(queryLower)) return true;
     }
 

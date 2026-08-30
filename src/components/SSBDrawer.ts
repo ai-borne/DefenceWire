@@ -1,6 +1,8 @@
 /**
- * SSB Intelligence Drawer Component for DefenceWire.in
- * Expandable briefing card for SSB aspirants with GD points, interview questions, and tech specs.
+ * Article Summary Drawer for DefenceWire.in
+ * Expandable neutral summary (why it matters, tech snapshot, strategic angle) for every
+ * article. Clusters editorially tagged 'ssb' additionally surface a boxed SSB Insight
+ * sub-section (GD points, interview questions, SSBMax.ai CTA) — never shown by default.
  * Hard limit: <= 300 LOC.
  */
 
@@ -9,161 +11,118 @@ import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { buildFunnelUrl, trackOutboundClick } from '../services/funnelService.js';
 
+function appendTextSection(parent: HTMLElement, heading: string, text: string): void {
+  const section = document.createElement('div');
+  section.className = 'dw-ssb-section';
 
-export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTMLElement {
-  const drawer = document.createElement('section');
-  drawer.className = 'dw-ssb-drawer';
-  drawer.setAttribute('aria-label', STRINGS.ssb.drawerTitle);
+  const h4 = document.createElement('h4');
+  h4.className = 'dw-ssb-section-title';
+  h4.textContent = heading;
 
-  // 1. Drawer Header
-  const headerEl = document.createElement('div');
-  headerEl.className = 'dw-ssb-section';
+  const p = document.createElement('p');
+  p.style.fontSize = '0.82rem';
+  p.style.lineHeight = '1.4';
+  p.textContent = sanitizePlainText(text);
 
-  const titleEl = document.createElement('h3');
-  titleEl.className = 'dw-ssb-section-title';
-  titleEl.textContent = `🎯 ${STRINGS.ssb.drawerTitle}`;
+  section.appendChild(h4);
+  section.appendChild(p);
+  parent.appendChild(section);
+}
+
+function appendListSection(parent: HTMLElement, heading: string, items: string[]): void {
+  const section = document.createElement('div');
+  section.className = 'dw-ssb-section';
+
+  const h4 = document.createElement('h4');
+  h4.className = 'dw-ssb-section-title';
+  h4.textContent = heading;
+
+  const ul = document.createElement('ul');
+  ul.className = 'dw-ssb-list';
+
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.textContent = sanitizePlainText(item);
+    ul.appendChild(li);
+  }
+
+  section.appendChild(h4);
+  section.appendChild(ul);
+  parent.appendChild(section);
+}
+
+function appendTechTakeaway(parent: HTMLElement, tech: NonNullable<SSBIntelligence['defenceTechTakeaway']>): void {
+  const section = document.createElement('div');
+  section.className = 'dw-ssb-section';
+
+  const h4 = document.createElement('h4');
+  h4.className = 'dw-ssb-section-title';
+  h4.textContent = STRINGS.summary.techTakeawayHeading;
+
+  const box = document.createElement('div');
+  box.className = 'dw-ssb-tech-box';
+
+  const nameP = document.createElement('p');
+  nameP.style.fontWeight = '700';
+  nameP.style.marginBottom = '4px';
+  nameP.textContent = `${sanitizePlainText(tech.platformOrSystem)} ${
+    tech.indigenousContentPercentage ? `(${tech.indigenousContentPercentage}% Indigenous)` : ''
+  }`;
+
+  box.appendChild(nameP);
+
+  if (tech.specifications && tech.specifications.length > 0) {
+    const specUl = document.createElement('ul');
+    specUl.style.paddingLeft = '14px';
+    specUl.style.marginBottom = '4px';
+
+    for (const spec of tech.specifications) {
+      const specLi = document.createElement('li');
+      specLi.textContent = sanitizePlainText(spec);
+      specUl.appendChild(specLi);
+    }
+    box.appendChild(specUl);
+  }
+
+  if (tech.keySignificance) {
+    const sigP = document.createElement('p');
+    sigP.style.fontSize = '0.76rem';
+    sigP.style.color = 'var(--dw-text-secondary)';
+    sigP.textContent = sanitizePlainText(tech.keySignificance);
+    box.appendChild(sigP);
+  }
+
+  section.appendChild(h4);
+  section.appendChild(box);
+  parent.appendChild(section);
+}
+
+function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, clusterId: string): void {
+  const gdPoints = intel.gdLecturettePoints;
+  const interviewQuestions = intel.potentialInterviewQuestions;
+  if (!gdPoints || gdPoints.length === 0) return;
+
+  const box = document.createElement('div');
+  box.className = 'dw-ssb-insight-box';
+
+  const badge = document.createElement('span');
+  badge.className = 'dw-ssb-insight-badge';
+  badge.textContent = `🎯 ${STRINGS.ssb.insightBadge}`;
+  box.appendChild(badge);
 
   const subtitleEl = document.createElement('p');
   subtitleEl.style.fontSize = '0.72rem';
   subtitleEl.style.color = 'var(--dw-text-muted)';
   subtitleEl.textContent = STRINGS.ssb.drawerSubtitle;
+  box.appendChild(subtitleEl);
 
-  headerEl.appendChild(titleEl);
-  headerEl.appendChild(subtitleEl);
-  drawer.appendChild(headerEl);
+  appendListSection(box, STRINGS.ssb.gdTopicsHeading, gdPoints);
 
-  // 2. Why it matters
-  if (intel.whyItMatters) {
-    const section = document.createElement('div');
-    section.className = 'dw-ssb-section';
-
-    const h4 = document.createElement('h4');
-    h4.className = 'dw-ssb-section-title';
-    h4.textContent = STRINGS.ssb.whyItMattersHeading;
-
-    const p = document.createElement('p');
-    p.style.fontSize = '0.82rem';
-    p.style.lineHeight = '1.4';
-    p.textContent = sanitizePlainText(intel.whyItMatters);
-
-    section.appendChild(h4);
-    section.appendChild(p);
-    drawer.appendChild(section);
+  if (interviewQuestions && interviewQuestions.length > 0) {
+    appendListSection(box, STRINGS.ssb.interviewQuestionsHeading, interviewQuestions);
   }
 
-  // 3. GD & Lecturette Points
-  if (intel.gdLecturettePoints && intel.gdLecturettePoints.length > 0) {
-    const section = document.createElement('div');
-    section.className = 'dw-ssb-section';
-
-    const h4 = document.createElement('h4');
-    h4.className = 'dw-ssb-section-title';
-    h4.textContent = STRINGS.ssb.gdTopicsHeading;
-
-    const ul = document.createElement('ul');
-    ul.className = 'dw-ssb-list';
-
-    for (const pt of intel.gdLecturettePoints) {
-      const li = document.createElement('li');
-      li.textContent = sanitizePlainText(pt);
-      ul.appendChild(li);
-    }
-
-    section.appendChild(h4);
-    section.appendChild(ul);
-    drawer.appendChild(section);
-  }
-
-  // 4. Interview Questions
-  if (intel.potentialInterviewQuestions && intel.potentialInterviewQuestions.length > 0) {
-    const section = document.createElement('div');
-    section.className = 'dw-ssb-section';
-
-    const h4 = document.createElement('h4');
-    h4.className = 'dw-ssb-section-title';
-    h4.textContent = STRINGS.ssb.interviewQuestionsHeading;
-
-    const ul = document.createElement('ul');
-    ul.className = 'dw-ssb-list';
-
-    for (const q of intel.potentialInterviewQuestions) {
-      const li = document.createElement('li');
-      li.textContent = sanitizePlainText(q);
-      ul.appendChild(li);
-    }
-
-    section.appendChild(h4);
-    section.appendChild(ul);
-    drawer.appendChild(section);
-  }
-
-  // 5. Tech Takeaways
-  if (intel.defenceTechTakeaway) {
-    const tech = intel.defenceTechTakeaway;
-    const section = document.createElement('div');
-    section.className = 'dw-ssb-section';
-
-    const h4 = document.createElement('h4');
-    h4.className = 'dw-ssb-section-title';
-    h4.textContent = STRINGS.ssb.techTakeawayHeading;
-
-    const box = document.createElement('div');
-    box.className = 'dw-ssb-tech-box';
-
-    const nameP = document.createElement('p');
-    nameP.style.fontWeight = '700';
-    nameP.style.marginBottom = '4px';
-    nameP.textContent = `${sanitizePlainText(tech.platformOrSystem)} ${
-      tech.indigenousContentPercentage ? `(${tech.indigenousContentPercentage}% Indigenous)` : ''
-    }`;
-
-    box.appendChild(nameP);
-
-    if (tech.specifications && tech.specifications.length > 0) {
-      const specUl = document.createElement('ul');
-      specUl.style.paddingLeft = '14px';
-      specUl.style.marginBottom = '4px';
-
-      for (const spec of tech.specifications) {
-        const specLi = document.createElement('li');
-        specLi.textContent = sanitizePlainText(spec);
-        specUl.appendChild(specLi);
-      }
-      box.appendChild(specUl);
-    }
-
-    if (tech.keySignificance) {
-      const sigP = document.createElement('p');
-      sigP.style.fontSize = '0.76rem';
-      sigP.style.color = 'var(--dw-text-secondary)';
-      sigP.textContent = sanitizePlainText(tech.keySignificance);
-      box.appendChild(sigP);
-    }
-
-    section.appendChild(h4);
-    section.appendChild(box);
-    drawer.appendChild(section);
-  }
-
-  // 6. Strategic Angle
-  if (intel.strategicAngle) {
-    const section = document.createElement('div');
-    section.className = 'dw-ssb-section';
-
-    const h4 = document.createElement('h4');
-    h4.className = 'dw-ssb-section-title';
-    h4.textContent = STRINGS.ssb.strategicAngleHeading;
-
-    const p = document.createElement('p');
-    p.style.fontSize = '0.82rem';
-    p.textContent = sanitizePlainText(intel.strategicAngle);
-
-    section.appendChild(h4);
-    section.appendChild(p);
-    drawer.appendChild(section);
-  }
-
-  // 7. Funnel CTA to SSBMax.ai
+  // Funnel CTA to SSBMax.ai — only offered alongside genuinely SSB-relevant content.
   const ctaBox = document.createElement('div');
   ctaBox.className = 'dw-ssb-cta';
 
@@ -187,7 +146,7 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTML
   ctaLink.addEventListener('click', () => {
     trackOutboundClick({
       url: ctaUrl,
-      destination: 'SSBMax.ai',
+      destination: STRINGS.ecosystem.ssbMaxDestinationId,
       medium: STRINGS.funnel.utmMediumSSB,
       campaign: clusterId
     });
@@ -195,8 +154,45 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTML
 
   ctaBox.appendChild(ctaText);
   ctaBox.appendChild(ctaLink);
-  drawer.appendChild(ctaBox);
+  box.appendChild(ctaBox);
+
+  parent.appendChild(box);
+}
+
+export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTMLElement {
+  const drawer = document.createElement('section');
+  drawer.className = 'dw-ssb-drawer';
+  drawer.setAttribute('aria-label', STRINGS.summary.drawerTitle);
+
+  // 1. Drawer Header
+  const headerEl = document.createElement('div');
+  headerEl.className = 'dw-ssb-section';
+
+  const titleEl = document.createElement('h3');
+  titleEl.className = 'dw-ssb-section-title';
+  titleEl.textContent = STRINGS.summary.drawerTitle;
+
+  headerEl.appendChild(titleEl);
+  drawer.appendChild(headerEl);
+
+  // 2. Why it matters
+  if (intel.whyItMatters) {
+    appendTextSection(drawer, STRINGS.summary.whyItMattersHeading, intel.whyItMatters);
+  }
+
+  // 3. Tech Takeaway
+  if (intel.defenceTechTakeaway) {
+    appendTechTakeaway(drawer, intel.defenceTechTakeaway);
+  }
+
+  // 4. Strategic Angle
+  if (intel.strategicAngle) {
+    appendTextSection(drawer, STRINGS.summary.strategicAngleHeading, intel.strategicAngle);
+  }
+
+  // 5. Opt-in SSB Insight box (GD points, interview questions, SSBMax.ai CTA) —
+  //    present only when this cluster was editorially tagged as SSB-relevant.
+  appendSSBInsightBox(drawer, intel, clusterId);
 
   return drawer;
 }
-

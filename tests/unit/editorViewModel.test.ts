@@ -126,7 +126,7 @@ describe('EditorViewModel', () => {
 
     const cluster = editorVm.getClusterById('cluster-1');
     expect(cluster?.ssbIntel?.whyItMatters).toBe(ssbBrief.whyItMatters);
-    expect(cluster?.ssbIntel?.gdLecturettePoints.length).toBe(2);
+    expect(cluster?.ssbIntel?.gdLecturettePoints?.length).toBe(2);
   });
 
   it('toggles ignore and filters ignored clusters from public feed', () => {
