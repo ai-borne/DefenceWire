@@ -122,18 +122,27 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
   });
 
-  it('should filter clusters dynamically when searching', () => {
+  it('should toggle Curator Desk modal when header button is clicked', () => {
     initializeApp();
 
-    const searchInput = document.querySelector('input.dw-search-input') as HTMLInputElement;
-    expect(searchInput).not.toBeNull();
-
-    searchInput.value = 'Zorawar';
-    searchInput.dispatchEvent(new Event('input'));
-
-    const headlines = Array.from(document.querySelectorAll('.dw-headline')).map(
-      (h) => h.textContent
+    const curatorBtn = Array.from(document.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes(STRINGS.editor.openDashboard)
     );
-    expect(headlines.every((h) => h?.toLowerCase().includes('zorawar') || h?.toLowerCase().includes('tank'))).toBe(true);
+    expect(curatorBtn).toBeDefined();
+
+    // Open Curator Desk
+    curatorBtn?.click();
+
+    const overlay = document.querySelector('.dw-editor-modal-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay?.textContent).toContain(STRINGS.editor.dashboardTitle);
+
+    // Close Curator Desk
+    const closeBtn = overlay?.querySelector('.dw-editor-close') as HTMLButtonElement | null;
+    expect(closeBtn).not.toBeNull();
+    closeBtn?.click();
+
+    expect(document.querySelector('.dw-editor-modal-overlay')).toBeNull();
   });
 });
+
