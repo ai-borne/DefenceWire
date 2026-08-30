@@ -108,6 +108,19 @@ export const STRINGS = {
     editorialPolicy: 'Editorial Guidelines & Source Tiers',
     contact: 'Contact & Press Submissions'
   },
+  search: {
+    placeholder: 'Search intelligence, systems, entities (e.g. Tejas, LAC, DRDO)...',
+    ariaLabel: 'Search defence news and intelligence',
+    clearAriaLabel: 'Clear search query',
+    resultsFound: 'briefings matching query',
+    noResults: 'No intelligence briefings matching query.'
+  },
+  tiers: {
+    tier1: 'Official / MoD',
+    tier2: 'National Wire',
+    tier3: 'Specialized Defence',
+    tier4: 'Think Tank / OSINT'
+  },
   errors: {
     feedLoadFailed: 'Unable to retrieve live feed. Loading cached intelligence...',
     invalidUrl: 'Invalid or unsafe external URL detected.',

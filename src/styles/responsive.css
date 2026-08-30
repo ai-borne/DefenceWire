@@ -1,0 +1,108 @@
+/* Responsive Layout & Mobile-First Enhancements for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+@media (max-width: 860px) {
+  .dw-container {
+    padding: 12px 10px;
+  }
+
+  .dw-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .dw-header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .dw-brand-row {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .dw-header-controls {
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .dw-search-box {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dw-headline--lead {
+    font-size: 1.12rem;
+  }
+
+  .dw-headline {
+    font-size: 0.98rem;
+  }
+
+  .dw-nav-tab {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .dw-related-box {
+    margin-left: 8px;
+  }
+
+  .dw-ssb-drawer {
+    padding: 10px;
+  }
+
+  .dw-ssb-cta {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .dw-ssb-cta-btn {
+    text-align: center;
+    width: 100%;
+    padding: 8px 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dw-layout-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 28px;
+  }
+}
+
+/* Accessibility & Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--dw-text-accent);
+  outline-offset: 2px;
+}
+
+/* High-Contrast Print Stylesheet */
+@media print {
+  .dw-header,
+  .dw-nav,
+  .dw-sidebar-rail,
+  .dw-theme-btn,
+  .dw-ssb-toggle-btn,
+  .dw-footer {
+    display: none !important;
+  }
+
+  .dw-layout-grid {
+    display: block;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  a {
+    text-decoration: underline !important;
+    color: #000000 !important;
+  }
+}

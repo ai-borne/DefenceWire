@@ -1,0 +1,203 @@
+/* Layout & Navigation Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+.dw-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* 2-Column Grid Layout */
+.dw-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.dw-main-feed {
+  min-width: 0;
+}
+
+.dw-sidebar-rail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Header Component */
+.dw-header {
+  background-color: var(--dw-bg-canvas);
+  border-bottom: 1px solid var(--dw-border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.dw-header-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dw-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dw-brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--dw-text-primary);
+  text-decoration: none;
+}
+
+.dw-brand-accent {
+  color: var(--dw-text-accent);
+}
+
+.dw-inst-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 2px 6px;
+  background-color: var(--dw-badge-bg);
+  color: var(--dw-badge-text);
+  border-radius: var(--dw-radius-sm);
+  text-transform: uppercase;
+}
+
+.dw-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dw-live-clock {
+  font-size: 0.75rem;
+  font-family: var(--dw-font-mono);
+  color: var(--dw-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.dw-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #1E7E34;
+  display: inline-block;
+  animation: dwPulse 2s infinite ease-in-out;
+}
+
+@keyframes dwPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.dw-search-box {
+  position: relative;
+  width: 260px;
+}
+
+.dw-search-input {
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  background-color: var(--dw-bg-card);
+  color: var(--dw-text-primary);
+  outline: none;
+}
+
+.dw-search-input:focus {
+  border-color: var(--dw-text-accent);
+}
+
+.dw-theme-btn {
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-primary);
+  color: var(--dw-text-primary);
+  padding: 4px 8px;
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Navigation Bar */
+.dw-nav {
+  background-color: var(--dw-bg-secondary);
+  border-bottom: 1px solid var(--dw-border-primary);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dw-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.dw-nav-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  gap: 2px;
+}
+
+.dw-nav-tab {
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--dw-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.1s ease;
+}
+
+.dw-nav-tab:hover {
+  color: var(--dw-text-primary);
+}
+
+.dw-nav-tab.active {
+  color: var(--dw-text-accent);
+  border-bottom-color: var(--dw-text-accent);
+  background-color: var(--dw-bg-canvas);
+}
+
+/* Footer */
+.dw-footer {
+  border-top: 1px solid var(--dw-border-primary);
+  background-color: var(--dw-bg-secondary);
+  padding: 24px 16px;
+  margin-top: 36px;
+}
+
+.dw-footer-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dw-footer-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,267 @@
+/* Feed & Story Cluster Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+/* Story Clusters */
+.dw-cluster {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--dw-border-secondary);
+}
+
+.dw-cluster--lead {
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--dw-border-primary);
+}
+
+.dw-lead-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--dw-text-accent);
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.dw-headline {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: var(--dw-leading-tight);
+  margin-bottom: 4px;
+}
+
+.dw-headline--lead {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.dw-headline a {
+  color: var(--dw-text-primary);
+}
+
+.dw-headline a:hover {
+  color: var(--dw-link);
+}
+
+.dw-source-line {
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.dw-source-name {
+  font-weight: 700;
+  color: var(--dw-text-primary);
+}
+
+.dw-tier-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--dw-radius-sm);
+  text-transform: uppercase;
+}
+
+.dw-tier-1 { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
+.dw-tier-2 { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
+.dw-tier-3 { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
+.dw-tier-4 { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
+
+.dw-snippet {
+  font-size: 0.84rem;
+  color: var(--dw-text-secondary);
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+.dw-related-box {
+  margin-top: 8px;
+  margin-left: 14px;
+}
+
+.dw-related-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--dw-text-muted);
+  margin-bottom: 4px;
+}
+
+.dw-related-list {
+  list-style-type: square;
+  padding-left: 14px;
+  font-size: 0.82rem;
+}
+
+.dw-related-item {
+  margin-bottom: 4px;
+}
+
+.dw-discussions {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: var(--dw-bg-secondary);
+  border-left: 3px solid var(--dw-text-accent);
+  border-radius: var(--dw-radius-sm);
+}
+
+.dw-discussion-quote {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--dw-text-primary);
+  margin-bottom: 4px;
+}
+
+.dw-discussion-meta {
+  font-size: 0.72rem;
+  color: var(--dw-text-muted);
+  font-weight: 600;
+}
+
+/* SSB Intelligence Drawer */
+.dw-ssb-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--dw-text-accent);
+  background-color: rgba(179, 25, 25, 0.08);
+  border: 1px solid rgba(179, 25, 25, 0.25);
+  padding: 4px 10px;
+  border-radius: var(--dw-radius-sm);
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dw-ssb-toggle-btn:hover {
+  background-color: rgba(179, 25, 25, 0.16);
+}
+
+.dw-ssb-drawer {
+  margin-top: 10px;
+  padding: 14px;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-left: 3px solid var(--dw-text-accent);
+  border-radius: var(--dw-radius-md);
+}
+
+.dw-ssb-section {
+  margin-bottom: 12px;
+}
+
+.dw-ssb-section-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dw-text-accent);
+  margin-bottom: 4px;
+}
+
+.dw-ssb-list {
+  padding-left: 18px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.dw-ssb-tech-box {
+  background-color: var(--dw-bg-secondary);
+  padding: 8px 12px;
+  border-radius: var(--dw-radius-sm);
+  border: 1px solid var(--dw-border-secondary);
+  font-size: 0.8rem;
+}
+
+.dw-ssb-cta {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--dw-border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dw-ssb-cta-btn {
+  background-color: var(--dw-text-accent);
+  color: #FFFFFF !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--dw-radius-sm);
+  text-decoration: none !important;
+}
+
+/* Sidebar Rails */
+.dw-rail-card {
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  padding: 12px;
+}
+
+.dw-rail-header {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dw-text-primary);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--dw-border-secondary);
+  margin-bottom: 8px;
+}
+
+.dw-river-item {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--dw-border-secondary);
+  font-size: 0.8rem;
+}
+
+.dw-river-item:last-child {
+  border-bottom: none;
+}
+
+.dw-river-meta {
+  font-size: 0.7rem;
+  color: var(--dw-text-muted);
+  font-family: var(--dw-font-mono);
+  margin-top: 2px;
+}
+
+/* Ecosystem Modules */
+.dw-ecosystem-card {
+  padding: 10px;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  margin-bottom: 8px;
+}
+
+.dw-ecosystem-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+}
+
+.dw-ecosystem-desc {
+  font-size: 0.76rem;
+  color: var(--dw-text-secondary);
+  margin: 4px 0 6px 0;
+  line-height: 1.35;
+}
+
+.dw-ecosystem-link {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--dw-text-accent);
+}
