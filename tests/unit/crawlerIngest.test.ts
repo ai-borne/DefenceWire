@@ -55,13 +55,10 @@ const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
-const MOCK_GEMINI_SUCCESS = {
-  candidates: [{ content: { parts: [{ text: JSON.stringify({
-    whyItMatters: 'Gemini-generated brief.',
-    strategicAngle: 'Gemini strategic angle.',
-    defenceTechTakeaway: { platformOrSystem: 'Test Platform', specifications: ['S1', 'S2', 'S3'], keySignificance: 'Key significance.' }
-  }) }] } }]
-};
+const MOCK_GEMINI_SUCCESS = { candidates: [{ content: { parts: [{ text: JSON.stringify({
+  whyItMatters: 'Gemini-generated brief.', strategicAngle: 'Gemini strategic angle.',
+  defenceTechTakeaway: { platformOrSystem: 'Test Platform', specifications: ['S1', 'S2', 'S3'], keySignificance: 'Key significance.' }
+}) }] } }] };
 
 // 13 distinct defence platforms so clustering keeps each as its own story, exceeding the old hardcoded enrichment cap of 12.
 const DISTINCT_DEFENCE_HEADLINES = [
@@ -98,6 +95,7 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
       return new Response(feedXml, { status: 200 });
     };
 
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.useFakeTimers();
     const resultPromise = runIngestionPipeline({
       feeds: [MOCK_TIER1_FEED],
@@ -116,6 +114,9 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     for (const cluster of result.clusters) {
       expect(cluster.ssbIntel?.whyItMatters).toBe('Gemini-generated brief.');
     }
+    // The per-run enrichment summary log must reflect the real Gemini/heuristic split.
+    expect(logSpy).toHaveBeenCalledWith(`[SSB ENRICHMENT] ${result.clusters.length} via Gemini, 0 heuristic fallback, 0 preserved from prior run`);
+    logSpy.mockRestore();
   });
 
   it('enforces whole-word regex matching without false positive substring matches', () => {

@@ -216,13 +216,27 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   // requests (MIN_REQUEST_INTERVAL_MS) to stay under Gemini's free-tier 15 RPM limit,
   // so every cluster can attempt a real Gemini summary; any failure/rate-limit falls
   // back to the free, local heuristic so every cluster still gets a Summary badge.
+  let geminiCount = 0;
+  let heuristicCount = 0;
+  let preservedCount = 0;
   for (const cluster of lockedProtectedClusters) {
     if (!cluster) continue;
-    if (!cluster.ssbIntel) {
-      const geminiIntel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
-      cluster.ssbIntel = geminiIntel ?? generateHeuristicSSBIntel(cluster);
+    if (cluster.ssbIntel) {
+      preservedCount++;
+      continue;
+    }
+    const geminiIntel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
+    if (geminiIntel) {
+      geminiCount++;
+      cluster.ssbIntel = geminiIntel;
+    } else {
+      heuristicCount++;
+      cluster.ssbIntel = generateHeuristicSSBIntel(cluster);
     }
   }
+  console.log(
+    `[SSB ENRICHMENT] ${geminiCount} via Gemini, ${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`
+  );
 
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
