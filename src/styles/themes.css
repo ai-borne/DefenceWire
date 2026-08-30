@@ -1,0 +1,103 @@
+/* Centralized CSS Variables & Theme Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+:root {
+  /* Default: Light Newsprint Theme */
+  --dw-bg-canvas: #FBFBF9;
+  --dw-bg-card: #FFFFFF;
+  --dw-bg-secondary: #F2F2EE;
+  --dw-bg-hover: #EBEBE6;
+  --dw-border-primary: #D8D8CE;
+  --dw-border-secondary: #E8E8E0;
+  --dw-text-primary: #121212;
+  --dw-text-secondary: #555555;
+  --dw-text-muted: #777777;
+  --dw-text-accent: #B31919;
+  --dw-link: #0F5499;
+  --dw-link-visited: #6B4086;
+  --dw-badge-bg: #ECECE5;
+  --dw-badge-text: #2B2B28;
+
+  /* Typography & Density Tokens */
+  --dw-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --dw-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --dw-font-serif: "Georgia", "Times New Roman", serif;
+  
+  --dw-leading-tight: 1.25;
+  --dw-leading-normal: 1.45;
+  
+  --dw-radius-sm: 2px;
+  --dw-radius-md: 4px;
+}
+
+[data-theme="dark"] {
+  /* Tactical Slate / Military Command Dark Theme */
+  --dw-bg-canvas: #0C0F12;
+  --dw-bg-card: #13181E;
+  --dw-bg-secondary: #192028;
+  --dw-bg-hover: #202A35;
+  --dw-border-primary: #2B3542;
+  --dw-border-secondary: #1E252E;
+  --dw-text-primary: #E8ECEF;
+  --dw-text-secondary: #A0ACB9;
+  --dw-text-muted: #6C7A89;
+  --dw-text-accent: #E55353;
+  --dw-link: #58A6FF;
+  --dw-link-visited: #BC8CFF;
+  --dw-badge-bg: #1D2733;
+  --dw-badge-text: #89D185;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --dw-bg-canvas: #0C0F12;
+    --dw-bg-card: #13181E;
+    --dw-bg-secondary: #192028;
+    --dw-bg-hover: #202A35;
+    --dw-border-primary: #2B3542;
+    --dw-border-secondary: #1E252E;
+    --dw-text-primary: #E8ECEF;
+    --dw-text-secondary: #A0ACB9;
+    --dw-text-muted: #6C7A89;
+    --dw-text-accent: #E55353;
+    --dw-link: #58A6FF;
+    --dw-link-visited: #BC8CFF;
+    --dw-badge-bg: #1D2733;
+    --dw-badge-text: #89D185;
+  }
+}
+
+/* Global Reset & Base Typography */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--dw-bg-canvas);
+  color: var(--dw-text-primary);
+  font-family: var(--dw-font-sans);
+  font-size: 13.5px;
+  line-height: var(--dw-leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--dw-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: var(--dw-link-visited);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
