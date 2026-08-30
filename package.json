@@ -8,8 +8,12 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "crawl": "vite-node --script crawler/ingest.ts",
+    "typecheck": "tsc --noEmit",
+    "check:loc": "node scripts/check-loc.mjs",
+    "check": "npm run typecheck && npm run check:loc && npm test && npm run build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "node scripts/setup-git-hooks.mjs"
   },
   "dependencies": {
     "dompurify": "^3.2.4"
