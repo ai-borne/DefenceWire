@@ -127,6 +127,19 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(fetchCalled).toBe(false);
   });
 
+  it('calls a current, non-deprecated Gemini model (gemini-2.0-flash was retired with a 404)', async () => {
+    let calledUrl = '';
+    const capturingFetch = async (url: string) => {
+      calledUrl = url;
+      return new Response(JSON.stringify(MOCK_GEMINI_RESPONSE), { status: 200 });
+    };
+
+    await summarizeWithGemini(MOCK_CLUSTER, 'mock-api-key', capturingFetch as typeof fetch);
+
+    expect(calledUrl).not.toContain('gemini-2.0-flash');
+    expect(calledUrl).toContain('models/gemini-');
+  });
+
   it('fetches from Gemini API on cache miss and stores in content-hash memory', async () => {
     let callCount = 0;
     const mockFetch = async () => {

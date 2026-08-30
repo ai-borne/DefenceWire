@@ -140,7 +140,7 @@ Return a strict JSON object with these exact keys:
     // 2. Sequential Throttling
     await throttleNextRequest();
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await fetchFn(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
