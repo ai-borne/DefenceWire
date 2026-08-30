@@ -150,7 +150,11 @@ Return a strict JSON object with these exact keys:
       })
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('[GEMINI ERROR]', `status=${response.status} body=${bodyText.slice(0, 200)}`);
+      return null;
+    }
 
     const data = (await response.json()) as {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
@@ -172,8 +176,8 @@ Return a strict JSON object with these exact keys:
       cache.set(hash, sanitizedIntel);
       return sanitizedIntel;
     }
-  } catch {
-    // Graceful fallback to heuristic
+  } catch (err) {
+    console.error('[GEMINI ERROR]', err instanceof Error ? err.message : String(err));
   }
 
   return null;

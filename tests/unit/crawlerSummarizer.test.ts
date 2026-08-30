@@ -228,4 +228,15 @@ describe('Summarizer & Content-Hash Memory', () => {
     const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', invalidJsonFetch as typeof fetch);
     expect(result).toBeNull();
   });
+
+  it('logs the HTTP status and body when Gemini rejects a request, instead of failing silently', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const rejectingFetch = async () => new Response('API key not valid', { status: 400 });
+
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'bad-key', rejectingFetch as typeof fetch);
+
+    expect(result).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('[GEMINI ERROR]'), expect.stringContaining('400'));
+    errorSpy.mockRestore();
+  });
 });
