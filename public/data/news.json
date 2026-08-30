@@ -1,10 +1,10 @@
 {
   "clusters": [
     {
-      "id": "cluster-1788087787369-1-feed-pib-1788087787368-1",
+      "id": "cluster-1788087850846-1-feed-pib-1788087850843-1",
       "synthesizedHeadline": "Sensex rises 500 points in early trade amid foreign inflows",
       "primarySource": {
-        "id": "feed-pib-1788087787368-1",
+        "id": "feed-pib-1788087850843-1",
         "title": "Sensex rises 500 points in early trade amid foreign inflows",
         "url": "https://thehindu.com/sensex-record-high",
         "sourceName": "PIB MoD",
@@ -49,10 +49,10 @@
       }
     },
     {
-      "id": "cluster-1788087787368-0-feed-pib-1788087787368-0",
+      "id": "cluster-1788087850844-0-feed-pib-1788087850842-0",
       "synthesizedHeadline": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
       "primarySource": {
-        "id": "feed-pib-1788087787368-0",
+        "id": "feed-pib-1788087850842-0",
         "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
         "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
         "sourceName": "PIB MoD",
@@ -72,7 +72,7 @@
         "Tejas Mk1A",
         "HAL"
       ],
-      "defenceScore": 64.7,
+      "defenceScore": 64.6,
       "isLeadStory": false,
       "createdAt": "2026-08-30T09:00:00.000Z",
       "updatedAt": "2026-08-30T09:00:00.000Z",
@@ -103,7 +103,7 @@
   ],
   "river": [
     {
-      "id": "feed-pib-1788087787368-1",
+      "id": "feed-pib-1788087850843-1",
       "title": "Sensex rises 500 points in early trade amid foreign inflows",
       "url": "https://thehindu.com/sensex-record-high",
       "sourceName": "PIB MoD",
@@ -113,7 +113,7 @@
       "snippet": "Stock markets rallied today on strong tech earnings."
     },
     {
-      "id": "feed-pib-1788087787368-0",
+      "id": "feed-pib-1788087850842-0",
       "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
       "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
       "sourceName": "PIB MoD",
@@ -126,6 +126,6 @@
   "totalIngested": 2,
   "totalFiltered": 2,
   "activeFeedsCount": 2,
-  "durationMs": 3,
-  "generatedAt": "2026-08-30T11:03:07.369Z"
+  "durationMs": 8,
+  "generatedAt": "2026-08-30T11:04:10.846Z"
 }
