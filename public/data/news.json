@@ -24,10 +24,10 @@
         "Tejas Mk1A",
         "HAL"
       ],
-      "defenceScore": 150,
-      "isLeadStory": true,
+      "defenceScore": 250,
+      "isLeadStory": false,
       "createdAt": "2026-08-30T09:00:00.000Z",
-      "updatedAt": "2026-08-30T12:34:47.253Z",
+      "updatedAt": "2026-08-30T15:07:20.001Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -74,10 +74,10 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 58.3,
-      "isLeadStory": true,
+      "defenceScore": 300,
+      "isLeadStory": false,
       "createdAt": "2026-08-30T12:30:26.000Z",
-      "updatedAt": "2026-08-30T12:30:26.000Z",
+      "updatedAt": "2026-08-30T15:07:37.285Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -100,7 +100,9 @@
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     },
     {
       "id": "cluster-1788093979266-9-feed-hindustan-times-1788093971394-37",
@@ -174,10 +176,10 @@
       "entities": [
         "BrahMos"
       ],
-      "defenceScore": 46.8,
+      "defenceScore": 200,
       "isLeadStory": false,
       "createdAt": "2026-08-30T12:30:53.000Z",
-      "updatedAt": "2026-08-30T12:30:53.000Z",
+      "updatedAt": "2026-08-30T15:07:11.052Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the TECH domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -200,7 +202,9 @@
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     },
     {
       "id": "cluster-1788093979266-7-feed-times-of-india-1788093971792-11",
@@ -233,10 +237,10 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 43.4,
+      "defenceScore": 350,
       "isLeadStory": false,
       "createdAt": "2026-08-30T08:52:04.000Z",
-      "updatedAt": "2026-08-30T08:52:04.000Z",
+      "updatedAt": "2026-08-30T15:07:48.935Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -259,11 +263,13 @@
           ],
           "keySignificance": "Times of India (Defence News) report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     },
     {
       "id": "cluster-1788093979267-11-feed-idrw-1788093972761-0",
-      "synthesizedHeadline": "From Project Airavat to Netra: How India Spent Four Decades Building Its Indigenous AEW&#038;C Capability",
+      "synthesizedHeadline": "From Project Airavat to Netra: How India Spent Four Decades Building Its Indigenous AEW&C Capability",
       "primarySource": {
         "id": "feed-idrw-1788093972761-0",
         "title": "From Project Airavat to Netra: How India Spent Four Decades Building Its Indigenous AEW&#038;C Capability",
@@ -284,7 +290,7 @@
       "defenceScore": 43.3,
       "isLeadStory": false,
       "createdAt": "2026-08-30T12:31:01.000Z",
-      "updatedAt": "2026-08-30T12:31:01.000Z",
+      "updatedAt": "2026-08-30T15:08:08.935Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -332,10 +338,10 @@
       "entities": [
         "S-400 Triumf"
       ],
-      "defenceScore": 43.3,
-      "isLeadStory": false,
+      "defenceScore": 450,
+      "isLeadStory": true,
       "createdAt": "2026-08-30T12:30:50.000Z",
-      "updatedAt": "2026-08-30T12:30:50.000Z",
+      "updatedAt": "2026-08-30T15:08:40.118Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -358,7 +364,9 @@
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     },
     {
       "id": "cluster-1788093979266-0-feed-the-hindu-national-1788093971365-7",
@@ -428,10 +436,10 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 41.8,
+      "defenceScore": 400,
       "isLeadStory": false,
       "createdAt": "2026-08-30T12:30:57.000Z",
-      "updatedAt": "2026-08-30T12:30:57.000Z",
+      "updatedAt": "2026-08-30T15:08:21.552Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -454,7 +462,9 @@
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     },
     {
       "id": "cluster-1788093979267-16-feed-idrw-1788093972761-5",
@@ -1692,10 +1702,5 @@
       "publishedAt": "2026-08-27T13:45:00.000Z",
       "snippet": "The Russian PD-14 engine, which was designed for the MC-21-310 narrow-body passenger aircraft, is distinguished by a feature that may seem unusual in the modern turbofan industry: its relatively small fan. The PD-14's fan is smaller than those of several compe"
     }
-  ],
-  "totalIngested": 105,
-  "totalFiltered": 59,
-  "activeFeedsCount": 44,
-  "durationMs": 16136,
-  "generatedAt": "2026-08-30T12:46:19.267Z"
+  ]
 }
