@@ -13,17 +13,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-duplicate:
+  check_duplicate:
     name: Check for Duplicate Run
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Concurrency Initialized
-        run: echo "🚀 Fast Gatekeeper: Concurrency group active for ${{ github.ref }}"
+      - name: Fast Gatekeeper Active
+        run: echo "🚀 Concurrency group active for ${{ github.ref }}"
 
   typecheck:
     name: Typecheck (Strict TS)
-    needs: [check-duplicate]
+    needs: [check_duplicate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -42,9 +42,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-  contracts-and-guardrails:
+  contracts_and_guardrails:
     name: Contracts & LOC Guardrails
-    needs: [check-duplicate]
+    needs: [check_duplicate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -63,9 +63,9 @@ jobs:
       - name: Verify Architecture & Contracts
         run: npm run check:contracts
 
-  unit-tests:
+  unit_tests:
     name: Unit & Integration Tests
-    needs: [check-duplicate]
+    needs: [check_duplicate]
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -84,9 +84,9 @@ jobs:
       - name: Run Vitest Suite
         run: npm test
 
-  crawler-validation:
+  crawler_validation:
     name: Crawler Pipeline Dry-Run
-    needs: [check-duplicate]
+    needs: [check_duplicate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -105,9 +105,9 @@ jobs:
       - name: Validate 40+ Feed Registry & Parser
         run: npm run check:crawler
 
-  security-and-compliance:
+  security_and_compliance:
     name: Security & Compliance Audit
-    needs: [check-duplicate]
+    needs: [check_duplicate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -126,9 +126,9 @@ jobs:
       - name: Dependency Vulnerability Audit
         run: npm run check:security
 
-  build-and-budget:
+  build_and_budget:
     name: Web Build & Performance Budget
-    needs: [typecheck, contracts-and-guardrails, unit-tests]
+    needs: [typecheck, contracts_and_guardrails, unit_tests]
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -150,28 +150,28 @@ jobs:
       - name: Verify Performance Payload Budget (< 35 KB)
         run: npm run check:budget
 
-  ci-success:
+  ci_success:
     name: CI Success
     needs:
-      - check-duplicate
+      - check_duplicate
       - typecheck
-      - contracts-and-guardrails
-      - unit-tests
-      - crawler-validation
-      - security-and-compliance
-      - build-and-budget
+      - contracts_and_guardrails
+      - unit_tests
+      - crawler_validation
+      - security_and_compliance
+      - build_and_budget
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Evaluate CI Pipeline Result
         run: |
-          if [ "${{ needs.check-duplicate.result }}" != "success" ] || \
+          if [ "${{ needs.check_duplicate.result }}" != "success" ] || \
              [ "${{ needs.typecheck.result }}" != "success" ] || \
-             [ "${{ needs.contracts-and-guardrails.result }}" != "success" ] || \
-             [ "${{ needs.unit-tests.result }}" != "success" ] || \
-             [ "${{ needs.crawler-validation.result }}" != "success" ] || \
-             [ "${{ needs.security-and-compliance.result }}" != "success" ] || \
-             [ "${{ needs.build-and-budget.result }}" != "success" ]; then
+             [ "${{ needs.contracts_and_guardrails.result }}" != "success" ] || \
+             [ "${{ needs.unit_tests.result }}" != "success" ] || \
+             [ "${{ needs.crawler_validation.result }}" != "success" ] || \
+             [ "${{ needs.security_and_compliance.result }}" != "success" ] || \
+             [ "${{ needs.build_and_budget.result }}" != "success" ]; then
             echo "❌ CI Pipeline Failed: One or more prerequisite jobs failed."
             exit 1
           fi
