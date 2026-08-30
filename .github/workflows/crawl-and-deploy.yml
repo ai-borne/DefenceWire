@@ -38,6 +38,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npx vite-node crawler/ingest.ts
 
+      - name: Generate Sitemap
+        run: npm run sitemap
+
       - name: Build Production Assets
         run: npm run build
 
@@ -45,7 +48,7 @@ jobs:
         run: |
           git config user.name "DefenceWire Bot"
           git config user.email "bot@defencewire.in"
-          git add public/data/news.json
+          git add public/data/news.json public/sitemap.xml
           if git diff --staged --quiet; then
             echo "No feed changes detected."
           else

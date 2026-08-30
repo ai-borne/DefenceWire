@@ -11,6 +11,7 @@ import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
+import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -146,6 +147,27 @@ export function renderStoryCluster(
 
     article.appendChild(discBox);
   }
+
+  // 6b. Permalink Button
+  const permalinkBtn = document.createElement('button');
+  permalinkBtn.className = 'dw-permalink-btn';
+  permalinkBtn.type = 'button';
+  permalinkBtn.setAttribute('aria-label', STRINGS.story.shareAriaLabel);
+  permalinkBtn.textContent = '🔗 Permalink';
+
+  permalinkBtn.addEventListener('click', () => {
+    pushStoryUrl(cluster);
+    copyStoryLink(cluster.id).then((copied) => {
+      permalinkBtn.textContent = copied ? '✓ Link copied' : '🔗 Permalink';
+      if (copied) {
+        setTimeout(() => {
+          permalinkBtn.textContent = '🔗 Permalink';
+        }, 2000);
+      }
+    });
+  });
+
+  article.appendChild(permalinkBtn);
 
   // 7. SSB Intelligence Drawer Trigger
   if (cluster.ssbIntel) {

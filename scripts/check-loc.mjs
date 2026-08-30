@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 const MAX_LOC = 300;
-const DIRS_TO_CHECK = ['src', 'crawler', 'tests'];
+const DIRS_TO_CHECK = ['src', 'crawler', 'tests', 'functions'];
 let failed = false;
 let totalChecked = 0;
 

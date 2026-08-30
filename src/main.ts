@@ -19,6 +19,7 @@ import { renderRiverRail } from './components/RiverRailView.js';
 import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
 import { renderEditorDashboard } from './components/EditorDashboard.js';
+import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
 
 export function initializeApp(): void {
   const appElement = document.getElementById('app');
@@ -43,6 +44,7 @@ export function initializeApp(): void {
           if (data.clusters && data.clusters.length > 0) newsVm.setClusters(data.clusters);
           if (data.river && data.river.length > 0) newsVm.setRiverItems(data.river);
         }
+        deepLinkToStoryFromLocation(newsVm);
       } catch {
         // Default seed is retained
       }
@@ -283,6 +285,7 @@ export function initializeApp(): void {
   updateFeedAndSidebar();
   updateEditorDesk();
   checkCuratorRoute();
+  deepLinkToStoryFromLocation(newsVm);
 }
 
 // Auto-bootstrap on DOM ready
