@@ -21,9 +21,9 @@
       ],
       "entities": [],
       "defenceScore": 66,
-      "isLeadStory": true,
+      "isLeadStory": false,
       "createdAt": "2026-08-30T09:10:00.000Z",
-      "updatedAt": "2026-08-30T09:10:00.000Z",
+      "updatedAt": "2026-08-30T12:34:45.704Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -46,7 +46,8 @@
           ],
           "keySignificance": "PIB MoD report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": false
     },
     {
       "id": "cluster-1788087902354-0-feed-pib-1788087902352-0",
@@ -72,10 +73,10 @@
         "Tejas Mk1A",
         "HAL"
       ],
-      "defenceScore": 64.6,
-      "isLeadStory": false,
+      "defenceScore": 150,
+      "isLeadStory": true,
       "createdAt": "2026-08-30T09:00:00.000Z",
-      "updatedAt": "2026-08-30T09:00:00.000Z",
+      "updatedAt": "2026-08-30T12:34:47.253Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
         "gdLecturettePoints": [
@@ -98,7 +99,9 @@
           ],
           "keySignificance": "PIB MoD report highlights critical milestone in operational deployment."
         }
-      }
+      },
+      "isEditorPromoted": true,
+      "isIgnored": false
     }
   ],
   "river": [
@@ -122,10 +125,5 @@
       "publishedAt": "2026-08-30T09:00:00.000Z",
       "snippet": "Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles."
     }
-  ],
-  "totalIngested": 2,
-  "totalFiltered": 2,
-  "activeFeedsCount": 2,
-  "durationMs": 11,
-  "generatedAt": "2026-08-30T11:05:02.355Z"
+  ]
 }
