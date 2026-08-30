@@ -168,7 +168,8 @@ export function renderStoryCluster(
     article.appendChild(toggleBtn);
 
     if (isExpanded) {
-      const ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id);
+      const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
+      const ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight);
       ssbDrawerEl.id = `ssb-drawer-${cluster.id}`;
       article.appendChild(ssbDrawerEl);
     }

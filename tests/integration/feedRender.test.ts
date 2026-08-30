@@ -100,33 +100,57 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(mainFeed?.textContent).toContain(STRINGS.river.subheading);
   });
 
-  it('should toggle SSB Intelligence Drawer on click with proper accessibility attributes', () => {
+  it('should toggle the article Summary drawer on click without SSB/CTA noise on Top Stories', () => {
     initializeApp();
 
-    const ssbToggleBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
-    expect(ssbToggleBtn).not.toBeNull();
-    expect(ssbToggleBtn.getAttribute('aria-expanded')).toBe('false');
+    const summaryToggleBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
+    expect(summaryToggleBtn).not.toBeNull();
+    expect(summaryToggleBtn.getAttribute('aria-expanded')).toBe('false');
 
     // Expand drawer
-    ssbToggleBtn.click();
+    summaryToggleBtn.click();
 
-    const ssbDrawer = document.querySelector('.dw-ssb-drawer');
-    expect(ssbDrawer).not.toBeNull();
-    expect(ssbDrawer?.textContent).toContain(STRINGS.summary.whyItMattersHeading);
-    expect(ssbDrawer?.textContent).toContain(STRINGS.ssb.ctaButton);
+    const summaryDrawer = document.querySelector('.dw-ssb-drawer');
+    expect(summaryDrawer).not.toBeNull();
+    expect(summaryDrawer?.textContent).toContain(STRINGS.summary.whyItMattersHeading);
+    // No SSB insight box or SSBMax.ai CTA outside the dedicated SSB Intel tab.
+    expect(summaryDrawer?.querySelector('.dw-ssb-insight-box')).toBeNull();
+    expect(summaryDrawer?.textContent).not.toContain(STRINGS.ssb.ctaButton);
 
-    const ctaLink = ssbDrawer?.querySelector('a.dw-ssb-cta-btn') as HTMLAnchorElement;
+    // Collapse drawer
+    const collapseBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
+    expect(collapseBtn.getAttribute('aria-expanded')).toBe('true');
+    collapseBtn.click();
+
+    expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
+  });
+
+  it('should surface the SSB Insight box and SSBMax.ai CTA only within the SSB Intel tab', () => {
+    initializeApp();
+
+    const ssbTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
+      (el) => el.textContent === STRINGS.nav.ssb
+    ) as HTMLButtonElement;
+    expect(ssbTab).toBeDefined();
+    ssbTab.click();
+
+    const toggleBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
+    expect(toggleBtn).not.toBeNull();
+    toggleBtn.click();
+
+    const drawer = document.querySelector('.dw-ssb-drawer');
+    expect(drawer).not.toBeNull();
+
+    const insightBox = drawer?.querySelector('.dw-ssb-insight-box');
+    expect(insightBox).not.toBeNull();
+    expect(insightBox?.textContent).toContain(STRINGS.ssb.gdTopicsHeading);
+    expect(insightBox?.textContent).toContain(STRINGS.ssb.ctaButton);
+
+    const ctaLink = drawer?.querySelector('a.dw-ssb-cta-btn') as HTMLAnchorElement;
     expect(ctaLink).not.toBeNull();
     expect(ctaLink.target).toBe('_blank');
     expect(ctaLink.rel).toBe('noopener noreferrer');
     expect(ctaLink.href).toContain('ssbmax.ai');
-
-    // Collapse drawer
-    const ssbCollapseBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
-    expect(ssbCollapseBtn.getAttribute('aria-expanded')).toBe('true');
-    ssbCollapseBtn.click();
-
-    expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
   });
 
   it('should open Curator Desk upon 5 rapid stealth clicks on institutional badge', () => {

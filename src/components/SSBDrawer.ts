@@ -1,8 +1,8 @@
 /**
  * Article Summary Drawer for DefenceWire.in
  * Expandable neutral summary (why it matters, tech snapshot, strategic angle) for every
- * article. Clusters editorially tagged 'ssb' additionally surface a boxed SSB Insight
- * sub-section (GD points, interview questions, SSBMax.ai CTA) — never shown by default.
+ * article. The boxed SSB Insight sub-section (GD points, interview questions, SSBMax.ai
+ * CTA) is opt-in via `showSSBInsight` — only the SSB Intel tab passes true.
  * Hard limit: <= 300 LOC.
  */
 
@@ -97,10 +97,10 @@ function appendTechTakeaway(parent: HTMLElement, tech: NonNullable<SSBIntelligen
   parent.appendChild(section);
 }
 
-function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, clusterId: string): void {
+function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, clusterId: string, showSSBInsight: boolean): void {
   const gdPoints = intel.gdLecturettePoints;
   const interviewQuestions = intel.potentialInterviewQuestions;
-  if (!gdPoints || gdPoints.length === 0) return;
+  if (!showSSBInsight || !gdPoints || gdPoints.length === 0) return;
 
   const box = document.createElement('div');
   box.className = 'dw-ssb-insight-box';
@@ -159,7 +159,7 @@ function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, cluste
   parent.appendChild(box);
 }
 
-export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTMLElement {
+export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string, showSSBInsight: boolean = false): HTMLElement {
   const drawer = document.createElement('section');
   drawer.className = 'dw-ssb-drawer';
   drawer.setAttribute('aria-label', STRINGS.summary.drawerTitle);
@@ -190,9 +190,9 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTML
     appendTextSection(drawer, STRINGS.summary.strategicAngleHeading, intel.strategicAngle);
   }
 
-  // 5. Opt-in SSB Insight box (GD points, interview questions, SSBMax.ai CTA) —
-  //    present only when this cluster was editorially tagged as SSB-relevant.
-  appendSSBInsightBox(drawer, intel, clusterId);
+  // 5. SSB Insight box (GD points, interview questions, SSBMax.ai CTA) — rendered only
+  //    when explicitly viewing the SSB Intel tab, never inline in general article feeds.
+  appendSSBInsightBox(drawer, intel, clusterId, showSSBInsight);
 
   return drawer;
 }
