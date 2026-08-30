@@ -107,7 +107,6 @@ Entities: ${cluster.entities.join(', ')}
 
 Return a strict JSON object with these exact keys:
 {
-  "isDefenceRelevant": true,
   "whyItMatters": "1-2 concise sentences on national security significance",
   "gdLecturettePoints": ["Point 1 for Group Discussion / Lecturette", "Point 2", "Point 3"],
   "potentialInterviewQuestions": ["Question 1 an Interviewing Officer (IO) might ask", "Question 2", "Question 3"],
@@ -141,7 +140,7 @@ Return a strict JSON object with these exact keys:
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) return null;
 
-    const parsed = JSON.parse(rawText) as SSBIntelligence & { isDefenceRelevant?: boolean };
+    const parsed = JSON.parse(rawText) as SSBIntelligence;
     if (parsed.whyItMatters && Array.isArray(parsed.gdLecturettePoints)) {
       const sanitizedIntel: SSBIntelligence = {
         whyItMatters: parsed.whyItMatters,
