@@ -9,8 +9,11 @@
     "preview": "vite preview",
     "crawl": "vite-node --script crawler/ingest.ts",
     "typecheck": "tsc --noEmit",
-    "check:loc": "node scripts/check-loc.mjs",
-    "check": "npm run typecheck && npm run check:loc && npm test && npm run build",
+    "check:contracts": "node scripts/check-contracts.mjs",
+    "check:crawler": "vite-node scripts/check-crawler.mjs",
+    "check:budget": "node scripts/check-bundle-budget.mjs",
+    "check:security": "npm audit --audit-level=high",
+    "check": "npm run typecheck && npm run check:contracts && npm run check:crawler && npm test && npm run build && npm run check:budget && npm run check:security",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "node scripts/setup-git-hooks.mjs"

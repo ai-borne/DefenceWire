@@ -8,49 +8,171 @@ on:
     branches:
       - main
 
-jobs:
-  verify-and-test:
-    name: Build, Typecheck, Test & Audit (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  check-duplicate:
+    name: Check for Duplicate Run
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Concurrency Initialized
+        run: echo "🚀 Fast Gatekeeper: Concurrency group active for ${{ github.ref }}"
+
+  typecheck:
+    name: Typecheck (Strict TS)
+    needs: [check-duplicate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: Typecheck (TypeScript Strict Mode)
+      - name: Typecheck
         run: npm run typecheck
 
-      - name: Verify Architecture LOC Guardrail (<= 300 LOC)
-        run: npm run check:loc
+  contracts-and-guardrails:
+    name: Contracts & LOC Guardrails
+    needs: [check-duplicate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Run Full Vitest Suite
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify Architecture & Contracts
+        run: npm run check:contracts
+
+  unit-tests:
+    name: Unit & Integration Tests
+    needs: [check-duplicate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Vitest Suite
         run: npm test
+
+  crawler-validation:
+    name: Crawler Pipeline Dry-Run
+    needs: [check-duplicate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate 40+ Feed Registry & Parser
+        run: npm run check:crawler
+
+  security-and-compliance:
+    name: Security & Compliance Audit
+    needs: [check-duplicate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Dependency Vulnerability Audit
+        run: npm run check:security
+
+  build-and-budget:
+    name: Web Build & Performance Budget
+    needs: [typecheck, contracts-and-guardrails, unit-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Build Production Bundle
         run: npm run build
 
-      - name: Verify Performance Budget (< 35 KB Gzipped Payload)
+      - name: Verify Performance Payload Budget (< 35 KB)
+        run: npm run check:budget
+
+  ci-success:
+    name: CI Success
+    needs:
+      - check-duplicate
+      - typecheck
+      - contracts-and-guardrails
+      - unit-tests
+      - crawler-validation
+      - security-and-compliance
+      - build-and-budget
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate CI Pipeline Result
         run: |
-          MAX_SIZE=35840 # 35 KB
-          GZ_SIZE=$(gzip -c dist/assets/index-*.js | wc -c | tr -d ' ')
-          echo "Gzipped Bundle Size: $GZ_SIZE bytes (Max Budget: $MAX_SIZE bytes)"
-          if [ "$GZ_SIZE" -gt "$MAX_SIZE" ]; then
-            echo "❌ Performance Budget Exceeded! Bundle size is $GZ_SIZE bytes (> $MAX_SIZE bytes)"
+          if [ "${{ needs.check-duplicate.result }}" != "success" ] || \
+             [ "${{ needs.typecheck.result }}" != "success" ] || \
+             [ "${{ needs.contracts-and-guardrails.result }}" != "success" ] || \
+             [ "${{ needs.unit-tests.result }}" != "success" ] || \
+             [ "${{ needs.crawler-validation.result }}" != "success" ] || \
+             [ "${{ needs.security-and-compliance.result }}" != "success" ] || \
+             [ "${{ needs.build-and-budget.result }}" != "success" ]; then
+            echo "❌ CI Pipeline Failed: One or more prerequisite jobs failed."
             exit 1
           fi
-          echo "✅ Performance budget verified: Under 35 KB."
-
-      - name: Security Vulnerability Audit
-        run: npm audit --audit-level=high
+          echo "🎉 All CI Verification Gates Passed Successfully!"

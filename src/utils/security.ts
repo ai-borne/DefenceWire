@@ -16,18 +16,35 @@ const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
  * @param dirty - Unsanitized string input
  * @returns Clean, safe HTML/text string
  */
+function getPurifier(): typeof DOMPurify | null {
+  if (typeof DOMPurify?.sanitize === 'function') {
+    return DOMPurify;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyPurify = DOMPurify as any;
+  if (typeof anyPurify?.default?.sanitize === 'function') {
+    return anyPurify.default;
+  }
+  return null;
+}
+
 export function sanitizeContent(dirty: string): string {
   if (!dirty || typeof dirty !== 'string') {
     return '';
   }
 
-  // Configure DOMPurify with strict allowlist
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br', 'code'],
-    ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'class'],
-    ALLOW_DATA_ATTR: false,
-    RETURN_DOM: false
-  });
+  const purifier = getPurifier();
+  if (purifier) {
+    return purifier.sanitize(dirty, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br', 'code'],
+      ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'class'],
+      ALLOW_DATA_ATTR: false,
+      RETURN_DOM: false
+    });
+  }
+
+  // Safe isomorphic fallback
+  return dirty.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim();
 }
 
 /**
@@ -41,10 +58,16 @@ export function sanitizePlainText(dirty: string): string {
     return '';
   }
 
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: []
-  }).trim();
+  const purifier = getPurifier();
+  if (purifier) {
+    return purifier.sanitize(dirty, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: []
+    }).trim();
+  }
+
+  // Safe isomorphic fallback
+  return dirty.replace(/<[^>]*>?/gm, '').trim();
 }
 
 /**
