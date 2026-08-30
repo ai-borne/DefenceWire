@@ -36,24 +36,10 @@ const MOCK_TIER2_FEED: FeedConfig = {
   enabled: true
 };
 
-const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>PIB Defence</title>
-    <item>
-      <title>HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force</title>
-      <link>https://pib.gov.in/tejas-mk1a-delivery-batch</link>
-      <pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate>
-      <description>Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.</description>
-    </item>
-    <item>
-      <title>Sensex rises 500 points in early trade amid foreign inflows</title>
-      <link>https://thehindu.com/sensex-record-high</link>
-      <pubDate>Sun, 30 Aug 2026 09:10:00 GMT</pubDate>
-      <description>Stock markets rallied today on strong tech earnings.</description>
-    </item>
-  </channel>
-</rss>`;
+const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>PIB Defence</title>
+  <item><title>HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force</title><link>https://pib.gov.in/tejas-mk1a-delivery-batch</link><pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate><description>Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.</description></item>
+  <item><title>Sensex rises 500 points in early trade amid foreign inflows</title><link>https://thehindu.com/sensex-record-high</link><pubDate>Sun, 30 Aug 2026 09:10:00 GMT</pubDate><description>Stock markets rallied today on strong tech earnings.</description></item>
+</channel></rss>`;
 
 const MOCK_GEMINI_SUCCESS = { candidates: [{ content: { parts: [{ text: JSON.stringify({
   whyItMatters: 'Gemini-generated brief.', strategicAngle: 'Gemini strategic angle.',
@@ -284,6 +270,7 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     ];
 
     const failingFetch = async () => new Response('', { status: 500 });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const result = await runIngestionPipeline({
       feeds: [MOCK_TIER1_FEED],
@@ -295,5 +282,8 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     expect(result.totalIngested).toBe(0);
     expect(result.clusters.length).toBe(1);
     expect(result.clusters[0]?.id).toBe('c-existing');
+    // Bail-out must be visible in logs, not silent, so a zero-articles run isn't mistaken for a no-op.
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[ATOMIC COMMIT GUARD]'));
+    logSpy.mockRestore();
   });
 });

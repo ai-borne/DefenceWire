@@ -187,6 +187,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   // Atomic Commit Guard: Preserve existing data on total failure
   if (rawArticles.length === 0 || freshArticles.length === 0) {
+    console.log(
+      `[ATOMIC COMMIT GUARD] Bailing out: raw=${rawArticles.length}, fresh=${freshArticles.length} across ${feeds.length} feeds. Preserving existing dataset untouched.`
+    );
     const fallbackClusters = existingClusters.length > 0 ? existingClusters : [...INITIAL_STORY_CLUSTERS];
     const fallbackRiver = existingRiver.length > 0 ? existingRiver : [...INITIAL_RIVER_ITEMS];
     return {
