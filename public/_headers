@@ -1,0 +1,20 @@
+# Cloudflare Pages Edge Security & Performance Headers SSOT
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.github.com https://generativelanguage.googleapis.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';
+
+# 1-Year Immutable Caching on Versioned Static Assets
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Stale-While-Revalidate Edge & Client Caching on Intelligence Feed
+/data/news.json
+  Cache-Control: public, max-age=60, s-maxage=120, stale-while-revalidate=300
+
+# Immediate Revalidation on Service Worker
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate

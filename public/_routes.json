@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/assets/*",
+    "/data/*",
+    "/sw.js",
+    "/manifest.json",
+    "/CNAME",
+    "/_headers",
+    "/_routes.json",
+    "/_redirects"
+  ]
+}
