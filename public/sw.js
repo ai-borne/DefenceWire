@@ -4,7 +4,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-const CACHE_NAME = 'defencewire-cache-v1';
+const CACHE_NAME = 'defencewire-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
