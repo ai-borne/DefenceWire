@@ -3,13 +3,15 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearSummaryMemoryCache,
   computeContentHash,
   generateHeuristicSSBIntel,
   getSummaryMemorySize,
   isSSBRelevant,
+  MIN_REQUEST_INTERVAL_MS,
+  resetThrottleState,
   summarizeWithGemini
 } from '../../crawler/summarizer.js';
 import { StoryCluster } from '../../src/types/news.js';
@@ -73,6 +75,11 @@ const MOCK_GEMINI_RESPONSE = {
 describe('Summarizer & Content-Hash Memory', () => {
   beforeEach(() => {
     clearSummaryMemoryCache();
+    resetThrottleState();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('computes deterministic SHA-256 content hashes for news items', () => {
@@ -176,6 +183,39 @@ describe('Summarizer & Content-Hash Memory', () => {
 
     expect(capturedBody).toContain('gdLecturettePoints');
     expect(capturedBody).toContain('potentialInterviewQuestions');
+  });
+
+  it('paces requests slowly enough to stay strictly under Gemini free-tier 15 RPM', () => {
+    // 15 RPM means no more than 15 requests may land in any rolling 60s window.
+    // A fixed interval must be > 4000ms to guarantee that; require real margin below it.
+    expect(MIN_REQUEST_INTERVAL_MS).toBeGreaterThan(60_000 / 15);
+    const requestsPerMinuteAtThisSpacing = 60_000 / MIN_REQUEST_INTERVAL_MS;
+    expect(requestsPerMinuteAtThisSpacing).toBeLessThan(15);
+  });
+
+  it('throttles back-to-back Gemini calls by at least MIN_REQUEST_INTERVAL_MS', async () => {
+    vi.useFakeTimers();
+    const timestamps: number[] = [];
+    const mockFetch = async () => {
+      timestamps.push(Date.now());
+      return new Response(JSON.stringify(MOCK_GEMINI_RESPONSE), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    };
+
+    const clusterA: StoryCluster = { ...MOCK_CLUSTER, id: 'c-throttle-a', synthesizedHeadline: 'Headline A' };
+    const clusterB: StoryCluster = { ...MOCK_CLUSTER, id: 'c-throttle-b', synthesizedHeadline: 'Headline B' };
+
+    const p1 = summarizeWithGemini(clusterA, 'mock-api-key', mockFetch as typeof fetch);
+    await vi.advanceTimersByTimeAsync(0);
+    const p2 = summarizeWithGemini(clusterB, 'mock-api-key', mockFetch as typeof fetch);
+    await vi.advanceTimersByTimeAsync(MIN_REQUEST_INTERVAL_MS);
+
+    await Promise.all([p1, p2]);
+
+    expect(timestamps).toHaveLength(2);
+    expect(timestamps[1]! - timestamps[0]!).toBeGreaterThanOrEqual(MIN_REQUEST_INTERVAL_MS);
   });
 
   it('handles invalid or unparseable Gemini responses gracefully', async () => {

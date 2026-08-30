@@ -212,18 +212,14 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   // Apply Curator Override Protection Locks
   const lockedProtectedClusters = preserveCuratorOverrides(topClusters, existingClusters);
 
-  // Enrich all clusters with SSB Intelligence. Gemini free tier is 15 RPM, and each
-  // run fires its calls in one back-to-back burst, so only the top GEMINI_ENRICHMENT_LIMIT
-  // clusters get an AI-quality summary; the rest use the free, local heuristic so every
-  // cluster still gets a Summary badge.
-  const GEMINI_ENRICHMENT_LIMIT = 14;
-  for (let i = 0; i < lockedProtectedClusters.length; i++) {
-    const cluster = lockedProtectedClusters[i];
+  // Enrich all clusters with SSB Intelligence. summarizeWithGemini paces its own
+  // requests (MIN_REQUEST_INTERVAL_MS) to stay under Gemini's free-tier 15 RPM limit,
+  // so every cluster can attempt a real Gemini summary; any failure/rate-limit falls
+  // back to the free, local heuristic so every cluster still gets a Summary badge.
+  for (const cluster of lockedProtectedClusters) {
     if (!cluster) continue;
     if (!cluster.ssbIntel) {
-      const geminiIntel = apiKey && i < GEMINI_ENRICHMENT_LIMIT
-        ? await summarizeWithGemini(cluster, apiKey, fetchFn)
-        : null;
+      const geminiIntel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
       cluster.ssbIntel = geminiIntel ?? generateHeuristicSSBIntel(cluster);
     }
   }

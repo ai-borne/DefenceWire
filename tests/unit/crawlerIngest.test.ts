@@ -3,7 +3,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FeedConfig } from '../../crawler/feedTypes.js';
 import {
   filterFreshArticles,
@@ -12,6 +12,7 @@ import {
   DEFENCE_WHOLE_WORD_REGEX,
   runIngestionPipeline
 } from '../../crawler/ingest.js';
+import { clearSummaryMemoryCache } from '../../crawler/summarizer.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
@@ -54,7 +55,69 @@ const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
+const MOCK_GEMINI_SUCCESS = {
+  candidates: [{ content: { parts: [{ text: JSON.stringify({
+    whyItMatters: 'Gemini-generated brief.',
+    strategicAngle: 'Gemini strategic angle.',
+    defenceTechTakeaway: { platformOrSystem: 'Test Platform', specifications: ['S1', 'S2', 'S3'], keySignificance: 'Key significance.' }
+  }) }] } }]
+};
+
+// 13 distinct defence platforms so clustering keeps each as its own story, exceeding the old hardcoded enrichment cap of 12.
+const DISTINCT_DEFENCE_HEADLINES = [
+  'HAL delivers upgraded Tejas Mk1A fighters to Indian Air Force', 'IAF finalizes Rafale jet spares deal with Dassault Aviation',
+  'Zorawar light tanks deployed by army near the LAC frontier', 'DRDO conducts successful BrahMos missile test off Odisha coast',
+  'Pinaka rocket artillery system inducted by army units', 'S-400 air defence squadron activated by IAF in the west',
+  'Prachand attack helicopter inducted into service by HAL', 'INS Vikrant aircraft carrier completes upgrade programme',
+  'Stealth submarine joins expanding underwater fleet strength', 'New stealth destroyer commissioned for the western fleet',
+  'Frigate completes sea trials ahead of formal commissioning', 'Stealth corvette begins advanced weapons trial phase',
+  'Artillery gun systems upgraded along the northern border sector'
+];
+
+function buildDistinctFeedXml(headlines: string[]): string {
+  const items = headlines
+    .map((title, idx) => `<item><title>${title}</title><link>https://pib.gov.in/story-${idx}</link><pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate><description>Defence modernization update.</description></item>`)
+    .join('');
+  return `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>PIB Defence</title>${items}</channel></rss>`;
+}
+
 describe('Crawler Ingestion Pipeline & Quality Gates', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('paces Gemini calls so every cluster gets a real AI summary, not a heuristic fallback', async () => {
+    clearSummaryMemoryCache();
+    const feedXml = buildDistinctFeedXml(DISTINCT_DEFENCE_HEADLINES);
+    let geminiCallCount = 0;
+    const mockFetch = async (url: string) => {
+      if (String(url).includes('generativelanguage.googleapis.com')) {
+        geminiCallCount++;
+        return new Response(JSON.stringify(MOCK_GEMINI_SUCCESS), { status: 200 });
+      }
+      return new Response(feedXml, { status: 200 });
+    };
+
+    vi.useFakeTimers();
+    const resultPromise = runIngestionPipeline({
+      feeds: [MOCK_TIER1_FEED],
+      maxAgeHours: 72,
+      maxClusters: DISTINCT_DEFENCE_HEADLINES.length,
+      outputPath: null,
+      fetchFn: mockFetch as unknown as typeof fetch,
+      geminiApiKey: 'mock-api-key'
+    });
+    await vi.runAllTimersAsync();
+    const result = await resultPromise;
+
+    expect(result.clusters.length).toBeGreaterThan(12);
+    // Every cluster attempted (and got) a real Gemini summary, not just the first 12/14.
+    expect(geminiCallCount).toBe(result.clusters.length);
+    for (const cluster of result.clusters) {
+      expect(cluster.ssbIntel?.whyItMatters).toBe('Gemini-generated brief.');
+    }
+  });
+
   it('enforces whole-word regex matching without false positive substring matches', () => {
     // "mod" keyword vs "Modi" / "commodity" / "modern"
     expect(DEFENCE_WHOLE_WORD_REGEX.test('MoD signs contract with shipyard')).toBe(true);

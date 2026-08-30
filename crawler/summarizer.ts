@@ -8,8 +8,15 @@ import * as crypto from 'node:crypto';
 import { DomainCategory, SSBIntelligence, StoryCluster } from '../src/types/news.js';
 
 export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
-const MIN_REQUEST_INTERVAL_MS = 350; // Max ~3 requests/sec to stay strictly under 15 RPM
+// Gemini free tier allows 15 requests/minute. A fixed interval must exceed 4000ms
+// (60_000 / 15) to guarantee no rolling 60s window ever sees 15+ requests; 4500ms
+// gives real margin (~13.3 RPM) so a long enrichment run never gets rate-limited.
+export const MIN_REQUEST_INTERVAL_MS = 4500;
 let lastRequestTimestamp = 0;
+
+export function resetThrottleState(): void {
+  lastRequestTimestamp = 0;
+}
 
 export function computeContentHash(headline: string, url: string): string {
   const normalized = `${(headline || '').trim().toLowerCase()}|${(url || '').trim().toLowerCase()}`;
