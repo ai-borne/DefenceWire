@@ -1,10 +1,10 @@
 {
   "clusters": [
     {
-      "id": "cluster-1788087017649-1-feed-pib-1788087017649-1",
+      "id": "cluster-1788087213661-1-feed-pib-1788087213658-1",
       "synthesizedHeadline": "Sensex rises 500 points in early trade amid foreign inflows",
       "primarySource": {
-        "id": "feed-pib-1788087017649-1",
+        "id": "feed-pib-1788087213658-1",
         "title": "Sensex rises 500 points in early trade amid foreign inflows",
         "url": "https://thehindu.com/sensex-record-high",
         "sourceName": "PIB MoD",
@@ -20,7 +20,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 66.5,
+      "defenceScore": 66.4,
       "isLeadStory": true,
       "createdAt": "2026-08-30T09:10:00.000Z",
       "updatedAt": "2026-08-30T09:10:00.000Z",
@@ -49,10 +49,10 @@
       }
     },
     {
-      "id": "cluster-1788087017649-0-feed-pib-1788087017648-0",
+      "id": "cluster-1788087213660-0-feed-pib-1788087213656-0",
       "synthesizedHeadline": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
       "primarySource": {
-        "id": "feed-pib-1788087017648-0",
+        "id": "feed-pib-1788087213656-0",
         "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
         "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
         "sourceName": "PIB MoD",
@@ -72,7 +72,7 @@
         "Tejas Mk1A",
         "HAL"
       ],
-      "defenceScore": 65.1,
+      "defenceScore": 65,
       "isLeadStory": false,
       "createdAt": "2026-08-30T09:00:00.000Z",
       "updatedAt": "2026-08-30T09:00:00.000Z",
@@ -103,7 +103,7 @@
   ],
   "river": [
     {
-      "id": "feed-pib-1788087017649-1",
+      "id": "feed-pib-1788087213658-1",
       "title": "Sensex rises 500 points in early trade amid foreign inflows",
       "url": "https://thehindu.com/sensex-record-high",
       "sourceName": "PIB MoD",
@@ -113,7 +113,7 @@
       "snippet": "Stock markets rallied today on strong tech earnings."
     },
     {
-      "id": "feed-pib-1788087017648-0",
+      "id": "feed-pib-1788087213656-0",
       "title": "HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force",
       "url": "https://pib.gov.in/tejas-mk1a-delivery-batch",
       "sourceName": "PIB MoD",
@@ -126,6 +126,6 @@
   "totalIngested": 2,
   "totalFiltered": 2,
   "activeFeedsCount": 2,
-  "durationMs": 3,
-  "generatedAt": "2026-08-30T10:50:17.649Z"
+  "durationMs": 10,
+  "generatedAt": "2026-08-30T10:53:33.661Z"
 }
