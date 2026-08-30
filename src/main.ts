@@ -1,6 +1,6 @@
 /**
  * Application Entry Point for DefenceWire.in
- * Bootstraps MVVM Architecture, Theme, News Feeds, and Layout.
+ * Bootstraps MVVM Architecture, Theme, News Feeds, Curator Desk, Storage & PWA.
  * Hard limit: <= 300 LOC.
  */
 
@@ -9,12 +9,16 @@ import { sanitizePlainText, getSafeLinkAttributes } from './utils/security.js';
 import { formatTimeAgo } from './utils/dateUtils.js';
 import { ThemeViewModel } from './viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from './viewmodels/NewsViewModel.js';
+import { EditorViewModel } from './viewmodels/EditorViewModel.js';
+import { defaultStorageService } from './services/storageService.js';
+import { defaultPwaService } from './services/pwaService.js';
 import { renderHeader } from './components/Header.js';
 import { renderNavigationBar } from './components/NavigationBar.js';
 import { renderStoryCluster } from './components/StoryClusterView.js';
 import { renderRiverRail } from './components/RiverRailView.js';
 import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
+import { renderEditorDashboard } from './components/EditorDashboard.js';
 
 export function initializeApp(): void {
   const appElement = document.getElementById('app');
@@ -23,15 +27,33 @@ export function initializeApp(): void {
   // 1. Initialize ViewModels
   const themeVm = new ThemeViewModel();
   const newsVm = new NewsViewModel();
+  const editorVm = new EditorViewModel(newsVm);
 
   // Set document title
   document.title = `${STRINGS.app.name} — ${STRINGS.app.shortTagline}`;
 
-  // 2. Build Base Static Layout Once
+  // 2. Storage Initialization & Offline Cache
+  defaultStorageService
+    .init()
+    .then(async () => {
+      // Seed storage with current clusters & river items
+      await defaultStorageService.saveClusters(newsVm.getAllClusters(true));
+      await defaultStorageService.saveRiverItems(newsVm.getFilteredRiverItems());
+      // Prune entries older than 7 days
+      await defaultStorageService.pruneOldEntries(7);
+    })
+    .catch(() => {
+      // Graceful fallback
+    });
+
+  // 3. PWA & Service Worker Initialization
+  defaultPwaService.registerServiceWorker('/sw.js');
+
+  // 4. Build Base Static Layout
   appElement.innerHTML = '';
 
-  const header = renderHeader(themeVm, newsVm);
-  let nav = renderNavigationBar(newsVm);
+  const header = renderHeader(themeVm, newsVm, editorVm);
+  const nav = renderNavigationBar(newsVm);
   appElement.appendChild(header);
   appElement.appendChild(nav);
 
@@ -54,7 +76,45 @@ export function initializeApp(): void {
   appElement.appendChild(container);
   appElement.appendChild(renderFooter());
 
-  // 3. Dynamic Feed & Sidebar Renderer
+  // Modal Container for Editor Desk
+  const editorContainer = document.createElement('div');
+  editorContainer.id = 'dw-editor-container';
+  appElement.appendChild(editorContainer);
+
+  // Network Status Notification Banner Container
+  const bannerContainer = document.createElement('div');
+  bannerContainer.id = 'dw-banner-container';
+  appElement.appendChild(bannerContainer);
+
+  // Install Banner Container
+  const installContainer = document.createElement('div');
+  installContainer.id = 'dw-pwa-container';
+  appElement.appendChild(installContainer);
+
+  // 5. PWA Listeners
+  defaultPwaService.onNetworkStatusChange((isOnline) => {
+    newsVm.setOffline(!isOnline);
+    bannerContainer.innerHTML = '';
+    const banner = defaultPwaService.renderNetworkStatusBanner(!isOnline);
+    bannerContainer.appendChild(banner);
+    if (isOnline) {
+      setTimeout(() => {
+        banner.remove();
+      }, 4000);
+    }
+  });
+
+  defaultPwaService.onInstallableChange((canInstall) => {
+    installContainer.innerHTML = '';
+    if (canInstall) {
+      const banner = defaultPwaService.renderInstallBanner(() => {
+        installContainer.innerHTML = '';
+      });
+      if (banner) installContainer.appendChild(banner);
+    }
+  });
+
+  // 6. Dynamic Feed & Sidebar Renderer
   const updateFeedAndSidebar = () => {
     // Update active tab in navigation
     const activeCat = newsVm.getActiveCategory();
@@ -170,13 +230,26 @@ export function initializeApp(): void {
     sidebar.appendChild(renderRiverRail(newsVm, 10));
   };
 
-  // Subscribe to news ViewModel changes
+  // 7. Dynamic Editor Desk Renderer
+  const updateEditorDesk = () => {
+    editorContainer.innerHTML = '';
+    if (editorVm.isOpen()) {
+      editorContainer.appendChild(renderEditorDashboard(editorVm));
+    }
+  };
+
+  // Subscriptions
   newsVm.subscribe(() => {
     updateFeedAndSidebar();
   });
 
-  // Initial render
+  editorVm.subscribe(() => {
+    updateEditorDesk();
+  });
+
+  // Initial renders
   updateFeedAndSidebar();
+  updateEditorDesk();
 }
 
 // Auto-bootstrap on DOM ready

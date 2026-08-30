@@ -17,6 +17,10 @@
   --dw-link-visited: #6B4086;
   --dw-badge-bg: #ECECE5;
   --dw-badge-text: #2B2B28;
+  --dw-status-offline-bg: #E5A93C;
+  --dw-status-offline-text: #1A1A1A;
+  --dw-status-online-bg: #1E7E34;
+  --dw-status-online-text: #FFFFFF;
 
   /* Typography & Density Tokens */
   --dw-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -46,6 +50,10 @@
   --dw-link-visited: #BC8CFF;
   --dw-badge-bg: #1D2733;
   --dw-badge-text: #89D185;
+  --dw-status-offline-bg: #E5A93C;
+  --dw-status-offline-text: #1A1A1A;
+  --dw-status-online-bg: #1E7E34;
+  --dw-status-online-text: #FFFFFF;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,8 +72,13 @@
     --dw-link-visited: #BC8CFF;
     --dw-badge-bg: #1D2733;
     --dw-badge-text: #89D185;
+    --dw-status-offline-bg: #E5A93C;
+    --dw-status-offline-text: #1A1A1A;
+    --dw-status-online-bg: #1E7E34;
+    --dw-status-online-text: #FFFFFF;
   }
 }
+
 
 /* Global Reset & Base Typography */
 *, *::before, *::after {

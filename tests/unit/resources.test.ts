@@ -43,6 +43,23 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.ecosystem.aiBorneUrl).toBe('https://ai-borne.in');
   });
 
+  it('should have all editor curation desk strings defined', () => {
+    expect(STRINGS.editor.dashboardTitle).toBe('Editorial Curation Control');
+    expect(STRINGS.editor.openDashboard).toBeDefined();
+    expect(STRINGS.editor.promoteToLead).toBeDefined();
+    expect(STRINGS.editor.demoteStory).toBeDefined();
+    expect(STRINGS.editor.editHeadline).toBeDefined();
+    expect(STRINGS.editor.editSSBBrief).toBeDefined();
+    expect(STRINGS.editor.ignoreCluster).toBeDefined();
+  });
+
+  it('should have PWA and Funnel configuration strings defined', () => {
+    expect(STRINGS.pwa.installPrompt).toBeDefined();
+    expect(STRINGS.pwa.installButton).toBeDefined();
+    expect(STRINGS.funnel.utmSource).toBe('defencewire');
+    expect(STRINGS.funnel.utmMediumSSB).toBe('ssb_drawer');
+  });
+
   it('should have valid non-empty values for all error and theme strings', () => {
     expect(STRINGS.errors.feedLoadFailed).toBeDefined();
     expect(STRINGS.errors.invalidUrl).toBeDefined();
@@ -84,5 +101,8 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(CSS_VARS.bgCanvas).toBe('var(--dw-bg-canvas)');
     expect(CSS_VARS.textPrimary).toBe('var(--dw-text-primary)');
     expect(CSS_VARS.textAccent).toBe('var(--dw-text-accent)');
+    expect(CSS_VARS.statusOfflineBg).toBe('var(--dw-status-offline-bg)');
+    expect(CSS_VARS.statusOnlineBg).toBe('var(--dw-status-online-bg)');
   });
 });
+

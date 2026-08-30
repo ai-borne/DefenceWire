@@ -78,7 +78,12 @@ export const CSS_VARS = {
   link: 'var(--dw-link)',
   linkVisited: 'var(--dw-link-visited)',
   badgeBg: 'var(--dw-badge-bg)',
-  badgeText: 'var(--dw-badge-text)'
+  badgeText: 'var(--dw-badge-text)',
+  statusOfflineBg: 'var(--dw-status-offline-bg)',
+  statusOfflineText: 'var(--dw-status-offline-text)',
+  statusOnlineBg: 'var(--dw-status-online-bg)',
+  statusOnlineText: 'var(--dw-status-online-text)'
 } as const;
+
 
 export type ThemeColors = typeof COLOR_PALETTE.light;

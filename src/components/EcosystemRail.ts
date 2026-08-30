@@ -6,6 +6,7 @@
 
 import { STRINGS } from '../resources/strings.js';
 import { getSafeLinkAttributes } from '../utils/security.js';
+import { buildFunnelUrl, trackOutboundClick } from '../services/funnelService.js';
 
 export function renderEcosystemRail(): HTMLElement {
   const container = document.createElement('aside');
@@ -31,12 +32,24 @@ export function renderEcosystemRail(): HTMLElement {
 
   const ssbLink = document.createElement('a');
   ssbLink.className = 'dw-ecosystem-link';
-  const ssbUrl = `${STRINGS.ecosystem.ssbMaxUrl}?utm_source=defencewire&utm_medium=ecosystem_rail`;
+  const ssbUrl = buildFunnelUrl(STRINGS.ecosystem.ssbMaxUrl, {
+    medium: STRINGS.funnel.utmMediumEcosystem,
+    campaign: 'sidebar'
+  });
   const ssbAttrs = getSafeLinkAttributes(ssbUrl);
   ssbLink.href = ssbAttrs.href;
   ssbLink.target = ssbAttrs.target;
   ssbLink.rel = ssbAttrs.rel;
   ssbLink.textContent = `${STRINGS.ecosystem.ssbMaxCta} →`;
+
+  ssbLink.addEventListener('click', () => {
+    trackOutboundClick({
+      url: ssbUrl,
+      destination: 'SSBMax.ai',
+      medium: STRINGS.funnel.utmMediumEcosystem,
+      campaign: 'sidebar'
+    });
+  });
 
   ssbModule.appendChild(ssbTitle);
   ssbModule.appendChild(ssbDesc);
@@ -57,12 +70,24 @@ export function renderEcosystemRail(): HTMLElement {
 
   const aiLink = document.createElement('a');
   aiLink.className = 'dw-ecosystem-link';
-  const aiUrl = `${STRINGS.ecosystem.aiBorneUrl}?utm_source=defencewire&utm_medium=ecosystem_rail`;
+  const aiUrl = buildFunnelUrl(STRINGS.ecosystem.aiBorneUrl, {
+    medium: STRINGS.funnel.utmMediumEcosystem,
+    campaign: 'sidebar'
+  });
   const aiAttrs = getSafeLinkAttributes(aiUrl);
   aiLink.href = aiAttrs.href;
   aiLink.target = aiAttrs.target;
   aiLink.rel = aiAttrs.rel;
   aiLink.textContent = `${STRINGS.ecosystem.aiBorneCta} →`;
+
+  aiLink.addEventListener('click', () => {
+    trackOutboundClick({
+      url: aiUrl,
+      destination: 'AI-Borne.in',
+      medium: STRINGS.funnel.utmMediumEcosystem,
+      campaign: 'sidebar'
+    });
+  });
 
   aiModule.appendChild(aiTitle);
   aiModule.appendChild(aiDesc);
@@ -71,3 +96,4 @@ export function renderEcosystemRail(): HTMLElement {
 
   return container;
 }
+

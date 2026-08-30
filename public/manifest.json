@@ -1,0 +1,25 @@
+{
+  "name": "DefenceWire.in — Real-Time Indian Defence & Strategic Intelligence",
+  "short_name": "DefenceWire",
+  "description": "Real-time institutional news aggregator for Indian defence, military technology, procurement, geopolitics, and SSB preparation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0C0F12",
+  "theme_color": "#B31919",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230C0F12'/><circle cx='96' cy='96' r='75' fill='none' stroke='%234A5D4E' stroke-width='4'/><circle cx='96' cy='96' r='50' fill='none' stroke='%234A5D4E' stroke-width='2'/><circle cx='96' cy='96' r='25' fill='none' stroke='%234A5D4E' stroke-width='2'/><line x1='96' y1='21' x2='96' y2='171' stroke='%234A5D4E' stroke-width='2'/><line x1='21' y1='96' x2='171' y2='96' stroke='%234A5D4E' stroke-width='2'/><polygon points='96,35 145,150 96,128 47,150' fill='%23B31919'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230C0F12'/><circle cx='256' cy='256' r='200' fill='none' stroke='%234A5D4E' stroke-width='8'/><circle cx='256' cy='256' r='130' fill='none' stroke='%234A5D4E' stroke-width='4'/><circle cx='256' cy='256' r='65' fill='none' stroke='%234A5D4E' stroke-width='4'/><line x1='256' y1='56' x2='256' y2='456' stroke='%234A5D4E' stroke-width='4'/><line x1='56' y1='256' x2='456' y2='256' stroke='%234A5D4E' stroke-width='4'/><polygon points='256,90 380,400 256,340 132,400' fill='%23B31919'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["news", "education", "productivity"]
+}

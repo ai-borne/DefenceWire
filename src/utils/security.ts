@@ -68,6 +68,12 @@ export function isValidExternalUrl(urlString: string): boolean {
 }
 
 /**
+ * Alias for isValidExternalUrl
+ */
+export const isSafeHttpUrl = isValidExternalUrl;
+
+
+/**
  * Normalizes and sanitizes a URL.
  * Returns '#' if the URL is invalid or uses an unsafe protocol.
  *

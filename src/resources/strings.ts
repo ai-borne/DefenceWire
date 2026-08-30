@@ -77,16 +77,47 @@ export const STRINGS = {
   },
   editor: {
     dashboardTitle: 'Editorial Curation Control',
+    openDashboard: 'Curator Desk',
+    closeDashboard: 'Close Desk',
+    toggleAria: 'Toggle Editorial Curation Control Desk',
     promoteToLead: 'Promote to Lead',
-    demoteStory: 'Demote',
+    demoteStory: 'Demote Lead',
     editHeadline: 'Edit Synthesized Headline',
     editSSBBrief: 'Edit SSB Brief',
-    ignoreCluster: 'Ignore Cluster',
+    ignoreCluster: 'Ignore Story',
+    restoreCluster: 'Restore Story',
     saveChanges: 'Save Changes',
     cancel: 'Cancel',
     statusActive: 'Active',
     statusIgnored: 'Ignored',
-    scoreLabel: 'DefenceScore'
+    statusPromoted: 'Lead Story',
+    scoreLabel: 'DefenceScore',
+    sourcesCountLabel: 'sources',
+    candidateClusters: 'Candidate Clusters',
+    filterAll: 'All Stories',
+    filterActive: 'Active Only',
+    filterIgnored: 'Ignored Only',
+    headlineModalTitle: 'Edit Synthesized Headline',
+    headlinePlaceholder: 'Enter authoritative synthesized headline...',
+    ssbModalTitle: 'Edit SSB Intelligence Brief',
+    whyItMattersLabel: 'Why This Matters for SSB',
+    gdTopicsLabel: 'GD / Lecturette Points (one per line)',
+    interviewQuestionsLabel: 'Interview Questions (one per line)',
+    strategicAngleLabel: 'Strategic Angle',
+    noClustersFound: 'No clusters found in this view.'
+  },
+  pwa: {
+    installPrompt: 'Install DefenceWire for offline tactical intelligence',
+    installButton: 'Install App',
+    closeButton: 'Dismiss',
+    offlineBanner: 'Offline Mode: Serving cached tactical intelligence briefings',
+    onlineBanner: 'Online: Real-time intelligence feed reconnected'
+  },
+  funnel: {
+    utmSource: 'defencewire',
+    utmMediumSSB: 'ssb_drawer',
+    utmMediumEcosystem: 'ecosystem_rail',
+    utmCampaignDefault: 'organic'
   },
   theme: {
     toggleThemeAria: 'Switch visual theme mode',
@@ -129,3 +160,4 @@ export const STRINGS = {
 } as const;
 
 export type StringResourceKeys = typeof STRINGS;
+

@@ -165,6 +165,115 @@ export class NewsViewModel {
     });
   }
 
+  /**
+   * Returns all clusters, optionally including ignored ones.
+   */
+  public getAllClusters(includeIgnored: boolean = true): StoryCluster[] {
+    if (includeIgnored) {
+      return [...this.clusters];
+    }
+    return this.clusters.filter((c) => !c.isIgnored);
+  }
+
+  /**
+   * Finds a cluster by its ID.
+   */
+  public getClusterById(id: string): StoryCluster | undefined {
+    return this.clusters.find((c) => c.id === id);
+  }
+
+  /**
+   * Replaces the entire cluster list (e.g. from cache or crawler).
+   */
+  public setClusters(clusters: StoryCluster[]): void {
+    this.clusters = [...clusters];
+    this.notifyListeners();
+  }
+
+  /**
+   * Surgically updates a specific cluster.
+   */
+  public updateCluster(id: string, updater: (cluster: StoryCluster) => StoryCluster): void {
+    const idx = this.clusters.findIndex((c) => c.id === id);
+    if (idx === -1) return;
+
+    const current = this.clusters[idx];
+    if (!current) return;
+
+    this.clusters[idx] = updater({ ...current });
+    this.notifyListeners();
+  }
+
+
+  /**
+   * Promotes a cluster to Lead story.
+   */
+  public promoteToLead(id: string): void {
+    const maxScore = Math.max(...this.clusters.map((c) => c.defenceScore), 100);
+    this.clusters = this.clusters.map((c) => {
+      if (c.id === id) {
+        return {
+          ...c,
+          isLeadStory: true,
+          isEditorPromoted: true,
+          isIgnored: false,
+          defenceScore: maxScore + 50,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return {
+        ...c,
+        isLeadStory: false
+      };
+    });
+    this.notifyListeners();
+  }
+
+  /**
+   * Demotes a promoted lead cluster.
+   */
+  public demoteStory(id: string): void {
+    this.updateCluster(id, (cluster) => ({
+      ...cluster,
+      isLeadStory: false,
+      isEditorPromoted: false,
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  /**
+   * Updates synthesized headline for a cluster.
+   */
+  public updateHeadline(id: string, newHeadline: string): void {
+    this.updateCluster(id, (cluster) => ({
+      ...cluster,
+      synthesizedHeadline: newHeadline.trim(),
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  /**
+   * Updates SSB Intelligence briefing for a cluster.
+   */
+  public updateSSBIntel(id: string, ssbIntel: import('../types/news.js').SSBIntelligence): void {
+    this.updateCluster(id, (cluster) => ({
+      ...cluster,
+      ssbIntel: { ...ssbIntel },
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  /**
+   * Toggles the ignored status of a cluster.
+   */
+  public toggleIgnore(id: string): void {
+    this.updateCluster(id, (cluster) => ({
+      ...cluster,
+      isIgnored: !cluster.isIgnored,
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
   public subscribe(listener: NewsStateListener): () => void {
     this.listeners.add(listener);
     return () => {
@@ -178,3 +287,4 @@ export class NewsViewModel {
     }
   }
 }
+

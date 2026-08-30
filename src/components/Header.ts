@@ -9,8 +9,13 @@ import { sanitizePlainText } from '../utils/security.js';
 import { formatLiveIST } from '../utils/dateUtils.js';
 import { ThemeViewModel } from '../viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
+import { EditorViewModel } from '../viewmodels/EditorViewModel.js';
 
-export function renderHeader(themeVm: ThemeViewModel, newsVm: NewsViewModel): HTMLElement {
+export function renderHeader(
+  themeVm: ThemeViewModel,
+  newsVm: NewsViewModel,
+  editorVm?: EditorViewModel
+): HTMLElement {
   const header = document.createElement('header');
   header.className = 'dw-header';
 
@@ -54,6 +59,19 @@ export function renderHeader(themeVm: ThemeViewModel, newsVm: NewsViewModel): HT
   // 2. Controls Row
   const controls = document.createElement('div');
   controls.className = 'dw-header-controls';
+
+  // Curator Desk Toggle Button
+  if (editorVm) {
+    const editorBtn = document.createElement('button');
+    editorBtn.className = 'dw-theme-btn';
+    editorBtn.type = 'button';
+    editorBtn.setAttribute('aria-label', STRINGS.editor.toggleAria);
+    editorBtn.textContent = `⚡ ${STRINGS.editor.openDashboard}`;
+    editorBtn.addEventListener('click', () => {
+      editorVm.toggleOpen();
+    });
+    controls.appendChild(editorBtn);
+  }
 
   // Live IST Clock
   const clockContainer = document.createElement('div');
@@ -121,6 +139,7 @@ export function renderHeader(themeVm: ThemeViewModel, newsVm: NewsViewModel): HT
   inner.appendChild(brandRow);
   inner.appendChild(controls);
   header.appendChild(inner);
+
 
   // Update clock every second safely
   if (typeof window !== 'undefined') {

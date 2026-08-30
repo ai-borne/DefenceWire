@@ -7,6 +7,8 @@
 import { SSBIntelligence } from '../types/news.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
+import { buildFunnelUrl, trackOutboundClick } from '../services/funnelService.js';
+
 
 export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTMLElement {
   const drawer = document.createElement('section');
@@ -172,14 +174,24 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTML
 
   const ctaLink = document.createElement('a');
   ctaLink.className = 'dw-ssb-cta-btn';
-  const ctaUrl = `${STRINGS.ssb.ctaLink}?utm_source=defencewire&utm_medium=ssb_drawer&utm_campaign=${encodeURIComponent(
-    clusterId
-  )}`;
+  const ctaUrl = buildFunnelUrl(STRINGS.ssb.ctaLink, {
+    medium: STRINGS.funnel.utmMediumSSB,
+    campaign: clusterId
+  });
   const linkAttrs = getSafeLinkAttributes(ctaUrl);
   ctaLink.href = linkAttrs.href;
   ctaLink.target = linkAttrs.target;
   ctaLink.rel = linkAttrs.rel;
   ctaLink.textContent = STRINGS.ssb.ctaButton;
+
+  ctaLink.addEventListener('click', () => {
+    trackOutboundClick({
+      url: ctaUrl,
+      destination: 'SSBMax.ai',
+      medium: STRINGS.funnel.utmMediumSSB,
+      campaign: clusterId
+    });
+  });
 
   ctaBox.appendChild(ctaText);
   ctaBox.appendChild(ctaLink);
@@ -187,3 +199,4 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string): HTML
 
   return drawer;
 }
+
