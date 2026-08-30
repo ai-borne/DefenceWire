@@ -104,7 +104,28 @@ export const STRINGS = {
     gdTopicsLabel: 'GD / Lecturette Points (one per line)',
     interviewQuestionsLabel: 'Interview Questions (one per line)',
     strategicAngleLabel: 'Strategic Angle',
-    noClustersFound: 'No clusters found in this view.'
+    noClustersFound: 'No clusters found in this view.',
+    // Auth & Stealth Controls
+    authTitle: 'Institutional Curator Access',
+    authSubtitle: 'Restricted to authorized DefenceWire editorial personnel.',
+    passcodePlaceholder: 'Enter Security Passcode...',
+    unlockButton: 'Unlock Curator Desk',
+    invalidPasscode: 'Invalid passcode. Access denied.',
+    lockDesk: 'Lock Desk',
+    rememberSession: 'Remember session',
+    // Worldwide Git Sync & Export
+    publishToProduction: 'Publish to Production',
+    publishing: 'Publishing to Cloudflare Pages...',
+    publishSuccess: 'Published to production successfully! Edge cache updating...',
+    publishError: 'Failed to publish to production.',
+    githubTokenPlaceholder: 'Enter GitHub Personal Access Token (PAT)...',
+    tokenRequired: 'GitHub Personal Access Token required to publish.',
+    tokenConfigured: 'PAT Configured',
+    saveToken: 'Save Token',
+    exportJson: 'Export JSON',
+    copyJson: 'Copy JSON',
+    copiedToClipboard: 'Curated intelligence JSON copied to clipboard!',
+    stealthHint: 'Curator Desk unlocked via institutional shortcut.'
   },
   pwa: {
     installPrompt: 'Install DefenceWire for offline tactical intelligence',

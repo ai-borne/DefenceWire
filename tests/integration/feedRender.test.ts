@@ -1,5 +1,5 @@
 /**
- * Integration Tests for Feed Rendering & UI Interactions
+ * Integration Tests for Feed Rendering, Stealth Curator Access & UI Interactions
  * Hard limit: <= 300 LOC.
  */
 
@@ -9,6 +9,10 @@ import { STRINGS } from '../../src/resources/strings.js';
 
 describe('Integration: Feed Rendering & UI Components', () => {
   beforeEach(() => {
+    window.location.hash = '';
+    if (typeof window.localStorage !== 'undefined') {
+      window.localStorage.clear();
+    }
     document.body.innerHTML = '<div id="app"></div>';
   });
 
@@ -23,6 +27,12 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(header).not.toBeNull();
     expect(header?.textContent).toContain('Defence');
     expect(header?.textContent).toContain(STRINGS.app.institutionalBadge);
+
+    // Verify stealth: No public curator button in controls
+    const curatorBtn = Array.from(header?.querySelectorAll('button') || []).find((b) =>
+      b.textContent?.includes(STRINGS.editor.openDashboard)
+    );
+    expect(curatorBtn).toBeUndefined();
 
     // Verify Live Clock & Search Input
     const clock = app?.querySelector('#dw-header-ist-clock');
@@ -63,14 +73,12 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(navyTab).toBeDefined();
     navyTab.click();
 
-    // Tab active status check after re-render
     const activeNavyTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
       (el) => el.textContent === STRINGS.nav.navy
     ) as HTMLButtonElement;
     expect(activeNavyTab.classList.contains('active')).toBe(true);
     expect(activeNavyTab.getAttribute('aria-selected')).toBe('true');
 
-    // Clusters should be updated to Navy
     const headlines = Array.from(document.querySelectorAll('.dw-headline')).map(
       (h) => h.textContent
     );
@@ -107,7 +115,6 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(ssbDrawer?.textContent).toContain(STRINGS.ssb.whyItMattersHeading);
     expect(ssbDrawer?.textContent).toContain(STRINGS.ssb.ctaButton);
 
-    // Verify safe link in drawer
     const ctaLink = ssbDrawer?.querySelector('a.dw-ssb-cta-btn') as HTMLAnchorElement;
     expect(ctaLink).not.toBeNull();
     expect(ctaLink.target).toBe('_blank');
@@ -122,27 +129,45 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
   });
 
-  it('should toggle Curator Desk modal when header button is clicked', () => {
+  it('should open Curator Desk upon 5 rapid stealth clicks on institutional badge', () => {
     initializeApp();
 
-    const curatorBtn = Array.from(document.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes(STRINGS.editor.openDashboard)
-    );
-    expect(curatorBtn).toBeDefined();
+    const badge = document.querySelector('.dw-inst-badge') as HTMLElement | null;
+    expect(badge).not.toBeNull();
 
-    // Open Curator Desk
-    curatorBtn?.click();
+    // 5 rapid clicks on badge
+    for (let i = 0; i < 5; i++) {
+      badge?.click();
+    }
 
     const overlay = document.querySelector('.dw-editor-modal-overlay');
     expect(overlay).not.toBeNull();
-    expect(overlay?.textContent).toContain(STRINGS.editor.dashboardTitle);
+    expect(overlay?.textContent).toContain(STRINGS.editor.authTitle);
+  });
 
-    // Close Curator Desk
-    const closeBtn = overlay?.querySelector('.dw-editor-close') as HTMLButtonElement | null;
-    expect(closeBtn).not.toBeNull();
-    closeBtn?.click();
+  it('should toggle Curator Desk via keyboard shortcut Ctrl+Shift+C', () => {
+    initializeApp();
+
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'c',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true
+      })
+    );
+
+    const overlay = document.querySelector('.dw-editor-modal-overlay');
+    expect(overlay).not.toBeNull();
+
+    // Close via Escape key
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true
+      })
+    );
 
     expect(document.querySelector('.dw-editor-modal-overlay')).toBeNull();
   });
 });
-

@@ -51,6 +51,12 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.editor.editHeadline).toBeDefined();
     expect(STRINGS.editor.editSSBBrief).toBeDefined();
     expect(STRINGS.editor.ignoreCluster).toBeDefined();
+    expect(STRINGS.editor.authTitle).toBeDefined();
+    expect(STRINGS.editor.unlockButton).toBeDefined();
+    expect(STRINGS.editor.publishToProduction).toBeDefined();
+    expect(STRINGS.editor.exportJson).toBeDefined();
+    expect(STRINGS.editor.copyJson).toBeDefined();
+    expect(STRINGS.editor.lockDesk).toBeDefined();
   });
 
   it('should have PWA and Funnel configuration strings defined', () => {

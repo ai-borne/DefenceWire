@@ -1,15 +1,21 @@
 /**
  * Editorial Curator Dashboard Component for DefenceWire.in
- * Human-in-the-loop candidate cluster manager with 1-click promote, demote, headline, and SSB curation.
+ * Human-in-the-loop candidate cluster manager with 1-click promote, demote, headline, SSB curation, and Git publishing.
  * Hard limit: <= 300 LOC.
  */
 
 import { EditorViewModel, EditorFilterMode } from '../viewmodels/EditorViewModel.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
-import { StoryCluster } from '../types/news.js';
+import { renderEditorAuthModal } from './EditorAuthModal.js';
+import { renderCandidateCard } from './EditorCandidateCard.js';
+import { defaultCuratorSyncService } from '../services/curatorSyncService.js';
 
 export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
+  if (!editorVm.isAuthenticated()) {
+    return renderEditorAuthModal(editorVm);
+  }
+
   const overlay = document.createElement('div');
   overlay.className = 'dw-editor-modal-overlay';
   overlay.setAttribute('role', 'dialog');
@@ -37,7 +43,100 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   header.appendChild(closeBtn);
   panel.appendChild(header);
 
-  // 2. Toolbar
+  // 2. Action Bar (Publish, Export, Copy, Lock)
+  const actionBar = document.createElement('div');
+  actionBar.className = 'dw-editor-action-bar';
+  actionBar.style.padding = '8px 18px';
+  actionBar.style.background = 'var(--dw-bg-secondary)';
+  actionBar.style.borderBottom = '1px solid var(--dw-border-secondary)';
+  actionBar.style.display = 'flex';
+  actionBar.style.justifyContent = 'space-between';
+  actionBar.style.alignItems = 'center';
+  actionBar.style.flexWrap = 'wrap';
+  actionBar.style.gap = '8px';
+
+  const actionGroup = document.createElement('div');
+  actionGroup.style.display = 'flex';
+  actionGroup.style.gap = '6px';
+  actionGroup.style.flexWrap = 'wrap';
+
+  // Publish to Production Button
+  const publishBtn = document.createElement('button');
+  publishBtn.type = 'button';
+  publishBtn.className = 'dw-editor-btn dw-editor-btn--publish';
+  publishBtn.textContent = editorVm.getIsPublishing() ? `⏳ ${STRINGS.editor.publishing}` : `🚀 ${STRINGS.editor.publishToProduction}`;
+  publishBtn.disabled = editorVm.getIsPublishing();
+  publishBtn.onclick = async () => {
+    let token = defaultCuratorSyncService.getStoredToken() || '';
+    if (!token) {
+      const entered = window.prompt(STRINGS.editor.githubTokenPlaceholder);
+      if (!entered) return;
+      token = entered.trim();
+    }
+    await editorVm.publishToProduction(token);
+  };
+  actionGroup.appendChild(publishBtn);
+
+  // Export JSON Button
+  const exportBtn = document.createElement('button');
+  exportBtn.type = 'button';
+  exportBtn.className = 'dw-editor-btn dw-editor-btn--export';
+  exportBtn.textContent = `💾 ${STRINGS.editor.exportJson}`;
+  exportBtn.onclick = () => {
+    const jsonStr = editorVm.exportCuratedJson();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'news.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  actionGroup.appendChild(exportBtn);
+
+  // Copy JSON Button
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'dw-editor-btn dw-editor-btn--copy';
+  copyBtn.textContent = `📋 ${STRINGS.editor.copyJson}`;
+  copyBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(editorVm.exportCuratedJson());
+      alert(STRINGS.editor.copiedToClipboard);
+    } catch {
+      // Fallback
+    }
+  };
+  actionGroup.appendChild(copyBtn);
+
+  // Lock Desk Button
+  const lockBtn = document.createElement('button');
+  lockBtn.type = 'button';
+  lockBtn.className = 'dw-editor-btn dw-editor-btn--lock';
+  lockBtn.textContent = `🔒 ${STRINGS.editor.lockDesk}`;
+  lockBtn.onclick = () => editorVm.logout();
+
+  actionBar.appendChild(actionGroup);
+  actionBar.appendChild(lockBtn);
+  panel.appendChild(actionBar);
+
+  // Status message banner if any
+  const statusMsg = editorVm.getPublishStatusMessage();
+  if (statusMsg) {
+    const banner = document.createElement('div');
+    banner.style.padding = '6px 18px';
+    banner.style.fontSize = '0.78rem';
+    banner.style.fontWeight = '600';
+    banner.style.background = 'var(--dw-bg-card)';
+    banner.style.borderBottom = '1px solid var(--dw-border-secondary)';
+    banner.style.color = statusMsg.includes('Error') || statusMsg.includes('Failed') || statusMsg.includes('required')
+      ? 'var(--dw-text-accent)'
+      : 'var(--dw-badge-text)';
+    banner.textContent = sanitizePlainText(statusMsg);
+    panel.appendChild(banner);
+  }
+
+  // 3. Toolbar (Filters & Search)
   const toolbar = document.createElement('div');
   toolbar.className = 'dw-editor-toolbar';
 
@@ -73,7 +172,7 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   toolbar.appendChild(searchInput);
   panel.appendChild(toolbar);
 
-  // 3. Cluster List
+  // 4. Candidate Cluster List
   const list = document.createElement('div');
   list.className = 'dw-editor-cluster-list';
 
@@ -93,185 +192,4 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   panel.appendChild(list);
   overlay.appendChild(panel);
   return overlay;
-}
-
-function renderCandidateCard(cluster: StoryCluster, editorVm: EditorViewModel): HTMLElement {
-  const card = document.createElement('div');
-  card.className = `dw-editor-cluster-card ${cluster.isIgnored ? 'ignored' : ''}`;
-
-  const headerRow = document.createElement('div');
-  headerRow.className = 'dw-editor-card-header';
-
-  const headline = document.createElement('h3');
-  headline.className = 'dw-editor-headline';
-  headline.textContent = sanitizePlainText(cluster.synthesizedHeadline);
-
-  const badges = document.createElement('div');
-  badges.className = 'dw-editor-meta-badges';
-
-  if (cluster.isLeadStory || cluster.isEditorPromoted) {
-    const leadBadge = document.createElement('span');
-    leadBadge.className = 'dw-editor-promoted-badge';
-    leadBadge.textContent = STRINGS.editor.statusPromoted;
-    badges.appendChild(leadBadge);
-  }
-
-  const scoreBadge = document.createElement('span');
-  scoreBadge.className = 'dw-editor-score-badge';
-  scoreBadge.textContent = `${STRINGS.editor.scoreLabel}: ${Math.round(cluster.defenceScore)}`;
-  badges.appendChild(scoreBadge);
-
-  headerRow.appendChild(headline);
-  headerRow.appendChild(badges);
-  card.appendChild(headerRow);
-
-  const totalSources = 1 + (cluster.relatedCoverage?.length || 0);
-  const info = document.createElement('div');
-  info.className = 'dw-editor-card-info';
-  info.textContent = `${STRINGS.story.primarySourcePrefix} ${cluster.primarySource.sourceName} • ${totalSources} ${STRINGS.editor.sourcesCountLabel}`;
-  card.appendChild(info);
-
-  // Edit forms container
-  const formContainer = document.createElement('div');
-  card.appendChild(formContainer);
-
-  // Actions
-  const actions = document.createElement('div');
-  actions.className = 'dw-editor-actions';
-
-  // Promote / Demote
-  const promoteBtn = document.createElement('button');
-  promoteBtn.type = 'button';
-  promoteBtn.className = 'dw-editor-btn dw-editor-btn--promote';
-  promoteBtn.textContent = cluster.isLeadStory || cluster.isEditorPromoted ? STRINGS.editor.demoteStory : STRINGS.editor.promoteToLead;
-  promoteBtn.onclick = () => {
-    if (cluster.isLeadStory || cluster.isEditorPromoted) {
-      editorVm.demoteStory(cluster.id);
-    } else {
-      editorVm.promoteToLead(cluster.id);
-    }
-  };
-  actions.appendChild(promoteBtn);
-
-  // Edit Headline Button
-  const editHeadBtn = document.createElement('button');
-  editHeadBtn.type = 'button';
-  editHeadBtn.className = 'dw-editor-btn';
-  editHeadBtn.textContent = STRINGS.editor.editHeadline;
-  editHeadBtn.onclick = () => {
-    renderHeadlineEditor(formContainer, cluster, editorVm);
-  };
-  actions.appendChild(editHeadBtn);
-
-  // Edit SSB Button
-  const editSsbBtn = document.createElement('button');
-  editSsbBtn.type = 'button';
-  editSsbBtn.className = 'dw-editor-btn';
-  editSsbBtn.textContent = STRINGS.editor.editSSBBrief;
-  editSsbBtn.onclick = () => {
-    renderSSBEditor(formContainer, cluster, editorVm);
-  };
-  actions.appendChild(editSsbBtn);
-
-  // Ignore / Restore Button
-  const ignoreBtn = document.createElement('button');
-  ignoreBtn.type = 'button';
-  ignoreBtn.className = 'dw-editor-btn dw-editor-btn--ignore';
-  ignoreBtn.textContent = cluster.isIgnored ? STRINGS.editor.restoreCluster : STRINGS.editor.ignoreCluster;
-  ignoreBtn.onclick = () => editorVm.toggleIgnore(cluster.id);
-  actions.appendChild(ignoreBtn);
-
-  card.appendChild(actions);
-  return card;
-}
-
-function renderHeadlineEditor(container: HTMLElement, cluster: StoryCluster, editorVm: EditorViewModel): void {
-  container.innerHTML = '';
-  const form = document.createElement('div');
-  form.className = 'dw-editor-edit-dialog';
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'dw-editor-input';
-  input.value = cluster.synthesizedHeadline;
-
-  const btnRow = document.createElement('div');
-  btnRow.style.display = 'flex';
-  btnRow.style.gap = '6px';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.type = 'button';
-  saveBtn.className = 'dw-editor-btn dw-editor-btn--promote';
-  saveBtn.textContent = STRINGS.editor.saveChanges;
-  saveBtn.onclick = () => {
-    if (input.value.trim()) {
-      editorVm.editHeadline(cluster.id, input.value.trim());
-      container.innerHTML = '';
-    }
-  };
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.type = 'button';
-  cancelBtn.className = 'dw-editor-btn';
-  cancelBtn.textContent = STRINGS.editor.cancel;
-  cancelBtn.onclick = () => {
-    container.innerHTML = '';
-  };
-
-  btnRow.appendChild(saveBtn);
-  btnRow.appendChild(cancelBtn);
-  form.appendChild(input);
-  form.appendChild(btnRow);
-  container.appendChild(form);
-}
-
-function renderSSBEditor(container: HTMLElement, cluster: StoryCluster, editorVm: EditorViewModel): void {
-  container.innerHTML = '';
-  const form = document.createElement('div');
-  form.className = 'dw-editor-edit-dialog';
-
-  const label = document.createElement('label');
-  label.style.fontSize = '0.74rem';
-  label.style.fontWeight = '600';
-  label.textContent = STRINGS.editor.whyItMattersLabel;
-
-  const textarea = document.createElement('textarea');
-  textarea.className = 'dw-editor-textarea';
-  textarea.value = cluster.ssbIntel?.whyItMatters || '';
-
-  const btnRow = document.createElement('div');
-  btnRow.style.display = 'flex';
-  btnRow.style.gap = '6px';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.type = 'button';
-  saveBtn.className = 'dw-editor-btn dw-editor-btn--promote';
-  saveBtn.textContent = STRINGS.editor.saveChanges;
-  saveBtn.onclick = () => {
-    const existing = cluster.ssbIntel || {
-      whyItMatters: '',
-      gdLecturettePoints: [],
-      potentialInterviewQuestions: []
-    };
-    editorVm.editSSBBrief(cluster.id, {
-      ...existing,
-      whyItMatters: textarea.value.trim()
-    });
-    container.innerHTML = '';
-  };
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.type = 'button';
-  cancelBtn.className = 'dw-editor-btn';
-  cancelBtn.textContent = STRINGS.editor.cancel;
-  cancelBtn.onclick = () => {
-    container.innerHTML = '';
-  };
-
-  btnRow.appendChild(saveBtn);
-  btnRow.appendChild(cancelBtn);
-  form.appendChild(label);
-  form.appendChild(textarea);
-  form.appendChild(btnRow);
-  container.appendChild(form);
 }

@@ -246,6 +246,30 @@ export function initializeApp(): void {
     }
   };
 
+  // 8. Stealth Hash Routing & Global Shortcuts for Human Curator
+  const checkCuratorRoute = () => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (hash === '#curator' || hash === '#/curator' || search.includes('mode=curator')) {
+        editorVm.setOpen(true);
+      }
+    }
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('hashchange', checkCuratorRoute);
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        editorVm.toggleOpen();
+      }
+      if (e.key === 'Escape' && editorVm.isOpen()) {
+        editorVm.setOpen(false);
+      }
+    });
+  }
+
   // Subscriptions
   newsVm.subscribe(() => {
     updateFeedAndSidebar();
@@ -258,6 +282,7 @@ export function initializeApp(): void {
   // Initial renders
   updateFeedAndSidebar();
   updateEditorDesk();
+  checkCuratorRoute();
 }
 
 // Auto-bootstrap on DOM ready

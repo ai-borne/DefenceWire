@@ -1,11 +1,20 @@
+/**
+ * Unit Tests for EditorViewModel (Curation, Auth & Git Sync)
+ * Hard limit: <= 300 LOC.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
+import { AuthService } from '../../src/services/authService.js';
+import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
 
 describe('EditorViewModel', () => {
   let newsVm: NewsViewModel;
+  let authService: AuthService;
+  let syncService: CuratorSyncService;
   let editorVm: EditorViewModel;
 
   const mockCluster1: StoryCluster = {
@@ -42,7 +51,6 @@ describe('EditorViewModel', () => {
       tier: SourceTier.TIER_2_NATIONAL,
       publishedAt: '2026-08-30T09:00:00Z'
     },
-
     relatedCoverage: [],
     discussions: [],
     categories: ['navy'],
@@ -54,14 +62,18 @@ describe('EditorViewModel', () => {
   };
 
   beforeEach(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
     newsVm = new NewsViewModel([mockCluster1, mockCluster2], []);
-    editorVm = new EditorViewModel(newsVm);
+    authService = new AuthService();
+    syncService = new CuratorSyncService();
+    editorVm = new EditorViewModel(newsVm, authService, syncService);
   });
 
   it('retrieves candidate clusters sorted with scores', () => {
     const candidates = editorVm.getCandidateClusters();
     expect(candidates.length).toBe(2);
-    // Cluster 2 has score 80, Cluster 1 has score 70
     expect(candidates[0]!.id).toBe('cluster-2');
   });
 
@@ -80,7 +92,6 @@ describe('EditorViewModel', () => {
     expect(updatedCluster1?.isLeadStory).toBe(true);
     expect(updatedCluster1?.defenceScore).toBeGreaterThan(100);
 
-    // Verify newsVm state is updated
     const feed = newsVm.getFilteredClusters();
     expect(feed.leadStory?.id).toBe('cluster-1');
   });
@@ -120,15 +131,12 @@ describe('EditorViewModel', () => {
 
   it('toggles ignore and filters ignored clusters from public feed', () => {
     editorVm.toggleIgnore('cluster-1');
-
     expect(editorVm.getClusterById('cluster-1')?.isIgnored).toBe(true);
 
-    // Public feed should not include cluster-1
     const publicFeed = newsVm.getFilteredClusters();
     expect(publicFeed.totalMatchingStories).toBe(1);
     expect(publicFeed.leadStory?.id).toBe('cluster-2');
 
-    // Filter modes in editor
     editorVm.setFilterMode('ignored');
     expect(editorVm.getCandidateClusters().length).toBe(1);
     expect(editorVm.getCandidateClusters()[0]!.id).toBe('cluster-1');
@@ -137,9 +145,48 @@ describe('EditorViewModel', () => {
     expect(editorVm.getCandidateClusters().length).toBe(1);
     expect(editorVm.getCandidateClusters()[0]!.id).toBe('cluster-2');
 
-    // Un-ignore
     editorVm.toggleIgnore('cluster-1');
     expect(editorVm.getClusterById('cluster-1')?.isIgnored).toBe(false);
   });
 
+  it('handles auth operations and session state correctly', async () => {
+    expect(editorVm.isAuthenticated()).toBe(false);
+
+    const fail = await editorVm.login('bad-passcode');
+    expect(fail).toBe(false);
+    expect(editorVm.isAuthenticated()).toBe(false);
+
+    const success = await editorVm.login('defencewire2026');
+    expect(success).toBe(true);
+    expect(editorVm.isAuthenticated()).toBe(true);
+
+    editorVm.logout();
+    expect(editorVm.isAuthenticated()).toBe(false);
+  });
+
+  it('exports valid formatted JSON snapshot of curated intelligence', () => {
+    const jsonStr = editorVm.exportCuratedJson();
+    const parsed = JSON.parse(jsonStr) as { clusters: StoryCluster[] };
+    expect(parsed.clusters).toBeDefined();
+    expect(parsed.clusters.length).toBe(2);
+  });
+
+  it('coordinates publishing to production with syncService', async () => {
+    const mockFetch = async () =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          commit: { html_url: 'https://github.com/ai-borne/DefenceWire/commit/published123' }
+        })
+      } as unknown as Response);
+
+    const customSync = new CuratorSyncService(mockFetch as unknown as typeof fetch);
+    const vm = new EditorViewModel(newsVm, authService, customSync);
+
+    const res = await vm.publishToProduction('ghp_test_token');
+    expect(res.success).toBe(true);
+    expect(res.commitUrl).toContain('published123');
+    expect(vm.getPublishStatusMessage()).toBeDefined();
+  });
 });

@@ -221,6 +221,7 @@ describe('Crawler Ingestion Pipeline & Summarizer', () => {
       feeds: [MOCK_TIER1_FEED, MOCK_TIER2_FEED],
       maxAgeHours: 72,
       maxClusters: 10,
+      outputPath: null,
       fetchFn: mockFetch as typeof fetch
     });
 

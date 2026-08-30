@@ -1,3 +1,8 @@
+/**
+ * Integration Tests for EditorDashboard and Auth Gate Rendering
+ * Hard limit: <= 300 LOC.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderEditorDashboard } from '../../src/components/EditorDashboard.js';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
@@ -5,9 +10,13 @@ import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { STRINGS } from '../../src/resources/strings.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
+import { AuthService } from '../../src/services/authService.js';
+import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
 
 describe('EditorDashboard Component Integration', () => {
   let newsVm: NewsViewModel;
+  let authService: AuthService;
+  let syncService: CuratorSyncService;
   let editorVm: EditorViewModel;
 
   const mockCluster: StoryCluster = {
@@ -33,8 +42,6 @@ describe('EditorDashboard Component Integration', () => {
         publishedAt: '2026-08-30T09:30:00Z'
       }
     ],
-
-
     discussions: [],
     categories: ['airforce'],
     entities: ['Tejas Mk1A'],
@@ -45,19 +52,41 @@ describe('EditorDashboard Component Integration', () => {
   };
 
   beforeEach(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
     newsVm = new NewsViewModel([mockCluster], []);
-    editorVm = new EditorViewModel(newsVm);
+    authService = new AuthService();
+    syncService = new CuratorSyncService();
+    editorVm = new EditorViewModel(newsVm, authService, syncService);
     editorVm.setOpen(true);
   });
 
-  it('renders dashboard title and candidate cluster items', () => {
+  it('renders tactical passcode modal when unauthenticated', () => {
     const el = renderEditorDashboard(editorVm);
-    expect(el.textContent).toContain(STRINGS.editor.dashboardTitle);
-    expect(el.textContent).toContain('HAL Delivers First Batch of Tejas Mk1A to IAF');
-    expect(el.textContent).toContain('88'); // score
+    expect(el.textContent).toContain(STRINGS.editor.authTitle);
+    expect(el.textContent).toContain(STRINGS.editor.unlockButton);
+
+    const input = el.querySelector('input[type="password"]');
+    expect(input).not.toBeNull();
   });
 
-  it('handles promote button click and updates lead status', () => {
+  it('renders full curator desk and action bar after authentication', async () => {
+    await editorVm.login('defencewire2026');
+
+    const el = renderEditorDashboard(editorVm);
+    expect(el.textContent).toContain(STRINGS.editor.dashboardTitle);
+    expect(el.textContent).toContain(STRINGS.editor.publishToProduction);
+    expect(el.textContent).toContain(STRINGS.editor.exportJson);
+    expect(el.textContent).toContain(STRINGS.editor.copyJson);
+    expect(el.textContent).toContain(STRINGS.editor.lockDesk);
+    expect(el.textContent).toContain('HAL Delivers First Batch of Tejas Mk1A to IAF');
+    expect(el.textContent).toContain('88');
+  });
+
+  it('handles promote button click and updates lead status when authenticated', async () => {
+    await editorVm.login('defencewire2026');
+
     const el = renderEditorDashboard(editorVm);
     const promoteBtn = el.querySelector('.dw-editor-btn--promote') as HTMLButtonElement | null;
     expect(promoteBtn).not.toBeNull();
@@ -66,7 +95,9 @@ describe('EditorDashboard Component Integration', () => {
     expect(editorVm.getClusterById('cluster-mod-1')?.isLeadStory).toBe(true);
   });
 
-  it('handles ignore button click and toggles ignored status', () => {
+  it('handles ignore button click and toggles ignored status', async () => {
+    await editorVm.login('defencewire2026');
+
     const el = renderEditorDashboard(editorVm);
     const ignoreBtn = el.querySelector('.dw-editor-btn--ignore') as HTMLButtonElement | null;
     expect(ignoreBtn).not.toBeNull();
@@ -75,15 +106,31 @@ describe('EditorDashboard Component Integration', () => {
     expect(editorVm.getClusterById('cluster-mod-1')?.isIgnored).toBe(true);
   });
 
-  it('switches filter mode tabs when clicked', () => {
+  it('switches filter mode tabs when clicked in authenticated view', async () => {
+    await editorVm.login('defencewire2026');
+
     const el = renderEditorDashboard(editorVm);
     const filterTabs = el.querySelectorAll('.dw-editor-filter-tab');
     expect(filterTabs.length).toBe(3);
 
-    (filterTabs[1] as HTMLElement).click(); // Active only
+    (filterTabs[1] as HTMLElement).click();
     expect(editorVm.getFilterMode()).toBe('active');
 
-    (filterTabs[2] as HTMLElement).click(); // Ignored only
+    (filterTabs[2] as HTMLElement).click();
     expect(editorVm.getFilterMode()).toBe('ignored');
+  });
+
+  it('locks the desk when lock button is clicked', async () => {
+    await editorVm.login('defencewire2026');
+    expect(editorVm.isAuthenticated()).toBe(true);
+
+    const el = renderEditorDashboard(editorVm);
+    const lockBtn = Array.from(el.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes(STRINGS.editor.lockDesk)
+    );
+    expect(lockBtn).toBeDefined();
+
+    lockBtn?.click();
+    expect(editorVm.isAuthenticated()).toBe(false);
   });
 });

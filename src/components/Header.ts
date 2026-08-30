@@ -53,25 +53,31 @@ export function renderHeader(
   badge.className = 'dw-inst-badge';
   badge.textContent = sanitizePlainText(STRINGS.app.institutionalBadge);
 
+  // Stealth 5-click rapid trigger for authorized human curators
+  if (editorVm) {
+    let clickCount = 0;
+    let lastClickTime = 0;
+    badge.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastClickTime < 2500) {
+        clickCount++;
+      } else {
+        clickCount = 1;
+      }
+      lastClickTime = now;
+      if (clickCount >= 5) {
+        clickCount = 0;
+        editorVm.toggleOpen();
+      }
+    });
+  }
+
   brandRow.appendChild(brandLink);
   brandRow.appendChild(badge);
 
   // 2. Controls Row
   const controls = document.createElement('div');
   controls.className = 'dw-header-controls';
-
-  // Curator Desk Toggle Button
-  if (editorVm) {
-    const editorBtn = document.createElement('button');
-    editorBtn.className = 'dw-theme-btn';
-    editorBtn.type = 'button';
-    editorBtn.setAttribute('aria-label', STRINGS.editor.toggleAria);
-    editorBtn.textContent = `⚡ ${STRINGS.editor.openDashboard}`;
-    editorBtn.addEventListener('click', () => {
-      editorVm.toggleOpen();
-    });
-    controls.appendChild(editorBtn);
-  }
 
   // Live IST Clock
   const clockContainer = document.createElement('div');

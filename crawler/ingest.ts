@@ -19,7 +19,7 @@ export interface IngestOptions {
   feeds?: FeedConfig[];
   maxAgeHours?: number;
   maxClusters?: number;
-  outputPath?: string;
+  outputPath?: string | null;
   geminiApiKey?: string;
   fetchFn?: typeof fetch;
 }
@@ -132,15 +132,17 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   };
 
   // Persist output if specified or default to public/data/news.json
-  const defaultDir = path.resolve(process.cwd(), 'public/data');
-  const targetPath = options.outputPath ?? path.join(defaultDir, 'news.json');
+  if (options.outputPath !== null) {
+    const defaultDir = path.resolve(process.cwd(), 'public/data');
+    const targetPath = options.outputPath ?? path.join(defaultDir, 'news.json');
 
-  try {
-    const dir = path.dirname(targetPath);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(targetPath, JSON.stringify(result, null, 2), 'utf-8');
-  } catch {
-    // Non-fatal if filesystem is mock/read-only
+    try {
+      const dir = path.dirname(targetPath);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(targetPath, JSON.stringify(result, null, 2), 'utf-8');
+    } catch {
+      // Non-fatal if filesystem is mock/read-only
+    }
   }
 
   return result;
