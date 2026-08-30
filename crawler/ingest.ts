@@ -1,6 +1,7 @@
 /**
  * 24/7 Autonomous Defence News Ingestion Pipeline
  * Fetches 40+ RSS/Atom feeds, filters, clusters, scores, and generates SSB intel.
+ * Enforces whole-word matching, negative blacklists, curator override locks & atomic commit guards.
  * Hard limit: <= 300 LOC.
  */
 
@@ -22,6 +23,8 @@ export interface IngestOptions {
   outputPath?: string | null;
   geminiApiKey?: string;
   fetchFn?: typeof fetch;
+  existingClusters?: StoryCluster[];
+  existingRiver?: StorySourceItem[];
 }
 
 export interface IngestResult {
@@ -34,24 +37,46 @@ export interface IngestResult {
   generatedAt: string;
 }
 
-const DEFENCE_KEYWORDS = [
-  'defence', 'defense', 'military', 'army', 'navy', 'air force', 'iaf', 'drdo', 'hal',
-  'mod', 'pib', 'missile', 'frigate', 'corvette', 'warship', 'submarine', 'tejas', 'amca',
-  'rafale', 'zorawar', 'brahmos', 'pinaka', 's-400', 'prachand', 'iac', 'aircraft carrier',
-  'lac', 'loc', 'galwan', 'ladakh', 'border', 'tri-service', 'theater command', 'chief of defence staff',
-  'procurement', 'aon', 'dac', 'iddm', 'make in india', 'ssb', 'c-uas', 'drone', 'loitering munition'
+export const NON_DEFENCE_BLACKLIST = [
+  'mann ki baat', 'drug-free', 'nasha mukt', 'election rally', 'assembly election',
+  'bollywood', 'box office', 'cricket', 'ipl', 'bcci', 'stock market', 'sensex',
+  'nifty', 'gold rate', 'silver rate', 'petrol price', 'diesel price', 'entertainment',
+  'celebrity', 'horoscope', 'astrology', 'weather forecast', 'monsoon rainfall',
+  'traffic jam', 'real estate', 'crypto', 'bitcoin', 'mutual fund', 'cinema', 'ott release'
 ];
 
+export const NON_DEFENCE_BLACKLIST_REGEX = new RegExp(
+  `\\b(${NON_DEFENCE_BLACKLIST.join('|')})\\b`,
+  'i'
+);
+
+export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|dac|ccs|lac|loc|ssb|aon|iddm|atags|mbbr|iadc|cds|dmr|ssbn|ssn|sam|bvr|qrsam|vshorads?|lch|luh|alhs?|bmd|ecm|c-uas|cuas|uavs?|ucavs?|fpv|loitering munition|defence|defense|military|army|navy|air force|armed forces|warship|corvette|frigate|destroyer|submarine|tejas|amca|rafale|zorawar|brahmos|pinaka|s-400|prachand|aircraft carrier|tri-service|theat(?:er|re) command|procurement|missile|artillery|infantry|air defen[sc]e|atmanirbhar|make in india)\b/i;
+
 export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): boolean {
-  if (feed.tier === SourceTier.TIER_1_OFFICIAL || feed.tier === SourceTier.TIER_3_SPECIALIZED) {
-    return true;
+  const fullText = `${item.title} ${item.snippet || ''}`;
+
+  // 1. Blacklist check: Hard reject across all tiers
+  if (NON_DEFENCE_BLACKLIST_REGEX.test(fullText)) {
+    return false;
   }
-  const fullText = `${item.title} ${item.snippet || ''}`.toLowerCase();
+
+  // 2. Military Entity extraction
   const entities = extractMilitaryEntities(item.title);
   if (entities.entities.length > 0) {
     return true;
   }
-  return DEFENCE_KEYWORDS.some((kw) => fullText.includes(kw));
+
+  // 3. Whole-word defence keywords check
+  if (DEFENCE_WHOLE_WORD_REGEX.test(fullText)) {
+    return true;
+  }
+
+  // 4. Official & Specialized tier pass-through if not blacklisted
+  if (feed.tier === SourceTier.TIER_1_OFFICIAL || feed.tier === SourceTier.TIER_3_SPECIALIZED) {
+    return true;
+  }
+
+  return false;
 }
 
 export function filterFreshArticles(items: StorySourceItem[], maxAgeHours: number, now: Date = new Date()): StorySourceItem[] {
@@ -65,6 +90,54 @@ export function filterFreshArticles(items: StorySourceItem[], maxAgeHours: numbe
   });
 }
 
+function preserveCuratorOverrides(
+  newClusters: StoryCluster[],
+  existingClusters: StoryCluster[]
+): StoryCluster[] {
+  if (!existingClusters || existingClusters.length === 0) {
+    return newClusters;
+  }
+
+  const lockedExisting = existingClusters.filter((c) => c.isEditorPromoted || c.isIgnored);
+  if (lockedExisting.length === 0) {
+    return newClusters;
+  }
+
+  const merged = [...newClusters];
+  for (const locked of lockedExisting) {
+    const existingIndex = merged.findIndex(
+      (m) =>
+        m.id === locked.id ||
+        m.primarySource.url === locked.primarySource.url ||
+        m.synthesizedHeadline.toLowerCase() === locked.synthesizedHeadline.toLowerCase()
+    );
+
+    if (existingIndex !== -1) {
+      // Retain curator overrides on matched cluster
+      merged[existingIndex] = {
+        ...merged[existingIndex]!,
+        isEditorPromoted: locked.isEditorPromoted,
+        isLeadStory: locked.isEditorPromoted ? true : merged[existingIndex]!.isLeadStory,
+        isIgnored: locked.isIgnored,
+        synthesizedHeadline: locked.synthesizedHeadline,
+        ssbIntel: locked.ssbIntel || merged[existingIndex]!.ssbIntel,
+        defenceScore: locked.isEditorPromoted
+          ? Math.max(merged[existingIndex]!.defenceScore, 125)
+          : merged[existingIndex]!.defenceScore
+      };
+    } else {
+      // Re-insert promoted cluster at the top
+      if (locked.isEditorPromoted) {
+        merged.unshift({ ...locked, isLeadStory: true });
+      } else {
+        merged.push(locked);
+      }
+    }
+  }
+
+  return merged;
+}
+
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
   const startTime = Date.now();
   const feeds = options.feeds ?? getActiveFeeds();
@@ -72,6 +145,22 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const maxClusters = options.maxClusters ?? 30;
   const apiKey = options.geminiApiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? '';
   const fetchFn = options.fetchFn ?? globalThis.fetch;
+
+  // Read existing dataset if present for curator protection and atomic guards
+  let existingClusters: StoryCluster[] = options.existingClusters || [];
+  let existingRiver: StorySourceItem[] = options.existingRiver || [];
+
+  if (existingClusters.length === 0 && options.outputPath !== null) {
+    const targetPath = options.outputPath ?? path.resolve(process.cwd(), 'public/data/news.json');
+    try {
+      const dataStr = await fs.readFile(targetPath, 'utf-8');
+      const parsed = JSON.parse(dataStr) as { clusters?: StoryCluster[]; river?: StorySourceItem[] };
+      if (parsed.clusters) existingClusters = parsed.clusters;
+      if (parsed.river) existingRiver = parsed.river;
+    } catch {
+      // No existing file or mock filesystem
+    }
+  }
 
   const rawArticles: StorySourceItem[] = [];
 
@@ -96,6 +185,21 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const freshArticles = filterFreshArticles(rawArticles, maxAgeHours);
 
+  // Atomic Commit Guard: Preserve existing data on total failure
+  if (rawArticles.length === 0 || freshArticles.length === 0) {
+    const fallbackClusters = existingClusters.length > 0 ? existingClusters : [...INITIAL_STORY_CLUSTERS];
+    const fallbackRiver = existingRiver.length > 0 ? existingRiver : [...INITIAL_RIVER_ITEMS];
+    return {
+      clusters: fallbackClusters,
+      river: fallbackRiver,
+      totalIngested: 0,
+      totalFiltered: 0,
+      activeFeedsCount: feeds.length,
+      durationMs: Date.now() - startTime,
+      generatedAt: new Date().toISOString()
+    };
+  }
+
   // Chronological River items sorted by publishedAt descending
   const riverItems = [...freshArticles].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
@@ -105,9 +209,12 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const allClusters = clusterArticles(freshArticles);
   const topClusters = allClusters.slice(0, maxClusters);
 
+  // Apply Curator Override Protection Locks
+  const lockedProtectedClusters = preserveCuratorOverrides(topClusters, existingClusters);
+
   // Enrich top clusters with SSB Intelligence
-  for (let i = 0; i < Math.min(topClusters.length, 12); i++) {
-    const cluster = topClusters[i];
+  for (let i = 0; i < Math.min(lockedProtectedClusters.length, 12); i++) {
+    const cluster = lockedProtectedClusters[i];
     if (!cluster) continue;
     if (!cluster.ssbIntel) {
       const geminiIntel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
@@ -115,7 +222,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
   }
 
-  const finalClusters = topClusters.length > 0 ? topClusters : [...INITIAL_STORY_CLUSTERS];
+  const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
 
   const generatedAt = new Date().toISOString();
@@ -131,7 +238,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     generatedAt
   };
 
-  // Persist output if specified or default to public/data/news.json
+  // Persist output atomically if specified or default to public/data/news.json
   if (options.outputPath !== null) {
     const defaultDir = path.resolve(process.cwd(), 'public/data');
     const targetPath = options.outputPath ?? path.join(defaultDir, 'news.json');

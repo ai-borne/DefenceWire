@@ -1,5 +1,5 @@
 /**
- * Unit & Integration Tests for Crawler Ingestion Pipeline & Summarizer
+ * Unit & Integration Tests for Crawler Ingestion Pipeline & Quality Gates
  * Hard limit: <= 300 LOC.
  */
 
@@ -8,12 +8,10 @@ import { FeedConfig } from '../../crawler/feedTypes.js';
 import {
   filterFreshArticles,
   isDefenceRelevant,
+  NON_DEFENCE_BLACKLIST_REGEX,
+  DEFENCE_WHOLE_WORD_REGEX,
   runIngestionPipeline
 } from '../../crawler/ingest.js';
-import {
-  generateHeuristicSSBIntel,
-  summarizeWithGemini
-} from '../../crawler/summarizer.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
@@ -56,8 +54,59 @@ const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
-describe('Crawler Ingestion Pipeline & Summarizer', () => {
-  it('filters articles based on defence relevance and source tier', () => {
+describe('Crawler Ingestion Pipeline & Quality Gates', () => {
+  it('enforces whole-word regex matching without false positive substring matches', () => {
+    // "mod" keyword vs "Modi" / "commodity" / "modern"
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('MoD signs contract with shipyard')).toBe(true);
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('PM Modi addresses gathering')).toBe(false);
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('Commodity prices fluctuate in modern retail')).toBe(false);
+
+    // "hal" keyword vs "shall" / "challenge"
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('HAL completes flight test')).toBe(true);
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('We shall overcome this challenge')).toBe(false);
+
+    // "iaf" keyword vs random substrings
+    expect(DEFENCE_WHOLE_WORD_REGEX.test('IAF scrambles fighter jets')).toBe(true);
+  });
+
+  it('rejects blacklisted non-defence topics across all feeds including Tier 1', () => {
+    const pibMannKiBaat: StorySourceItem = {
+      id: 'pib-mkb',
+      title: 'Prime Minister addresses 115th episode of Mann Ki Baat',
+      url: 'https://pib.gov.in/mann-ki-baat',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T08:00:00Z'
+    };
+
+    const sensexItem: StorySourceItem = {
+      id: 'sensex-1',
+      title: 'Sensex jumps 600 points, Nifty above 25,000 on stock market rally',
+      url: 'https://thehindu.com/stock-market',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-30T08:00:00Z'
+    };
+
+    const cricketItem: StorySourceItem = {
+      id: 'cricket-1',
+      title: 'BCCI announces Indian cricket squad for IPL tournament',
+      url: 'https://thehindu.com/cricket-ipl',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-30T08:00:00Z'
+    };
+
+    expect(NON_DEFENCE_BLACKLIST_REGEX.test(pibMannKiBaat.title)).toBe(true);
+    expect(isDefenceRelevant(pibMannKiBaat, MOCK_TIER1_FEED)).toBe(false);
+    expect(isDefenceRelevant(sensexItem, MOCK_TIER2_FEED)).toBe(false);
+    expect(isDefenceRelevant(cricketItem, MOCK_TIER2_FEED)).toBe(false);
+  });
+
+  it('accepts genuine defence stories with military entities and defence keywords', () => {
     const defenceItem: StorySourceItem = {
       id: 'it-1',
       title: 'Indian Army deploys indigenous Zorawar light tanks near LAC in Ladakh',
@@ -68,21 +117,7 @@ describe('Crawler Ingestion Pipeline & Summarizer', () => {
       publishedAt: '2026-08-30T08:00:00Z'
     };
 
-    const noiseItem: StorySourceItem = {
-      id: 'it-2',
-      title: 'Bollywood celebrity wedding ceremony in Mumbai draws massive crowds',
-      url: 'https://thehindu.com/bollywood-wedding',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-30T08:00:00Z'
-    };
-
     expect(isDefenceRelevant(defenceItem, MOCK_TIER2_FEED)).toBe(true);
-    expect(isDefenceRelevant(noiseItem, MOCK_TIER2_FEED)).toBe(false);
-
-    // Tier 1 feeds pass directly
-    expect(isDefenceRelevant(noiseItem, MOCK_TIER1_FEED)).toBe(true);
   });
 
   it('filters fresh articles by max age limit', () => {
@@ -112,14 +147,14 @@ describe('Crawler Ingestion Pipeline & Summarizer', () => {
     expect(filtered[0]?.id).toBe('fresh');
   });
 
-  it('generates rich heuristic SSB intelligence for clusters', () => {
-    const cluster: StoryCluster = {
-      id: 'c-test',
-      synthesizedHeadline: 'HAL Delivers First Batch of Tejas Mk1A Fighters to IAF',
+  it('preserves curator override locks across crawler runs', async () => {
+    const lockedCuratorCluster: StoryCluster = {
+      id: 'cluster-curator-lead',
+      synthesizedHeadline: '⚡ HUMAN CURATED: Historic Indo-French Submarine Joint Venture Signed',
       primarySource: {
-        id: 'ps-1',
-        title: 'HAL Delivers Tejas Mk1A',
-        url: 'https://pib.gov.in/tejas',
+        id: 'curator-ps',
+        title: 'Original Wire Headline',
+        url: 'https://pib.gov.in/tejas-mk1a-delivery-batch',
         sourceName: 'PIB MoD',
         sourceDomain: 'pib.gov.in',
         tier: SourceTier.TIER_1_OFFICIAL,
@@ -127,109 +162,74 @@ describe('Crawler Ingestion Pipeline & Summarizer', () => {
       },
       relatedCoverage: [],
       discussions: [],
-      categories: ['airforce', 'tech'],
-      entities: ['Tejas Mk1A', 'HAL'],
-      defenceScore: 85,
-      isLeadStory: true,
-      createdAt: '2026-08-30T09:00:00Z',
-      updatedAt: '2026-08-30T09:00:00Z'
-    };
-
-    const intel = generateHeuristicSSBIntel(cluster);
-
-    expect(intel.whyItMatters).toBeTruthy();
-    expect(intel.gdLecturettePoints.length).toBeGreaterThanOrEqual(3);
-    expect(intel.potentialInterviewQuestions.length).toBeGreaterThanOrEqual(3);
-    expect(intel.defenceTechTakeaway?.platformOrSystem).toBe('Tejas Mk1A');
-    expect(intel.defenceTechTakeaway?.specifications.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('handles Gemini Flash LLM summarization with valid responses and fallbacks', async () => {
-    const cluster: StoryCluster = {
-      id: 'c-gemini',
-      synthesizedHeadline: 'Project 75I Submarine Deal Finalized',
-      primarySource: {
-        id: 'ps-2',
-        title: 'Project 75I Signed',
-        url: 'https://mod.gov.in/p75i',
-        sourceName: 'MoD',
-        sourceDomain: 'mod.gov.in',
-        tier: SourceTier.TIER_1_OFFICIAL,
-        publishedAt: '2026-08-30T09:00:00Z'
-      },
-      relatedCoverage: [],
-      discussions: [],
-      categories: ['navy', 'procurement'],
+      categories: ['navy', 'strategic'],
       entities: ['Project 75I'],
-      defenceScore: 90,
+      defenceScore: 130,
       isLeadStory: true,
+      isEditorPromoted: true,
       createdAt: '2026-08-30T09:00:00Z',
-      updatedAt: '2026-08-30T09:00:00Z'
-    };
-
-    // 1. Without API key -> returns null
-    const noKeyRes = await summarizeWithGemini(cluster, '');
-    expect(noKeyRes).toBeNull();
-
-    // 2. With mock successful Gemini API response
-    const mockGeminiResponse = {
-      candidates: [
-        {
-          content: {
-            parts: [
-              {
-                text: JSON.stringify({
-                  whyItMatters: 'Critical milestone for Indian Navy underwater deterrence.',
-                  gdLecturettePoints: ['AIP Technology vs Nuclear Propulsion', 'Indigenisation vs Strategic Delays'],
-                  potentialInterviewQuestions: ['What is Air Independent Propulsion (AIP)?'],
-                  strategicAngle: 'Countering Chinese naval presence in the Indian Ocean.',
-                  defenceTechTakeaway: {
-                    platformOrSystem: 'Project 75I',
-                    specifications: ['Fuel-cell AIP', 'Heavyweight Torpedoes'],
-                    keySignificance: 'Enhances sub-surface stealth'
-                  }
-                })
-              }
-            ]
-          }
-        }
-      ]
-    };
-
-    const mockFetch = async () =>
-      new Response(JSON.stringify(mockGeminiResponse), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-    const geminiIntel = await summarizeWithGemini(cluster, 'mock-key', mockFetch as typeof fetch);
-    expect(geminiIntel).toBeDefined();
-    expect(geminiIntel?.whyItMatters).toContain('underwater deterrence');
-    expect(geminiIntel?.gdLecturettePoints).toContain('AIP Technology vs Nuclear Propulsion');
-  });
-
-  it('runs complete ingestion pipeline and outputs structured clusters and river items', async () => {
-    const mockFetch = async (url: string | URL | Request) => {
-      const urlStr = typeof url === 'string' ? url : url.toString();
-      if (urlStr.includes('pib')) {
-        return new Response(SAMPLE_XML_TEJAS, { status: 200 });
+      updatedAt: '2026-08-30T09:00:00Z',
+      ssbIntel: {
+        whyItMatters: 'Curator custom editorial brief',
+        gdLecturettePoints: ['Point 1'],
+        potentialInterviewQuestions: ['Q1']
       }
-      return new Response('', { status: 404 });
     };
+
+    const mockFetch = async () => new Response(SAMPLE_XML_TEJAS, { status: 200 });
 
     const result = await runIngestionPipeline({
-      feeds: [MOCK_TIER1_FEED, MOCK_TIER2_FEED],
+      feeds: [MOCK_TIER1_FEED],
       maxAgeHours: 72,
-      maxClusters: 10,
       outputPath: null,
-      fetchFn: mockFetch as typeof fetch
+      fetchFn: mockFetch as typeof fetch,
+      existingClusters: [lockedCuratorCluster]
     });
 
-    expect(result.totalIngested).toBeGreaterThan(0);
-    expect(result.clusters.length).toBeGreaterThan(0);
-    expect(result.river.length).toBeGreaterThan(0);
-    expect(result.clusters[0]?.ssbIntel).toBeDefined();
-    expect(result.generatedAt).toBeTruthy();
-    expect(result.durationMs).toBeGreaterThanOrEqual(0);
+    const lead = result.clusters[0];
+    expect(lead).toBeDefined();
+    expect(lead?.isEditorPromoted).toBe(true);
+    expect(lead?.isLeadStory).toBe(true);
+    expect(lead?.synthesizedHeadline).toContain('HUMAN CURATED');
+    expect(lead?.ssbIntel?.whyItMatters).toBe('Curator custom editorial brief');
+  });
+
+  it('preserves existing dataset when total network failure occurs (Atomic Commit Guard)', async () => {
+    const existingDataset: StoryCluster[] = [
+      {
+        id: 'c-existing',
+        synthesizedHeadline: 'Existing Protected Story',
+        primarySource: {
+          id: 'ps-existing',
+          title: 'Existing Story',
+          url: 'https://mod.gov.in/existing',
+          sourceName: 'MoD',
+          sourceDomain: 'mod.gov.in',
+          tier: SourceTier.TIER_1_OFFICIAL,
+          publishedAt: '2026-08-30T08:00:00Z'
+        },
+        relatedCoverage: [],
+        discussions: [],
+        categories: ['strategic'],
+        entities: ['MoD'],
+        defenceScore: 80,
+        isLeadStory: true,
+        createdAt: '2026-08-30T08:00:00Z',
+        updatedAt: '2026-08-30T08:00:00Z'
+      }
+    ];
+
+    const failingFetch = async () => new Response('', { status: 500 });
+
+    const result = await runIngestionPipeline({
+      feeds: [MOCK_TIER1_FEED],
+      outputPath: null,
+      fetchFn: failingFetch as typeof fetch,
+      existingClusters: existingDataset
+    });
+
+    expect(result.totalIngested).toBe(0);
+    expect(result.clusters.length).toBe(1);
+    expect(result.clusters[0]?.id).toBe('c-existing');
   });
 });

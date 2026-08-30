@@ -277,3 +277,13 @@ export function rankClusters(
 
   return scored;
 }
+
+/**
+ * Auto-Pilot Gold-Standard Score Threshold (Score >= 75).
+ * Qualifies stories with Tier 1 MoD release or multi-source corroboration.
+ */
+export const AUTO_PILOT_SCORE_THRESHOLD = 75;
+
+export function isAutoPilotEligible(cluster: StoryCluster): boolean {
+  return !cluster.isIgnored && cluster.defenceScore >= AUTO_PILOT_SCORE_THRESHOLD;
+}

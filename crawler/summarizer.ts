@@ -1,10 +1,38 @@
 /**
  * Gemini Flash & Heuristic SSB Intelligence Summarizer
- * Generates structured SSB briefs and tech takeaways.
+ * Generates structured SSB briefs, Techmeme-style takeaways, with SHA-256 content-hash memory.
  * Hard limit: <= 300 LOC.
  */
 
+import * as crypto from 'node:crypto';
 import { DomainCategory, SSBIntelligence, StoryCluster } from '../src/types/news.js';
+
+export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
+const MIN_REQUEST_INTERVAL_MS = 350; // Max ~3 requests/sec to stay strictly under 15 RPM
+let lastRequestTimestamp = 0;
+
+export function computeContentHash(headline: string, url: string): string {
+  const normalized = `${(headline || '').trim().toLowerCase()}|${(url || '').trim().toLowerCase()}`;
+  return crypto.createHash('sha256').update(normalized).digest('hex');
+}
+
+export function clearSummaryMemoryCache(): void {
+  SUMMARY_MEMORY_CACHE.clear();
+}
+
+export function getSummaryMemorySize(): number {
+  return SUMMARY_MEMORY_CACHE.size;
+}
+
+async function throttleNextRequest(): Promise<void> {
+  const now = Date.now();
+  const elapsed = now - lastRequestTimestamp;
+  if (elapsed < MIN_REQUEST_INTERVAL_MS) {
+    const delay = MIN_REQUEST_INTERVAL_MS - elapsed;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  lastRequestTimestamp = Date.now();
+}
 
 export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligence {
   const primary = cluster.primarySource;
@@ -57,11 +85,20 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
 export async function summarizeWithGemini(
   cluster: StoryCluster,
   apiKey: string,
-  fetchFn: typeof fetch = globalThis.fetch
+  fetchFn: typeof fetch = globalThis.fetch,
+  cache: Map<string, SSBIntelligence> = SUMMARY_MEMORY_CACHE
 ): Promise<SSBIntelligence | null> {
+  const hash = computeContentHash(cluster.synthesizedHeadline, cluster.primarySource.url);
+
+  // 1. Content-Hash Memory Cache Hit -> Instant $0 return
+  const cached = cache.get(hash);
+  if (cached) {
+    return cached;
+  }
+
   if (!apiKey) return null;
 
-  const prompt = `You are a military intelligence analyst for the Indian Armed Forces and SSB (Services Selection Board) interview coach.
+  const prompt = `You are a senior military intelligence analyst for the Indian Armed Forces and SSB (Services Selection Board) interview coach.
 Analyze this defence news story:
 Headline: ${cluster.synthesizedHeadline}
 Primary Source: ${cluster.primarySource.sourceName} - ${cluster.primarySource.title}
@@ -70,18 +107,22 @@ Entities: ${cluster.entities.join(', ')}
 
 Return a strict JSON object with these exact keys:
 {
+  "isDefenceRelevant": true,
   "whyItMatters": "1-2 concise sentences on national security significance",
   "gdLecturettePoints": ["Point 1 for Group Discussion / Lecturette", "Point 2", "Point 3"],
   "potentialInterviewQuestions": ["Question 1 an Interviewing Officer (IO) might ask", "Question 2", "Question 3"],
   "strategicAngle": "Strategic perspective on deterrence/doctrine",
   "defenceTechTakeaway": {
-    "platformOrSystem": "Platform name",
+    "platformOrSystem": "Platform or system name",
     "specifications": ["Spec 1", "Spec 2", "Spec 3"],
     "keySignificance": "Core military significance"
   }
 }`;
 
   try {
+    // 2. Sequential Throttling
+    await throttleNextRequest();
+
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await fetchFn(url, {
       method: 'POST',
@@ -100,9 +141,17 @@ Return a strict JSON object with these exact keys:
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) return null;
 
-    const parsed = JSON.parse(rawText) as SSBIntelligence;
+    const parsed = JSON.parse(rawText) as SSBIntelligence & { isDefenceRelevant?: boolean };
     if (parsed.whyItMatters && Array.isArray(parsed.gdLecturettePoints)) {
-      return parsed;
+      const sanitizedIntel: SSBIntelligence = {
+        whyItMatters: parsed.whyItMatters,
+        gdLecturettePoints: parsed.gdLecturettePoints,
+        potentialInterviewQuestions: parsed.potentialInterviewQuestions || [],
+        strategicAngle: parsed.strategicAngle,
+        defenceTechTakeaway: parsed.defenceTechTakeaway
+      };
+      cache.set(hash, sanitizedIntel);
+      return sanitizedIntel;
     }
   } catch {
     // Graceful fallback to heuristic

@@ -6,7 +6,9 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  AUTO_PILOT_SCORE_THRESHOLD,
   calculateScoreBreakdown,
+  isAutoPilotEligible,
   rankClusters
 } from '../../src/engine/rankingEngine.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
@@ -173,5 +175,38 @@ describe('Ranking Engine & DefenceScore Calculation', () => {
     expect(ranked[1]?.id).toBe('cluster-b');
     expect(ranked[1]?.isLeadStory).toBe(false);
     expect(ranked[0]?.defenceScore).toBeGreaterThan(ranked[1]?.defenceScore ?? 0);
+  });
+
+  it('evaluates Auto-Pilot mode eligibility with threshold >= 75 and unignored status', () => {
+    expect(AUTO_PILOT_SCORE_THRESHOLD).toBe(75);
+
+    const eligibleCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      defenceScore: 78,
+      isIgnored: false
+    };
+
+    const borderlineCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      defenceScore: 75,
+      isIgnored: false
+    };
+
+    const lowScoreCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      defenceScore: 74.9,
+      isIgnored: false
+    };
+
+    const ignoredHighCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      defenceScore: 95,
+      isIgnored: true
+    };
+
+    expect(isAutoPilotEligible(eligibleCluster)).toBe(true);
+    expect(isAutoPilotEligible(borderlineCluster)).toBe(true);
+    expect(isAutoPilotEligible(lowScoreCluster)).toBe(false);
+    expect(isAutoPilotEligible(ignoredHighCluster)).toBe(false);
   });
 });
