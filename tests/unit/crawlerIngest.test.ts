@@ -10,7 +10,8 @@ import {
   isDefenceRelevant,
   NON_DEFENCE_BLACKLIST_REGEX,
   DEFENCE_WHOLE_WORD_REGEX,
-  runIngestionPipeline
+  runIngestionPipeline,
+  shouldRunAsCli
 } from '../../crawler/ingest.js';
 import { clearSummaryMemoryCache } from '../../crawler/summarizer.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
@@ -67,6 +68,14 @@ function buildDistinctFeedXml(headlines: string[]): string {
 describe('Crawler Ingestion Pipeline & Quality Gates', () => {
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('detects direct CLI execution without relying on process.argv (vite-node omits the file arg)', () => {
+    // vite-node runs the target file without ever adding its path to process.argv, so the
+    // old `process.argv.some(a => a.includes('ingest'))` check was always false in production
+    // and in local dev alike — the scheduled crawler's CLI branch never actually ran.
+    expect(shouldRunAsCli({})).toBe(true);
+    expect(shouldRunAsCli({ VITEST: 'true' })).toBe(false);
   });
 
   it('paces Gemini calls so every cluster gets a real AI summary, not a heuristic fallback', async () => {

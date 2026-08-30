@@ -274,12 +274,14 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   return result;
 }
 
-// Direct CLI entrypoint execution
-const isCli =
-  typeof process !== 'undefined' &&
-  (process.argv.some((a) => a.includes('ingest')) || process.argv[1]?.includes('ingest'));
+// Direct CLI entrypoint execution. vite-node does not add the executed file's path to
+// process.argv, so detection can't rely on argv contents; instead, run unless loaded
+// under Vitest (which always sets process.env.VITEST) importing this module for its exports.
+export function shouldRunAsCli(env: NodeJS.ProcessEnv = process.env): boolean {
+  return !env.VITEST;
+}
 
-if (isCli) {
+if (shouldRunAsCli()) {
   console.log('[DEFENCEWIRE CRAWLER] Starting 24/7 ingestion pipeline across 40+ feeds...');
   try {
     const res = await runIngestionPipeline();
