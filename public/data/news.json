@@ -20,21 +20,59 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 51.7,
+      "defenceScore": 51.3,
       "isLeadStory": true,
       "createdAt": "2026-08-31T06:35:04.000Z",
       "updatedAt": "2026-08-31T06:35:04.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The commercial availability of aged social media accounts undermines the integrity of national discourse, enabling threat actors to bypass platform authenticity filters. This capability facilitates coordinated inauthentic behavior that can subvert public trust in democratic institutions and national security leadership during critical crises.",
+        "strategicAngle": "Modern cognitive warfare necessitates a doctrinal shift from traditional border defense to active cyberspace sovereignty and information domain resilience. Deterrence must extend beyond kinetic readiness to neutralizing asymmetric campaigns that exploit commercial cybercrime infrastructure for psychological operations.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Automated Cognitive Threat Intelligence and Attribution Platform",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Real-time metadata analysis of account aging patterns",
+            "Behavioral biometrics and stylometry engines for botnet detection",
+            "Automated takedown coordination API for major social media platforms"
           ],
-          "keySignificance": "Frontier India Strategic Affairs report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides the armed forces and national security agencies with early-warning capabilities to detect, attribute, and neutralize information operations before they successfully manipulate public perception."
+        }
+      }
+    },
+    {
+      "id": "cluster-bacf7fef",
+      "synthesizedHeadline": "Sunni youth leader defends Kanthapuram’s directive on women at religious events",
+      "primarySource": {
+        "id": "feed-the-hindu-national-bacf7fef",
+        "title": "Sunni youth leader defends Kanthapuram’s directive on women at religious events",
+        "url": "https://www.thehindu.com/news/national/kerala/sunni-youth-leader-defends-kanthapurams-directive-on-women-at-religious-events/article71410141.ece",
+        "sourceName": "The Hindu (National Security)",
+        "sourceDomain": "thehindu.com",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-08-31T10:04:46.000Z",
+        "snippet": "Sunni Yuvajana Sangham State general secretary Rahmathulla Saqafi Elamaram made the defence in an opinion article published in Siraj newspaper, the mouthpiece of Sunni group led by Kanthapuram",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 45.5,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T10:04:46.000Z",
+      "updatedAt": "2026-08-31T10:04:46.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Societal and religious discourse within minority communities impacts internal cohesion and radicalization dynamics in sensitive border and coastal states. Intelligence assessments monitor such ideological shifts to gauge potential vulnerabilities to extremist narratives.",
+        "strategicAngle": "Internal security stability remains a foundational pillar of national defense doctrine, requiring continuous monitoring of socio-religious leadership influence on demographic fringes.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "N/A",
+          "specifications": [
+            "Not applicable to current socio-religious discourse",
+            "Internal security intelligence monitoring framework",
+            "Open-source sentiment analysis tools"
+          ],
+          "keySignificance": "This socio-religious event has no direct technological or platform-based defence application."
         }
       }
     },
@@ -73,21 +111,21 @@
       "entities": [
         "INS Nipun"
       ],
-      "defenceScore": 45.8,
+      "defenceScore": 45.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T07:19:34.000Z",
       "updatedAt": "2026-08-31T07:19:34.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "whyItMatters": "The commissioning of INS Nipun significantly enhances the Indian Navy's underwater intervention capabilities and submarine rescue operations. It strengthens India's strategic reach and operational readiness in the critical deep-sea domain of the Indo-Pacific.",
+        "strategicAngle": "Enhances maritime domain awareness and power projection in the Indian Ocean Region, reinforcing India's role as the preferred security partner and first responder for underwater contingencies.",
         "defenceTechTakeaway": {
           "platformOrSystem": "INS Nipun",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Advanced deep-sea diving support systems",
+            "Submarine rescue capabilities",
+            "State-of-the-art underwater navigation and positioning systems"
           ],
-          "keySignificance": "The Hindu (National Security) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides indigenous capability for complex deep-water salvage, submarine rescue, and specialized underwater operations, reducing reliance on foreign assets."
         }
       }
     },
@@ -115,21 +153,21 @@
       "entities": [
         "Akash-NG"
       ],
-      "defenceScore": 44.9,
+      "defenceScore": 44.8,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:45.000Z",
       "updatedAt": "2026-08-31T02:30:45.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "A potential procurement of approximately 1,000 Akash-NG missiles significantly bolsters India's layered air defense capabilities along contested borders. This massive indigenous order scales up production readiness and reduces reliance on foreign systems.",
+        "strategicAngle": "Aligns with the 'Atmanirbhar Bharat' (Self-Reliant India) doctrine by institutionalizing large-scale domestic defense procurement, ensuring strategic autonomy, and strengthening localized surface-to-air missile deterrence against advanced aerial threats.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Akash-NG",
+          "platformOrSystem": "Akash-NG (New Generation)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Next-generation surface-to-air missile system",
+            "Enhanced interception range and speed",
+            "Advanced active RF seeker for high precision"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides rapid response against high-speed aerial threats, including fighter jets, cruise missiles, and drones, acting as a critical node in India's modern integrated air defense grid."
         }
       }
     },
@@ -158,16 +196,16 @@
       "createdAt": "2026-08-30T12:30:26.000Z",
       "updatedAt": "2026-08-30T12:30:26.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The recovery of an unidentified aerial object with Chinese inscriptions in a sensitive mineral-rich region raises concerns regarding potential foreign surveillance or payload delivery mechanisms. It underscores vulnerabilities in domestic airspace monitoring and border-adjacent reconnaissance detection.",
+        "strategicAngle": "Highlights the growing grey-zone tactics and high-altitude surveillance challenges faced by India, necessitating enhanced domestic radar coverage and rapid-response protocols to counter unidentified airborne anomalies.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Miniaturized Meteorological/Surveillance Payload Parachute",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Lightweight synthetic fabric canopy",
+            "Socio-industrial telemetry payload interface",
+            "Mandarin-script operational markings"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Indicates the potential use of low-cost, high-altitude drifting assets for clandestine atmospheric data collection or cross-border payload testing without triggering conventional air-defense engagement thresholds."
         }
       }
     },
@@ -191,21 +229,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 38.7,
+      "defenceScore": 38.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T06:26:30.000Z",
       "updatedAt": "2026-08-31T06:26:30.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The co-production of the Javelin anti-tank guided missile by Tata Advanced Systems Limited significantly bolsters India's indigenous defense manufacturing base under the 'Make in India' initiative. It directly enhances the Indian Army's tactical anti-armor capabilities along disputed borders.",
+        "strategicAngle": "This partnership aligns with India's broader strategic pivot toward diversifying defense acquisitions, reducing reliance on traditional suppliers, and integrating advanced Western military technology into its armed forces to enhance conventional deterrence against armored threats.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Javelin All-Up Round (AUR)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Fire-and-forget medium-range anti-tank guided missile",
+            "Infrared seeker with top-attack and direct-attack modes",
+            "Man-portable launch system with reusable command launch unit"
           ],
-          "keySignificance": "Hindustan Times (India Security) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides infantry units with unmatched lethality against modern main battle tanks and fortified positions, significantly upgrading frontline tactical defense capabilities."
         }
       }
     },
@@ -229,21 +267,21 @@
         "navy"
       ],
       "entities": [],
-      "defenceScore": 36.7,
+      "defenceScore": 36.2,
       "isLeadStory": false,
       "createdAt": "2026-08-31T08:34:59.000Z",
       "updatedAt": "2026-08-31T08:34:59.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "whyItMatters": "Japan's aggressive defense budget expansion signals a major shift toward rapid force modernization and autonomous capabilities to counter regional security threats. This surge in defense spending directly enhances regional deterrence architecture in the Indo-Pacific.",
+        "strategicAngle": "Reflects Tokyo's transition from traditional self-defense toward proactive, technology-driven deterrence, emphasizing asymmetric capabilities and power projection to secure vital maritime choke points.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Next-Generation Frigates (FFM) and Aegis System Equipped Vessels (ASEV)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Advanced AI integration",
+            "Unmanned surface and subsurface assets",
+            "Enhanced ballistic missile defense systems"
           ],
-          "keySignificance": "Naval News (Indo-Pacific & Submarines) report highlights critical milestone in operational deployment."
+          "keySignificance": "Significantly bolsters naval combat mass, persistent maritime domain awareness, and layered air-missile defense across contested Indo-Pacific waters."
         }
       }
     },
@@ -271,21 +309,21 @@
       "entities": [
         "BrahMos"
       ],
-      "defenceScore": 35.9,
+      "defenceScore": 35.8,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:29.000Z",
       "updatedAt": "2026-08-31T02:30:29.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the TECH domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Self-reliance (Atmanirbharta), indigenous R&D lifecycle, and tech transfer milestones.",
+        "whyItMatters": "The widespread integration of BrahMos supersonic cruise missiles across Indian Navy warships significantly enhances India's naval strike capabilities and power projection in the Indian Ocean Region. This deployment alters regional maritime deterrence dynamics, causing heightened strategic concern for Pakistan.",
+        "strategicAngle": "Reflects India's shift toward an offensive-defense maritime doctrine, leveraging high-speed precision standoff weapons to achieve sea denial and sea control, thereby complicating adversary naval and coastal operational planning.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "BrahMos",
+          "platformOrSystem": "BrahMos Supersonic Cruise Missile",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Supersonic speed (Mach 2.8 to 3.0)",
+            "Pinpoint strike accuracy against land and sea targets",
+            "Versatile launch platform integration (ships, submarines, aircraft, land)"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides the Indian Navy with unmatched response time and destructive power, neutralizing enemy surface combatants and shore installations before they can mount effective countermeasures."
         }
       }
     },
@@ -309,21 +347,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 35.7,
+      "defenceScore": 35.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T06:53:28.000Z",
       "updatedAt": "2026-08-31T06:53:28.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The introduction of automated USV launch and recovery systems enhances maritime operational efficiency and reduces personnel risks during complex missions. For the Indian Navy, adopting such launch-and-recovery mechanisms is crucial for scaling uncrewed surface vessel operations in contested Indo-Pacific waters.",
+        "strategicAngle": "Advances in autonomous vessel handling bolster distributed maritime operations, enabling persistent intelligence, surveillance, and reconnaissance (ISR) without risking crewed platforms. This aligns with modern naval doctrines emphasizing force multiplication through unmanned systems.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "AutoHook",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Automated connector mechanism",
+            "Designed for mothership integration",
+            "Optimized for high sea-state operations"
           ],
-          "keySignificance": "Naval News (Indo-Pacific & Submarines) report highlights critical milestone in operational deployment."
+          "keySignificance": "Eliminates the need for manual deck handling during USV recovery, significantly improving safety and operational tempo in demanding maritime environments."
         }
       }
     },
@@ -356,54 +394,16 @@
       "createdAt": "2026-08-30T12:30:53.000Z",
       "updatedAt": "2026-08-30T12:30:53.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the TECH domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Self-reliance (Atmanirbharta), indigenous R&D lifecycle, and tech transfer milestones.",
+        "whyItMatters": "The successful export of the BrahMos supersonic cruise missile marks a watershed moment for India's defense sector, transitioning the nation from a major arms importer to a credible global defense supplier. This export success strengthens strategic alliances in the Indo-Pacific, directly countering regional hegemony.",
+        "strategicAngle": "BrahMos acts as a potent regional deterrent, granting partner nations robust anti-access/area-denial (A2/AD) capabilities in contested maritime zones like the South China Sea. This aligns with India's doctrine of being a preferred security partner and net security provider in the Indo-Pacific.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "BrahMos",
+          "platformOrSystem": "BrahMos Supersonic Cruise Missile",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Mach 2.8 to 3.0 speed",
+            "Supersonic cruise altitude",
+            "Multi-platform launch capability (land, sea, air)"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-228494b1",
-      "synthesizedHeadline": "The Mecca pact explained, tankers for Qatar, and CENTCOM&#039;s new drone force",
-      "primarySource": {
-        "id": "feed-breaking-defense-228494b1",
-        "title": "The Mecca pact explained, tankers for Qatar, and CENTCOM&#039;s new drone force",
-        "url": "https://breakingdefense.com/2026/08/the-mecca-pact-explained-tankers-for-qatar-and-centcoms-new-drone-force/",
-        "sourceName": "Breaking Defense (Strategic Tech)",
-        "sourceDomain": "breakingdefense.com",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T04:30:00.000Z",
-        "snippet": "Middle East Bureau Chief Agnes Helou recaps leading developments from the region before  speaking with Dubai-based analyst Riad Kahwaji.",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.5,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T04:30:00.000Z",
-      "updatedAt": "2026-08-31T04:30:00.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "Breaking Defense (Strategic Tech) report highlights critical milestone in operational deployment."
+          "keySignificance": "Combines high speed with versatile deployment options, making interception extremely difficult for modern naval defense systems and providing unmatched tactical strike capabilities."
         }
       }
     },
@@ -430,21 +430,21 @@
       "entities": [
         "INS Arighat"
       ],
-      "defenceScore": 32.4,
+      "defenceScore": 32.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:50.000Z",
       "updatedAt": "2026-08-31T02:30:50.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "whyItMatters": "The impending induction of India's fourth Arihant-class SSBN strengthens its maritime nuclear deterrent and ensures continuous operational patrols. This milestone reinforces the sea-based leg of India's nuclear triad, enhancing second-strike survivability against regional adversaries.",
+        "strategicAngle": "This development solidifies India's commitment to a credible minimum deterrence posture and a No-First-Use (NFU) nuclear doctrine. By expanding its SSBN fleet, India projects strategic stability in the Indo-Pacific and counters growing nuclear-armed naval presences in the region.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "INS Arighat",
+          "platformOrSystem": "Arihant-Class SSBN (S4*)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Nuclear propulsion system",
+            "Ballistic missile vertical launch tubes",
+            "Submerged displacement of over 6,000 tonnes"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Represents the culmination of India's indigenous nuclear submarine program, offering enhanced stealth, extended underwater endurance, and improved strategic strike capabilities compared to earlier variants."
         }
       }
     },
@@ -471,21 +471,59 @@
       "entities": [
         "S-400 Triumf"
       ],
-      "defenceScore": 32.4,
+      "defenceScore": 32.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:41.000Z",
       "updatedAt": "2026-08-31T02:30:41.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "Acquiring five additional S-400 squadrons significantly strengthens India's layered air defense network against multi-front aerospace threats from China and Pakistan. It reinforces strategic autonomy while navigating complex geopolitical dynamics like US CAATSA sanctions.",
+        "strategicAngle": "Enhances India's anti-access/area-denial (A2/AD) posture along contested borders, shifting the regional strategic balance by neutralizing adversary air superiority and strategic bombing capabilities deep within their airspace.",
         "defenceTechTakeaway": {
           "platformOrSystem": "S-400 Triumf",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Range up to 400 km",
+            "Multi-target engagement capability",
+            "Advanced phased-array acquisition and engagement radar"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides comprehensive defense against stealth aircraft, cruise missiles, and ballistic missiles, acting as a critical strategic deterrent."
+        }
+      }
+    },
+    {
+      "id": "cluster-228494b1",
+      "synthesizedHeadline": "The Mecca pact explained, tankers for Qatar, and CENTCOM&#039;s new drone force",
+      "primarySource": {
+        "id": "feed-breaking-defense-228494b1",
+        "title": "The Mecca pact explained, tankers for Qatar, and CENTCOM&#039;s new drone force",
+        "url": "https://breakingdefense.com/2026/08/the-mecca-pact-explained-tankers-for-qatar-and-centcoms-new-drone-force/",
+        "sourceName": "Breaking Defense (Strategic Tech)",
+        "sourceDomain": "breakingdefense.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T04:30:00.000Z",
+        "snippet": "Middle East Bureau Chief Agnes Helou recaps leading developments from the region before  speaking with Dubai-based analyst Riad Kahwaji.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 32.2,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T04:30:00.000Z",
+      "updatedAt": "2026-08-31T04:30:00.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Middle Eastern defense pacts and US Central Command's force posture shifts directly impact India's energy security and diaspora safety in the Gulf. Monitoring these regional alignments is critical for anticipating geopolitical stability in India's extended neighborhood.",
+        "strategicAngle": "The integration of unmanned systems and regional security pacts underscores a shift toward networked, asymmetric deterrence and coalition-based security architectures in West Asia.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "CENTCOM Unmanned Aerial Systems / Regional Drone Force",
+          "specifications": [
+            "AI-enabled target acquisition",
+            "Distributed mesh-network communications",
+            "Long-endurance intelligence, surveillance, and reconnaissance (ISR) payloads"
+          ],
+          "keySignificance": "Provides persistent, low-cost maritime and land border surveillance across the theater, altering the cost-imposition calculus against asymmetric threats."
         }
       }
     },
@@ -514,16 +552,16 @@
       "createdAt": "2026-08-30T09:05:27.000Z",
       "updatedAt": "2026-08-30T09:05:27.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "India's rapid deployment of military transport aircraft for humanitarian assistance underscores its role as the preferred security and disaster relief partner in the region. This swift logistical response counters strategic inroads by adversaries in Nepal by reinforcing traditional bilateral trust and regional hegemony.",
+        "strategicAngle": "Demonstrates Power Projection and Strategic Outreach under the SAGAR (Security and Growth for All in the Region) doctrine, utilizing Military Operations Other Than War (MOOTW) to secure India's immediate periphery.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Indian Air Force Heavy/Medium Lift Transport Fleet (e.g., C-17 Globemaster III, C-130J Super Hercules)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "High payload capacity ranging from 20 to 77 tonnes",
+            "Intercontinental and tactical range capabilities",
+            "Short takeoff and landing (STOL) performance for difficult terrain"
           ],
-          "keySignificance": "Hindustan Times (India Security) report highlights critical milestone in operational deployment."
+          "keySignificance": "Showcases the IAF's rapid strategic airlift capability and operational readiness to project logistics far beyond national borders during crisis management."
         }
       }
     },
@@ -547,58 +585,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 31.4,
+      "defenceScore": 31.2,
       "isLeadStory": false,
       "createdAt": "2026-08-31T03:11:00.000Z",
       "updatedAt": "2026-08-31T03:11:00.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "Russia's development of the NK-3 liquid-propellant rocket engine highlights rapid advancements in ultra-light launch vehicle technology, potentially accelerating responsive space capabilities and military satellite deployment. For India, this underscores the global race toward miniaturized, highly agile space infrastructure that directly impacts modern C4ISR architectures.",
+        "strategicAngle": "The proliferation of ultra-light launch systems enhances asymmetrical space deterrence by ensuring rapid reconstitution of degraded satellite constellations during a conflict. This shifts tactical space doctrine toward disaggregated, resilient orbital assets rather than relying solely on heavy, vulnerable platforms.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "NK-3 Liquid-Propellant Rocket Engine",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Liquid-propellant propulsion architecture",
+            "Optimized for ultra-light launch vehicles",
+            "Enhanced thrust-to-weight ratio for responsive launch"
           ],
-          "keySignificance": "Frontier India Strategic Affairs report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-fd91d028",
-      "synthesizedHeadline": "PM Narendra Modi flags ‘shared vision’ in Tashkent: Trade and culture to energy, defence",
-      "primarySource": {
-        "id": "feed-indian-express-fd91d028",
-        "title": "PM Narendra Modi flags ‘shared vision’ in Tashkent: Trade and culture to energy, defence",
-        "url": "https://indianexpress.com/article/india/pm-narendra-modi-flags-shared-vision-in-tashkent-trade-and-culture-to-energy-defence-10855121/",
-        "sourceName": "The Indian Express (India Defence)",
-        "sourceDomain": "indianexpress.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-08-29T22:34:50.000Z",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 31.2,
-      "isLeadStory": false,
-      "createdAt": "2026-08-29T22:34:50.000Z",
-      "updatedAt": "2026-08-29T22:34:50.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "The Indian Express (India Defence) report highlights critical milestone in operational deployment."
+          "keySignificance": "Enables rapid-response deployment of micro-satellites, critical for tactical reconnaissance, resilient military communications, and wartime space reconstitution."
         }
       }
     },
@@ -627,130 +628,16 @@
       "createdAt": "2026-08-28T10:46:50.000Z",
       "updatedAt": "2026-08-28T10:46:50.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "Streamlining defence export regulations through the OGEL framework reduces bureaucratic friction for Indian manufacturers, fostering a robust domestic defence industrial base. This policy shift accelerates equipment delivery timelines and enhances India's reliability as a defense supplier to allied nations.",
+        "strategicAngle": "By facilitating smoother defence exports, India is operationalizing its 'Make in India' initiative into a strategic tool for minilateral diplomacy and regional security partnerships. This supports the doctrine of strategic autonomy by reducing import dependence and building mutual dependencies with partner nations in the Indo-Pacific.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Open General Export Licence (OGEL) Framework",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Standing one-time export authorisation",
+            "Multi-consignment dispatch capability",
+            "Automated compliance verification"
           ],
-          "keySignificance": "ThePrint (Defence & Strategic) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-ae536d0b",
-      "synthesizedHeadline": "US Firm Mara Unveils Spike Counter-Drone System Designed to Stop FPV Drones",
-      "primarySource": {
-        "id": "feed-idrw-ae536d0b",
-        "title": "US Firm Mara Unveils Spike Counter-Drone System Designed to Stop FPV Drones",
-        "url": "https://idrw.org/us-firm-mara-unveils-spike-counter-drone-system-designed-to-stop-fpv-drones/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T02:30:23.000Z",
-        "snippet": "This article was originally published on idrw.org.\nU.S. company Mara has presented its Spike counter-drone system, designed to defend against FPV drones.The system consists...\nRead the full article on idrw.org: US Firm Mara Unveils Spike Counter-Drone System D",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 30.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T02:30:23.000Z",
-      "updatedAt": "2026-08-31T02:30:23.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-f7a409a5",
-      "synthesizedHeadline": "Terror groups using niche encrypted platforms to evade surveillance: Officials",
-      "primarySource": {
-        "id": "feed-idrw-f7a409a5",
-        "title": "Terror groups using niche encrypted platforms to evade surveillance: Officials",
-        "url": "https://idrw.org/terror-groups-using-niche-encrypted-platforms-to-evade-surveillance-officials/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T02:30:17.000Z",
-        "snippet": "This article was originally published on idrw.org.\nAfter uncovering the alleged misuse of online gaming platforms by terror groups, security agencies have identified what...\nRead the full article on idrw.org: Terror groups using niche encrypted platforms to ev",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 30.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T02:30:17.000Z",
-      "updatedAt": "2026-08-31T02:30:17.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-e5d0b0f1",
-      "synthesizedHeadline": "Kiren Rijiju slams flag desecration by protesters at RSS chief’s US event",
-      "primarySource": {
-        "id": "feed-idrw-e5d0b0f1",
-        "title": "Kiren Rijiju slams flag desecration by protesters at RSS chief’s US event",
-        "url": "https://idrw.org/kiren-rijiju-slams-flag-desecration-by-protesters-at-rss-chiefs-us-event/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T02:30:14.000Z",
-        "snippet": "This article was originally published on idrw.org.\nUnion Minister Kiren Rijiju on Sunday took serious exception to protesters allegedly desecrating the Indian flag outside...\nRead the full article on idrw.org: Kiren Rijiju slams flag desecration by protesters ",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 30.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T02:30:14.000Z",
-      "updatedAt": "2026-08-31T02:30:14.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Accelerates the export velocity of indigenous military hardware, subsystems, and dual-use technologies without requiring case-by-case bureaucratic clearance."
         }
       }
     },
@@ -784,31 +671,31 @@
       "createdAt": "2026-08-30T12:30:50.000Z",
       "updatedAt": "2026-08-30T12:30:50.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "Project Kusha represents India's indigenous push toward a multi-layered, long-range air defense shield, reducing reliance on foreign systems like the S-400. Dual-use capability assessment for land attack mirrors the operational versatility exhibited by advanced air defense systems in modern conflicts.",
+        "strategicAngle": "Enhances India's strategic deterrence and area denial capabilities by integrating indigenous technologies into the strategic air defense grid, aligning with the doctrine of Aatmanirbhar Bharat (self-reliance in defense).",
         "defenceTechTakeaway": {
-          "platformOrSystem": "S-400 Triumf",
+          "platformOrSystem": "Project Kusha",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Long-range tracking and interception capability",
+            "Multi-layered air defense architecture",
+            "Potential dual-role surface-to-air and land-attack capability"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides strategic depth and operational flexibility by potentially combining high-altitude air defense with tactical land-attack precision strikes, similar to the Russian S-400 system."
         }
       }
     },
     {
-      "id": "cluster-ae1442bc",
-      "synthesizedHeadline": "Quantum Systems Gains U.S. Defence Foothold",
+      "id": "cluster-ae536d0b",
+      "synthesizedHeadline": "US Firm Mara Unveils Spike Counter-Drone System Designed to Stop FPV Drones",
       "primarySource": {
-        "id": "feed-stratnews-global-ae1442bc",
-        "title": "Quantum Systems Gains U.S. Defence Foothold",
-        "url": "https://stratnewsglobal.com/technology/quantum-systems-in-u-s/",
-        "sourceName": "StratNews Global (Nitin Gokhale)",
-        "sourceDomain": "stratnewsglobal.com",
-        "tier": "TIER_4_OSINT",
-        "publishedAt": "2026-08-31T06:31:22.000Z",
-        "snippet": "How U.S. Investors Helped Quantum Systems Gain A Foothold In America German drone maker Quantum Systems gained a foothold in the United States with help from CIA-backed investor In-Q-Tel (IQT), according to co-CEO Sven Kruck. The development highlights the inf",
+        "id": "feed-idrw-ae536d0b",
+        "title": "US Firm Mara Unveils Spike Counter-Drone System Designed to Stop FPV Drones",
+        "url": "https://idrw.org/us-firm-mara-unveils-spike-counter-drone-system-designed-to-stop-fpv-drones/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T02:30:23.000Z",
+        "snippet": "This article was originally published on idrw.org.\nU.S. company Mara has presented its Spike counter-drone system, designed to defend against FPV drones.The system consists...\nRead the full article on idrw.org: US Firm Mara Unveils Spike Counter-Drone System D",
         "isPrimary": true
       },
       "relatedCoverage": [],
@@ -817,21 +704,97 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 30.1,
+      "defenceScore": 30.8,
       "isLeadStory": false,
-      "createdAt": "2026-08-31T06:31:22.000Z",
-      "updatedAt": "2026-08-31T06:31:22.000Z",
+      "createdAt": "2026-08-31T02:30:23.000Z",
+      "updatedAt": "2026-08-31T02:30:23.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The proliferation of First-Person View (FPV) drones in modern conflicts poses a severe tactical threat to armored columns and infantry positions. Technologies like the Spike counter-drone system offer critical localized defense capabilities that India must evaluate to protect its front-line assets.",
+        "strategicAngle": "Integrates into the broader doctrinal shift towards multilayered tactical air defense, emphasizing the need for cost-effective kinetic or electronic countermeasures against swarming loitering munitions at the forward edge of the battle area.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Mara Spike Counter-Drone System",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Designed specifically to intercept and stop FPV drones",
+            "Compact counter-UAS architecture suitable for tactical deployment",
+            "Optimized for rapid response against highly maneuverable aerial threats"
           ],
-          "keySignificance": "StratNews Global (Nitin Gokhale) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides targeted protection against low-cost, high-lethal FPV drone threats that currently exploit gaps in traditional air defense radars and missile systems."
+        }
+      }
+    },
+    {
+      "id": "cluster-f7a409a5",
+      "synthesizedHeadline": "Terror groups using niche encrypted platforms to evade surveillance: Officials",
+      "primarySource": {
+        "id": "feed-idrw-f7a409a5",
+        "title": "Terror groups using niche encrypted platforms to evade surveillance: Officials",
+        "url": "https://idrw.org/terror-groups-using-niche-encrypted-platforms-to-evade-surveillance-officials/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T02:30:17.000Z",
+        "snippet": "This article was originally published on idrw.org.\nAfter uncovering the alleged misuse of online gaming platforms by terror groups, security agencies have identified what...\nRead the full article on idrw.org: Terror groups using niche encrypted platforms to ev",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 30.8,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T02:30:17.000Z",
+      "updatedAt": "2026-08-31T02:30:17.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The adoption of niche encrypted platforms by terror groups poses a severe challenge to Indian intelligence, reducing actionable warning time and operational visibility. This digital migration undermines traditional signals intelligence and requires advanced counter-terrorism cyber capabilities.",
+        "strategicAngle": "Forces a doctrinal shift in Indian national security from physical border dominance to asymmetric, grey-zone information warfare, necessitating enhanced civil-military coordination in cyberspace and stricter regulation of digital communication conduits.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Niche Encrypted and Gaming Platforms",
+          "specifications": [
+            "End-to-end encryption protocols",
+            "Decentralized communication channels",
+            "In-game chat and peer-to-peer networking features"
+          ],
+          "keySignificance": "Enables non-attributable, real-time tactical coordination and radicalization among hostile elements while bypassing standard lawful interception frameworks."
+        }
+      }
+    },
+    {
+      "id": "cluster-e5d0b0f1",
+      "synthesizedHeadline": "Kiren Rijiju slams flag desecration by protesters at RSS chief’s US event",
+      "primarySource": {
+        "id": "feed-idrw-e5d0b0f1",
+        "title": "Kiren Rijiju slams flag desecration by protesters at RSS chief’s US event",
+        "url": "https://idrw.org/kiren-rijiju-slams-flag-desecration-by-protesters-at-rss-chiefs-us-event/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T02:30:14.000Z",
+        "snippet": "This article was originally published on idrw.org.\nUnion Minister Kiren Rijiju on Sunday took serious exception to protesters allegedly desecrating the Indian flag outside...\nRead the full article on idrw.org: Kiren Rijiju slams flag desecration by protesters ",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 30.8,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T02:30:14.000Z",
+      "updatedAt": "2026-08-31T02:30:14.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The incident highlights the growing internationalization of domestic Indian political polarization, posing reputational challenges for leadership abroad. While primarily a diplomatic and law enforcement concern, overseas protests targeting high-ranking Indian figures reflect diaspora vulnerabilities and hostile information operations.",
+        "strategicAngle": "Demonstrates the expanding non-kinetic and information warfare domain where diaspora communities become battlegrounds for ideological narratives, necessitating robust strategic communication and diplomatic deterrence.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "N/A - Non-Military Diplomatic Incident",
+          "specifications": [
+            "Not Applicable",
+            "Not Applicable",
+            "Not Applicable"
+          ],
+          "keySignificance": "This event pertains to civil-political protest and international diaspora dynamics rather than military technology, platforms, or hardware specifications."
         }
       }
     },
@@ -859,21 +822,21 @@
         "QRSAM",
         "DRDO"
       ],
-      "defenceScore": 29.9,
+      "defenceScore": 29.8,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:47.000Z",
       "updatedAt": "2026-08-31T02:30:47.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the ARMY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Focus on mechanized combat power, northern border logistics, and indigenous firepower.",
+        "whyItMatters": "The development of an extended-range variant of the QRSAM enhances India's mobile air defense capabilities, providing a robust layered shield against aerial threats along critical borders. This advancement bolsters domestic defense manufacturing under indigenous initiatives, reducing reliance on foreign weapon systems.",
+        "strategicAngle": "This independent program strengthens tactical deterrence by ensuring high-value mobile assets and mechanized formations are protected against advanced aerial threats, aligning with India's doctrine of networked, multi-layered air defense.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "QRSAM",
+          "platformOrSystem": "QRSAM-ER (Quick Reaction Surface-to-Air Missile - Extended Range)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Extended operational range beyond standard QRSAM",
+            "All-weather capability",
+            "High mobility on tactical vehicles"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Extends the engagement envelope for mobile air defense units, allowing for earlier interception of hostile aircraft, drones, and incoming missiles."
         }
       }
     },
@@ -900,21 +863,59 @@
       "entities": [
         "Arjun Mk-1A"
       ],
-      "defenceScore": 29.9,
+      "defenceScore": 29.8,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:38.000Z",
       "updatedAt": "2026-08-31T02:30:38.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the ARMY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Focus on mechanized combat power, northern border logistics, and indigenous firepower.",
+        "whyItMatters": "The Indian Army's initiative to upgrade legacy Arjun Mk-1 tanks to the advanced Mk-1A standard ensures fleet commonality and enhances armored combat readiness along critical borders. This life-cycle extension bridges capability gaps while indigenous production scales up.",
+        "strategicAngle": "Reflects a pragmatic force-preservation and modernization strategy, ensuring heavy armor deterrence remains potent against mechanized threats in western and northern sectors without waiting entirely for next-generation platforms.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Arjun Mk-1A",
+          "platformOrSystem": "Arjun Mk-1A Main Battle Tank",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "26 major technology and operational upgrades",
+            "Enhanced fire control systems",
+            "Improved indigenous tracks and mobility components"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Integrates critical combat-enhancement packages into legacy platforms, significantly improving lethality, survivability, and maintainability to meet contemporary armored warfare demands."
+        }
+      }
+    },
+    {
+      "id": "cluster-ae1442bc",
+      "synthesizedHeadline": "Quantum Systems Gains U.S. Defence Foothold",
+      "primarySource": {
+        "id": "feed-stratnews-global-ae1442bc",
+        "title": "Quantum Systems Gains U.S. Defence Foothold",
+        "url": "https://stratnewsglobal.com/technology/quantum-systems-in-u-s/",
+        "sourceName": "StratNews Global (Nitin Gokhale)",
+        "sourceDomain": "stratnewsglobal.com",
+        "tier": "TIER_4_OSINT",
+        "publishedAt": "2026-08-31T06:31:22.000Z",
+        "snippet": "How U.S. Investors Helped Quantum Systems Gain A Foothold In America German drone maker Quantum Systems gained a foothold in the United States with help from CIA-backed investor In-Q-Tel (IQT), according to co-CEO Sven Kruck. The development highlights the inf",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 29.7,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T06:31:22.000Z",
+      "updatedAt": "2026-08-31T06:31:22.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The integration of allied dual-use drone technology into Western defense supply chains underscores the critical role of venture capital in securing trusted military capabilities. This development highlights how intelligence-backed investment accelerates the adoption of advanced unmanned systems in contested operational environments.",
+        "strategicAngle": "Enhances allied asymmetric warfare capabilities and tactical reconnaissance resilience through trusted, non-state-dependent supply chains, aligning with modern multi-domain operational doctrines.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Quantum Systems Unmanned Aerial Systems",
+          "specifications": [
+            "Dual-use reconnaissance capability",
+            "Long-endurance flight performance",
+            "Advanced autonomous navigation features"
+          ],
+          "keySignificance": "Provides tactical units with reliable, intelligence-grade aerial surveillance and reconnaissance capabilities backed by secure, vetted supply chain networks."
         }
       }
     },
@@ -938,95 +939,62 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 29.5,
+      "defenceScore": 29.4,
       "isLeadStory": false,
       "createdAt": "2026-08-30T23:12:37.000Z",
       "updatedAt": "2026-08-30T23:12:37.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "The transit of the USS Abraham Lincoln carrier strike group through the Singapore Strait demonstrates the US Navy's continued power projection and operational flexibility in vital Southeast Asian chokepoints. This routine yet strategically visible movement underscores Washington's enduring commitment to regional maritime security amidst shifting geopolitical dynamics.",
+        "strategicAngle": "From a deterrence perspective, the visible presence of a Nimitz-class aircraft carrier in the approaches to the South China Sea reinforces the US framework of integrated deterrence against revisionist maritime claims. It reassures regional partners while signaling to competing powers the capability to surge high-end naval assets into critical littoral zones.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Nimitz-class Nuclear-Powered Aircraft Carrier (CVN-72)",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Displacement: Over 100,000 tons loaded",
+            "Propulsion: Two Westinghouse A4W nuclear reactors, four shafts",
+            "Air Wing: Up to 90 fixed-wing aircraft and helicopters"
           ],
-          "keySignificance": "USNI News (Indo-Pacific & Naval) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides sovereign, mobile airbases capable of sustained power projection without the logistical constraints of conventional fossil-fueled propulsion."
         }
       }
     },
     {
-      "id": "cluster-7b2e1ef4",
-      "synthesizedHeadline": "Indian Army pilots pull off daring rescue at 18,600 feet near Nun Kun",
+      "id": "cluster-7b534be7",
+      "synthesizedHeadline": "From Project Airavat to Netra: How India Spent Four Decades Building Its Indigenous AEW&amp;#038;C Capability",
       "primarySource": {
-        "id": "feed-indian-express-7b2e1ef4",
-        "title": "Indian Army pilots pull off daring rescue at 18,600 feet near Nun Kun",
-        "url": "https://indianexpress.com/article/india/indian-army-pilots-rescue-casualty-nun-kun-10855451/",
-        "sourceName": "The Indian Express (India Defence)",
-        "sourceDomain": "indianexpress.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-08-30T05:30:02.000Z",
+        "id": "feed-idrw-7b534be7",
+        "title": "From Project Airavat to Netra: How India Spent Four Decades Building Its Indigenous AEW&amp;#038;C Capability",
+        "url": "https://idrw.org/from-project-airavat-to-netra-how-india-spent-four-decades-building-its-indigenous-aewc-capability/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-30T12:31:01.000Z",
+        "snippet": "This article was originally published on idrw.org.\nIndia&#039;s indigenous airborne early-warning journey is one of the country&#039;s longest and most difficult defence technology programmes....\nRead the full article on idrw.org: From Project Airavat to Netra",
         "isPrimary": true
       },
       "relatedCoverage": [],
       "discussions": [],
       "categories": [
-        "army"
+        "airforce",
+        "tech"
       ],
-      "entities": [],
-      "defenceScore": 28.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-30T05:30:02.000Z",
-      "updatedAt": "2026-08-30T05:30:02.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the ARMY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Focus on mechanized combat power, northern border logistics, and indigenous firepower.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "The Indian Express (India Defence) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-28767001",
-      "synthesizedHeadline": "When militants in Army fatigues killed 23 Kashmiri Pandits",
-      "primarySource": {
-        "id": "feed-indian-express-28767001",
-        "title": "When militants in Army fatigues killed 23 Kashmiri Pandits",
-        "url": "https://indianexpress.com/article/india/in-village-where-23-kashmir-pandits-were-killed-4-homes-a-reminder-of-dark-night-10855120/",
-        "sourceName": "The Indian Express (India Defence)",
-        "sourceDomain": "indianexpress.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-08-29T22:36:29.000Z",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "army"
+      "entities": [
+        "Netra AEW&C"
       ],
-      "entities": [],
-      "defenceScore": 28.7,
+      "defenceScore": 28.4,
       "isLeadStory": false,
-      "createdAt": "2026-08-29T22:36:29.000Z",
-      "updatedAt": "2026-08-29T22:36:29.000Z",
+      "createdAt": "2026-08-30T12:31:01.000Z",
+      "updatedAt": "2026-08-30T12:31:01.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the ARMY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Focus on mechanized combat power, northern border logistics, and indigenous firepower.",
+        "whyItMatters": "Building indigenous Airborne Early Warning and Control (AEW&C) systems reduces reliance on foreign military imports and secures critical command and control nodes against electronic warfare. This capability is vital for maintaining comprehensive airspace surveillance along India's contested borders.",
+        "strategicAngle": "Mastery over indigenous AEW&C architecture significantly enhances India's operational autonomy, supporting network-centric warfare doctrines and robust air defense deterrence against regional adversaries.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Netra AEW&C",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Active Electronically Scanned Array (AESA) radar",
+            "Mounted on an Embraer ERJ 145 aircraft platform",
+            "360-degree radar coverage capability"
           ],
-          "keySignificance": "The Indian Express (India Defence) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides real-time battle management, threat evaluation, and early warning capabilities to augment the Indian Air Force's operational domain awareness."
         }
       }
     },
@@ -1050,21 +1018,21 @@
         "airforce"
       ],
       "entities": [],
-      "defenceScore": 28.4,
+      "defenceScore": 28.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:34.000Z",
       "updatedAt": "2026-08-31T02:30:34.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "The development of indigenous autonomous amphibious cargo platforms enhances logistics and resupply capabilities for island territories and remote littoral regions. It reduces reliance on foreign systems and strengthens India's maritime supply chain resilience.",
+        "strategicAngle": "Supports India's Indo-Pacific strategy by improving rapid deployment and logistics sustainability in contested archipelagic and island-chain environments.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Eureka",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Autonomous flight capability",
+            "Amphibious design",
+            "Water-landing cargo transport"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides runway-independent logistics delivery for remote garrisons and maritime frontiers, bolstering tactical mobility."
         }
       }
     },
@@ -1088,21 +1056,21 @@
         "airforce"
       ],
       "entities": [],
-      "defenceScore": 28.4,
+      "defenceScore": 28.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:26.000Z",
       "updatedAt": "2026-08-31T02:30:26.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "Uzbekistan's adoption of the Chinese J-10CE expands Beijing's defense footprint in Central Asia, directly challenging traditional Russian and Western military influence in India's extended neighborhood. This modernization increases regional air combat capabilities, altering the tactical balance near South Asia's periphery.",
+        "strategicAngle": "Reflects China's aggressive defense export strategy to secure geopolitical alignment and interoperability in Central Asia, testing traditional Russian hegemony in the region and providing Pakistan's regional peers with advanced multirole platforms.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "Chengdu J-10CE",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Multirole fighter aircraft",
+            "Advanced Active Electronically Scanned Array (AESA) radar",
+            "Integration with advanced beyond-visual-range (BVR) missiles"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Demonstrates the export maturity and combat readiness of Chinese fourth-generation-plus avionics and weapon systems to non-traditional markets."
         }
       }
     },
@@ -1126,21 +1094,21 @@
         "airforce"
       ],
       "entities": [],
-      "defenceScore": 28.4,
+      "defenceScore": 28.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:21.000Z",
       "updatedAt": "2026-08-31T02:30:21.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
+        "whyItMatters": "Turkey's successful advancement of the production-ready HÜRJET jet trainer highlights Ankara's growing self-reliance in indigenous defense manufacturing and export capabilities. This development serves as a regional benchmark for advanced pilot training and light attack platforms that could influence defense dynamics in the Middle East and South Asia.",
+        "strategicAngle": "The HÜRJET project reflects a broader doctrine of defense industrial autonomy, reducing reliance on Western supply chains for critical training assets. From a deterrence perspective, indigenous production ensures operational sovereignty and creates viable export alternatives for allied nations seeking non-Western military hardware.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "TUSAŞ HÜRJET",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Advanced jet trainer configuration",
+            "Production-ready flight status",
+            "Light attack capabilities"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Provides a modern, domestically produced supersonic platform capable of bridging basic flight training and fifth-generation fighter aircraft integration."
         }
       }
     },
@@ -1164,21 +1132,59 @@
         "navy"
       ],
       "entities": [],
-      "defenceScore": 28.4,
+      "defenceScore": 28.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:19.000Z",
       "updatedAt": "2026-08-31T02:30:19.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "whyItMatters": "This incident highlights the severe engineering complexities of deploying loitering munitions from naval platforms, a critical capability for power projection in the Indo-Pacific. For India, it underscores the necessity of rigorous testing before operational integration of ship-launched suicide drones.",
+        "strategicAngle": "Naval loitering munitions enhance area denial and anti-surface warfare capabilities for littoral combatants, shifting tactical deterrence dynamics. Failures in canister ejection highlight the vulnerability of complex launch mechanisms in maritime environments.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
+          "platformOrSystem": "South Korean ADD Medium-Sized Loitering Munition",
           "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
+            "Medium-sized loitering munition",
+            "Shipboard canister-launched system",
+            "Agency for Defense Development (ADD) design"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+          "keySignificance": "Demonstrates the critical vulnerability of canister clearance dynamics during shipboard deployment, emphasizing the need for flawless kinetic ejection and control surface deployment in confined maritime launch environments."
+        }
+      }
+    },
+    {
+      "id": "cluster-844810e0",
+      "synthesizedHeadline": "India, Uzbekistan elevate ties to Comprehensive Strategic Partnership",
+      "primarySource": {
+        "id": "feed-idrw-844810e0",
+        "title": "India, Uzbekistan elevate ties to Comprehensive Strategic Partnership",
+        "url": "https://idrw.org/india-uzbekistan-elevate-ties-to-comprehensive-strategic-partnership/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T02:30:12.000Z",
+        "snippet": "This article was originally published on idrw.org.\nIndia and Uzbekistan on Sunday decided to elevate their ties to a Comprehensive Strategic Partnership and agreed...\nRead the full article on idrw.org: India, Uzbekistan elevate ties to Comprehensive Strategic ",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "navy"
+      ],
+      "entities": [],
+      "defenceScore": 28.3,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T02:30:12.000Z",
+      "updatedAt": "2026-08-31T02:30:12.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Elevating ties with Uzbekistan strengthens India's geopolitical footprint in Central Asia, countering Chinese influence and securing vital intelligence-sharing and counter-terrorism cooperation in India's extended neighborhood.",
+        "strategicAngle": "Aligns with India's Central Asia policy and Connect Central Asia strategy, enhancing regional deterrence against radicalization and securing strategic depth through joint military exercises and defense logistics frameworks.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Joint Military Training and Defense Industrial Collaboration Framework",
+          "specifications": [
+            "Counter-terrorism operations training",
+            "Defense equipment maintenance and technology transfer",
+            "Military-technical cooperation protocols"
+          ],
+          "keySignificance": "Facilitates interoperability between special forces and opens avenues for Indian defense exports and joint R&D in Central Asia."
         }
       }
     },
@@ -1223,6 +1229,16 @@
     }
   ],
   "river": [
+    {
+      "id": "feed-the-hindu-national-bacf7fef",
+      "title": "Sunni youth leader defends Kanthapuram’s directive on women at religious events",
+      "url": "https://www.thehindu.com/news/national/kerala/sunni-youth-leader-defends-kanthapurams-directive-on-women-at-religious-events/article71410141.ece",
+      "sourceName": "The Hindu (National Security)",
+      "sourceDomain": "thehindu.com",
+      "tier": "TIER_2_NATIONAL",
+      "publishedAt": "2026-08-31T10:04:46.000Z",
+      "snippet": "Sunni Yuvajana Sangham State general secretary Rahmathulla Saqafi Elamaram made the defence in an opinion article published in Siraj newspaper, the mouthpiece of Sunni group led by Kanthapuram"
+    },
     {
       "id": "feed-naval-news-f884b989",
       "title": "Japan’s Record FY2027 Budget Request: Focus on New FFM, ASEV and Submarines",
@@ -1484,26 +1500,6 @@
       "snippet": "Editor’s Note Pakistan’s Hangor-class submarines could alter the underwater balance in the Indian Ocean, particularly if deployed into the Bay of Bengal. Their potential nuclear role adds another layer of concern for India. The author argues for urgent investm"
     },
     {
-      "id": "feed-nmf-maritime-cc2f0e86",
-      "title": "SAUDI ARABIA’S MULTINATIONAL MARITIME DEFENCE ALLIANCE — IMPLICATIONS FOR INDIA",
-      "url": "https://maritimeindia.org/saudi-arabias-multinational-maritime-defence-alliance-implications-for-india/",
-      "sourceName": "National Maritime Foundation (NMF)",
-      "sourceDomain": "maritimeindia.org",
-      "tier": "TIER_4_OSINT",
-      "publishedAt": "2026-08-30T15:42:48.000Z",
-      "snippet": "Keywords: Saudi Arabia, Multinational Maritime Defence Alliance (MMDA), Indian Ocean, Red Sea, Maritime Security, Regional Maritime Security Architecture, Institutional Proliferation, India–Saudi Arabia Relations, India’s Indian Ocean Strategy, Maritime Intero"
-    },
-    {
-      "id": "feed-nmf-maritime-2c2b04f1",
-      "title": "PLA NAVY’S MAJOR BASES FOR LARGE EXPEDITIONARY VESSELS",
-      "url": "https://maritimeindia.org/pla-navys-major-bases-for-large-expeditionary-vessels/",
-      "sourceName": "National Maritime Foundation (NMF)",
-      "sourceDomain": "maritimeindia.org",
-      "tier": "TIER_4_OSINT",
-      "publishedAt": "2026-08-30T15:22:01.000Z",
-      "snippet": "Rear Admiral Monty Khanna (Retd) – ‘Dabolim Diaries’ Issue No 28 dated 30 Aug 2026 The PLA Navy continues to invest heavily in its expeditionary capabilities. In the brief titled ‘The PLA Navy Doubles Down on its Large Amphib Fleet’ that was released on 28 Jul"
-    },
-    {
       "id": "feed-frontier-india-f56df13b",
       "title": "Russia Wants 20 Tu-214s a Year—Now the Factory Is Being Reworked",
       "url": "https://frontierindia.com/russia-wants-20-tu-214s-a-year-now-the-factory-is-being-reworked/",
@@ -1684,15 +1680,6 @@
       "snippet": "Since August 26, India has sent four military flights carrying emergency relief material, temporary shelters, blankets, hygiene kits, solar lamps and more."
     },
     {
-      "id": "feed-indian-express-7b2e1ef4",
-      "title": "Indian Army pilots pull off daring rescue at 18,600 feet near Nun Kun",
-      "url": "https://indianexpress.com/article/india/indian-army-pilots-rescue-casualty-nun-kun-10855451/",
-      "sourceName": "The Indian Express (India Defence)",
-      "sourceDomain": "indianexpress.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-30T05:30:02.000Z"
-    },
-    {
       "id": "feed-frontier-india-05f54f00",
       "title": "Russia&#039;s Tu-214 Has a Weight Problem—Former Tupolev Boss Says 5 Tonnes Can Be Cut",
       "url": "https://frontierindia.com/russias-tu-214-has-a-weight-problem-former-tupolev-boss-says-5-tonnes-can-be-cut/",
@@ -1701,24 +1688,6 @@
       "tier": "TIER_3_SPECIALIZED",
       "publishedAt": "2026-08-30T04:19:00.000Z",
       "snippet": "The Tu-214 still has significant room for improvement, particularly when it comes to weight, according to Stanislav Ryzhakov, former director of Tupolev’s Ulyanovsk branch. Ryzhakov contended in an interview with Business Online that the Russian government&#03"
-    },
-    {
-      "id": "feed-indian-express-28767001",
-      "title": "When militants in Army fatigues killed 23 Kashmiri Pandits",
-      "url": "https://indianexpress.com/article/india/in-village-where-23-kashmir-pandits-were-killed-4-homes-a-reminder-of-dark-night-10855120/",
-      "sourceName": "The Indian Express (India Defence)",
-      "sourceDomain": "indianexpress.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-29T22:36:29.000Z"
-    },
-    {
-      "id": "feed-indian-express-fd91d028",
-      "title": "PM Narendra Modi flags ‘shared vision’ in Tashkent: Trade and culture to energy, defence",
-      "url": "https://indianexpress.com/article/india/pm-narendra-modi-flags-shared-vision-in-tashkent-trade-and-culture-to-energy-defence-10855121/",
-      "sourceName": "The Indian Express (India Defence)",
-      "sourceDomain": "indianexpress.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-29T22:34:50.000Z"
     },
     {
       "id": "feed-frontier-india-c767cb5e",
@@ -1971,9 +1940,9 @@
       "snippet": "At the centre is OGEL framework—a standing, one-time export authorisation that allows eligible defence exporters to generate authorisations for multiple consignments without applying separately for each."
     }
   ],
-  "totalIngested": 169,
-  "totalFiltered": 75,
+  "totalIngested": 159,
+  "totalFiltered": 71,
   "activeFeedsCount": 50,
-  "durationMs": 32316,
-  "generatedAt": "2026-08-31T10:09:26.175Z"
+  "durationMs": 161601,
+  "generatedAt": "2026-08-31T10:26:20.703Z"
 }
