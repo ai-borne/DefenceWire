@@ -4,32 +4,15 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { DomainCategory, StoryCluster, StorySourceItem } from '../types/news.js';
+import { StoryCluster, StorySourceItem } from '../types/news.js';
 import { getTierAuthorityWeight } from '../data/sources.js';
 import { calculateScoreBreakdown } from './rankingEngine.js';
 import { computeStableHash } from '../utils/stableId.js';
 
-/** Known Indian defence platforms, agencies, and strategic entities */
-export const KNOWN_MILITARY_ENTITIES: { name: string; pattern: RegExp; categories: DomainCategory[] }[] = [
-  { name: 'Tejas Mk1A', pattern: /\btejas\s*(mk1a|mk-1a|mark\s*1a)?\b/i, categories: ['airforce', 'tech'] },
-  { name: 'AMCA', pattern: /\bamca\b|advanced\s+medium\s+combat\s+aircraft/i, categories: ['airforce', 'tech', 'strategic'] },
-  { name: 'Rafale', pattern: /\brafale(-m)?\b/i, categories: ['airforce', 'navy', 'procurement'] },
-  { name: 'Project 75I', pattern: /\b(project\s*75-?i|p-?75i)\b/i, categories: ['navy', 'tech', 'procurement'] },
-  { name: 'INS Vikrant', pattern: /\bins\s+vikrant\b|iac-1/i, categories: ['navy', 'tech'] },
-  { name: 'INS Arighat', pattern: /\bins\s+arighat\b|ssbn/i, categories: ['navy', 'strategic'] },
-  { name: 'Zorawar', pattern: /\bzorawar\b|light\s+tank/i, categories: ['army', 'tech'] },
-  { name: 'BrahMos', pattern: /\bbrahmos(-ng|-er)?\b/i, categories: ['tech', 'procurement', 'strategic'] },
-  { name: 'Akash-NG', pattern: /\bakash(-ng)?\b/i, categories: ['airforce', 'army', 'tech'] },
-  { name: 'Pinaka', pattern: /\bpinaka\s*(mbrl)?\b/i, categories: ['army', 'tech'] },
-  { name: 'MQ-9B SkyGuardian', pattern: /\bmq-9b\b|seaguardian|skyguardian|predator\s+drone/i, categories: ['navy', 'procurement', 'tech'] },
-  { name: 'Prachand LCH', pattern: /\bprachand\b|light\s+combat\s+helicopter|lch/i, categories: ['airforce', 'army'] },
-  { name: 'S-400 Triumf', pattern: /\bs-400\b|triumf/i, categories: ['airforce', 'strategic'] },
-  { name: 'DRDO', pattern: /\bdrdo\b/i, categories: ['tech'] },
-  { name: 'HAL', pattern: /\bhal\b|hindustan\s+aeronautics/i, categories: ['tech', 'airforce'] },
-  { name: 'DAC Clearance', pattern: /\bdac\b|defence\s+acquisition\s+council/i, categories: ['procurement'] },
-  { name: 'CCS Approval', pattern: /\bccs\b|cabinet\s+committee\s+on\s+security/i, categories: ['procurement', 'strategic'] },
-  { name: 'K9 Vajra', pattern: /\bk9\s*vajra\b/i, categories: ['army', 'tech'] }
-];
+import { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities, MilitaryEntityConfig } from '../data/militaryEntities.js';
+
+export { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities };
+export type { MilitaryEntityConfig };
 
 const STOPWORDS = new Set([
   'a', 'an', 'the', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
@@ -64,38 +47,6 @@ export function computeJaccardSimilarity(setA: Set<string>, setB: Set<string>): 
   }
   const unionSize = setA.size + setB.size - intersectionSize;
   return unionSize === 0 ? 0 : intersectionSize / unionSize;
-}
-
-/**
- * Extracts recognized military entities from headline and text.
- */
-export function extractMilitaryEntities(text: string): { entities: string[]; categories: DomainCategory[] } {
-  const entities: string[] = [];
-  const categoriesSet = new Set<DomainCategory>();
-
-  for (const entity of KNOWN_MILITARY_ENTITIES) {
-    if (entity.pattern.test(text)) {
-      entities.push(entity.name);
-      entity.categories.forEach(cat => categoriesSet.add(cat));
-    }
-  }
-
-  // Fallback category if none detected
-  if (categoriesSet.size === 0) {
-    const lower = text.toLowerCase();
-    const hasDefenceContext = lower.includes('defence') || lower.includes('defense') || lower.includes('military') || lower.includes('mod') || lower.includes('armed forces') || lower.includes('drdo') || lower.includes('weapon') || lower.includes('missile') || lower.includes('ammunition');
-
-    if (lower.includes('army') || lower.includes('troop') || lower.includes('soldier')) categoriesSet.add('army');
-    else if (lower.includes('navy') || lower.includes('ship') || lower.includes('submarine') || lower.includes('maritime')) categoriesSet.add('navy');
-    else if (lower.includes('air force') || lower.includes('iaf') || lower.includes('aircraft') || lower.includes('jet')) categoriesSet.add('airforce');
-    else if (hasDefenceContext && (lower.includes('procurement') || lower.includes('deal') || lower.includes('crore') || lower.includes('order') || lower.includes('contract') || lower.includes('acquisition') || lower.includes('tender'))) categoriesSet.add('procurement');
-    else categoriesSet.add('strategic');
-  }
-
-  return {
-    entities: Array.from(new Set(entities)),
-    categories: Array.from(categoriesSet)
-  };
 }
 
 /**

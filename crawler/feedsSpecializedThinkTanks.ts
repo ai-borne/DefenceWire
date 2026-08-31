@@ -116,6 +116,42 @@ export const SPECIALIZED_AND_THINKTANK_FEEDS: FeedConfig[] = [
     defaultCategory: 'tech',
     enabled: true
   },
+  {
+    id: 'feed-usni-news',
+    name: 'USNI News (Indo-Pacific & Naval)',
+    url: 'https://news.usni.org/feed',
+    domain: 'usni.org',
+    tier: SourceTier.TIER_3_SPECIALIZED,
+    defaultCategory: 'navy',
+    enabled: true
+  },
+  {
+    id: 'feed-naval-tech',
+    name: 'Naval Technology (Warship Programs)',
+    url: 'https://www.naval-technology.com/feed/',
+    domain: 'naval-technology.com',
+    tier: SourceTier.TIER_3_SPECIALIZED,
+    defaultCategory: 'navy',
+    enabled: true
+  },
+  {
+    id: 'feed-airforce-tech',
+    name: 'Airforce Technology (Military Aerospace)',
+    url: 'https://www.airforce-technology.com/feed/',
+    domain: 'airforce-technology.com',
+    tier: SourceTier.TIER_3_SPECIALIZED,
+    defaultCategory: 'airforce',
+    enabled: true
+  },
+  {
+    id: 'feed-breaking-defense',
+    name: 'Breaking Defense (Strategic Tech)',
+    url: 'https://breakingdefense.com/feed/',
+    domain: 'breakingdefense.com',
+    tier: SourceTier.TIER_3_SPECIALIZED,
+    defaultCategory: 'strategic',
+    enabled: true
+  },
 
   // Tier 4 — Think Tanks & Strategic OSINT
   {
@@ -215,6 +251,24 @@ export const SPECIALIZED_AND_THINKTANK_FEEDS: FeedConfig[] = [
     domain: 'eurasiantimes.com',
     tier: SourceTier.TIER_4_OSINT,
     defaultCategory: 'tech',
+    enabled: true
+  },
+  {
+    id: 'feed-csis-strategic',
+    name: 'CSIS (Indo-Pacific & Asia Security)',
+    url: 'https://www.csis.org/analysis/rss',
+    domain: 'csis.org',
+    tier: SourceTier.TIER_4_OSINT,
+    defaultCategory: 'strategic',
+    enabled: true
+  },
+  {
+    id: 'feed-iiss-strategic',
+    name: 'IISS (Indo-Pacific Strategic Studies)',
+    url: 'https://www.iiss.org/rss/news-and-analysis.xml',
+    domain: 'iiss.org',
+    tier: SourceTier.TIER_4_OSINT,
+    defaultCategory: 'strategic',
     enabled: true
   }
 ];

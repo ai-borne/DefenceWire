@@ -16,6 +16,19 @@ import { StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { FeedConfig } from '../../crawler/feeds.js';
 
+function createMockItem(id: string, title: string, tier = SourceTier.TIER_2_NATIONAL, snippet?: string): StorySourceItem {
+  return {
+    id,
+    title,
+    url: `https://example.com/${id}`,
+    sourceName: 'The Hindu',
+    sourceDomain: 'thehindu.com',
+    tier,
+    publishedAt: '2026-08-31T08:00:00Z',
+    snippet
+  };
+}
+
 describe('Crawler Filters: Relevance & Negative Blacklisting', () => {
   const nationalFeed: FeedConfig = {
     id: 'the-hindu-national',
@@ -45,172 +58,81 @@ describe('Crawler Filters: Relevance & Negative Blacklisting', () => {
   });
 
   it('rejects articles containing non-defence blacklist keywords even if defence terms are present', () => {
-    const item: StorySourceItem = {
-      id: 'item-1',
-      title: 'Defence Minister Attends Bollywood Box Office Premiere in Mumbai',
-      url: 'https://example.com/1',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z',
-      snippet: 'Celebrity stars and politicians gather for movie screening.'
-    };
-
+    const item = createMockItem('item-1', 'Defence Minister Attends Bollywood Box Office Premiere in Mumbai', SourceTier.TIER_2_NATIONAL, 'Celebrity stars gather');
     expect(isDefenceRelevant(item, nationalFeed)).toBe(false);
   });
 
   it('rejects cricket and election rally topics across all source tiers', () => {
-    const item: StorySourceItem = {
-      id: 'item-2',
-      title: 'Army Officers Cheer at Cricket IPL Finals in Chennai',
-      url: 'https://pib.gov.in/news/2',
-      sourceName: 'PIB India',
-      sourceDomain: 'pib.gov.in',
-      tier: SourceTier.TIER_1_OFFICIAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
+    const item = createMockItem('item-2', 'Army Officers Cheer at Cricket IPL Finals in Chennai', SourceTier.TIER_1_OFFICIAL);
     expect(isDefenceRelevant(item, officialFeed)).toBe(false);
   });
 
   it('accepts articles with verified military entities', () => {
-    const item: StorySourceItem = {
-      id: 'item-3',
-      title: 'CCS Clears Prototype Development Funding for AMCA 5th-Gen Fighter',
-      url: 'https://thehindu.com/news/3',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
+    const item = createMockItem('item-3', 'CCS Clears Prototype Development Funding for AMCA 5th-Gen Fighter');
     expect(isDefenceRelevant(item, nationalFeed)).toBe(true);
   });
 
   it('accepts articles with whole-word defence terminology', () => {
-    const item: StorySourceItem = {
-      id: 'item-4',
-      title: 'DRDO Successfully Test Fires VSHORADS Missile from Chandipur',
-      url: 'https://thehindu.com/news/4',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
+    const item = createMockItem('item-4', 'DRDO Successfully Test Fires VSHORADS Missile from Chandipur');
     expect(isDefenceRelevant(item, nationalFeed)).toBe(true);
   });
 
   it('rejects general news without defence relevance from national feeds', () => {
-    const item: StorySourceItem = {
-      id: 'item-5',
-      title: 'New Highway Opened Connecting Delhi and Mumbai',
-      url: 'https://thehindu.com/news/5',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
+    const item = createMockItem('item-5', 'New Highway Opened Connecting Delhi and Mumbai');
     expect(isDefenceRelevant(item, nationalFeed)).toBe(false);
   });
 
   it('rejects agricultural, dairy, civic and commodity procurement from national feeds', () => {
-    const milkItem: StorySourceItem = {
-      id: 'item-milk',
-      title: 'Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre',
-      url: 'https://thehindu.com/news/national/tamil-nadu/milk-procurement-price/1',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z',
-      snippet: 'Last week, CM Vijay had announced that the government had increased the procurement price by ₹3.'
-    };
+    const milk = createMockItem('item-milk', 'Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre');
+    const paddy = createMockItem('item-paddy', 'Centre hikes paddy procurement MSP by ₹117 per quintal for kharif season');
+    const bus = createMockItem('item-bus', 'State cabinet approves municipal tender for 500 electric bus procurement');
 
-    const paddyItem: StorySourceItem = {
-      id: 'item-paddy',
-      title: 'Centre hikes paddy procurement MSP by ₹117 per quintal for kharif season',
-      url: 'https://hindustantimes.com/india-news/paddy-msp-procurement/2',
-      sourceName: 'Hindustan Times',
-      sourceDomain: 'hindustantimes.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
-    const busItem: StorySourceItem = {
-      id: 'item-bus',
-      title: 'State cabinet approves municipal tender for 500 electric bus procurement',
-      url: 'https://thehindu.com/news/bus-procurement/3',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
-
-    expect(isDefenceRelevant(milkItem, nationalFeed)).toBe(false);
-    expect(isDefenceRelevant(paddyItem, nationalFeed)).toBe(false);
-    expect(isDefenceRelevant(busItem, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(milk, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(paddy, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(bus, nationalFeed)).toBe(false);
   });
 
   it('accepts legitimate defence and military procurement items', () => {
-    const akashItem: StorySourceItem = {
-      id: 'item-akash',
-      title: 'IAF, MoD Consider Major Akash-NG Procurement With Around 1,000 Missiles Order Book',
-      url: 'https://thehindu.com/news/defence/akash-procurement/4',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
+    const akash = createMockItem('item-akash', 'IAF, MoD Consider Major Akash-NG Procurement With Around 1,000 Missiles Order Book');
+    const dac = createMockItem('item-dac', 'DAC Clears Capital Acquisition of 31 MQ-9B Drones for Armed Forces');
+    const army = createMockItem('item-army', 'Indian Army floats preliminary tender for 307 ATAGS howitzers');
 
-    const dacItem: StorySourceItem = {
-      id: 'item-dac',
-      title: 'DAC Clears Capital Acquisition of 31 MQ-9B Drones for Armed Forces',
-      url: 'https://thehindu.com/news/defence/dac-mq9b/5',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
+    expect(isDefenceRelevant(akash, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(dac, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(army, nationalFeed)).toBe(true);
+  });
 
-    const armyItem: StorySourceItem = {
-      id: 'item-army',
-      title: 'Indian Army floats preliminary tender for 307 ATAGS howitzers',
-      url: 'https://thehindu.com/news/defence/atags-tender/6',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-31T08:00:00Z'
-    };
+  it('rejects educational, courtroom, and civic municipal spam from national wires even if defence words exist', () => {
+    const exam = createMockItem('item-exam', 'NTA releases NEET UG 2026 admit card for defence quota students');
+    const court = createMockItem('item-court', 'Supreme Court rejects bail plea in murder trial hearing of ex-serviceman');
+    const tax = createMockItem('item-tax', 'Municipal corporation hikes property tax rates across commercial zones');
 
-    expect(isDefenceRelevant(akashItem, nationalFeed)).toBe(true);
-    expect(isDefenceRelevant(dacItem, nationalFeed)).toBe(true);
-    expect(isDefenceRelevant(armyItem, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(exam, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(court, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(tax, nationalFeed)).toBe(false);
+  });
+
+  it('accepts articles covering Indian defence PSUs, private primes and modern electronic warfare', () => {
+    const bel = createMockItem('item-bel', 'BEL secures ₹2,500 crore export order for radar warning receivers');
+    const tasl = createMockItem('item-tasl', 'TASL opens new defense aerospace facility in Hyderabad');
+    const mdl = createMockItem('item-mdl', 'MDL delivers new offshore vessel to coast guard');
+    const ew = createMockItem('item-ew', 'Indian forces deploy counter-drone electronic warfare systems along borders');
+
+    expect(isDefenceRelevant(bel, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(tasl, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(mdl, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(ew, nationalFeed)).toBe(true);
   });
 });
 
 describe('Crawler Filters: Article Freshness Window', () => {
   it('filters out articles older than maxAgeHours window', () => {
     const now = new Date('2026-08-31T12:00:00Z');
-    const freshItem: StorySourceItem = {
-      id: 'fresh-1',
-      title: 'IAF inducts new radar systems',
-      url: 'https://example.com/fresh',
-      sourceName: 'PIB',
-      sourceDomain: 'pib.gov.in',
-      tier: SourceTier.TIER_1_OFFICIAL,
-      publishedAt: '2026-08-31T06:00:00Z' // 6h old
-    };
+    const freshItem = createMockItem('fresh-1', 'IAF inducts new radar systems', SourceTier.TIER_1_OFFICIAL);
+    freshItem.publishedAt = '2026-08-31T06:00:00Z'; // 6h old
 
-    const staleItem: StorySourceItem = {
-      id: 'stale-1',
-      title: 'Historic defence accord signed',
-      url: 'https://example.com/stale',
-      sourceName: 'PIB',
-      sourceDomain: 'pib.gov.in',
-      tier: SourceTier.TIER_1_OFFICIAL,
-      publishedAt: '2026-08-20T00:00:00Z' // 11 days old
-    };
+    const staleItem = createMockItem('stale-1', 'Historic defence accord signed', SourceTier.TIER_1_OFFICIAL);
+    staleItem.publishedAt = '2026-08-20T00:00:00Z'; // 11 days old
 
     const result = filterFreshArticles([freshItem, staleItem], 72, now);
     expect(result).toHaveLength(1);

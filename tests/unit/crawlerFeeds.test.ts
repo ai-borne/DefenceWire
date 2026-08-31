@@ -16,11 +16,11 @@ import { SourceTier } from '../../src/types/source.js';
 import { isValidUrl } from '../../src/utils/security.js';
 
 describe('Crawler Feed Registry', () => {
-  it('contains at least 40 curated Indian defence RSS/Atom feeds', () => {
-    expect(CRAWLER_FEEDS.length).toBeGreaterThanOrEqual(40);
+  it('contains at least 48 curated Indian and Indo-Pacific defence RSS/Atom feeds', () => {
+    expect(CRAWLER_FEEDS.length).toBeGreaterThanOrEqual(48);
   });
 
-  it('contains feeds across all 4 reliability tiers', () => {
+  it('contains feeds across all 4 reliability tiers including specialized global feeds', () => {
     const tier1 = getFeedsByTier(SourceTier.TIER_1_OFFICIAL);
     const tier2 = getFeedsByTier(SourceTier.TIER_2_NATIONAL);
     const tier3 = getFeedsByTier(SourceTier.TIER_3_SPECIALIZED);
@@ -28,8 +28,16 @@ describe('Crawler Feed Registry', () => {
 
     expect(tier1.length).toBeGreaterThanOrEqual(5);
     expect(tier2.length).toBeGreaterThanOrEqual(10);
-    expect(tier3.length).toBeGreaterThanOrEqual(10);
-    expect(tier4.length).toBeGreaterThanOrEqual(10);
+    expect(tier3.length).toBeGreaterThanOrEqual(15);
+    expect(tier4.length).toBeGreaterThanOrEqual(12);
+
+    const feedIds = CRAWLER_FEEDS.map((f) => f.id);
+    expect(feedIds).toContain('feed-usni-news');
+    expect(feedIds).toContain('feed-naval-tech');
+    expect(feedIds).toContain('feed-airforce-tech');
+    expect(feedIds).toContain('feed-breaking-defense');
+    expect(feedIds).toContain('feed-csis-strategic');
+    expect(feedIds).toContain('feed-iiss-strategic');
   });
 
   it('validates that all feed entries have valid HTTPS/HTTP URLs and unique IDs', () => {
