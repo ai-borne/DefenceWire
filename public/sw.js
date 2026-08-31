@@ -54,8 +54,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Avoid caching non-HTTP/HTTPS or chrome extension calls
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+  // Avoid caching non-HTTP/HTTPS, chrome extensions, or /api/ endpoints (Zero Trust / Edge functions)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:' || url.pathname.startsWith('/api/')) {
     return;
   }
 

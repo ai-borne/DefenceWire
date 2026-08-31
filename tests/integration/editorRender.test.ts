@@ -62,13 +62,13 @@ describe('EditorDashboard Component Integration', () => {
     editorVm.setOpen(true);
   });
 
-  it('renders tactical passcode modal when unauthenticated', () => {
+  it('renders Zero Trust access gate modal when unauthenticated', () => {
     const el = renderEditorDashboard(editorVm);
     expect(el.textContent).toContain(STRINGS.editor.authTitle);
-    expect(el.textContent).toContain(STRINGS.editor.unlockButton);
+    expect(el.textContent).toContain(STRINGS.editor.zeroTrustLoginBtn);
 
-    const input = el.querySelector('input[type="password"]');
-    expect(input).not.toBeNull();
+    const btn = el.querySelector('button.dw-editor-btn--promote');
+    expect(btn).not.toBeNull();
   });
 
   it('renders full curator desk and action bar after authentication', async () => {
