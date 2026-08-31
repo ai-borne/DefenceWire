@@ -51,7 +51,8 @@ export const STRINGS = {
     justNow: 'Just now',
     shareAriaLabel: 'Share this intelligence briefing',
     expandSummaryAriaLabel: 'Expand article summary',
-    sourceTierTooltip: 'Institutional Reliability Tier'
+    sourceTierTooltip: 'Institutional Reliability Tier',
+    officialSignalBadge: 'Verified Signal'
   },
   summary: {
     drawerTitle: 'Summary',
@@ -190,6 +191,7 @@ export const STRINGS = {
   },
   tiers: {
     tier1: 'Official / MoD',
+    tier1Social: 'Official Handle',
     tier2: 'National Wire',
     tier3: 'Specialized Defence',
     tier4: 'Think Tank / OSINT'

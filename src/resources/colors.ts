@@ -58,6 +58,7 @@ export const COLOR_PALETTE = {
   // Tier Colors
   tier: {
     tier1: '#1E7E34', // Sovereign / Official MoD
+    tier1Social: '#0284C7', // Official Social / Operational Handle
     tier2: '#0D6EFD', // National Wire / Accredited
     tier3: '#D97706', // Defence Specialized / Defense Portal
     tier4: '#6C757D'  // Think Tank / OSINT

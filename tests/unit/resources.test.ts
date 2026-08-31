@@ -104,11 +104,21 @@ describe('Resource Management: Colors & Token SSOT', () => {
     }
   });
 
-  it('should define distinct colors for all 4 source tiers', () => {
+  it('should define distinct colors for all source tiers including official social', () => {
     expect(COLOR_PALETTE.tier.tier1).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.tier.tier1Social).toMatch(/^#[0-9A-F]{6}$/i);
     expect(COLOR_PALETTE.tier.tier2).toMatch(/^#[0-9A-F]{6}$/i);
     expect(COLOR_PALETTE.tier.tier3).toMatch(/^#[0-9A-F]{6}$/i);
     expect(COLOR_PALETTE.tier.tier4).toMatch(/^#[0-9A-F]{6}$/i);
+  });
+
+  it('should define tier labels and story badges in strings SSOT', () => {
+    expect(STRINGS.tiers.tier1).toBe('Official / MoD');
+    expect(STRINGS.tiers.tier1Social).toBe('Official Handle');
+    expect(STRINGS.tiers.tier2).toBe('National Wire');
+    expect(STRINGS.tiers.tier3).toBe('Specialized Defence');
+    expect(STRINGS.tiers.tier4).toBe('Think Tank / OSINT');
+    expect(STRINGS.story.officialSignalBadge).toBe('Verified Signal');
   });
 
   it('should define valid CSS variable mapping aliases', () => {

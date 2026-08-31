@@ -125,6 +125,24 @@ describe('Crawler Filters: Relevance & Negative Blacklisting', () => {
     expect(isDefenceRelevant(mdl, nationalFeed)).toBe(true);
     expect(isDefenceRelevant(ew, nationalFeed)).toBe(true);
   });
+
+  it('applies strict social noise gating when feed is TIER_1_SOCIAL', () => {
+    const socialFeed: FeedConfig = {
+      id: 'feed-army-x',
+      name: 'ADG PI Twitter',
+      url: 'https://x.com/adgpi',
+      domain: 'x.com',
+      tier: SourceTier.TIER_1_SOCIAL,
+      defaultCategory: 'army',
+      enabled: true
+    };
+
+    const ceremonial = createMockItem('item-wreath', 'Army Commander laid wreath at National War Memorial', SourceTier.TIER_1_SOCIAL);
+    const strategic = createMockItem('item-missile', 'DRDO test fires new naval air defence missile system', SourceTier.TIER_1_SOCIAL);
+
+    expect(isDefenceRelevant(ceremonial, socialFeed)).toBe(false);
+    expect(isDefenceRelevant(strategic, socialFeed)).toBe(true);
+  });
 });
 
 describe('Crawler Filters: Article Freshness Window', () => {

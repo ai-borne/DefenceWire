@@ -5,6 +5,7 @@
 
 export enum SourceTier {
   TIER_1_OFFICIAL = 'TIER_1_OFFICIAL',       // MoD, PIB, DRDO, Services (Army, Navy, Air Force)
+  TIER_1_SOCIAL = 'TIER_1_SOCIAL',           // Official Armed Forces Social Handles (ADG PI, IAF, Navy, DRDO)
   TIER_2_NATIONAL = 'TIER_2_NATIONAL',       // Reuters, The Hindu, ThePrint, ANI, Indian Express
   TIER_3_SPECIALIZED = 'TIER_3_SPECIALIZED', // Livefist, IDRW, Janes, Naval News, Force India
   TIER_4_OSINT = 'TIER_4_OSINT'              // Think Tanks (IDSA, ORF, USI), accredited OSINT

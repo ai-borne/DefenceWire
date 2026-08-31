@@ -64,6 +64,8 @@ export function renderStoryCluster(
 
   if (cluster.primarySource.tier === SourceTier.TIER_1_OFFICIAL) {
     tierBadge.textContent = STRINGS.tiers.tier1;
+  } else if (cluster.primarySource.tier === SourceTier.TIER_1_SOCIAL) {
+    tierBadge.textContent = STRINGS.tiers.tier1Social;
   } else if (cluster.primarySource.tier === SourceTier.TIER_2_NATIONAL) {
     tierBadge.textContent = STRINGS.tiers.tier2;
   } else if (cluster.primarySource.tier === SourceTier.TIER_3_SPECIALIZED) {

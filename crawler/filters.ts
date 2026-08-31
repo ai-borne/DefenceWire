@@ -13,6 +13,9 @@ import {
   CloudflareAIOptions,
   WorkersAIScreeningResult
 } from './cloudflareAI.js';
+import { isSocialPostStrategic } from './socialFilters.js';
+
+export { isSocialPostStrategic } from './socialFilters.js';
 
 export const NON_DEFENCE_BLACKLIST = [
   'mann ki baat', 'drug-free', 'nasha mukt', 'election rally', 'assembly election',
@@ -47,7 +50,12 @@ export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): bool
     return false;
   }
 
-  // 2. Military Entity extraction (both static SSOT and dynamic harvested entities)
+  // 2. Social tier noise gate: Filters ceremonial and routine administrative noise
+  if (feed.tier === SourceTier.TIER_1_SOCIAL || item.tier === SourceTier.TIER_1_SOCIAL) {
+    return isSocialPostStrategic(item, feed);
+  }
+
+  // 3. Military Entity extraction (both static SSOT and dynamic harvested entities)
   const entities = extractMilitaryEntities(fullText);
   if (entities.entities.length > 0) {
     return true;

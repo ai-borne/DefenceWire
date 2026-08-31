@@ -7,6 +7,7 @@ import { NewsSource, SourceTier, TierWeight } from '../types/source.js';
 
 export const TIER_WEIGHTS: Record<SourceTier, TierWeight> = {
   [SourceTier.TIER_1_OFFICIAL]: { tier: SourceTier.TIER_1_OFFICIAL, authorityWeight: 1.0, label: 'Tier 1 — Official Government & Armed Forces' },
+  [SourceTier.TIER_1_SOCIAL]: { tier: SourceTier.TIER_1_SOCIAL, authorityWeight: 0.6, label: 'Tier 1 Social — Official Handles & Strategic Signals' },
   [SourceTier.TIER_2_NATIONAL]: { tier: SourceTier.TIER_2_NATIONAL, authorityWeight: 0.85, label: 'Tier 2 — National & Global Wire Services' },
   [SourceTier.TIER_3_SPECIALIZED]: { tier: SourceTier.TIER_3_SPECIALIZED, authorityWeight: 0.7, label: 'Tier 3 — Specialized Defence & Aerospace Portals' },
   [SourceTier.TIER_4_OSINT]: { tier: SourceTier.TIER_4_OSINT, authorityWeight: 0.5, label: 'Tier 4 — Think Tanks & Strategic OSINT' }

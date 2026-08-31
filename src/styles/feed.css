@@ -64,10 +64,11 @@
   text-transform: uppercase;
 }
 
-.dw-tier-1 { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
-.dw-tier-2 { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
-.dw-tier-3 { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
-.dw-tier-4 { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
+.dw-tier-1, .dw-tier-TIER_1_OFFICIAL { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
+.dw-tier-TIER_1_SOCIAL { background-color: rgba(2, 132, 199, 0.15); color: #0284C7; }
+.dw-tier-2, .dw-tier-TIER_2_NATIONAL { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
+.dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
+.dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
 
 .dw-snippet {
   font-size: 0.84rem;

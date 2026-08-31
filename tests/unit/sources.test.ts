@@ -15,20 +15,23 @@ import {
 import { SourceTier } from '../../src/types/source.js';
 
 describe('Source Registry & Tier Weighting', () => {
-  it('should define authority weights for all 4 SourceTiers in strict hierarchy', () => {
+  it('should define authority weights for all SourceTiers in strict hierarchy', () => {
     const t1 = TIER_WEIGHTS[SourceTier.TIER_1_OFFICIAL].authorityWeight;
+    const t1Social = TIER_WEIGHTS[SourceTier.TIER_1_SOCIAL].authorityWeight;
     const t2 = TIER_WEIGHTS[SourceTier.TIER_2_NATIONAL].authorityWeight;
     const t3 = TIER_WEIGHTS[SourceTier.TIER_3_SPECIALIZED].authorityWeight;
     const t4 = TIER_WEIGHTS[SourceTier.TIER_4_OSINT].authorityWeight;
 
     expect(t1).toBe(1.0);
+    expect(t1Social).toBe(0.6);
     expect(t2).toBe(0.85);
     expect(t3).toBe(0.7);
     expect(t4).toBe(0.5);
 
     expect(t1).toBeGreaterThan(t2);
     expect(t2).toBeGreaterThan(t3);
-    expect(t3).toBeGreaterThan(t4);
+    expect(t3).toBeGreaterThan(t1Social);
+    expect(t1Social).toBeGreaterThan(t4);
   });
 
   it('should correctly extract clean domains from various URL formats', () => {
