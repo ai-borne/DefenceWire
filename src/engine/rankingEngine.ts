@@ -8,6 +8,7 @@ import { StoryCluster, StorySourceItem } from '../types/news.js';
 import { SourceTier } from '../types/source.js';
 import { BonusFactor, RankingParams, ScoreBreakdown } from '../types/ranking.js';
 import { getTierAuthorityWeight } from '../data/sources.js';
+import { getSourceMultiplier } from './sourceReputation.js';
 
 export const DEFAULT_RANKING_PARAMS: RankingParams = {
   gravity: 1.6,
@@ -24,17 +25,22 @@ const STRATEGIC_KEYWORDS = [
 ];
 
 /**
- * Computes Source Authority score (0 - 100).
+ * Computes Source Authority score (0 - 100) scaled by dynamic source reputation.
  */
 function calculateAuthorityScore(primary: StorySourceItem, related: StorySourceItem[]): number {
-  const primaryWeight = getTierAuthorityWeight(primary.tier) * 100;
+  const primaryMult = getSourceMultiplier(primary.sourceDomain);
+  const primaryWeight = Math.min(100, getTierAuthorityWeight(primary.tier) * 100 * primaryMult);
   if (!related || related.length === 0) {
     return Math.round(primaryWeight);
   }
-  const relatedSum = related.reduce((acc, item) => acc + getTierAuthorityWeight(item.tier) * 100, 0);
+  const relatedSum = related.reduce((acc, item) => {
+    const mult = getSourceMultiplier(item.sourceDomain);
+    return acc + Math.min(100, getTierAuthorityWeight(item.tier) * 100 * mult);
+  }, 0);
   const relatedAvg = relatedSum / related.length;
   return Math.round(primaryWeight * 0.6 + relatedAvg * 0.4);
 }
+
 
 /**
  * Computes Source Count score (0 - 100) based on corroboration breadth.

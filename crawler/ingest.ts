@@ -23,23 +23,17 @@ import {
   EntityHarvestCandidate
 } from './entityHarvester.js';
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
-import {
-  isDefenceRelevant,
-  filterFreshArticles,
-  NON_DEFENCE_BLACKLIST,
-  NON_DEFENCE_BLACKLIST_REGEX,
-  DEFENCE_WHOLE_WORD_REGEX
+import { aggregateSourceStats, syncSourceReputationToD1 } from './sourceTracker.js';
+
+import { isDefenceRelevant, filterFreshArticles } from './filters.js';
+export {
+  isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
+  NON_DEFENCE_BLACKLIST_REGEX, DEFENCE_WHOLE_WORD_REGEX
 } from './filters.js';
 
-export {
-  isDefenceRelevant,
-  filterFreshArticles,
-  NON_DEFENCE_BLACKLIST,
-  NON_DEFENCE_BLACKLIST_REGEX,
-  DEFENCE_WHOLE_WORD_REGEX
-};
 
 export interface IngestOptions {
+
 
   feeds?: FeedConfig[];
   maxAgeHours?: number;
@@ -237,18 +231,19 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const entitySyncResult = await syncDiscoveredEntitiesToD1(aggregatedEntities, d1Config, { fetchFn });
   console.log(`[D1 ENTITY SYNC] ${entitySyncResult.synced} synced, ${entitySyncResult.promotedCount} promoted`);
 
+  // Closed-loop dynamic source reputation & scoop tracking
+  const sourceStatsMap = aggregateSourceStats(rawArticles, freshArticles, lockedProtectedClusters);
+  const repSyncResult = await syncSourceReputationToD1(sourceStatsMap, d1Config, { fetchFn });
+  console.log(`[D1 REPUTATION SYNC] ${repSyncResult.syncedToD1} sources synced`);
+
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
-
   const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
-  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed`);
-  console.log(`[ARCHIVE RECONCILE] checked ${finalClusters.length} live ids, ${reconcileResult.failed} failed`);
+  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed | [RECONCILE] ${reconcileResult.failed} failed`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
-
-
   const result: IngestResult = {
     clusters: finalClusters,
     river: finalRiver,
@@ -258,6 +253,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     durationMs,
     generatedAt
   };
+
 
   // Persist output atomically if specified or default to public/data/news.json
   if (options.outputPath !== null) {

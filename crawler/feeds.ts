@@ -9,13 +9,16 @@ import { SourceTier } from '../src/types/source.js';
 import { FeedConfig } from './feedTypes.js';
 import { OFFICIAL_AND_NATIONAL_FEEDS } from './feedsOfficialNational.js';
 import { SPECIALIZED_AND_THINKTANK_FEEDS } from './feedsSpecializedThinkTanks.js';
+import { INTERNATIONAL_DEFENCE_FEEDS } from './feedsInternational.js';
 
 export * from './feedTypes.js';
 
 export const CRAWLER_FEEDS: FeedConfig[] = [
   ...OFFICIAL_AND_NATIONAL_FEEDS,
-  ...SPECIALIZED_AND_THINKTANK_FEEDS
+  ...SPECIALIZED_AND_THINKTANK_FEEDS,
+  ...INTERNATIONAL_DEFENCE_FEEDS
 ];
+
 
 export function getAllFeeds(): FeedConfig[] {
   return [...CRAWLER_FEEDS];

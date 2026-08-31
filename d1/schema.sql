@@ -80,4 +80,18 @@ CREATE TABLE IF NOT EXISTS discovered_entities (
 CREATE INDEX IF NOT EXISTS idx_discovered_entities_promoted ON discovered_entities (is_promoted, mention_count DESC);
 CREATE INDEX IF NOT EXISTS idx_discovered_entities_last_seen ON discovered_entities (last_seen_at DESC);
 
+-- Dynamic Source Reputation & Scoop Velocity Table
+-- Tracks rolling metrics for each news source domain: scoop frequency, corroboration accuracy,
+-- and signal-to-noise ratio to compute dynamic ranking weights (0.7x - 1.3x).
+CREATE TABLE IF NOT EXISTS source_reputation (
+  domain TEXT PRIMARY KEY,               -- e.g. 'livefistdefence.com'
+  source_name TEXT NOT NULL,             -- e.g. 'Livefist Defence'
+  total_items_ingested INTEGER DEFAULT 0,-- count of all items ingested
+  accepted_items_count INTEGER DEFAULT 0,-- items that passed relevance & quality gates
+  scoop_count INTEGER DEFAULT 0,         -- count of times this source broke a story first
+  corroboration_count INTEGER DEFAULT 0, -- times this source was corroborated by others
+  reputation_multiplier REAL DEFAULT 1.0,-- computed multiplier between 0.70 and 1.30
+  last_evaluated_at TEXT NOT NULL        -- ISO 8601 timestamp
+);
 
+CREATE INDEX IF NOT EXISTS idx_source_reputation_multiplier ON source_reputation (reputation_multiplier DESC);
