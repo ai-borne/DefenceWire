@@ -32,6 +32,11 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("object-src 'none'");
+    // Zero-trust air-gapped typography (no remote font origins)
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).toContain("font-src 'self' data:");
+    expect(csp).not.toContain('fonts.googleapis.com');
+    expect(csp).not.toContain('fonts.gstatic.com');
     // Connect-src least privilege (excludes direct GitHub API calls and multi-tenant wildcards)
     expect(csp).toContain("connect-src 'self'");
     expect(csp).not.toContain('api.github.com');
@@ -56,7 +61,7 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(content).toContain('X-Permitted-Cross-Domain-Policies: none');
   });
 
-  it('verifies index.html CSP meta tag is synchronized with strict edge policy', () => {
+  it('verifies index.html CSP meta tag is synchronized with strict edge policy and air-gapped fonts', () => {
     const indexPath = path.join(rootDir, 'index.html');
     expect(fs.existsSync(indexPath)).toBe(true);
     const content = fs.readFileSync(indexPath, 'utf-8');
@@ -66,6 +71,9 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(content).not.toMatch(/script-src[^;"]*'unsafe-inline'/);
     expect(content).toContain("object-src 'none'");
     expect(content).toContain("base-uri 'self'");
+    expect(content).toContain("font-src 'self' data:");
+    expect(content).not.toContain('fonts.googleapis.com');
+    expect(content).not.toContain('fonts.gstatic.com');
     expect(content).toContain("form-action 'self' https://defencewire.cloudflareaccess.com");
     expect(content).toContain('https://defencewire.cloudflareaccess.com');
     expect(content).toContain('https://defencewire.pages.dev');
