@@ -103,6 +103,29 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(item?.snippet).toBe('HAL flight testing reaches final phase ahead of first delivery.');
   });
 
+  it('cleans numeric HTML entities like &#039; and &#8217; in titles and snippets', () => {
+    const xmlWithEntities = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Defence News</title>
+    <item>
+      <title>Russia&#039;s New MC-21 Airliner &amp; TATA&#039;s Javelin &#039;co-production&#039;</title>
+      <link>https://frontierindia.com/russia-mc21</link>
+      <pubDate>2026-08-31T10:00:00Z</pubDate>
+      <description>Marking another milestone in Russia&#039;s aviation industry &#8211; &quot;strategic autonomy&quot;.</description>
+    </item>
+  </channel>
+</rss>`;
+
+    const items = parseFeedXml(xmlWithEntities, MOCK_FEED);
+    expect(items.length).toBe(1);
+    expect(items[0]?.title).toBe("Russia's New MC-21 Airliner & TATA's Javelin 'co-production'");
+    expect(items[0]?.snippet).toContain("Russia's aviation industry – \"strategic autonomy\"");
+    expect(items[0]?.title).not.toContain('&#039;');
+    expect(items[0]?.snippet).not.toContain('&#039;');
+    expect(items[0]?.snippet).not.toContain('&#8211;');
+  });
+
   it('handles empty, invalid, or malformed XML gracefully without throwing', () => {
     expect(parseFeedXml('', MOCK_FEED)).toEqual([]);
     expect(parseFeedXml('not xml at all', MOCK_FEED)).toEqual([]);

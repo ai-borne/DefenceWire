@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   sanitizeContent,
   sanitizePlainText,
+  decodeHtmlEntities,
   isValidExternalUrl,
   sanitizeUrl,
   getSafeLinkAttributes
@@ -47,12 +48,48 @@ describe('Security Utilities: Content Sanitization', () => {
   });
 });
 
+describe('Security Utilities: HTML Entity Decoding', () => {
+  it('decodes standard numeric and named HTML entities correctly', () => {
+    expect(decodeHtmlEntities('Russia&#039;s New MC-21 Airliner')).toBe("Russia's New MC-21 Airliner");
+    expect(decodeHtmlEntities('Javelin &#039;co-production&#039; in India')).toBe("Javelin 'co-production' in India");
+    expect(decodeHtmlEntities('China&#039;s Military Purge')).toBe("China's Military Purge");
+    expect(decodeHtmlEntities('BrahMos &amp; Pinaka')).toBe('BrahMos & Pinaka');
+    expect(decodeHtmlEntities('&quot;Operation Vijay&quot;')).toBe('"Operation Vijay"');
+    expect(decodeHtmlEntities('Range &lt; 500km &gt; 100km')).toBe('Range < 500km > 100km');
+    expect(decodeHtmlEntities('Air&#8211;to&#8211;Air Missile')).toBe('Air–to–Air Missile');
+    expect(decodeHtmlEntities('&#8220;Make in India&#8221;')).toBe('“Make in India”');
+    expect(decodeHtmlEntities('Hex code &#x27;quote&#x27; test')).toBe("Hex code 'quote' test");
+    expect(decodeHtmlEntities('Non-breaking&nbsp;space')).toBe('Non-breaking space');
+  });
+
+  it('handles empty or malformed inputs gracefully in decodeHtmlEntities', () => {
+    expect(decodeHtmlEntities('')).toBe('');
+    // @ts-expect-error testing invalid inputs
+    expect(decodeHtmlEntities(null)).toBe('');
+    // @ts-expect-error testing invalid inputs
+    expect(decodeHtmlEntities(undefined)).toBe('');
+  });
+});
+
 describe('Security Utilities: Plain Text Sanitization', () => {
   it('should strip all HTML tags from plain text inputs', () => {
     const raw = '<h3>HAL Tejas Mk1A</h3><p>First flight scheduled.</p>';
     const plain = sanitizePlainText(raw);
 
     expect(plain).toBe('HAL Tejas Mk1AFirst flight scheduled.');
+  });
+
+  it('should decode HTML entities and NOT corrupt apostrophes or quotes into entity strings', () => {
+    expect(sanitizePlainText("Russia&#039;s New MC-21 Airliner")).toBe("Russia's New MC-21 Airliner");
+    expect(sanitizePlainText("Javelin &#039;co-production&#039; in India")).toBe("Javelin 'co-production' in India");
+    expect(sanitizePlainText("TATA's Defence Systems &amp; &quot;Make in India&quot;")).toBe("TATA's Defence Systems & \"Make in India\"");
+  });
+
+  it('should strip script tags while preserving plain text content', () => {
+    const raw = '<script>alert("xss")</script>India&#039;s Defence Budget';
+    const plain = sanitizePlainText(raw);
+    expect(plain).not.toContain('<script>');
+    expect(plain).toBe("India's Defence Budget");
   });
 
   it('should handle empty or malformed strings gracefully', () => {

@@ -54,33 +54,75 @@ export function sanitizeContent(dirty: string): string {
 }
 
 /**
- * Sanitizes plain text by stripping all HTML tags completely.
+ * Decodes standard named, decimal, and hexadecimal HTML entities into UTF-8 characters.
+ *
+ * @param raw - Raw string potentially containing HTML entities
+ * @returns Clean decoded plain-text string
+ */
+export function decodeHtmlEntities(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1')
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = parseInt(dec, 10);
+      try {
+        return code >= 32 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
+      } catch {
+        return '';
+      }
+    })
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+      const code = parseInt(hex, 16);
+      try {
+        return code >= 32 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
+      } catch {
+        return '';
+      }
+    })
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&mdash;/g, '—')
+    .replace(/&hellip;/g, '…')
+    .replace(/&lsquo;|&rsquo;/g, "'")
+    .replace(/&ldquo;|&rdquo;/g, '"')
+    .replace(/&trade;/g, '™')
+    .replace(/&copy;/g, '©')
+    .replace(/&reg;/g, '®')
+    .replace(/&amp;/g, '&')
+    .trim();
+}
+
+/**
+ * Sanitizes plain text by stripping all HTML tags completely and decoding entities.
+ * Safe for isomorphic execution (browser DOM and headless Node.js crawler).
  *
  * @param dirty - Unsanitized string input
- * @returns Plain text stripped of all HTML markup
+ * @returns Plain text stripped of HTML markup with decoded UTF-8 characters
  */
 export function sanitizePlainText(dirty: string): string {
   if (!dirty || typeof dirty !== 'string') {
     return '';
   }
 
+  // Remove script and style tags with their contents first
+  let text = dirty.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '');
+
   const purifier = getPurifier();
   if (purifier) {
-    return purifier.sanitize(dirty, {
+    text = purifier.sanitize(text, {
       ALLOWED_TAGS: [],
       ALLOWED_ATTR: []
-    }).trim();
+    });
+  } else {
+    // Isomorphic fallback: strip all remaining HTML tags
+    text = text.replace(/<[^>]*>?/gm, '');
   }
 
-  // Safe isomorphic fallback: strip all tags and encode residual angle brackets
-  return dirty
-    .replace(/<[^>]*>?/gm, '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-    .trim();
+  return decodeHtmlEntities(text);
 }
 
 /**

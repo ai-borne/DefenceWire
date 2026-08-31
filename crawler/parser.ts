@@ -4,7 +4,7 @@
  */
 
 import { StorySourceItem } from '../src/types/news.js';
-import { isValidUrl, sanitizePlainText } from '../src/utils/security.js';
+import { isValidUrl, sanitizePlainText, decodeHtmlEntities } from '../src/utils/security.js';
 import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
 
@@ -49,21 +49,6 @@ function recordFeedSuccess(feedId: string): void {
   const state = getCircuitBreakerStatus(feedId);
   state.failures = 0;
   state.isOpen = false;
-}
-
-function decodeHtmlEntities(raw: string): string {
-  if (!raw) return '';
-  return raw
-    .replace(/<!\[CDATA\[(.*?)\]\]>/gis, '$1')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;|&apos;|&#8217;|&#8216;/g, "'")
-    .replace(/&#8220;|&#8221;/g, '"')
-    .replace(/&#8211;|&#8212;/g, '-')
-    .replace(/&nbsp;/g, ' ')
-    .trim();
 }
 
 function extractTagValue(xmlBlock: string, tagName: string): string {
