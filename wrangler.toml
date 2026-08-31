@@ -1,0 +1,10 @@
+name = "defencewire"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-31"
+
+# Story archive database — see d1/schema.sql (SSOT for schema) and
+# d1/README.md for one-time provisioning steps.
+[[d1_databases]]
+binding = "DB"
+database_name = "defencewire-archive"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"

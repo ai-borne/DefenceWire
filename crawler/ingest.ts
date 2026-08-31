@@ -15,6 +15,7 @@ import { SourceTier } from '../src/types/source.js';
 import { FeedConfig, getActiveFeeds } from './feeds.js';
 import { fetchFeedWithCircuitBreaker } from './parser.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
+import { archivePoppedClusters, buildD1ConfigFromEnv } from './archiveSync.js';
 
 export interface IngestOptions {
   feeds?: FeedConfig[];
@@ -243,6 +244,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
+
+  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, buildD1ConfigFromEnv(process.env), { fetchFn });
+  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;

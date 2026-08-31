@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "crawl": "vite-node --script crawler/ingest.ts",
     "sitemap": "node scripts/generate-sitemap.mjs",
+    "d1:migrate:local": "wrangler d1 execute defencewire-archive --local --file=d1/schema.sql",
+    "d1:migrate:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",
     "check:crawler": "vite-node scripts/check-crawler.mjs",
@@ -29,6 +31,7 @@
     "jsdom": "^26.0.0",
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.7",
+    "wrangler": "^4.127.1"
   }
 }

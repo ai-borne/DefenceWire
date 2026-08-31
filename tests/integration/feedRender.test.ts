@@ -42,7 +42,7 @@ describe('Integration: Feed Rendering & UI Components', () => {
 
     // Verify Navigation Tabs
     const navTabs = app?.querySelectorAll('.dw-nav-tab');
-    expect(navTabs?.length).toBe(9);
+    expect(navTabs?.length).toBe(10);
 
     // Verify Story Clusters
     const clusters = app?.querySelectorAll('article.dw-cluster');

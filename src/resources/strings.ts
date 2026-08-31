@@ -25,7 +25,8 @@ export const STRINGS = {
     strategic: 'Geopolitics',
     procurement: 'Procurement',
     ssb: 'SSB Intel',
-    river: 'River of News'
+    river: 'River of News',
+    archive: 'Archive'
   },
   categories: {
     all: 'All Domains',
@@ -159,6 +160,17 @@ export const STRINGS = {
     subheading: 'Chronological unfiltered wire from 40+ Indian defence feeds',
     sourceLabel: 'Source',
     filterPlaceholder: 'Filter wire...'
+  },
+  archive: {
+    heading: 'Archive',
+    subheading: 'Every story that has ever run on DefenceWire, searchable in full.',
+    searchPlaceholder: 'Search the full archive (e.g. Tejas, S-400, Agni-V)...',
+    searchButton: 'Search',
+    searchAriaLabel: 'Search the story archive',
+    emptyPrompt: 'Search above to browse past defence intelligence briefings.',
+    noResults: 'No archived stories matched your search.',
+    loading: 'Searching the archive...',
+    error: 'Archive search is temporarily unavailable. Please try again shortly.'
   },
   footer: {
     copyright: '© DefenceWire.in — Real-Time Indian Defence & Geopolitical Intelligence Aggregator.',
