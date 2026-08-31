@@ -33,7 +33,8 @@ export class AuthService {
     try {
       const response = await this.fetchFn(resolveEndpoint('/api/curator/auth'), {
         method: 'GET',
-        headers: { Accept: 'application/json' }
+        headers: { Accept: 'application/json' },
+        credentials: 'include'
       });
       if (response.ok) {
         const data = (await response.json()) as {

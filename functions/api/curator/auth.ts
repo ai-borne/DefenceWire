@@ -6,6 +6,7 @@
 
 import {
   handleCuratorAuthRequest,
+  createSessionCookie,
   createClearSessionCookie,
   verifyCuratorAuthorization,
   CuratorAuthPayload
@@ -42,21 +43,23 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
   const url = new URL(context.request.url);
   const isHtmlNav = url.searchParams.get('redirect') === '1' || (context.request.headers.get('accept') || '').includes('text/html');
-
-  if (isHtmlNav) {
-    const returnUrl = url.searchParams.get('return_to') || '/#curator';
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: returnUrl,
-        'Cache-Control': 'no-store'
-      }
-    });
-  }
-
   const cookieHeader = context.request.headers.get('cookie');
   const secret = context.env.CURATOR_SESSION_SECRET;
   const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+
+  if (isHtmlNav) {
+    const returnUrl = url.searchParams.get('return_to') || '/#curator';
+    const headers = new Headers();
+    headers.set('Location', returnUrl);
+    headers.set('Cache-Control', 'no-store');
+    if (authContext.authorized) {
+      headers.set('Set-Cookie', await createSessionCookie(secret));
+    }
+    return new Response(null, {
+      status: 302,
+      headers
+    });
+  }
 
   return Response.json(
     {

@@ -10,6 +10,7 @@ import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
 import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
+import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
 import { renderHeader } from './components/Header.js';
 import { renderNavigationBar } from './components/NavigationBar.js';
@@ -166,6 +167,7 @@ export function initializeApp(): void {
       const search = window.location.search;
       if (hash === '#curator' || hash === '#/curator' || search.includes('mode=curator')) {
         editorVm.setOpen(true);
+        defaultAuthService.checkSession();
       }
     }
   };
@@ -176,6 +178,9 @@ export function initializeApp(): void {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
         editorVm.toggleOpen();
+        if (editorVm.isOpen()) {
+          defaultAuthService.checkSession();
+        }
       }
       if (e.key === 'Escape' && editorVm.isOpen()) {
         editorVm.setOpen(false);
