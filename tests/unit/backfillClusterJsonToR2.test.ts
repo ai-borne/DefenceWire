@@ -38,13 +38,15 @@ function makeFakeBackend(initialRows: Record<string, string>, opts: { failR2Ids?
     if (statement.sql.startsWith('SELECT')) {
       const limit = statement.params[0] as number;
       const results = [...rows.entries()].slice(0, limit).map(([id, cluster_json]) => ({ id, cluster_json }));
-      return { ok: true, status: 200, json: async () => ({ result: [{ results }] }) } as unknown as Response;
+      const bodyText = JSON.stringify({ result: [{ results }] });
+      return { ok: true, status: 200, text: async () => bodyText } as unknown as Response;
     }
     if (statement.sql.startsWith('UPDATE')) {
       const id = statement.params[0] as string;
-      if (failUpdateIds.has(id)) return { ok: false, status: 500, json: async () => ({}) } as unknown as Response;
+      if (failUpdateIds.has(id)) return { ok: false, status: 500, text: async () => '{"errors":["simulated failure"]}' } as unknown as Response;
       rows.delete(id);
-      return { ok: true, status: 200, json: async () => ({ result: [{ results: [] }] }) } as unknown as Response;
+      const bodyText = JSON.stringify({ result: [{ results: [] }] });
+      return { ok: true, status: 200, text: async () => bodyText } as unknown as Response;
     }
     throw new Error(`unexpected statement: ${statement.sql}`);
   });

@@ -71,8 +71,13 @@ export async function executeD1Query(
   });
   let rows: Record<string, unknown>[] = [];
   try {
-    const body = (await response.json()) as { result?: Array<{ results?: Record<string, unknown>[] }> };
-    rows = body.result?.[0]?.results ?? [];
+    const bodyText = await response.text();
+    if (!response.ok) {
+      console.error(`[D1 REST] HTTP ${response.status} for statement "${statement.sql}": ${bodyText}`);
+    } else {
+      const body = JSON.parse(bodyText) as { result?: Array<{ results?: Record<string, unknown>[] }> };
+      rows = body.result?.[0]?.results ?? [];
+    }
   } catch {
     // No JSON body worth reading (e.g. insert/delete responses) — leave rows empty.
   }
