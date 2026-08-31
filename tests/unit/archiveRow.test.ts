@@ -3,7 +3,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { toArchivedStoryRow, fromArchivedStoryRow } from '../../src/archive/archiveRow.js';
@@ -51,7 +51,7 @@ describe('toArchivedStoryRow', () => {
 
   it('embeds the full cluster as cluster_json for lossless rehydration', () => {
     const row = toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z');
-    expect(JSON.parse(row.cluster_json)).toEqual(mockCluster);
+    expect(JSON.parse(row.cluster_json as string)).toEqual(mockCluster);
   });
 
   it('stores null snippet when the primary source has none', () => {
@@ -62,16 +62,43 @@ describe('toArchivedStoryRow', () => {
 });
 
 describe('fromArchivedStoryRow', () => {
-  it('rehydrates the exact original StoryCluster from cluster_json', () => {
+  it('rehydrates the exact original StoryCluster from cluster_json', async () => {
     const row = toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z');
-    const rehydrated = fromArchivedStoryRow(row);
+    const rehydrated = await fromArchivedStoryRow(row);
     expect(rehydrated).toEqual(mockCluster);
   });
 
-  it('round-trips through a JSON.stringify/parse boundary (simulating D1 storage)', () => {
+  it('round-trips through a JSON.stringify/parse boundary (simulating D1 storage)', async () => {
     const row = toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z');
     const wireRow = JSON.parse(JSON.stringify(row));
-    const rehydrated = fromArchivedStoryRow(wireRow);
+    const rehydrated = await fromArchivedStoryRow(wireRow);
     expect(rehydrated).toEqual(mockCluster);
+  });
+
+  it('D1 has cluster_json: uses it directly and never calls the R2 fallback', async () => {
+    const row = toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z');
+    const getClusterJson = vi.fn().mockResolvedValue('should not be used');
+    const rehydrated = await fromArchivedStoryRow(row, getClusterJson);
+    expect(rehydrated).toEqual(mockCluster);
+    expect(getClusterJson).not.toHaveBeenCalled();
+  });
+
+  it('D1 cluster_json is null: falls back to R2 and rehydrates successfully', async () => {
+    const row = { ...toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z'), cluster_json: null };
+    const getClusterJson = vi.fn().mockResolvedValue(JSON.stringify(mockCluster));
+    const rehydrated = await fromArchivedStoryRow(row, getClusterJson);
+    expect(rehydrated).toEqual(mockCluster);
+    expect(getClusterJson).toHaveBeenCalledWith(mockCluster.id);
+  });
+
+  it('D1 cluster_json is null and the R2 fallback fails: throws rather than returning a malformed story', async () => {
+    const row = { ...toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z'), cluster_json: null };
+    const getClusterJson = vi.fn().mockResolvedValue(null);
+    await expect(fromArchivedStoryRow(row, getClusterJson)).rejects.toThrow(/cluster_json missing/);
+  });
+
+  it('D1 cluster_json is null and no R2 fallback is provided: throws instead of crashing or returning empty', async () => {
+    const row = { ...toArchivedStoryRow(mockCluster, '2026-08-05T00:00:00Z'), cluster_json: null };
+    await expect(fromArchivedStoryRow(row)).rejects.toThrow(/cluster_json missing/);
   });
 });

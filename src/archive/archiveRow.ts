@@ -19,9 +19,11 @@ export interface ArchivedStoryRow {
   categories: string;
   entities: string;
   defence_score: number;
-  cluster_json: string;
+  cluster_json: string | null;
   archived_at: string;
 }
+
+export type GetClusterJson = (id: string) => Promise<string | null>;
 
 export function toArchivedStoryRow(cluster: StoryCluster, archivedAt: string): ArchivedStoryRow {
   return {
@@ -39,6 +41,19 @@ export function toArchivedStoryRow(cluster: StoryCluster, archivedAt: string): A
   };
 }
 
-export function fromArchivedStoryRow(row: ArchivedStoryRow): StoryCluster {
-  return JSON.parse(row.cluster_json) as StoryCluster;
+/**
+ * D1 is authoritative when it holds cluster_json (Phase 1 dual-write); once a
+ * row's D1 copy is nulled out (Phase 3+), the R2 blob is the only copy left,
+ * so a missing/failed fallback must surface as an error, never a silently
+ * empty or malformed story.
+ */
+export async function fromArchivedStoryRow(
+  row: ArchivedStoryRow,
+  getClusterJson?: GetClusterJson
+): Promise<StoryCluster> {
+  const json = row.cluster_json ?? (getClusterJson ? await getClusterJson(row.id) : null);
+  if (json == null) {
+    throw new Error(`cluster_json missing for archived story ${row.id} and no R2 fallback resolved it`);
+  }
+  return JSON.parse(json) as StoryCluster;
 }

@@ -6,6 +6,7 @@
  */
 
 import { StoryCluster } from '../types/news.js';
+import { GetClusterJson } from '../archive/archiveRow.js';
 
 /**
  * Escapes SQLite LIKE wildcard characters (`%` and `_`) and the escape character itself
@@ -48,7 +49,8 @@ export interface EntityDossierResponse {
 
 export interface EntityDossierDatabaseAdapter {
   queryEntity: (slug: string) => Promise<DiscoveredEntityDbRow | null>;
-  queryRelatedStories: (slug: string, limit?: number) => Promise<{ cluster_json: string }[]>;
+  queryRelatedStories: (slug: string, limit?: number) => Promise<{ id: string; cluster_json: string | null }[]>;
+  getClusterJson?: GetClusterJson;
 }
 
 export async function handleEntityDossierRequest(
@@ -70,7 +72,9 @@ export async function handleEntityDossierRequest(
 
     for (const row of storyRows) {
       try {
-        const parsed = JSON.parse(row.cluster_json) as StoryCluster;
+        const json = row.cluster_json ?? (db.getClusterJson ? await db.getClusterJson(row.id) : null);
+        if (json == null) throw new Error(`cluster_json missing for related story ${row.id}`);
+        const parsed = JSON.parse(json) as StoryCluster;
         if (parsed && parsed.id) {
           const normHeadline = (parsed.synthesizedHeadline || '').trim().toLowerCase();
           if (!seenIds.has(parsed.id) && (!normHeadline || !seenHeadlines.has(normHeadline))) {

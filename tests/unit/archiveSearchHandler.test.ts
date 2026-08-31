@@ -75,6 +75,27 @@ describe('handleArchiveSearchRequest — search mode', () => {
     expect(result.stories).toHaveLength(1);
     expect(result.stories[0]?.id).toBe('cluster-tejas-mk1a');
   });
+
+  it('falls back to R2 via getClusterJson when a row has no cluster_json in D1', async () => {
+    const r2OnlyRow: ArchivedStoryRow = { ...row, cluster_json: null };
+    const runQuery = vi.fn().mockResolvedValue([r2OnlyRow]);
+    const getClusterJson = vi.fn().mockResolvedValue(row.cluster_json);
+    const result = await handleArchiveSearchRequest('Tejas', { runQuery, getClusterJson });
+
+    expect(getClusterJson).toHaveBeenCalledWith('cluster-tejas-mk1a');
+    expect(result.stories).toHaveLength(1);
+    expect(result.stories[0]?.id).toBe('cluster-tejas-mk1a');
+  });
+
+  it('skips a row with no cluster_json in D1 when the R2 fallback also fails', async () => {
+    const r2OnlyRow: ArchivedStoryRow = { ...row, cluster_json: null };
+    const runQuery = vi.fn().mockResolvedValue([r2OnlyRow, row]);
+    const getClusterJson = vi.fn().mockResolvedValue(null);
+    const result = await handleArchiveSearchRequest('Tejas', { runQuery, getClusterJson });
+
+    expect(result.stories).toHaveLength(1);
+    expect(result.stories[0]?.id).toBe('cluster-tejas-mk1a');
+  });
 });
 
 describe('handleArchiveSearchRequest — browse mode (blank query)', () => {

@@ -18,9 +18,17 @@ interface D1Database {
   prepare: (sql: string) => D1PreparedStatement;
 }
 
+interface R2ObjectBody {
+  text: () => Promise<string>;
+}
+
+interface R2Bucket {
+  get: (key: string) => Promise<R2ObjectBody | null>;
+}
+
 interface PagesFunctionContext {
   request: Request;
-  env: { DB?: D1Database };
+  env: { DB?: D1Database; ARCHIVE_MEDIA?: R2Bucket };
 }
 
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
@@ -28,6 +36,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   const rawQuery = url.searchParams.get('q') ?? '';
   const cursor = url.searchParams.get('before');
   const db = context.env.DB;
+  const bucket = context.env.ARCHIVE_MEDIA;
 
   if (!db) {
     return Response.json({ stories: [], nextCursor: null, error: 'Archive database is not configured.' }, { status: 503 });
@@ -39,6 +48,11 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
       runQuery: async (sql, params) => {
         const { results } = await db.prepare(sql).bind(...params).all<ArchivedStoryRow>();
         return results;
+      },
+      getClusterJson: async (id) => {
+        if (!bucket) return null;
+        const obj = await bucket.get(`${id}.json`);
+        return obj ? obj.text() : null;
       }
     },
     { cursor }

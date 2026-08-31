@@ -20,15 +20,24 @@ interface D1Database {
   prepare: (sql: string) => D1PreparedStatement;
 }
 
+interface R2ObjectBody {
+  text: () => Promise<string>;
+}
+
+interface R2Bucket {
+  get: (key: string) => Promise<R2ObjectBody | null>;
+}
+
 interface PagesFunctionContext {
   request: Request;
   params: { slug?: string };
-  env: { DB?: D1Database };
+  env: { DB?: D1Database; ARCHIVE_MEDIA?: R2Bucket };
 }
 
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
   const slug = context.params.slug || '';
   const db = context.env.DB;
+  const bucket = context.env.ARCHIVE_MEDIA;
 
   if (!db) {
     return Response.json(
@@ -43,15 +52,20 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
       return db.prepare(sql).bind(entitySlug).first<DiscoveredEntityDbRow>();
     },
     queryRelatedStories: async (entitySlug: string, limit = 20) => {
-      const sql = `SELECT cluster_json FROM archived_stories
+      const sql = `SELECT id, cluster_json FROM archived_stories
         WHERE entities LIKE ? ESCAPE '\\' OR synthesized_headline LIKE ? ESCAPE '\\'
         ORDER BY archived_at DESC LIMIT ?;`;
       const searchPattern = `%${escapeSqlLikePattern(entitySlug)}%`;
       const { results } = await db
         .prepare(sql)
         .bind(searchPattern, searchPattern, limit)
-        .all<{ cluster_json: string }>();
+        .all<{ id: string; cluster_json: string | null }>();
       return results;
+    },
+    getClusterJson: async (id: string) => {
+      if (!bucket) return null;
+      const obj = await bucket.get(`${id}.json`);
+      return obj ? obj.text() : null;
     }
   });
 

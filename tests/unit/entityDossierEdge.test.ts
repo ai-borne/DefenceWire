@@ -85,7 +85,7 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
 
       const mockDb = {
         queryEntity: async (slug: string) => (slug === 'tejas-mk1a' ? mockRow : null),
-        queryRelatedStories: async () => [{ cluster_json: JSON.stringify(MOCK_CLUSTER) }]
+        queryRelatedStories: async () => [{ id: MOCK_CLUSTER.id, cluster_json: JSON.stringify(MOCK_CLUSTER) }]
       };
 
       const res = await handleEntityDossierRequest('tejas-mk1a', mockDb);
@@ -95,6 +95,31 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
       expect(res.entity?.isPromoted).toBe(true);
       expect(res.relatedStories).toHaveLength(1);
       expect(res.relatedStories[0]!.synthesizedHeadline).toContain('Tejas Mk1A');
+    });
+
+    it('falls back to R2 via getClusterJson when a related story has no cluster_json in D1', async () => {
+      const mockDb = {
+        queryEntity: async () => null,
+        queryRelatedStories: async () => [{ id: MOCK_CLUSTER.id, cluster_json: null }],
+        getClusterJson: vi.fn().mockResolvedValue(JSON.stringify(MOCK_CLUSTER))
+      };
+
+      const res = await handleEntityDossierRequest('tejas-mk1a', mockDb);
+      expect(mockDb.getClusterJson).toHaveBeenCalledWith(MOCK_CLUSTER.id);
+      expect(res.relatedStories).toHaveLength(1);
+      expect(res.relatedStories[0]!.id).toBe(MOCK_CLUSTER.id);
+    });
+
+    it('skips a related story with no cluster_json in D1 when the R2 fallback also fails', async () => {
+      const mockDb = {
+        queryEntity: async () => null,
+        queryRelatedStories: async () => [{ id: MOCK_CLUSTER.id, cluster_json: null }],
+        getClusterJson: vi.fn().mockResolvedValue(null)
+      };
+
+      const res = await handleEntityDossierRequest('tejas-mk1a', mockDb);
+      expect(res.relatedStories).toHaveLength(0);
+      expect(res.error).toBe('Entity not found.');
     });
 
     it('returns 404 error when neither entity row nor stories exist', async () => {
@@ -159,7 +184,7 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
           }
           return {
             bind: mockBind.mockReturnValue({
-              all: vi.fn().mockResolvedValue({ results: [{ cluster_json: JSON.stringify(MOCK_CLUSTER) }] })
+              all: vi.fn().mockResolvedValue({ results: [{ id: MOCK_CLUSTER.id, cluster_json: JSON.stringify(MOCK_CLUSTER) }] })
             })
           };
         })

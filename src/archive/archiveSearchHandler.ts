@@ -12,11 +12,12 @@
  */
 
 import { StoryCluster } from '../types/news.js';
-import { ArchivedStoryRow, fromArchivedStoryRow } from './archiveRow.js';
+import { ArchivedStoryRow, GetClusterJson, fromArchivedStoryRow } from './archiveRow.js';
 import { buildSearchArchiveStatement, buildBrowseArchiveStatement } from './d1QueryBuilder.js';
 
 export interface ArchiveSearchDependencies {
   runQuery: (sql: string, params: unknown[]) => Promise<ArchivedStoryRow[]>;
+  getClusterJson?: GetClusterJson;
 }
 
 export interface ArchiveSearchOptions {
@@ -76,9 +77,9 @@ export async function handleArchiveSearchRequest(
   const stories: StoryCluster[] = [];
   for (const row of pageRows) {
     try {
-      stories.push(fromArchivedStoryRow(row));
+      stories.push(await fromArchivedStoryRow(row, deps.getClusterJson));
     } catch {
-      // Skip a corrupt row rather than failing the whole page.
+      // Skip a corrupt row or unresolved R2 blob rather than failing the whole page.
     }
   }
 
