@@ -54,6 +54,24 @@ describe('CuratorSyncService (Cloudflare D1 Edge Sync)', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/curator/overrides', expect.objectContaining({ method: 'GET' }));
   });
 
+  it('safely handles sanitized overrides where curator_email is redacted', async () => {
+    const mockSanitizedRows = [
+      { id: 'cluster-2', override_type: 'ssb', payload_json: '{"ssbBrief":{"whyItMatters":"test"}}', updated_at: '2026-08-31T01:00:00Z' }
+    ];
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, data: mockSanitizedRows })
+    } as Response);
+
+    const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
+    const overrides = await service.fetchActiveOverrides();
+
+    expect(overrides).toHaveLength(1);
+    expect(overrides[0]?.id).toBe('cluster-2');
+    expect((overrides[0] as any)?.curator_email).toBeUndefined();
+  });
+
   it('saves an individual cluster override to Cloudflare D1', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,

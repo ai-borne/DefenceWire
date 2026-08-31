@@ -37,12 +37,21 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
     return Response.json({ success: false, error: 'D1 database not configured' }, { status: 503 });
   }
 
-  const result = await handleGetOverrides({
-    runQuery: async (sql, params) => {
-      const { results } = await db.prepare(sql).bind(...params).all<CuratorOverrideRow>();
-      return results;
-    }
-  });
+  const cookieHeader = context.request.headers.get('cookie');
+  const secret = context.env.CURATOR_SESSION_SECRET;
+  const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+
+  const result = await handleGetOverrides(
+    {
+      runQuery: async (sql, params) => {
+        const { results } = await db.prepare(sql).bind(...params).all<CuratorOverrideRow>();
+        return results;
+      }
+    },
+    cookieHeader,
+    secret,
+    authContext.authorized
+  );
 
   return Response.json(result, {
     status: result.success ? 200 : 500,

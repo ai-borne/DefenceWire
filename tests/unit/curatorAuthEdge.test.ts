@@ -190,12 +190,23 @@ describe('Curator Edge Auth: Cloudflare Zero Trust & Session Defense', () => {
 });
 
 describe('Curator D1 Overrides Handler: Zero Trust Audit Logging & CRUD', () => {
-  it('allows unauthenticated reads of active curator overrides', async () => {
+  it('redacts curator_email from overrides on unauthenticated requests to prevent PII leakage', async () => {
     const mockRows = [{ id: 'cluster-1', override_type: 'promote', payload_json: '{}', updated_at: '2026-08-31', curator_email: 'editor@defencewire.in' }];
     const runQuery = vi.fn().mockResolvedValue(mockRows);
     const res = await handleGetOverrides({ runQuery });
     expect(res.success).toBe(true);
-    expect(res.data).toEqual(mockRows);
+    expect(res.data?.[0]?.id).toBe('cluster-1');
+    expect(res.data?.[0]?.curator_email).toBeUndefined();
+  });
+
+  it('preserves curator_email on authenticated curator requests', async () => {
+    const secret = 'curator-test-secret';
+    const validCookie = await createSessionCookie(secret, 3600);
+    const mockRows = [{ id: 'cluster-1', override_type: 'promote', payload_json: '{}', updated_at: '2026-08-31', curator_email: 'editor@defencewire.in' }];
+    const runQuery = vi.fn().mockResolvedValue(mockRows);
+    const res = await handleGetOverrides({ runQuery }, validCookie, secret);
+    expect(res.success).toBe(true);
+    expect(res.data?.[0]?.curator_email).toBe('editor@defencewire.in');
   });
 
   it('rejects override mutation when session is unauthenticated', async () => {

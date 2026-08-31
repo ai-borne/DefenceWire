@@ -35,16 +35,40 @@ export interface OverrideResponse<T = unknown> {
 
 /**
  * Handles fetching all active curator overrides.
+ * Strips/redacts `curator_email` for unauthenticated requests to prevent PII leakage.
  */
 export async function handleGetOverrides(
-  deps: CuratorOverrideDependencies
+  deps: CuratorOverrideDependencies,
+  cookieHeader: string | null = null,
+  secret?: string,
+  isAuthorized?: boolean
 ): Promise<OverrideResponse<CuratorOverrideRow[]>> {
   try {
+    let auth = isAuthorized;
+    if (auth === undefined) {
+      if (deps.verifyAuth) {
+        auth = await deps.verifyAuth(cookieHeader);
+      } else if (cookieHeader) {
+        auth = await verifySessionCookie(cookieHeader, secret);
+      } else {
+        auth = false;
+      }
+    }
+
     const rows = await deps.runQuery(
       'SELECT id, override_type, payload_json, updated_at, curator_email FROM curator_overrides ORDER BY updated_at DESC',
       []
     );
-    return { success: true, data: rows };
+
+    const sanitizedRows = rows.map((row) => {
+      if (auth) {
+        return row;
+      }
+      const { curator_email: _omitted, ...safeRow } = row;
+      return safeRow as CuratorOverrideRow;
+    });
+
+    return { success: true, data: sanitizedRows };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Database error';
     return { success: false, error: msg };
