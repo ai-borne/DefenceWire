@@ -10,6 +10,8 @@ import { calculateScoreBreakdown } from './rankingEngine.js';
 import { computeStableHash } from '../utils/stableId.js';
 
 import { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities, MilitaryEntityConfig } from '../data/militaryEntities.js';
+import { hasSharedActionSignature } from './actionSignatures.js';
+
 
 export { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities };
 export type { MilitaryEntityConfig };
@@ -49,32 +51,67 @@ export function computeJaccardSimilarity(setA: Set<string>, setB: Set<string>): 
   return unionSize === 0 ? 0 : intersectionSize / unionSize;
 }
 
+const AGENCY_ENTITIES = new Set(['DRDO', 'HAL', 'DAC Clearance', 'CCS Approval']);
+
+export const MAX_CLUSTER_TIME_DIFF_HOURS = 48;
+
 /**
- * Determines whether two news items belong to the same story cluster.
+ * Determines whether two news items belong to the same story cluster using Two-Stage Techmeme verification.
  */
-export function areStoriesSimilar(itemA: StorySourceItem, itemB: StorySourceItem, threshold = 0.28): boolean {
+export function areStoriesSimilar(itemA: StorySourceItem, itemB: StorySourceItem, threshold = 0.32): boolean {
   // Normalize URLs to prevent exact duplicate indexing
   const cleanUrlA = ((itemA.url || '').split('?')[0] ?? '').toLowerCase();
   const cleanUrlB = ((itemB.url || '').split('?')[0] ?? '').toLowerCase();
   if (cleanUrlA && cleanUrlA === cleanUrlB) return true;
 
-  const entitiesA = extractMilitaryEntities(itemA.title);
-  const entitiesB = extractMilitaryEntities(itemB.title);
+  // Enforce temporal window: stories older than 48h apart are distinct news cycles
+  if (itemA.publishedAt && itemB.publishedAt) {
+    const timeA = new Date(itemA.publishedAt).getTime();
+    const timeB = new Date(itemB.publishedAt).getTime();
+    if (!isNaN(timeA) && !isNaN(timeB)) {
+      const diffHours = Math.abs(timeA - timeB) / (1000 * 60 * 60);
+      if (diffHours > MAX_CLUSTER_TIME_DIFF_HOURS) {
+        return false;
+      }
+    }
+  }
 
-  // Check common entity overlap
+  const fullTextA = `${itemA.title} ${itemA.snippet || ''}`;
+  const fullTextB = `${itemB.title} ${itemB.snippet || ''}`;
+
+  const entitiesA = extractMilitaryEntities(fullTextA);
+  const entitiesB = extractMilitaryEntities(fullTextB);
   const sharedEntities = entitiesA.entities.filter(e => entitiesB.entities.includes(e));
+  const hasPlatformOverlap = sharedEntities.some(e => !AGENCY_ENTITIES.has(e));
+
+  const sharedAction = hasSharedActionSignature(fullTextA, fullTextB);
 
   const tokensA = tokenizeText(itemA.title);
   const tokensB = tokenizeText(itemB.title);
   const jaccard = computeJaccardSimilarity(tokensA, tokensB);
 
-  // If sharing high-specificity entity, lower required token threshold
-  if (sharedEntities.length > 0) {
+  // Stage 1: High specificity - Shared Weapon Platform + Shared Action Signature
+  if (hasPlatformOverlap && sharedAction) {
+    return jaccard >= 0.05;
+  }
+
+  // Shared weapon platform alone
+  if (hasPlatformOverlap) {
     return jaccard >= 0.14;
   }
 
+  // Shared agency alone requires higher topic correlation
+  if (sharedEntities.length > 0) {
+    return jaccard >= 0.24;
+  }
+
+  // Stage 2: General story similarity
   return jaccard >= threshold;
 }
+
+
+
+
 
 /**
  * Selects the authoritative primary source from a group of items.

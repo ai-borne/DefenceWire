@@ -34,7 +34,9 @@ export const KNOWN_MILITARY_ENTITIES: MilitaryEntityConfig[] = [
   { name: 'S-400 Triumf', pattern: /\bs-400\b|triumf/i, categories: ['airforce', 'strategic'] },
   { name: 'QRSAM', pattern: /\b(qrsam|vshorads?|quick\s+reaction\s+surface-to-air)\b/i, categories: ['army', 'tech'] },
   { name: 'MRSAM / Barak-8', pattern: /\b(mrsam|barak-8)\b/i, categories: ['airforce', 'navy', 'tech'] },
+  { name: 'Rudram', pattern: /\brudram(-?(i|1|ii|2|iii|3))?\b|ngarm/i, categories: ['airforce', 'tech'] },
   { name: 'Helina / Nag', pattern: /\b(helina|dhruvastra|nag\s+missile|sant\s+missile|atgm)\b/i, categories: ['army', 'tech'] },
+
 
   // --- Strategic Deterrence & Ballistic Missiles ---
   { name: 'Agni-V', pattern: /\bagni-?(v|5|prime|p|iv|4|iii|3)\b/i, categories: ['strategic', 'tech'] },
@@ -68,14 +70,38 @@ export const KNOWN_MILITARY_ENTITIES: MilitaryEntityConfig[] = [
   { name: 'CCS Approval', pattern: /\bccs\b|cabinet\s+committee\s+on\s+security/i, categories: ['procurement', 'strategic'] }
 ];
 
+export const DYNAMIC_MILITARY_ENTITIES: MilitaryEntityConfig[] = [];
+
+export function registerDynamicEntities(entities: MilitaryEntityConfig[]): void {
+  for (const entity of entities) {
+    const existingIndex = DYNAMIC_MILITARY_ENTITIES.findIndex(
+      (e) => e.name.toLowerCase() === entity.name.toLowerCase()
+    );
+    if (existingIndex !== -1) {
+      DYNAMIC_MILITARY_ENTITIES[existingIndex] = entity;
+    } else {
+      DYNAMIC_MILITARY_ENTITIES.push(entity);
+    }
+  }
+}
+
+export function resetDynamicEntities(): void {
+  DYNAMIC_MILITARY_ENTITIES.length = 0;
+}
+
+export function getActiveMilitaryEntities(): MilitaryEntityConfig[] {
+  return [...KNOWN_MILITARY_ENTITIES, ...DYNAMIC_MILITARY_ENTITIES];
+}
+
 /**
  * Extracts recognized military entities and mapped categories from headline and text.
  */
 export function extractMilitaryEntities(text: string): { entities: string[]; categories: DomainCategory[] } {
   const entities: string[] = [];
   const categoriesSet = new Set<DomainCategory>();
+  const allConfigs = getActiveMilitaryEntities();
 
-  for (const entity of KNOWN_MILITARY_ENTITIES) {
+  for (const entity of allConfigs) {
     if (entity.pattern.test(text)) {
       entities.push(entity.name);
       entity.categories.forEach((cat) => categoriesSet.add(cat));
@@ -120,3 +146,4 @@ export function extractMilitaryEntities(text: string): { entities: string[]; cat
     categories: Array.from(categoriesSet)
   };
 }
+

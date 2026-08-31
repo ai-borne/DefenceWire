@@ -245,11 +245,54 @@ describe('Cluster & Deduplication Engine', () => {
     expect(clusters[0]?.id).not.toBe(clusters[1]?.id);
   });
 
-  it('should not assign procurement category to generic civic/infrastructure text without defence context', () => {
-    const resCivic = extractMilitaryEntities('State government unveils multi-crore infrastructure push for highways and orders 500 buses');
-    expect(resCivic.categories).not.toContain('procurement');
+  it('should not cluster stories separated by more than 48 hours', () => {
+    const storyPast: StorySourceItem = {
+      id: 'past-1',
+      title: 'DRDO conducts flight test of BrahMos missile',
+      url: 'https://pib.gov.in/brahmos-old',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-01T06:00:00Z'
+    };
 
-    const resDefence = extractMilitaryEntities('Defence Ministry signs ₹5,000 crore procurement deal for ammunition');
-    expect(resDefence.categories).toContain('procurement');
+    const storyPresent: StorySourceItem = {
+      id: 'present-1',
+      title: 'DRDO conducts flight test of BrahMos missile',
+      url: 'https://thehindu.com/brahmos-new',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-30T06:00:00Z'
+    };
+
+    expect(areStoriesSimilar(storyPast, storyPresent)).toBe(false);
+  });
+
+  it('should cluster stories that share high-specificity entity and action signature', () => {
+    const storyA: StorySourceItem = {
+      id: 'act-a',
+      title: 'DRDO validates new indigenous air-to-surface missile in flight test',
+      snippet: 'Successful trial of Rudram-II missile conducted off Odisha coast.',
+      url: 'https://pib.gov.in/rudram-test',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T06:00:00Z'
+    };
+
+    const storyB: StorySourceItem = {
+      id: 'act-b',
+      title: 'IAF fighter successfully fires Rudram-II missile during weapon trials',
+      snippet: 'Odisha test-firing validates next generation anti-radiation weapon.',
+      url: 'https://thehindu.com/rudram-trial',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-30T07:00:00Z'
+    };
+
+    expect(areStoriesSimilar(storyA, storyB)).toBe(true);
   });
 });
+

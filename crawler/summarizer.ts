@@ -14,9 +14,16 @@ export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
 export const MIN_REQUEST_INTERVAL_MS = 4500;
 let lastRequestTimestamp = 0;
 
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+
+export function getGeminiModelName(env: NodeJS.ProcessEnv = process.env): string {
+  return env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
+}
+
 export function resetThrottleState(): void {
   lastRequestTimestamp = 0;
 }
+
 
 export function computeContentHash(headline: string, url: string): string {
   const normalized = `${(headline || '').trim().toLowerCase()}|${(url || '').trim().toLowerCase()}`;
@@ -140,8 +147,10 @@ Return a strict JSON object with these exact keys:
     // 2. Sequential Throttling
     await throttleNextRequest();
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const modelName = getGeminiModelName();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await fetchFn(url, {
+
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

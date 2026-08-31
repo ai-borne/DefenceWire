@@ -8,6 +8,11 @@ import { StorySourceItem } from '../src/types/news.js';
 import { SourceTier } from '../src/types/source.js';
 import { FeedConfig } from './feeds.js';
 import { extractMilitaryEntities } from '../src/engine/clusterEngine.js';
+import {
+  screenItemWithCloudflareAI,
+  CloudflareAIOptions,
+  WorkersAIScreeningResult
+} from './cloudflareAI.js';
 
 export const NON_DEFENCE_BLACKLIST = [
   'mann ki baat', 'drug-free', 'nasha mukt', 'election rally', 'assembly election',
@@ -32,6 +37,7 @@ export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|bel|bdl|mdl|grse|gs
 
 /**
  * Validates if an article item is strictly relevant to Indian defence & military affairs.
+ * Layer 1 deterministic pre-gate executing at 0ms and $0 cost.
  */
 export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): boolean {
   const fullText = `${item.title} ${item.snippet || ''}`;
@@ -41,8 +47,8 @@ export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): bool
     return false;
   }
 
-  // 2. Military Entity extraction
-  const entities = extractMilitaryEntities(item.title);
+  // 2. Military Entity extraction (both static SSOT and dynamic harvested entities)
+  const entities = extractMilitaryEntities(fullText);
   if (entities.entities.length > 0) {
     return true;
   }
@@ -59,6 +65,18 @@ export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): bool
 
   return false;
 }
+
+/**
+ * Layer 2 Edge Screening using Cloudflare Workers AI.
+ * Used for ambiguous wire articles where deterministic regex is borderline.
+ */
+export async function screenAmbiguousArticle(
+  item: StorySourceItem,
+  options: CloudflareAIOptions = {}
+): Promise<WorkersAIScreeningResult | null> {
+  return screenItemWithCloudflareAI(item, options);
+}
+
 
 /**
  * Filters out articles older than maxAgeHours.

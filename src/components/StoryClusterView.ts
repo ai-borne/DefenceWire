@@ -12,6 +12,8 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
+import { openEntityDossierModal } from './EntityDossierModal.js';
+
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -79,7 +81,28 @@ export function renderStoryCluster(
   metaLine.appendChild(sourceNameEl);
   metaLine.appendChild(tierBadge);
   metaLine.appendChild(timeSpan);
+
+  // Clickable Entity Chips for Techmeme-grade intelligence
+  if (cluster.entities && cluster.entities.length > 0) {
+    const entityBox = document.createElement('span');
+    entityBox.className = 'dw-entity-chips';
+    for (const ent of cluster.entities.slice(0, 3)) {
+      const chip = document.createElement('button');
+      chip.className = 'dw-entity-chip';
+      chip.type = 'button';
+      chip.textContent = `#${sanitizePlainText(ent)}`;
+      chip.title = `View sovereign intelligence dossier for ${sanitizePlainText(ent)}`;
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEntityDossierModal(ent);
+      });
+      entityBox.appendChild(chip);
+    }
+    metaLine.appendChild(entityBox);
+  }
+
   article.appendChild(metaLine);
+
 
   // 4. Primary Snippet
   if (cluster.primarySource.snippet) {

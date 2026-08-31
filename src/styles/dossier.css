@@ -1,0 +1,196 @@
+/* Entity Dossier Modal & Chips Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+.dw-entity-chips {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 6px;
+  flex-wrap: wrap;
+}
+
+.dw-entity-chip {
+  background-color: var(--dw-bg-secondary);
+  color: var(--dw-text-accent);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  line-height: 1.2;
+}
+
+.dw-entity-chip:hover {
+  background-color: var(--dw-text-accent);
+  color: #FFFFFF;
+  border-color: var(--dw-text-accent);
+}
+
+/* Modal Backdrop */
+.dw-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: dwFadeIn 0.15s ease-out;
+}
+
+.dw-modal-backdrop.dw-modal-closing {
+  opacity: 0;
+  transition: opacity 0.15s ease-in;
+}
+
+@keyframes dwFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dw-modal-content {
+  background-color: var(--dw-bg-primary);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dwScaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dwScaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dw-modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dw-border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--dw-bg-secondary);
+}
+
+.dw-modal-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--dw-text-primary);
+  margin: 0;
+}
+
+.dw-modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  color: var(--dw-text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+}
+
+.dw-modal-close-btn:hover {
+  color: var(--dw-text-primary);
+  background-color: var(--dw-border-secondary);
+}
+
+.dw-modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+
+.dw-modal-loading,
+.dw-modal-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--dw-text-secondary);
+  font-style: italic;
+}
+
+/* Dossier Metrics */
+.dw-dossier-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  padding: 10px;
+}
+
+.dw-metric-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dw-metric-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--dw-text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.dw-metric-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+  margin-top: 2px;
+}
+
+.dw-cat-tag {
+  color: var(--dw-text-accent);
+}
+
+.dw-timeline-heading {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dw-text-secondary);
+  margin: 12px 0 8px 0;
+}
+
+.dw-dossier-story-list {
+  list-style: square;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.dw-dossier-story-item {
+  margin-bottom: 10px;
+}
+
+.dw-dossier-story-item a {
+  color: var(--dw-text-primary);
+  font-weight: 600;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dw-dossier-story-item a:hover {
+  color: var(--dw-link);
+}
+
+.dw-dossier-no-stories {
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+  font-style: italic;
+  margin-top: 8px;
+}

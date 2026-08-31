@@ -14,7 +14,15 @@ import { StoryCluster, StorySourceItem } from '../src/types/news.js';
 import { FeedConfig, getActiveFeeds } from './feeds.js';
 import { fetchFeedWithCircuitBreaker } from './parser.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
+import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
+import {
+  aggregateEntityCandidates,
+  getPromotedEntityConfigs,
+  syncDiscoveredEntitiesToD1,
+  EntityHarvestCandidate
+} from './entityHarvester.js';
+import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import {
   isDefenceRelevant,
   filterFreshArticles,
@@ -32,6 +40,7 @@ export {
 };
 
 export interface IngestOptions {
+
   feeds?: FeedConfig[];
   maxAgeHours?: number;
   maxClusters?: number;
@@ -56,14 +65,9 @@ function preserveCuratorOverrides(
   newClusters: StoryCluster[],
   existingClusters: StoryCluster[]
 ): StoryCluster[] {
-  if (!existingClusters || existingClusters.length === 0) {
-    return newClusters;
-  }
-
+  if (!existingClusters || existingClusters.length === 0) return newClusters;
   const lockedExisting = existingClusters.filter((c) => c.isEditorPromoted || c.isIgnored);
-  if (lockedExisting.length === 0) {
-    return newClusters;
-  }
+  if (lockedExisting.length === 0) return newClusters;
 
   const merged = [...newClusters];
   for (const locked of lockedExisting) {
@@ -75,7 +79,6 @@ function preserveCuratorOverrides(
     );
 
     if (existingIndex !== -1) {
-      // Retain curator overrides on matched cluster
       merged[existingIndex] = {
         ...merged[existingIndex]!,
         isEditorPromoted: locked.isEditorPromoted,
@@ -87,18 +90,15 @@ function preserveCuratorOverrides(
           ? Math.max(merged[existingIndex]!.defenceScore, 125)
           : merged[existingIndex]!.defenceScore
       };
+    } else if (locked.isEditorPromoted) {
+      merged.unshift({ ...locked, isLeadStory: true });
     } else {
-      // Re-insert promoted cluster at the top
-      if (locked.isEditorPromoted) {
-        merged.unshift({ ...locked, isLeadStory: true });
-      } else {
-        merged.push(locked);
-      }
+      merged.push(locked);
     }
   }
-
   return merged;
 }
+
 
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
   const startTime = Date.now();
@@ -177,34 +177,69 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   // Apply Curator Override Protection Locks
   const lockedProtectedClusters = preserveCuratorOverrides(topClusters, existingClusters);
 
-  // Enrich all clusters with SSB Intelligence. summarizeWithGemini paces its own
-  // requests (MIN_REQUEST_INTERVAL_MS) to stay under Gemini's free-tier 15 RPM limit,
-  // so every cluster can attempt a real Gemini summary; any failure/rate-limit falls
-  // back to the free, local heuristic so every cluster still gets a Summary badge.
+  // Enrich all clusters with SSB Intelligence using Dual-Engine Free Cascade
+  // (Gemini Flash -> Cloudflare Workers AI -> Heuristic)
   let geminiCount = 0;
+  let cfAiCount = 0;
   let heuristicCount = 0;
   let preservedCount = 0;
+  const entityCandidates: EntityHarvestCandidate[] = [];
+
   for (const cluster of lockedProtectedClusters) {
     if (!cluster) continue;
+
+    // Collect candidates for dynamic entity harvester
+    for (const ent of cluster.entities) {
+      entityCandidates.push({
+        name: ent,
+        category: cluster.categories[0] || 'tech',
+        sourceDomain: cluster.primarySource.sourceDomain,
+        seenAt: cluster.primarySource.publishedAt
+      });
+    }
+
     if (cluster.ssbIntel) {
       preservedCount++;
       continue;
     }
-    const geminiIntel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
-    if (geminiIntel) {
+
+    // 1. Primary: Gemini Flash Free Tier
+    let intel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
+    if (intel) {
       geminiCount++;
-      cluster.ssbIntel = geminiIntel;
     } else {
-      heuristicCount++;
-      cluster.ssbIntel = generateHeuristicSSBIntel(cluster);
+      // 2. Secondary: Cloudflare Workers AI Free Tier
+      intel = await summarizeWithCloudflareAI(cluster, { fetchFn });
+      if (intel) {
+        cfAiCount++;
+      } else {
+        // 3. Fallback: Local Deterministic NLP Heuristic
+        heuristicCount++;
+        intel = generateHeuristicSSBIntel(cluster);
+      }
     }
+
+    cluster.ssbIntel = intel;
   }
-  console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
+
+  const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';
+  console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
+
+  // Closed-loop dynamic entity harvesting
+
+  const d1Config = buildD1ConfigFromEnv(process.env);
+  const aggregatedEntities = aggregateEntityCandidates(entityCandidates);
+  const promotedConfigs = getPromotedEntityConfigs(aggregatedEntities);
+  if (promotedConfigs.length > 0) {
+    registerDynamicEntities(promotedConfigs);
+    console.log(`[DYNAMIC ENTITY TRIE] Registered ${promotedConfigs.length} auto-promoted sovereign entities.`);
+  }
+  const entitySyncResult = await syncDiscoveredEntitiesToD1(aggregatedEntities, d1Config, { fetchFn });
+  console.log(`[D1 ENTITY SYNC] ${entitySyncResult.synced} synced, ${entitySyncResult.promotedCount} promoted`);
 
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
 
-  const d1Config = buildD1ConfigFromEnv(process.env);
   const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed`);
@@ -212,6 +247,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
+
 
   const result: IngestResult = {
     clusters: finalClusters,

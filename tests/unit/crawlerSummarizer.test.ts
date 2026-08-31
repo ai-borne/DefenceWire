@@ -7,13 +7,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearSummaryMemoryCache,
   computeContentHash,
+  DEFAULT_GEMINI_MODEL,
   generateHeuristicSSBIntel,
+  getGeminiModelName,
   getSummaryMemorySize,
   isSSBRelevant,
   MIN_REQUEST_INTERVAL_MS,
   resetThrottleState,
   summarizeWithGemini
 } from '../../crawler/summarizer.js';
+
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
@@ -127,7 +130,11 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(fetchCalled).toBe(false);
   });
 
-  it('calls a current, non-deprecated Gemini model (gemini-2.0-flash was retired with a 404)', async () => {
+  it('defaults to gemini-3.5-flash-lite and respects dynamic GEMINI_MODEL override', async () => {
+    expect(DEFAULT_GEMINI_MODEL).toBe('gemini-3.5-flash-lite');
+    expect(getGeminiModelName({})).toBe('gemini-3.5-flash-lite');
+    expect(getGeminiModelName({ GEMINI_MODEL: 'gemini-custom-flash' })).toBe('gemini-custom-flash');
+
     let calledUrl = '';
     const capturingFetch = async (url: string) => {
       calledUrl = url;
@@ -139,6 +146,7 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(calledUrl).not.toContain('gemini-2.0-flash');
     expect(calledUrl).toContain('models/gemini-');
   });
+
 
   it('fetches from Gemini API on cache miss and stores in content-hash memory', async () => {
     let callCount = 0;

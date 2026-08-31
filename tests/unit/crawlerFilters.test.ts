@@ -7,11 +7,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   isDefenceRelevant,
+  screenAmbiguousArticle,
   filterFreshArticles,
   NON_DEFENCE_BLACKLIST,
   NON_DEFENCE_BLACKLIST_REGEX,
   DEFENCE_WHOLE_WORD_REGEX
 } from '../../crawler/filters.js';
+
 import { StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { FeedConfig } from '../../crawler/feeds.js';
@@ -138,4 +140,42 @@ describe('Crawler Filters: Article Freshness Window', () => {
     expect(result).toHaveLength(1);
     expect(result[0]!.id).toBe('fresh-1');
   });
+
+  it('delegates ambiguous screening to Cloudflare AI layer', async () => {
+    const ambiguousItem = createMockItem(
+      'amb-1',
+      'Strategic partnership announced for advanced navigation hardware',
+      SourceTier.TIER_2_NATIONAL
+    );
+
+    const mockFetch = async () =>
+      new Response(
+        JSON.stringify({
+          result: {
+            response: JSON.stringify({
+              isMilitaryDefence: true,
+              confidence: 0.88,
+              category: 'tech',
+              strategicSignificance: 'medium',
+              strategicBonus: 10,
+              discoveredEntities: ['NavIC-M'],
+              actionSignature: 'rnd',
+              rationale: 'Military grade navigation satellite hardware partnership.'
+            })
+          }
+        }),
+        { status: 200 }
+      );
+
+    const screenRes = await screenAmbiguousArticle(ambiguousItem, {
+      accountId: 'acc-1',
+      apiToken: 'tok-1',
+      fetchFn: mockFetch as typeof fetch
+    });
+
+    expect(screenRes).not.toBeNull();
+    expect(screenRes?.isMilitaryDefence).toBe(true);
+    expect(screenRes?.discoveredEntities).toContain('NavIC-M');
+  });
 });
+

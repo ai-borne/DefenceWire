@@ -61,3 +61,23 @@ CREATE TABLE IF NOT EXISTS curator_overrides (
 
 CREATE INDEX IF NOT EXISTS idx_curator_overrides_updated_at ON curator_overrides (updated_at DESC);
 
+-- Dynamic Discovered Military Entities Table
+-- Closed-loop knowledge base: stores newly discovered platforms, missiles, and codenames.
+-- When an entity crosses the corroboration threshold (>= 3 mentions across >= 2 sources),
+-- it is promoted to is_promoted = 1 and compiled into the crawler's active regex matcher.
+CREATE TABLE IF NOT EXISTS discovered_entities (
+  id TEXT PRIMARY KEY,            -- slug / canonical id (e.g. 'rudram-ii')
+  name TEXT NOT NULL,            -- display name (e.g. 'Rudram-II')
+  pattern TEXT NOT NULL,         -- generated regex pattern
+  category TEXT NOT NULL,        -- domain category (airforce, navy, army, tech, strategic, procurement)
+  source_count INTEGER DEFAULT 1,-- count of distinct publisher domains reporting this entity
+  mention_count INTEGER DEFAULT 1,-- total occurrences observed across articles
+  is_promoted INTEGER DEFAULT 0, -- 1 when promoted to active in-memory entity trie
+  first_seen_at TEXT NOT NULL,   -- ISO 8601 timestamp
+  last_seen_at TEXT NOT NULL     -- ISO 8601 timestamp
+);
+
+CREATE INDEX IF NOT EXISTS idx_discovered_entities_promoted ON discovered_entities (is_promoted, mention_count DESC);
+CREATE INDEX IF NOT EXISTS idx_discovered_entities_last_seen ON discovered_entities (last_seen_at DESC);
+
+
