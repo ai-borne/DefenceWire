@@ -1,7 +1,7 @@
 /**
  * Curator Edge Authentication & Zero Trust Identity Handler for DefenceWire.in
  * Edge-agnostic core behind functions/api/curator/auth.ts.
- * Implements Cloudflare Access JWT/header parsing, constant-time hash verification, and HMAC session cookie signing.
+ * Implements Cloudflare Access JWT signature verification, constant-time hash verification, and HMAC session cookie signing.
  * Hard limit: <= 300 LOC.
  */
 
@@ -19,24 +19,26 @@ function base64UrlToUint8Array(b64url: string): Uint8Array {
   return bytes;
 }
 
-/**
- * Verifies a Cloudflare Access CF_Authorization cookie's JWT signature against the team's
- * published JWKS, falling back to this path only when Access identity headers are absent.
- */
-export async function verifyAccessSessionCookie(
-  cookieHeader: string | null | undefined,
-  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN
-): Promise<{ email: string } | null> {
-  if (!cookieHeader) return null;
-  const cookies = cookieHeader.split(';').map((c) => c.trim());
-  const cfCookie = cookies.find((c) => c.startsWith('CF_Authorization='));
-  if (!cfCookie) return null;
-  const token = cfCookie.slice('CF_Authorization='.length);
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
+export function extractHeader(headers: Headers | Record<string, string | null | undefined>, name: string): string | null {
+  if (typeof (headers as Headers).get === 'function') return (headers as Headers).get(name);
+  const rec = headers as Record<string, string | null | undefined>;
+  return rec[name] || rec[name.toLowerCase()] || null;
+}
 
+/**
+ * Cryptographically validates a Cloudflare Access JWT token signature against the team JWKS endpoint.
+ */
+export async function verifyAccessJwtToken(
+  token: string | null | undefined,
+  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<{ email: string } | null> {
+  if (!token) return null;
+  const parts = token.trim().split('.');
+  if (parts.length !== 3) return null;
   const [headerB64, payloadB64, sigB64] = parts;
   if (!headerB64 || !payloadB64 || !sigB64) return null;
+
   let header: { kid?: string };
   let payload: { email?: string; exp?: number; aud?: string[] };
   try {
@@ -49,7 +51,7 @@ export async function verifyAccessSessionCookie(
   if (!payload.email || !payload.exp || Date.now() / 1000 > payload.exp) return null;
 
   try {
-    const certsResponse = await fetch(`https://${teamDomain}/cdn-cgi/access/certs`);
+    const certsResponse = await fetchFn(`https://${teamDomain}/cdn-cgi/access/certs`);
     if (!certsResponse.ok) return null;
     const certs = (await certsResponse.json()) as { keys: JsonWebKey[] };
     const matchedKey = certs.keys.find((k) => (k as unknown as { kid?: string }).kid === header.kid);
@@ -74,6 +76,21 @@ export async function verifyAccessSessionCookie(
 }
 
 /**
+ * Verifies a Cloudflare Access CF_Authorization cookie's JWT signature against published JWKS.
+ */
+export async function verifyAccessSessionCookie(
+  cookieHeader: string | null | undefined,
+  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<{ email: string } | null> {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';').map((c) => c.trim());
+  const cfCookie = cookies.find((c) => c.startsWith('CF_Authorization='));
+  if (!cfCookie) return null;
+  return verifyAccessJwtToken(cfCookie.slice('CF_Authorization='.length), teamDomain, fetchFn);
+}
+
+/**
  * Constant-time comparison between two strings to prevent timing attacks.
  */
 export function timingSafeEqual(a: string, b: string): boolean {
@@ -90,10 +107,8 @@ export function timingSafeEqual(a: string, b: string): boolean {
  */
 export async function sha256Hex(text: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(text.trim());
-  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', encoder.encode(text.trim()));
+  return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -101,16 +116,9 @@ export async function sha256Hex(text: string): Promise<string> {
  */
 export async function hmacSign(payload: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();
-  const key = await globalThis.crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
+  const key = await globalThis.crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const signature = await globalThis.crypto.subtle.sign('HMAC', key, encoder.encode(payload));
-  const sigArray = Array.from(new Uint8Array(signature));
-  return sigArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -119,8 +127,7 @@ export async function hmacSign(payload: string, secret: string): Promise<string>
 export async function createSessionCookie(secret: string = DEFAULT_SESSION_SECRET, maxAge: number = SESSION_MAX_AGE_DEFAULT): Promise<string> {
   const timestamp = Date.now().toString();
   const signature = await hmacSign(timestamp, secret);
-  const token = `${timestamp}.${signature}`;
-  return `${SESSION_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
+  return `${SESSION_COOKIE_NAME}=${timestamp}.${signature}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
 }
 
 /**
@@ -139,52 +146,32 @@ export async function verifySessionCookie(
   maxAgeMs: number = SESSION_MAX_AGE_DEFAULT * 1000
 ): Promise<boolean> {
   if (!cookieHeader) return false;
-
   const cookies = cookieHeader.split(';').map((c) => c.trim());
-  const targetPrefix = `${SESSION_COOKIE_NAME}=`;
-  const sessionCookie = cookies.find((c) => c.startsWith(targetPrefix));
+  const sessionCookie = cookies.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!sessionCookie) return false;
 
-  const token = sessionCookie.slice(targetPrefix.length);
-  const parts = token.split('.');
-  if (parts.length !== 2) return false;
-
-  const [timestampStr, providedSig] = parts;
+  const token = sessionCookie.slice(`${SESSION_COOKIE_NAME}=`.length);
+  const [timestampStr, providedSig] = token.split('.');
   if (!timestampStr || !providedSig) return false;
 
   const timestamp = parseInt(timestampStr, 10);
-  if (isNaN(timestamp) || Date.now() - timestamp > maxAgeMs) {
-    return false;
-  }
+  if (isNaN(timestamp) || Date.now() - timestamp > maxAgeMs) return false;
 
   const expectedSig = await hmacSign(timestampStr, secret);
   return timingSafeEqual(providedSig, expectedSig);
 }
 
 /**
- * Extracts Cloudflare Zero Trust (Access) authenticated identity from request headers.
+ * Extracts Cloudflare Zero Trust (Access) identity from request headers.
  */
 export function extractCloudflareAccessIdentity(
   headers: Headers | Record<string, string | null | undefined>
 ): { email: string; isAccessAuthenticated: boolean } | null {
-  const getHeader = (name: string): string | null => {
-    if (typeof (headers as Headers).get === 'function') {
-      return (headers as Headers).get(name);
-    }
-    const rec = headers as Record<string, string | null | undefined>;
-    return rec[name] || rec[name.toLowerCase()] || null;
-  };
-
-  const email = getHeader('cf-access-authenticated-user-email');
-  const jwt = getHeader('cf-access-jwt-assertion');
-
+  const email = extractHeader(headers, 'cf-access-authenticated-user-email');
+  const jwt = extractHeader(headers, 'cf-access-jwt-assertion');
   if (email && email.includes('@')) {
-    return {
-      email: email.trim().toLowerCase(),
-      isAccessAuthenticated: Boolean(jwt || email)
-    };
+    return { email: email.trim().toLowerCase(), isAccessAuthenticated: Boolean(jwt) };
   }
-
   return null;
 }
 
@@ -195,51 +182,40 @@ export interface CuratorAuthContext {
 }
 
 /**
- * Validates request authorization using either Cloudflare Access or Edge Session Cookie.
+ * Validates request authorization using verified Cloudflare Access JWT or Edge Session Cookie.
  */
 export async function verifyCuratorAuthorization(
   headers: Headers | Record<string, string | null | undefined>,
   cookieHeader?: string | null,
   secret: string = DEFAULT_SESSION_SECRET,
-  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN
+  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN,
+  fetchFn: typeof fetch = globalThis.fetch
 ): Promise<CuratorAuthContext> {
-  const cfIdentity = extractCloudflareAccessIdentity(headers);
-  if (cfIdentity?.isAccessAuthenticated) {
-    return {
-      authorized: true,
-      email: cfIdentity.email,
-      provider: 'cloudflare_zero_trust'
-    };
+  const jwtAssertion = extractHeader(headers, 'cf-access-jwt-assertion');
+  if (jwtAssertion) {
+    const verifiedHeader = await verifyAccessJwtToken(jwtAssertion, teamDomain, fetchFn);
+    if (verifiedHeader) {
+      return { authorized: true, email: verifiedHeader.email, provider: 'cloudflare_zero_trust' };
+    }
   }
 
-  const cfSession = await verifyAccessSessionCookie(cookieHeader, teamDomain);
+  const cfSession = await verifyAccessSessionCookie(cookieHeader, teamDomain, fetchFn);
   if (cfSession) {
-    return {
-      authorized: true,
-      email: cfSession.email,
-      provider: 'cloudflare_zero_trust'
-    };
+    return { authorized: true, email: cfSession.email, provider: 'cloudflare_zero_trust' };
   }
 
   const isCookieValid = await verifySessionCookie(cookieHeader, secret);
   if (isCookieValid) {
-    return {
-      authorized: true,
-      email: 'curator@institutional.internal',
-      provider: 'edge_session'
-    };
+    return { authorized: true, email: 'curator@institutional.internal', provider: 'edge_session' };
   }
 
-  return {
-    authorized: false,
-    email: '',
-    provider: 'none'
-  };
+  return { authorized: false, email: '', provider: 'none' };
 }
 
 export interface CuratorAuthEnv {
   CURATOR_PASSCODE_HASH?: string;
   CURATOR_SESSION_SECRET?: string;
+  NODE_ENV?: string;
 }
 
 export interface CuratorAuthPayload {
@@ -260,10 +236,13 @@ export async function handleCuratorAuthRequest(
   payload: CuratorAuthPayload,
   env: CuratorAuthEnv = {}
 ): Promise<CuratorAuthResponse> {
-  const passcode = payload.passcode?.trim();
-  if (!passcode) {
-    return { success: false, error: 'Passcode is required.' };
+  const isProd = (env.NODE_ENV || (typeof process !== 'undefined' ? process.env?.NODE_ENV : undefined)) === 'production';
+  if (isProd && (!env.CURATOR_PASSCODE_HASH || !env.CURATOR_SESSION_SECRET)) {
+    return { success: false, error: 'Production environment requires configured secrets.' };
   }
+
+  const passcode = payload.passcode?.trim();
+  if (!passcode) return { success: false, error: 'Passcode is required.' };
 
   const expectedHash = env.CURATOR_PASSCODE_HASH || DEFAULT_DEV_PASSCODE_HASH;
   const secret = env.CURATOR_SESSION_SECRET || DEFAULT_SESSION_SECRET;
@@ -271,12 +250,11 @@ export async function handleCuratorAuthRequest(
   const computedHash = await sha256Hex(passcode);
   const isValid = timingSafeEqual(computedHash, expectedHash);
 
-  if (!isValid) {
-    return { success: false, error: 'Invalid passcode.' };
-  }
+  if (!isValid) return { success: false, error: 'Invalid passcode.' };
 
-  const maxAge = payload.remember ? SESSION_MAX_AGE_DEFAULT : 60 * 60 * 8; // 8 hours if not remembered
+  const maxAge = payload.remember ? SESSION_MAX_AGE_DEFAULT : 60 * 60 * 8;
   const cookie = await createSessionCookie(secret, maxAge);
 
   return { success: true, cookie };
 }
+
