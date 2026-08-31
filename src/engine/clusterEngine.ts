@@ -4,7 +4,8 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { StoryCluster, StorySourceItem } from '../types/news.js';
+import { DiscussionQuote, StoryCluster, StorySourceItem } from '../types/news.js';
+import { SourceTier } from '../types/source.js';
 import { getTierAuthorityWeight } from '../data/sources.js';
 import { calculateScoreBreakdown } from './rankingEngine.js';
 import { computeStableHash } from '../utils/stableId.js';
@@ -114,7 +115,34 @@ export function areStoriesSimilar(itemA: StorySourceItem, itemB: StorySourceItem
 
 
 /**
+ * Converts an official social post into a structured DiscussionQuote.
+ */
+export function convertSocialItemToDiscussionQuote(item: StorySourceItem): DiscussionQuote {
+  const author = item.sourceName.split('(')[0]?.trim() || item.sourceName;
+  let handleOrTitle = item.author || '';
+  if (!handleOrTitle) {
+    const parenMatch = item.sourceName.match(/\((@[^)]+)\)/);
+    if (parenMatch && parenMatch[1]) {
+      handleOrTitle = parenMatch[1];
+    } else if (item.sourceName.includes('@')) {
+      handleOrTitle = item.sourceName;
+    } else {
+      handleOrTitle = `@${author.replace(/\s+/g, '')}`;
+    }
+  }
+  return {
+    id: `quote-${computeStableHash(item.url || item.id)}`,
+    author,
+    handleOrTitle,
+    quote: item.snippet || item.title,
+    url: item.url,
+    sourcePlatform: 'X/Twitter'
+  };
+}
+
+/**
  * Selects the authoritative primary source from a group of items.
+ * Wire articles always take precedence over social posts.
  * Highest SourceTier weight wins; recency breaks ties.
  */
 export function pickPrimarySource(items: StorySourceItem[]): { primary: StorySourceItem; related: StorySourceItem[] } {
@@ -122,7 +150,11 @@ export function pickPrimarySource(items: StorySourceItem[]): { primary: StorySou
     throw new Error('Cannot pick primary source from empty list');
   }
 
-  const sorted = [...items].sort((a, b) => {
+  // Top Stories Quality Guard: Social posts are never permitted to become the primarySource if wire articles exist
+  const nonSocial = items.filter(it => it.tier !== SourceTier.TIER_1_SOCIAL);
+  const candidates = nonSocial.length > 0 ? nonSocial : items;
+
+  const sorted = [...candidates].sort((a, b) => {
     const weightDiff = getTierAuthorityWeight(b.tier) - getTierAuthorityWeight(a.tier);
     if (weightDiff !== 0) return weightDiff;
     return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
@@ -134,7 +166,9 @@ export function pickPrimarySource(items: StorySourceItem[]): { primary: StorySou
   }
 
   const primary: StorySourceItem = { ...first, isPrimary: true };
-  const related: StorySourceItem[] = sorted.slice(1).map(item => ({ ...item, isPrimary: false }));
+  const related: StorySourceItem[] = items
+    .filter(item => item.id !== primary.id && item.tier !== SourceTier.TIER_1_SOCIAL)
+    .map(item => ({ ...item, isPrimary: false }));
 
   return { primary, related };
 }
@@ -174,18 +208,29 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
     }
   }
 
-  // Build StoryCluster for each group
-  const clusters: StoryCluster[] = groups.map((group) => {
+  // Build StoryCluster for each group that has wire reporting coverage
+  const clusters: StoryCluster[] = [];
+
+  for (const group of groups) {
+    const nonSocial = group.filter(it => it.tier !== SourceTier.TIER_1_SOCIAL);
+    const socialItems = group.filter(it => it.tier === SourceTier.TIER_1_SOCIAL);
+
+    // Sensor & Corroborator Router: Orphan social posts without wire coverage route solely to the River
+    if (nonSocial.length === 0) {
+      continue;
+    }
+
     const { primary, related } = pickPrimarySource(group);
     const allTitles = group.map(g => g.title).join(' ');
     const { entities, categories } = extractMilitaryEntities(allTitles);
+    const discussions: DiscussionQuote[] = socialItems.map(convertSocialItemToDiscussionQuote);
 
     const baseCluster: StoryCluster = {
       id: `cluster-${computeStableHash(primary.url)}`,
       synthesizedHeadline: primary.title,
       primarySource: primary,
       relatedCoverage: related,
-      discussions: [],
+      discussions,
       categories,
       entities,
       defenceScore: 0,
@@ -196,8 +241,8 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
 
     const breakdown = calculateScoreBreakdown(baseCluster, now);
     baseCluster.defenceScore = breakdown.finalDefenceScore;
-    return baseCluster;
-  });
+    clusters.push(baseCluster);
+  }
 
   // Sort descending by DefenceScore
   clusters.sort((a, b) => b.defenceScore - a.defenceScore);

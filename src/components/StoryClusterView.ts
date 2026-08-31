@@ -164,7 +164,33 @@ export function renderStoryCluster(
 
       const metaP = document.createElement('div');
       metaP.className = 'dw-discussion-meta';
-      metaP.textContent = `— ${sanitizePlainText(disc.author)}, ${sanitizePlainText(disc.handleOrTitle)} [${disc.sourcePlatform}]`;
+
+      const authorSpan = document.createElement('span');
+      authorSpan.textContent = `— ${sanitizePlainText(disc.author)}, ${sanitizePlainText(disc.handleOrTitle)} `;
+      metaP.appendChild(authorSpan);
+
+      if (disc.sourcePlatform === 'X/Twitter' || disc.handleOrTitle.includes('@')) {
+        const verifiedBadge = document.createElement('span');
+        verifiedBadge.className = 'dw-verified-badge';
+        verifiedBadge.textContent = `✓ ${STRINGS.story.officialSignalBadge}`;
+        metaP.appendChild(verifiedBadge);
+      }
+
+      if (disc.url) {
+        const discLink = document.createElement('a');
+        const safeAttrs = getSafeLinkAttributes(disc.url);
+        discLink.href = safeAttrs.href;
+        discLink.target = safeAttrs.target;
+        discLink.rel = safeAttrs.rel;
+        discLink.className = 'dw-discussion-link';
+        discLink.textContent = `[${disc.sourcePlatform}]`;
+        metaP.appendChild(discLink);
+      } else {
+        const platformSpan = document.createElement('span');
+        platformSpan.className = 'dw-discussion-platform';
+        platformSpan.textContent = `[${disc.sourcePlatform}]`;
+        metaP.appendChild(platformSpan);
+      }
 
       discBox.appendChild(quoteP);
       discBox.appendChild(metaP);

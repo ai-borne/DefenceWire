@@ -6,6 +6,7 @@
  * Hard limit: <= 300 LOC.
  */
 
+import { SourceTier } from '../types/source.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
@@ -61,7 +62,23 @@ function renderRiverView(mainFeed: HTMLElement, newsVm: NewsViewModel): void {
 
     const meta = document.createElement('div');
     meta.className = 'dw-river-meta';
-    meta.textContent = `${item.sourceName} • ${formatTimeAgo(item.publishedAt)}`;
+
+    const sourceSpan = document.createElement('span');
+    sourceSpan.textContent = sanitizePlainText(item.sourceName);
+    meta.appendChild(sourceSpan);
+
+    if (item.tier === SourceTier.TIER_1_SOCIAL) {
+      const badge = document.createElement('span');
+      badge.className = 'dw-tier-badge dw-tier-TIER_1_SOCIAL';
+      badge.style.marginLeft = '4px';
+      badge.style.marginRight = '4px';
+      badge.textContent = STRINGS.story.officialSignalBadge;
+      meta.appendChild(badge);
+    }
+
+    const timeSpan = document.createElement('span');
+    timeSpan.textContent = ` • ${formatTimeAgo(item.publishedAt)}`;
+    meta.appendChild(timeSpan);
 
     row.appendChild(link);
     if (item.snippet) {

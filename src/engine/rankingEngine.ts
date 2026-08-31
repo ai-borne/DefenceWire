@@ -13,6 +13,7 @@ import { getSourceMultiplier } from './sourceReputation.js';
 export const DEFAULT_RANKING_PARAMS: RankingParams = {
   gravity: 1.6,
   officialModBonus: 20,
+  officialSocialConfirmationBonus: 15,
   dacClearanceBonus: 15,
   borderStrategicBonus: 15,
   duplicatePenalty: 20
@@ -41,7 +42,6 @@ function calculateAuthorityScore(primary: StorySourceItem, related: StorySourceI
   return Math.round(primaryWeight * 0.6 + relatedAvg * 0.4);
 }
 
-
 /**
  * Computes Source Count score (0 - 100) based on corroboration breadth.
  */
@@ -60,7 +60,6 @@ function calculateRecencyScore(dateString: string, now: Date, gravity: number): 
   const itemDate = new Date(dateString).getTime();
   const nowDate = now.getTime();
   const ageHours = Math.max(0, (nowDate - itemDate) / (1000 * 60 * 60));
-  // Scale with half-life around 4 hours
   const score = 100 / (1 + Math.pow(ageHours / 4, gravity));
   return Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
 }
@@ -71,17 +70,13 @@ function calculateRecencyScore(dateString: string, now: Date, gravity: number): 
 function calculateSSBRelevanceScore(cluster: StoryCluster): number {
   const ssb = cluster.ssbIntel;
   if (!ssb) return 0;
-
   let score = 0;
   if (ssb.whyItMatters && ssb.whyItMatters.trim().length > 10) score += 25;
   if (ssb.gdLecturettePoints && ssb.gdLecturettePoints.length >= 2) score += 25;
   else if (ssb.gdLecturettePoints && ssb.gdLecturettePoints.length === 1) score += 15;
-
   if (ssb.potentialInterviewQuestions && ssb.potentialInterviewQuestions.length >= 2) score += 25;
   else if (ssb.potentialInterviewQuestions && ssb.potentialInterviewQuestions.length === 1) score += 15;
-
   if (ssb.defenceTechTakeaway || ssb.strategicAngle) score += 25;
-
   return Math.min(100, score);
 }
 
@@ -94,15 +89,11 @@ function calculateStrategicScore(cluster: StoryCluster): number {
   if (categories.includes('strategic')) score += 25;
   if (categories.includes('procurement')) score += 20;
   if (categories.includes('tech')) score += 15;
-
   const textToScan = `${cluster.synthesizedHeadline} ${cluster.entities.join(' ')}`.toLowerCase();
   let keywordHits = 0;
   for (const kw of STRATEGIC_KEYWORDS) {
-    if (textToScan.includes(kw)) {
-      keywordHits++;
-    }
+    if (textToScan.includes(kw)) keywordHits++;
   }
-
   score += Math.min(40, keywordHits * 15);
   return Math.min(100, score);
 }
@@ -117,7 +108,6 @@ function calculateVelocityScore(primary: StorySourceItem, related: StorySourceIt
     const ageHours = (nowDate - new Date(item.publishedAt).getTime()) / (1000 * 60 * 60);
     return ageHours >= 0 && ageHours <= 6;
   }).length;
-
   if (recentCount >= 4) return 100;
   if (recentCount === 3) return 75;
   if (recentCount === 2) return 50;
@@ -139,8 +129,6 @@ function calculateDiscussionScore(cluster: StoryCluster): number {
  */
 function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFactor[] {
   const bonuses: BonusFactor[] = [];
-
-  // MoD / PIB Official Bonus
   const isOfficial = cluster.primarySource.tier === SourceTier.TIER_1_OFFICIAL;
   bonuses.push({
     name: 'Official MoD / PIB Release',
@@ -149,7 +137,17 @@ function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFac
     reason: isOfficial ? 'Primary source is sovereign Tier 1 government entity' : 'Not Tier 1 official'
   });
 
-  // DAC / CCS Procurement Clearance
+  const isSocialCorroborated =
+    Boolean(cluster.discussions?.some(d => d.sourcePlatform === 'X/Twitter' || d.handleOrTitle.includes('@'))) ||
+    Boolean(cluster.relatedCoverage?.some(r => r.tier === SourceTier.TIER_1_SOCIAL)) ||
+    cluster.primarySource.tier === SourceTier.TIER_1_SOCIAL;
+  bonuses.push({
+    name: 'Official Social Signal Confirmation',
+    points: params.officialSocialConfirmationBonus ?? 15,
+    applied: isSocialCorroborated,
+    reason: isSocialCorroborated ? 'Corroborated by verified armed forces / official operational social handle' : 'No official social confirmation'
+  });
+
   const text = `${cluster.synthesizedHeadline} ${cluster.entities.join(' ')}`.toLowerCase();
   const isDac = /\b(dac|defence acquisition council|ccs approval|acceptance of necessity|aon)\b/i.test(text) ||
     (/\b(procurement|acquisition|tender)\b/i.test(text) && /\b(defence|defense|mod|iaf|navy|army|drdo|missile|aircraft|warship|ammunition|howitzer|tank|drone|uav|submarine)\b/i.test(text));
@@ -160,7 +158,6 @@ function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFac
     reason: isDac ? 'High-value capital acquisition / DAC approval' : 'Not DAC procurement'
   });
 
-  // Border / Strategic Alert
   const isBorder = text.includes('lac') || text.includes('loc') || text.includes('ladakh') || text.includes('arunachal');
   bonuses.push({
     name: 'Border & Operational Alert',
@@ -169,24 +166,12 @@ function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFac
     reason: isBorder ? 'Direct LAC/LoC or operational deterrence significance' : 'No border alert'
   });
 
-  // Editor Promoted
   if (cluster.isEditorPromoted) {
-    bonuses.push({
-      name: 'Editorial Lead Promotion',
-      points: 25,
-      applied: true,
-      reason: 'Promoted by editor to lead'
-    });
+    bonuses.push({ name: 'Editorial Lead Promotion', points: 25, applied: true, reason: 'Promoted by editor to lead' });
   }
 
-  // Duplicate / Ignored Penalty
   if (cluster.isIgnored) {
-    bonuses.push({
-      name: 'Ignored / Low-Value Wire Penalty',
-      points: -params.duplicatePenalty,
-      applied: true,
-      reason: 'Flagged as redundant wire spam'
-    });
+    bonuses.push({ name: 'Ignored / Low-Value Wire Penalty', points: -params.duplicatePenalty, applied: true, reason: 'Flagged as redundant wire spam' });
   }
 
   return bonuses;
@@ -201,7 +186,6 @@ export function calculateScoreBreakdown(
   customParams?: Partial<RankingParams>
 ): ScoreBreakdown {
   const params: RankingParams = { ...DEFAULT_RANKING_PARAMS, ...customParams };
-
   const primary = cluster.primarySource;
   const related = cluster.relatedCoverage || [];
   const totalSources = 1 + related.length;
@@ -217,29 +201,15 @@ export function calculateScoreBreakdown(
   const bonuses = evaluateBonuses(cluster, params);
   const bonusesTotal = bonuses.filter(b => b.applied).reduce((acc, b) => acc + b.points, 0);
 
-  // DefenceScore formula: 0.25 S_auth + 0.20 N_sources + 0.15 R_recency + 0.15 SSB_rel + 0.10 M_strat + 0.10 V_vel + 0.05 D_disc + Bonuses
   const rawBaseScore =
-    0.25 * sourceAuthorityScore +
-    0.20 * sourceCountScore +
-    0.15 * recencyScore +
-    0.15 * ssbRelevanceScore +
-    0.10 * strategicImpactScore +
-    0.10 * velocityScore +
-    0.05 * discussionScore;
+    0.25 * sourceAuthorityScore + 0.20 * sourceCountScore + 0.15 * recencyScore +
+    0.15 * ssbRelevanceScore + 0.10 * strategicImpactScore + 0.10 * velocityScore + 0.05 * discussionScore;
 
   const finalDefenceScore = Math.max(0, Math.round((rawBaseScore + bonusesTotal) * 10) / 10);
-
   return {
-    sourceAuthorityScore,
-    sourceCountScore,
-    recencyScore,
-    ssbRelevanceScore,
-    strategicImpactScore,
-    velocityScore,
-    discussionScore,
-    bonusesTotal,
-    finalDefenceScore,
-    bonuses
+    sourceAuthorityScore, sourceCountScore, recencyScore, ssbRelevanceScore,
+    strategicImpactScore, velocityScore, discussionScore, bonusesTotal,
+    finalDefenceScore, bonuses
   };
 }
 
@@ -252,43 +222,25 @@ export function rankClusters(
   now: Date = new Date(),
   customParams?: Partial<RankingParams>
 ): StoryCluster[] {
-  if (!clusters || clusters.length === 0) {
-    return [];
-  }
+  if (!clusters || clusters.length === 0) return [];
 
   const scored = clusters.map(cluster => {
     const breakdown = calculateScoreBreakdown(cluster, now, customParams);
-    return {
-      ...cluster,
-      defenceScore: breakdown.finalDefenceScore,
-      isLeadStory: false
-    };
+    return { ...cluster, defenceScore: breakdown.finalDefenceScore, isLeadStory: false };
   });
 
-  // Sort descending by DefenceScore, fallback to updatedAt
   scored.sort((a, b) => {
-    if (b.defenceScore !== a.defenceScore) {
-      return b.defenceScore - a.defenceScore;
-    }
+    if (b.defenceScore !== a.defenceScore) return b.defenceScore - a.defenceScore;
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 
-  // Mark top active cluster as lead story
   const firstActiveIndex = scored.findIndex(c => !c.isIgnored);
-  if (firstActiveIndex !== -1) {
-    const activeLead = scored[firstActiveIndex];
-    if (activeLead) {
-      activeLead.isLeadStory = true;
-    }
+  if (firstActiveIndex !== -1 && scored[firstActiveIndex]) {
+    scored[firstActiveIndex]!.isLeadStory = true;
   }
-
   return scored;
 }
 
-/**
- * Auto-Pilot Gold-Standard Score Threshold (Score >= 75).
- * Qualifies stories with Tier 1 MoD release or multi-source corroboration.
- */
 export const AUTO_PILOT_SCORE_THRESHOLD = 75;
 
 export function isAutoPilotEligible(cluster: StoryCluster): boolean {

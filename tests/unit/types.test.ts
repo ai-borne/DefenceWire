@@ -93,6 +93,7 @@ describe('Data Contracts: Ranking & Scoring Structures', () => {
     const params: RankingParams = {
       gravity: 1.6,
       officialModBonus: 20,
+      officialSocialConfirmationBonus: 15,
       dacClearanceBonus: 15,
       borderStrategicBonus: 15,
       duplicatePenalty: -20

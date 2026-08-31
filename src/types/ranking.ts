@@ -26,6 +26,7 @@ export interface ScoreBreakdown {
 export interface RankingParams {
   gravity: number;             // Time-decay gravity exponent (default: 1.6)
   officialModBonus: number;    // Points added for PIB / MoD Tier 1 (+20)
+  officialSocialConfirmationBonus: number; // Points added for verified official handle corroboration (+15)
   dacClearanceBonus: number;   // Points added for DAC procurement (+15)
   borderStrategicBonus: number;// Points added for LAC/LoC operational (+15)
   duplicatePenalty: number;    // Penalty for redundant wire spam (-20)
