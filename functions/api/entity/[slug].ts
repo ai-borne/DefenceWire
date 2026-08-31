@@ -9,6 +9,12 @@ import {
   escapeSqlLikePattern,
   DiscoveredEntityDbRow
 } from '../../../src/services/entityDossierHandler.js';
+import { ArchiveBindingUnavailableError } from '../../../src/archive/archiveRow.js';
+import {
+  checkRateLimit,
+  getClientIp,
+  getRateLimitHeaders
+} from '../../../src/services/edgeRateLimiter.js';
 
 interface D1PreparedStatement {
   bind: (...params: unknown[]) => D1PreparedStatement;
@@ -35,6 +41,18 @@ interface PagesFunctionContext {
 }
 
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
+  const clientIp = getClientIp(context.request.headers);
+  const rateLimitKey = `entity_dossier:${clientIp}`;
+  const rateLimit = checkRateLimit(rateLimitKey, 120, 60_000);
+  const rateLimitHeaders = getRateLimitHeaders(rateLimit);
+
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { entity: null, relatedStories: [], error: 'Too many dossier requests. Please slow down.' },
+      { status: 429, headers: { ...rateLimitHeaders, 'X-Content-Type-Options': 'nosniff' } }
+    );
+  }
+
   const slug = context.params.slug || '';
   const db = context.env.DB;
   const bucket = context.env.ARCHIVE_MEDIA;
@@ -42,7 +60,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   if (!db) {
     return Response.json(
       { entity: null, relatedStories: [], error: 'Dossier database is not configured.' },
-      { status: 503 }
+      { status: 503, headers: { ...rateLimitHeaders, 'X-Content-Type-Options': 'nosniff' } }
     );
   }
 
@@ -63,7 +81,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
       return results;
     },
     getClusterJson: async (id: string) => {
-      if (!bucket) return null;
+      if (!bucket) throw new ArchiveBindingUnavailableError('ARCHIVE_MEDIA R2 binding is not configured.');
       const obj = await bucket.get(`${id}.json`);
       return obj ? obj.text() : null;
     }
@@ -71,7 +89,8 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Content-Type-Options': 'nosniff'
+    'X-Content-Type-Options': 'nosniff',
+    ...rateLimitHeaders
   };
 
   if (!result.error) {
