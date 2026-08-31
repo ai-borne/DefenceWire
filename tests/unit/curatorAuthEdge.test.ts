@@ -35,38 +35,22 @@ describe('Curator Edge Auth: Cloudflare Zero Trust & Session Defense', () => {
 
   beforeAll(async () => {
     const keyPair = await globalThis.crypto.subtle.generateKey(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256'
-      },
+      { name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
       true,
       ['sign', 'verify']
     );
     privateKey = keyPair.privateKey;
     const exported = await globalThis.crypto.subtle.exportKey('jwk', keyPair.publicKey);
     publicJwk = { ...exported, kid: testKid };
-
     mockFetchJwks = vi.fn().mockImplementation(async (url: string) => {
-      if (url.includes('/cdn-cgi/access/certs')) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ keys: [publicJwk] })
-        };
-      }
+      if (url.includes('/cdn-cgi/access/certs')) return { ok: true, status: 200, json: async () => ({ keys: [publicJwk] }) };
       return { ok: false, status: 404 };
     }) as unknown as typeof fetch;
   });
 
   async function createSignedJwt(email: string, expSec = 3600): Promise<string> {
-    const header = { alg: 'RS256', typ: 'JWT', kid: testKid };
-    const payload = { email, exp: Math.floor(Date.now() / 1000) + expSec };
-    const hB64 = toBase64Url(header);
-    const pB64 = toBase64Url(payload);
-    const data = new TextEncoder().encode(`${hB64}.${pB64}`);
-    const sig = await globalThis.crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKey, data);
+    const [hB64, pB64] = [toBase64Url({ alg: 'RS256', typ: 'JWT', kid: testKid }), toBase64Url({ email, exp: Math.floor(Date.now() / 1000) + expSec })];
+    const sig = await globalThis.crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKey, new TextEncoder().encode(`${hB64}.${pB64}`));
     return `${hB64}.${pB64}.${toBase64Url(new Uint8Array(sig))}`;
   }
 
@@ -144,18 +128,47 @@ describe('Curator Edge Auth: Cloudflare Zero Trust & Session Defense', () => {
     expect(hash).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it('generates a valid signed HMAC session cookie and verifies it successfully', async () => {
+  it('generates a valid v1 signed HMAC session cookie and verifies it successfully', async () => {
     const secret = 'custom-secret-key-123';
     const cookie = await createSessionCookie(secret, 3600);
+    expect(cookie).toContain('dw_curator_session=v1.');
     const isValid = await verifySessionCookie(cookie, secret, 3600 * 1000);
     expect(isValid).toBe(true);
   });
 
-  it('rejects tampered or expired session cookies', async () => {
+  it('verifies legacy unversioned tokens for zero-downtime backward compatibility', async () => {
+    const secret = 'custom-secret-key-123';
+    const timestamp = Date.now().toString();
+    const encoder = new TextEncoder();
+    const key = await globalThis.crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const signature = await globalThis.crypto.subtle.sign('HMAC', key, encoder.encode(timestamp));
+    const hmacHex = Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    const legacyCookie = `dw_curator_session=${timestamp}.${hmacHex}`;
+    expect(await verifySessionCookie(legacyCookie, secret)).toBe(true);
+  });
+
+  it('supports zero-downtime secret rotation with comma-separated secrets', async () => {
+    const oldSecret = 'old-secret-key-2025';
+    const newSecret = 'new-secret-key-2026';
+    const rotationSecretList = `${newSecret}, ${oldSecret}`;
+
+    const oldSessionCookie = await createSessionCookie(oldSecret, 3600);
+    const newSessionCookie = await createSessionCookie(newSecret, 3600);
+
+    // Both old and new cookies validate during rotation window
+    expect(await verifySessionCookie(oldSessionCookie, rotationSecretList)).toBe(true);
+    expect(await verifySessionCookie(newSessionCookie, rotationSecretList)).toBe(true);
+    // Unknown secret rejected
+    expect(await verifySessionCookie(oldSessionCookie, 'completely-unrelated-key')).toBe(false);
+  });
+
+  it('rejects tampered, expired, or invalid format session cookies', async () => {
     const secret = 'custom-secret-key-123';
     const cookie = await createSessionCookie(secret, 3600);
-    const tamperedCookie = cookie.replace('dw_curator_session=', 'dw_curator_session=forged.');
+    const tamperedCookie = cookie.replace('dw_curator_session=v1.', 'dw_curator_session=v1.forged.');
     expect(await verifySessionCookie(tamperedCookie, secret)).toBe(false);
+    expect(await verifySessionCookie('dw_curator_session=invalidformat', secret)).toBe(false);
+    expect(await verifySessionCookie('dw_curator_session=v99.1234.sig', secret)).toBe(false);
   });
 
   it('authenticates valid passcodes and returns signed session cookie', async () => {
@@ -249,47 +262,27 @@ describe('Curator D1 Overrides Handler: Zero Trust Audit Logging & CRUD', () => 
 
 describe('Curator Auth Gateway: Open Redirect Sanitization & Relative Path Enforcement', () => {
   it('allows safe relative paths and fragment navigations', () => {
-    expect(sanitizeReturnUrl('/#curator')).toBe('/#curator');
-    expect(sanitizeReturnUrl('#curator')).toBe('#curator');
-    expect(sanitizeReturnUrl('/')).toBe('/');
-    expect(sanitizeReturnUrl('/archive')).toBe('/archive');
-    expect(sanitizeReturnUrl('/river?source=pib')).toBe('/river?source=pib');
-    expect(sanitizeReturnUrl('/valid#curator')).toBe('/valid#curator');
+    ['/#curator', '#curator', '/', '/archive', '/river?source=pib', '/valid#curator'].forEach((p) => {
+      expect(sanitizeReturnUrl(p)).toBe(p);
+    });
   });
 
-  it('rejects external URLs with absolute HTTP/HTTPS schemes', () => {
-    expect(sanitizeReturnUrl('https://evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('http://attacker.org/phish')).toBe('/#curator');
-    expect(sanitizeReturnUrl('https://defencewire.in.evil.com')).toBe('/#curator');
-  });
-
-  it('rejects protocol-relative and backslash obfuscated navigation', () => {
-    expect(sanitizeReturnUrl('//evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('///evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('/\\evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('\\evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('\\/evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('/%2f%2fevil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('/%5cevil.com')).toBe('/#curator');
-  });
-
-  it('rejects dangerous script schemes and data URIs', () => {
-    expect(sanitizeReturnUrl('javascript:alert(1)')).toBe('/#curator');
-    expect(sanitizeReturnUrl('data:text/html,<script>alert(1)</script>')).toBe('/#curator');
-    expect(sanitizeReturnUrl('vbscript:msgbox(1)')).toBe('/#curator');
-  });
-
-  it('rejects CRLF and control character header injection payloads', () => {
-    expect(sanitizeReturnUrl('/\r\nLocation: https://evil.com')).toBe('/#curator');
-    expect(sanitizeReturnUrl('/%0d%0aSet-Cookie: evil=1')).toBe('/#curator');
-    expect(sanitizeReturnUrl('/path\0nullbyte')).toBe('/#curator');
+  it('rejects external URLs, dangerous schemes, obfuscated paths, and CRLF payloads', () => {
+    const malicious = [
+      'https://evil.com', 'http://attacker.org/phish', 'https://defencewire.in.evil.com',
+      '//evil.com', '///evil.com', '/\\evil.com', '\\evil.com', '\\/evil.com',
+      '/%2f%2fevil.com', '/%5cevil.com', 'javascript:alert(1)', 'data:text/html,<script>alert(1)</script>',
+      'vbscript:msgbox(1)', '/\r\nLocation: https://evil.com', '/%0d%0aSet-Cookie: evil=1', '/path\0nullbyte'
+    ];
+    malicious.forEach((url) => {
+      expect(sanitizeReturnUrl(url)).toBe('/#curator');
+    });
   });
 
   it('handles empty, whitespace, non-string, or custom fallback scenarios', () => {
-    expect(sanitizeReturnUrl(null)).toBe('/#curator');
-    expect(sanitizeReturnUrl(undefined)).toBe('/#curator');
-    expect(sanitizeReturnUrl('')).toBe('/#curator');
-    expect(sanitizeReturnUrl('   ')).toBe('/#curator');
+    [null, undefined, '', '   '].forEach((input) => {
+      expect(sanitizeReturnUrl(input as any)).toBe('/#curator');
+    });
     expect(sanitizeReturnUrl('https://evil.com', '/archive')).toBe('/archive');
   });
 });

@@ -57,13 +57,7 @@ export async function verifyAccessJwtToken(
     const matchedKey = certs.keys.find((k) => (k as unknown as { kid?: string }).kid === header.kid);
     if (!matchedKey) return null;
 
-    const cryptoKey = await globalThis.crypto.subtle.importKey(
-      'jwk',
-      matchedKey,
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
+    const cryptoKey = await globalThis.crypto.subtle.importKey('jwk', matchedKey, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
     const signedData = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
     const signature = base64UrlToUint8Array(sigB64).slice().buffer;
     const isValid = await globalThis.crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, signature, signedData);
@@ -96,9 +90,7 @@ export async function verifyAccessSessionCookie(
 export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
+  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return result === 0;
 }
 
@@ -122,12 +114,13 @@ export async function hmacSign(payload: string, secret: string): Promise<string>
 }
 
 /**
- * Generates an HttpOnly signed session cookie string.
+ * Generates an HttpOnly signed session cookie string with v1 version prefix.
  */
 export async function createSessionCookie(secret: string = DEFAULT_SESSION_SECRET, maxAge: number = SESSION_MAX_AGE_DEFAULT): Promise<string> {
+  const primarySecret = secret.split(',')[0]?.trim() || DEFAULT_SESSION_SECRET;
   const timestamp = Date.now().toString();
-  const signature = await hmacSign(timestamp, secret);
-  return `${SESSION_COOKIE_NAME}=${timestamp}.${signature}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
+  const signature = await hmacSign(timestamp, primarySecret);
+  return `${SESSION_COOKIE_NAME}=v1.${timestamp}.${signature}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
 }
 
 /**
@@ -138,7 +131,8 @@ export function createClearSessionCookie(): string {
 }
 
 /**
- * Verifies an incoming cookie against the HMAC secret.
+ * Verifies an incoming cookie against the HMAC secret (or comma-separated secret list for zero-downtime rotation).
+ * Supports both versioned ('v1.timestamp.signature') and legacy ('timestamp.signature') tokens.
  */
 export async function verifySessionCookie(
   cookieHeader: string | null | undefined,
@@ -151,14 +145,30 @@ export async function verifySessionCookie(
   if (!sessionCookie) return false;
 
   const token = sessionCookie.slice(`${SESSION_COOKIE_NAME}=`.length);
-  const [timestampStr, providedSig] = token.split('.');
-  if (!timestampStr || !providedSig) return false;
+  const parts = token.split('.');
+  let timestampStr = '';
+  let providedSig = '';
+
+  if (parts.length === 3 && parts[0] === 'v1') {
+    timestampStr = parts[1]!;
+    providedSig = parts[2]!;
+  } else if (parts.length === 2) {
+    timestampStr = parts[0]!;
+    providedSig = parts[1]!;
+  } else {
+    return false;
+  }
 
   const timestamp = parseInt(timestampStr, 10);
   if (isNaN(timestamp) || Date.now() - timestamp > maxAgeMs) return false;
 
-  const expectedSig = await hmacSign(timestampStr, secret);
-  return timingSafeEqual(providedSig, expectedSig);
+  const secretCandidates = secret.split(',').map((s) => s.trim()).filter(Boolean);
+  for (const s of secretCandidates) {
+    const expectedSig = await hmacSign(timestampStr, s);
+    if (timingSafeEqual(providedSig, expectedSig)) return true;
+  }
+
+  return false;
 }
 
 /**
@@ -249,12 +259,10 @@ export async function handleCuratorAuthRequest(
 
   const computedHash = await sha256Hex(passcode);
   const isValid = timingSafeEqual(computedHash, expectedHash);
-
   if (!isValid) return { success: false, error: 'Invalid passcode.' };
 
   const maxAge = payload.remember ? SESSION_MAX_AGE_DEFAULT : 60 * 60 * 8;
   const cookie = await createSessionCookie(secret, maxAge);
-
   return { success: true, cookie };
 }
 
@@ -268,32 +276,21 @@ export function sanitizeReturnUrl(url: string | null | undefined, fallback: stri
   if (!trimmed) return fallback;
 
   // Reject CRLF or control characters (raw or URL-encoded)
-  if (/[\r\n\0\t\x00-\x1F\x7F]/.test(trimmed) || /%(?:0[0-9a-fA-F]|1[0-9a-fA-F]|7[fF])/i.test(trimmed)) {
-    return fallback;
-  }
+  if (/[\r\n\0\t\x00-\x1F\x7F]/.test(trimmed) || /%(?:0[0-9a-fA-F]|1[0-9a-fA-F]|7[fF])/i.test(trimmed)) return fallback;
+  // Reject protocol schemes and protocol-relative or backslash paths
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) || /^[/\\]{2,}/.test(trimmed) || /^\\[/\\]?/.test(trimmed) || /^\/\\/.test(trimmed)) return fallback;
 
-  // Reject protocol schemes (e.g. https:, http:, javascript:, data:, etc.)
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return fallback;
-
-  // Reject protocol-relative or backslash-prefixed paths (//, /\, \\)
-  if (/^[/\\]{2,}/.test(trimmed) || /^\\[/\\]?/.test(trimmed) || /^\/\\/.test(trimmed)) return fallback;
-
-  // Decode URI component to check for obfuscated schemes or backslashes
   try {
     const decoded = decodeURIComponent(trimmed);
-    if (/[\r\n\0\t\x00-\x1F\x7F]/.test(decoded)) return fallback;
-    if (/^[/\\]{2,}/.test(decoded) || /^\/\\/.test(decoded) || /^\\[/\\]?/.test(decoded)) return fallback;
-    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)) return fallback;
+    if (/[\r\n\0\t\x00-\x1F\x7F]/.test(decoded) || /^[/\\]{2,}/.test(decoded) || /^\/\\/.test(decoded) || /^\\[/\\]?/.test(decoded) || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)) {
+      return fallback;
+    }
     const pathPart = decoded.split(/[?#]/)[0] || '';
     if (pathPart.includes('\\')) return fallback;
   } catch {
     return fallback;
   }
 
-  // Must strictly start with '/' or '#'
-  if (!trimmed.startsWith('/') && !trimmed.startsWith('#')) {
-    return fallback;
-  }
-
+  if (!trimmed.startsWith('/') && !trimmed.startsWith('#')) return fallback;
   return trimmed;
 }

@@ -61,7 +61,7 @@ describe('Cloudflare Pages Function: /api/curator/auth', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('Set-Cookie')).toContain('dw_curator_session=');
+    expect(response.headers.get('Set-Cookie')).toContain('dw_curator_session=v1.');
   });
 
   it('rejects invalid login POST request with HTTP 401', async () => {
