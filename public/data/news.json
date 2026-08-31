@@ -46,21 +46,21 @@
       "entities": [
         "INS Nipun"
       ],
-      "defenceScore": 50.4,
+      "defenceScore": 49.6,
       "isLeadStory": true,
       "createdAt": "2026-08-31T10:21:20.000Z",
       "updatedAt": "2026-08-31T12:30:38.000Z",
       "ssbIntel": {
-        "whyItMatters": "Admiral Swaminathan's assessment highlights the intensifying geopolitical competition and complex security challenges in India's primary areas of maritime interest. Strengthening undersea and deep-sea capabilities is vital to protect critical national maritime infrastructure and secure lines of communication.",
-        "strategicAngle": "The emphasis on deep-sea operational readiness aligns with India's evolving naval doctrine focused on power projection, seabed warfare awareness, and regional sea control against expanding adversary footprints in the Indo-Pacific.",
+        "whyItMatters": "Admiral Swaminathan's assessment highlights increasing maritime contestation in the Indian Ocean Region, necessitating enhanced undersea surveillance and intervention capabilities. This strategic evolution underscores India's focus on securing critical sea lines of communication against emerging multi-domain threats.",
+        "strategicAngle": "The emphasis on deep-sea capabilities aligns with India's maritime doctrine of securing regional sea control and power projection, enhancing undersea situational awareness, and countering adversarial sub-surface presence in vital strategic chokepoints.",
         "defenceTechTakeaway": {
           "platformOrSystem": "INS Nipun",
           "specifications": [
             "Deep-sea diving support capabilities",
             "Advanced underwater intervention systems",
-            "Specialized submarine rescue and salvage support"
+            "Sub-surface search and rescue infrastructure"
           ],
-          "keySignificance": "Enhances the Indian Navy's underwater operational reach, submarine rescue capabilities, and strategic seabed domain awareness."
+          "keySignificance": "Enhances the Indian Navy's operational reach in underwater domains, critical for submarine rescue, salvage operations, and covert sub-surface infrastructure maintenance."
         }
       }
     },
@@ -84,21 +84,21 @@
         "procurement"
       ],
       "entities": [],
-      "defenceScore": 50.2,
+      "defenceScore": 49.5,
       "isLeadStory": false,
       "createdAt": "2026-08-31T11:46:56.000Z",
       "updatedAt": "2026-08-31T11:46:56.000Z",
       "ssbIntel": {
-        "whyItMatters": "Understanding fragmented end-user requirements within the Indian Armed Forces ensures that domestic and foreign defense suppliers align development with genuine battlefield needs rather than generic commercial technology. This optimization directly enhances force readiness and operational responsiveness.",
-        "strategicAngle": "Aligning procurement with operational effectiveness rather than raw technology supports India's doctrine of indigenous capability building and multi-domain synergy, ensuring that capital acquisitions directly contribute to theater-level deterrence.",
+        "whyItMatters": "Understanding fragmented end-user requirements within the Indian Armed Forces ensures defense suppliers focus on mission-critical utility rather than standalone technology. This alignment directly enhances force readiness and operational integration across diverse service branches.",
+        "strategicAngle": "Aligns indigenous defense manufacturing with real-world doctrine and multi-domain operational readiness, ensuring capability development supports joint-force deterrence.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Modular C4ISR and Multi-User Tactical Systems",
+          "platformOrSystem": "Modular C4ISR and Tactical Systems",
           "specifications": [
-            "Interoperable communication protocols",
-            "User-specific terminal configurations",
-            "Secure decentralized data sharing"
+            "High interoperability across service branches",
+            "Field-ruggedized for diverse terrain operations",
+            "Decentralized end-user adaptability"
           ],
-          "keySignificance": "Bridges the gap between distinct service branch requirements, enabling seamless joint operations across the Army, Navy, and Air Force."
+          "keySignificance": "Enables seamless tactical execution by matching specific branch-level operational doctrines rather than generic technological capabilities."
         }
       }
     },
@@ -122,21 +122,135 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 49.5,
+      "defenceScore": 49,
       "isLeadStory": false,
       "createdAt": "2026-08-31T09:50:51.000Z",
       "updatedAt": "2026-08-31T09:50:51.000Z",
       "ssbIntel": {
-        "whyItMatters": "Poland's rapid intake of advanced K2 Black Panther main battle tanks demonstrates effective defense industrial mobilization and timely capability enhancement against regional threats. This massive armor acquisition significantly bolsters NATO's eastern flank deterrence posture.",
-        "strategicAngle": "The large-scale procurement underscores a strategic pivot toward heavy armored readiness and agile defense industrial partnerships, bypassing traditional bureaucratic delays to rapidly field division-level combat power.",
+        "whyItMatters": "Poland's rapid intake of advanced K2 Black Panther tanks demonstrates the viability of accelerated foreign defense procurement and technology transfer models. For India, this highlights the necessity of fast-tracking domestic main battle tank production and addressing critical capability gaps in armored warfare.",
+        "strategicAngle": "Rapid armored fleet recapitalization reinforces NATO's eastern flank deterrence posture, showcasing how medium powers can leverage foreign industrial partnerships to achieve mass and modernization. It underscores doctrinal shifts toward highly mobile, technologically advanced armor capable of rapid deployment in high-intensity European theater operations.",
         "defenceTechTakeaway": {
           "platformOrSystem": "K2 Black Panther Main Battle Tank",
           "specifications": [
-            "120mm smoothbore gun with automatic loader",
-            "Advanced composite armor and active protection systems",
-            "Hydropneumatic suspension for terrain adaptability"
+            "120mm L/55 smoothbore gun with autoloader",
+            "Advanced composite armor with active protection systems",
+            "Hydropneumatic suspension system for terrain adaptation"
           ],
-          "keySignificance": "Provides high mobility, superior firepower, and crew survivability tailored for diverse European terrain, setting a benchmark for modern MBT design."
+          "keySignificance": "Combines high firepower, crew reduction via autoloader, and superior mobility tailored for complex European terrain, setting a benchmark for modern MBT design."
+        }
+      }
+    },
+    {
+      "id": "cluster-e79341ae",
+      "synthesizedHeadline": "India’s Battle for Public Trust Begins in the Cybercrime Marketplace",
+      "primarySource": {
+        "id": "feed-frontier-india-e79341ae",
+        "title": "India’s Battle for Public Trust Begins in the Cybercrime Marketplace",
+        "url": "https://frontierindia.com/indias-battle-for-public-trust-begins-in-the-cybercrime-marketplace/",
+        "sourceName": "Frontier India Strategic Affairs",
+        "sourceDomain": "frontierindia.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T06:35:04.000Z",
+        "snippet": "The most dangerous threat to Indian democracy may not arrive as a fabricated post written in the basement of a foreign intelligence agency. It may begin with an ordinary-looking transaction in an online marketplace: a batch of mature social media accounts, ver",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 46.8,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T06:35:04.000Z",
+      "updatedAt": "2026-08-31T06:35:04.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The commoditization of aged social media accounts in cybercrime marketplaces lowers the barrier for foreign actors to conduct sophisticated cognitive warfare against India. This undermines public trust in democratic institutions and national security leadership.",
+        "strategicAngle": "India's defense doctrine must expand beyond kinetic deterrence to encompass cognitive domain operations, integrating real-time attribution and offensive-defensive cyber capabilities to neutralize gray-zone information warfare.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "AI-Driven Cognitive Threat Intelligence Platform",
+          "specifications": [
+            "Real-time botnet and compromised account tracking",
+            "Natural language processing for narrative velocity analysis",
+            "Automated provenance verification for social media amplification"
+          ],
+          "keySignificance": "Provides the Indian Armed Forces and state security apparatus with early warning capabilities against orchestrated foreign disinformation campaigns before they destabilize the domestic information environment."
+        }
+      }
+    },
+    {
+      "id": "cluster-d2cab0b6",
+      "synthesizedHeadline": "11 Killed, Several Injured After Explosion In UP Firecracker Factory",
+      "primarySource": {
+        "id": "feed-ndtv-defence-d2cab0b6",
+        "title": "11 Killed, Several Injured After Explosion In UP Firecracker Factory",
+        "url": "https://www.ndtv.com/india-news/24-injured-15-feared-trapped-after-explosion-in-up-firecracker-factory-11981906#publisher=newsstand",
+        "sourceName": "NDTV India (Defence & Border Security)",
+        "sourceDomain": "ndtv.com",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-08-31T14:14:22.000Z",
+        "snippet": "The blast occurred in the Pipri police station area near the Manori power house, following which police, fire brigade and Air Force personnel stationed nearby, launched a joint rescue operation, officials said.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 43.8,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T14:14:22.000Z",
+      "updatedAt": "2026-08-31T14:14:22.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The incident highlights critical safety vulnerabilities in civilian explosive manufacturing clusters near vital military infrastructure, such as Air Force stations. Such accidents risk collateral disruption to defence logistics and personnel deployed for emergency disaster relief.",
+        "strategicAngle": "From a civil-military fusion and national resilience perspective, securing strategic zones against industrial hazards is vital to maintaining uninterrupted operational readiness and secure lines of communication for the armed forces.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Joint Rescue and Disaster Response Equipment",
+          "specifications": [
+            "Rapid deployment fire-tenders",
+            "Chemical, Biological, Radiological, and Nuclear (CBRN) response gear",
+            "Military-grade heavy lifting and extrication tools"
+          ],
+          "keySignificance": "Demonstrates the integration of nearby military personnel and assets into civil-military disaster response frameworks to mitigate domestic industrial emergencies."
+        }
+      }
+    },
+    {
+      "id": "cluster-2427cd15",
+      "synthesizedHeadline": "Lockheed Martin proposes $1.8bn F-16 industrial package to Peru",
+      "primarySource": {
+        "id": "feed-airforce-tech-2427cd15",
+        "title": "Lockheed Martin proposes $1.8bn F-16 industrial package to Peru",
+        "url": "https://www.airforce-technology.com/news/lockheed-martin-proposes-1-8bn-f-16-industrial-package-to-peru/",
+        "sourceName": "Airforce Technology (Military Aerospace)",
+        "sourceDomain": "airforce-technology.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-28T17:03:03.000Z",
+        "snippet": "Lockheed Martin has proposed an industrial and social partnership package for Peru, related to the F-16 Block 70 and valued at $1.8bn.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 43.7,
+      "isLeadStory": false,
+      "createdAt": "2026-08-28T17:03:03.000Z",
+      "updatedAt": "2026-08-28T17:03:03.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Lockheed Martin's $1.8bn F-16 Block 70 industrial package for Peru reflects aggressive US defense diplomacy in Latin America, potentially shifting regional air combat dynamics. While peripheral to South Asia, such massive foreign military sales highlight global supply chain demands and offset manufacturing trends relevant to India's own defense procurement landscape.",
+        "strategicAngle": "The proposal underscores the enduring viability of fourth-generation-plus platforms in modern air doctrine, emphasizing comprehensive industrial partnerships and tech transfers as critical vectors for export success and long-term fleet interoperability.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "F-16 Block 70",
+          "specifications": [
+            "APG-83 Active Electronically Scanned Array (AESA) radar",
+            "Advanced electronic warfare and datalink systems",
+            "Extended structural life of 12,000 hours"
+          ],
+          "keySignificance": "Combines advanced 5th-generation avionics with a proven airframe, offering cost-effective multi-role capability and network-centric warfare integration for export markets."
         }
       }
     },
@@ -172,97 +286,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 47.4,
+      "defenceScore": 43.6,
       "isLeadStory": false,
       "createdAt": "2026-08-31T09:20:50.000Z",
       "updatedAt": "2026-08-31T12:30:42.000Z",
       "ssbIntel": {
-        "whyItMatters": "The co-production agreement for Javelin anti-tank guided missiles significantly enhances India's indigenous defense manufacturing capabilities and ensures a steady, scaled-up supply for frontline infantry units. This development directly addresses critical operational gaps in anti-tank warfare along contested borders.",
-        "strategicAngle": "Bolsters tactical deterrence against mechanized armor threats in high-altitude and plains sectors, aligning with India's broader doctrine of achieving strategic self-reliance through technology transfer and domestic production.",
+        "whyItMatters": "The co-production agreement for Javelin anti-tank guided missiles significantly bolsters the Indian Army's mechanized infantry deterrence along disputed borders. It aligns with indigenous defense manufacturing goals while rapidly scaling up critical tactical anti-armor inventories.",
+        "strategicAngle": "Enhances localized anti-armor asymmetric warfare capabilities, providing infantry formations with decentralized, high-probability-of-kill deterrence against mechanized thrusts in mountainous and plains terrain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Javelin Anti-Tank Guided Missile (ATGM)",
+          "platformOrSystem": "Javelin Anti-Tank Guided Missile System",
           "specifications": [
-            "Fire-and-forget capability",
+            "Fire-and-forget guidance",
             "Top-attack and direct-attack modes",
-            "Infrared seeker guidance"
+            "Man-portable launch system"
           ],
-          "keySignificance": "Provides infantry units with high-probability-of-kill capability against modern armored vehicles while reducing exposure time for operators."
-        }
-      }
-    },
-    {
-      "id": "cluster-e79341ae",
-      "synthesizedHeadline": "India’s Battle for Public Trust Begins in the Cybercrime Marketplace",
-      "primarySource": {
-        "id": "feed-frontier-india-e79341ae",
-        "title": "India’s Battle for Public Trust Begins in the Cybercrime Marketplace",
-        "url": "https://frontierindia.com/indias-battle-for-public-trust-begins-in-the-cybercrime-marketplace/",
-        "sourceName": "Frontier India Strategic Affairs",
-        "sourceDomain": "frontierindia.com",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T06:35:04.000Z",
-        "snippet": "The most dangerous threat to Indian democracy may not arrive as a fabricated post written in the basement of a foreign intelligence agency. It may begin with an ordinary-looking transaction in an online marketplace: a batch of mature social media accounts, ver",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 47,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T06:35:04.000Z",
-      "updatedAt": "2026-08-31T06:35:04.000Z",
-      "ssbIntel": {
-        "whyItMatters": "The commercial availability of mature social media accounts on cybercrime marketplaces lowers the barrier for foreign adversaries to conduct sophisticated cognitive warfare against India. This undermines public trust in democratic institutions and destabilizes internal security without triggering traditional military thresholds.",
-        "strategicAngle": "India's national security doctrine must evolve beyond conventional kinetic deterrence to incorporate a robust cognitive and cyber defense posture. Protecting public trust requires treating information warfare infrastructure as a critical national asset and expanding active countermeasures against illicit digital marketplaces.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Automated Cyber-Intelligence and Influence Operation Attribution Framework",
-          "specifications": [
-            "Real-time dark web and marketplace surveillance",
-            "Behavioral biometrics and botnet traffic identification",
-            "Automated narrative tracking and deepfake detection algorithms"
-          ],
-          "keySignificance": "Enables the Indian Armed Forces and national intelligence agencies to preemptively identify, track, and neutralize foreign influence campaigns before they manipulate public perception during critical security events."
-        }
-      }
-    },
-    {
-      "id": "cluster-2427cd15",
-      "synthesizedHeadline": "Lockheed Martin proposes $1.8bn F-16 industrial package to Peru",
-      "primarySource": {
-        "id": "feed-airforce-tech-2427cd15",
-        "title": "Lockheed Martin proposes $1.8bn F-16 industrial package to Peru",
-        "url": "https://www.airforce-technology.com/news/lockheed-martin-proposes-1-8bn-f-16-industrial-package-to-peru/",
-        "sourceName": "Airforce Technology (Military Aerospace)",
-        "sourceDomain": "airforce-technology.com",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-28T17:03:03.000Z",
-        "snippet": "Lockheed Martin has proposed an industrial and social partnership package for Peru, related to the F-16 Block 70 and valued at $1.8bn.",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 43.7,
-      "isLeadStory": false,
-      "createdAt": "2026-08-28T17:03:03.000Z",
-      "updatedAt": "2026-08-28T17:03:03.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Lockheed Martin's $1.8bn F-16 Block 70 industrial package for Peru reflects aggressive US defense diplomacy in Latin America. While focused on South America, it underscores the global market competition for 4.5-generation fighters that directly impacts defense supply chains and regional power balances.",
-        "strategicAngle": "The offering highlights how major defense contractors leverage comprehensive industrial partnerships and technology transfer to secure long-term geopolitical alignment and fleet interoperability. For regional deterrence, introducing advanced avionics and radar architectures reshapes local air combat dynamics.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "F-16 Block 70",
-          "specifications": [
-            "APG-83 Active Electronically Scanned Array (AESA) radar",
-            "Advanced electronic warfare suite",
-            "Conformal fuel tanks for extended operational range"
-          ],
-          "keySignificance": "Delivers 5th-generation fighter capabilities and sensor fusion to a 4.5-generation platform, significantly enhancing situational awareness, targeting precision, and survivability."
+          "keySignificance": "Provides dismounted infantry with decisive, long-range tactical lethality against modern main battle tanks and armored formations."
         }
       }
     },
@@ -290,21 +328,21 @@
       "entities": [
         "Akash-NG"
       ],
-      "defenceScore": 43.1,
+      "defenceScore": 43,
       "isLeadStory": false,
       "createdAt": "2026-08-31T02:30:45.000Z",
       "updatedAt": "2026-08-31T02:30:45.000Z",
       "ssbIntel": {
-        "whyItMatters": "A potential procurement of around 1,000 Akash-NG missiles significantly bolsters India's indigenous layered air defense capabilities. It enhances the Indian Air Force's ability to deter and counter aerial threats along contested borders.",
-        "strategicAngle": "This large-scale acquisition underscores India's strategic shift toward self-reliance in critical defense manufacturing, reducing import dependency while hardening domestic critical infrastructure against modern airborne vectors.",
+        "whyItMatters": "The potential procurement of around 1,000 Akash-NG missiles significantly bolsters India's layered air defense capabilities along contested borders. This massive order book accelerates indigenous defense manufacturing and reduces reliance on foreign systems.",
+        "strategicAngle": "Enhances point and area air defense deterrence against advanced aerial threats, aligning with the doctrine of self-reliance (Atmanirbhar Bharat) and robust domestic force multiplication.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Akash-NG",
           "specifications": [
-            "New Generation Surface-to-Air Missile",
-            "Advanced Active Electronically Scanned Array (AESA) seeker",
-            "Extended range and enhanced maneuverability"
+            "Next-generation surface-to-air missile",
+            "Extended operational range",
+            "Active Radio Frequency seeker"
           ],
-          "keySignificance": "Provides high-precision interception capabilities against fast, modern aerial threats including stealth fighters, cruise missiles, and drones."
+          "keySignificance": "Provides high-reactivity and precision interception capabilities against agile aerial threats, modernizing India's tactical air defense grid."
         }
       }
     },
@@ -328,59 +366,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 41,
+      "defenceScore": 40.2,
       "isLeadStory": false,
       "createdAt": "2026-08-31T14:15:49.000Z",
       "updatedAt": "2026-08-31T14:15:49.000Z",
       "ssbIntel": {
-        "whyItMatters": "Port visits by US Navy supercarriers to Southeast Asian nations highlight ongoing strategic engagements in the Indo-Pacific. While primarily economic and diplomatic, these deployments test regional logistics and influence alignment dynamics.",
-        "strategicAngle": "Demonstrates power projection and interoperability within the Indo-Pacific theater, reinforcing US security commitments to regional partners and countering peer competitor influence.",
+        "whyItMatters": "Port visits by US Navy supercarriers in Southeast Asia highlight regional alliance networks and power projection capabilities. Managing socio-economic impacts during such deployments is crucial for maintaining host-nation diplomatic goodwill.",
+        "strategicAngle": "Demonstrates the US Navy's flexible operational reach and power projection within the Indo-Pacific theatre, reinforcing regional deterrence architecture and interoperability with partner nations.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Nimitz-class Aircraft Carrier (USS Abraham Lincoln)",
           "specifications": [
             "Displacement: ~100,000 tonnes",
-            "Propulsion: Two nuclear reactors, four shafts",
+            "Propulsion: Two Westinghouse A4W nuclear reactors",
             "Air Wing: Up to 90 fixed-wing aircraft and helicopters"
           ],
-          "keySignificance": "Serves as a mobile strategic airbase capable of multi-domain power projection, force protection, and command and control across contested maritime zones."
-        }
-      }
-    },
-    {
-      "id": "cluster-d2cab0b6",
-      "synthesizedHeadline": "5 Killed, Several Injured After Explosion In UP Firecracker Factory",
-      "primarySource": {
-        "id": "feed-ndtv-defence-d2cab0b6",
-        "title": "5 Killed, Several Injured After Explosion In UP Firecracker Factory",
-        "url": "https://www.ndtv.com/india-news/24-injured-15-feared-trapped-after-explosion-in-up-firecracker-factory-11981906#publisher=newsstand",
-        "sourceName": "NDTV India (Defence & Border Security)",
-        "sourceDomain": "ndtv.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-08-31T12:31:09.000Z",
-        "snippet": "The blast occurred in the Pipri police station area near the Manori power house, following which police, fire brigade and Air Force personnel stationed nearby, launched a joint rescue operation, officials said.",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 40.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T12:31:09.000Z",
-      "updatedAt": "2026-08-31T12:31:09.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Domestic industrial accidents involving explosives highlight vulnerabilities in the broader supply chain and civil-military infrastructure. Joint rescue operations involving Air Force personnel demonstrate rapid inter-agency disaster response capabilities.",
-        "strategicAngle": "Ensuring the safety and security of critical national industrial infrastructure is vital for maintaining domestic stability and logistics readiness, which underpins comprehensive national security.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Civilian-Military Disaster Response Logistics",
-          "specifications": [
-            "Inter-agency coordination protocols",
-            "Rapid deployment of regional Air Force rescue assets",
-            "Hazardous material containment equipment"
-          ],
-          "keySignificance": "Demonstrates the operational readiness and dual-use capability of military personnel in providing immediate Humanitarian Assistance and Disaster Relief (HADR) during domestic crises."
+          "keySignificance": "Serves as a mobile sovereign airfield capable of sustained multi-role power projection, command and control, and strategic deterrence across maritime choke points."
         }
       }
     },
@@ -404,21 +404,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 39.6,
+      "defenceScore": 38.7,
       "isLeadStory": false,
       "createdAt": "2026-08-31T13:37:12.000Z",
       "updatedAt": "2026-08-31T13:37:12.000Z",
       "ssbIntel": {
-        "whyItMatters": "New Zealand's focus on interoperability with larger forces highlights the growing necessity for smaller militaries to plug into allied command-and-control networks to maintain relevance. For regional security architectures, this trend underscores how cooperative defense frameworks enhance collective deterrence against peer adversaries.",
-        "strategicAngle": "From a doctrine perspective, this reflects a shift from self-reliant territorial defense to networked coalition warfare, maximizing force multipliers through shared intelligence and standardized logistics.",
+        "whyItMatters": "Interoperability drills by regional militaries highlight the growing importance of multinational coalition building and integrated command structures in the Indo-Pacific. This collective capability directly impacts regional power dynamics and allied readiness.",
+        "strategicAngle": "Focuses on coalition warfare and burden-sharing, enhancing regional deterrence through seamless multi-domain integration and interoperability with major allied forces like the Australian Defence Force.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Interoperable Command, Control, Communications, Computers, Intelligence, Surveillance, and Reconnaissance (C4ISR) Systems",
+          "platformOrSystem": "Battle Management System (BMS) and Tactical Data Links",
           "specifications": [
-            "STANAG-compliant secure data links",
-            "Modular tactical radios for cross-domain communication",
-            "Real-time blue-force tracking software"
+            "Secure encrypted waveforms",
+            "Real-time situational awareness sharing",
+            "Cross-domain interoperability protocols"
           ],
-          "keySignificance": "Enables seamless data sharing and operational synchronization between disparate national military units during joint coalition deployments."
+          "keySignificance": "Enables disparate national ground forces to operate under a unified operational picture, drastically reducing sensor-to-shooter timelines in joint coalitions."
         }
       }
     },
@@ -442,21 +442,21 @@
         "army"
       ],
       "entities": [],
-      "defenceScore": 39.3,
+      "defenceScore": 38.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T13:54:22.000Z",
       "updatedAt": "2026-08-31T13:54:22.000Z",
       "ssbIntel": {
-        "whyItMatters": "Deploying nuclear microreactors secures critical military installations against grid vulnerabilities and long-range energy disruptions. It ensures uninterrupted power for command, control, and data-intensive defense operations.",
-        "strategicAngle": "Enhances base resilience and energy autonomy, aligning with broader strategic goals of reducing logistical vulnerabilities in contested environments and supporting high-power military technologies.",
+        "whyItMatters": "Deploying nuclear microreactors secures critical military installations against grid vulnerabilities and fossil fuel supply chain disruptions. This ensures uninterrupted energy resilience for high-demand defense infrastructure.",
+        "strategicAngle": "Enhances base-level strategic deterrence and operational continuity by reducing logistical footprints and dependence on vulnerable external fuel lines during prolonged conflicts.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Nuclear Microreactor",
           "specifications": [
-            "Mobile deployment capability",
-            "High-density energy generation",
-            "Enhanced passive safety systems"
+            "High operational transportability",
+            "Enhanced passive safety features",
+            "High-density decentralized energy output"
           ],
-          "keySignificance": "Provides a reliable, independent power source for forward-deployed or critical domestic military installations, reducing reliance on vulnerable commercial power grids and fossil fuel supply chains."
+          "keySignificance": "Provides resilient, zero-emission baseload power directly to critical military installations, mitigating the risks of grid attacks and fuel supply vulnerabilities."
         }
       }
     },
@@ -480,21 +480,21 @@
         "airforce"
       ],
       "entities": [],
-      "defenceScore": 38.9,
+      "defenceScore": 38.1,
       "isLeadStory": false,
       "createdAt": "2026-08-31T14:27:00.000Z",
       "updatedAt": "2026-08-31T14:27:00.000Z",
       "ssbIntel": {
-        "whyItMatters": "Russia's progress with the MC-21 highlights its efforts to achieve aviation self-sufficiency under heavy Western sanctions. This technological resilience holds lessons for India's own domestic aerospace and defense manufacturing initiatives.",
-        "strategicAngle": "Demonstrates the viability of technological decoupling and indigenous substitution strategies under severe economic sanctions, reinforcing concepts of self-reliance (Atmanirbhar Bharat) in critical national infrastructure.",
+        "whyItMatters": "Russia's progress on the domestically produced MC-21 airliner demonstrates Moscow's growing resilience against Western sanctions, securing its domestic civil aviation base. For India, this highlights alternative avenues for technological cooperation in aviation components and supply chain diversification amid ongoing geopolitical realignments.",
+        "strategicAngle": "From a doctrine perspective, achieving complete aerospace self-reliance is vital for major powers seeking strategic autonomy and immunity from extraterritorial sanctions. This development reinforces Russia's defence-industrial complex capacity to sustain independent technological bases, a critical factor for long-term bilateral military-technical cooperation with nations like India.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Yakovlev MC-21-310",
           "specifications": [
-            "Domestically produced components",
-            "Serial-production airframe",
-            "Advanced flight-test configuration"
+            "Domestically produced commercial airliner configuration",
+            "Serial-production airframe transferred to flight-test department",
+            "Advanced composite wing and avionics integration"
           ],
-          "keySignificance": "Showcases the successful mitigation of supply chain vulnerabilities through indigenous substitution of critical aerospace subsystems."
+          "keySignificance": "Demonstrates indigenous manufacturing capabilities to substitute Western aerospace components, offering lessons in industrial mobilization and import substitution for critical national infrastructure."
         }
       }
     },
@@ -518,21 +518,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 38.6,
+      "defenceScore": 37.6,
       "isLeadStory": false,
       "createdAt": "2026-08-31T13:08:24.000Z",
       "updatedAt": "2026-08-31T13:08:24.000Z",
       "ssbIntel": {
-        "whyItMatters": "Reductions in independent weapons testing oversight can compromise rigorous developmental evaluation, leading to capability gaps and lifecycle failures in critical military hardware. For India, this underscores the vital necessity of maintaining stringent, transparent indigenous testing protocols through agencies like DRDG and DGAQA.",
-        "strategicAngle": "Reliability and operational readiness are pillars of credible deterrence; bypassing rigorous testing to save short-term costs risks long-term strategic vulnerabilities. Defense doctrines must prioritize empirical validation over bureaucratic expediency to ensure force multipliers perform under high-intensity combat conditions.",
+        "whyItMatters": "Reductions in independent operational test and evaluation oversight can lead to undetected developmental flaws in major defense acquisitions. For the Indian defense ecosystem, this highlights the critical need for rigorous, transparent domestic testing regimes to avoid costly capability gaps in critical platforms.",
+        "strategicAngle": "Reliable military readiness relies on unvarnished test data to ensure technological superiority and operational deterrence. Compromising on rigorous test-and-evaluation oversight risks fielding immature capabilities that can undermine long-term strategic posture.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Autonomous and Network-Centric Weapons Systems",
+          "platformOrSystem": "Independent Test and Evaluation Infrastructure",
           "specifications": [
-            "Hardware-in-the-loop simulation metrics",
-            "Environmental stress screening parameters",
-            "Operational test and evaluation (OT&E) failure rates"
+            "Operational test environments",
+            "Reliability and survivability metrics",
+            "Software-in-the-loop simulation capabilities"
           ],
-          "keySignificance": "Independent test data is crucial for validating the software reliability and hardware durability of complex modern munitions before induction."
+          "keySignificance": "Ensures that complex defense platforms meet stringent performance and safety standards before full-rate production and induction into active service."
         }
       }
     },
@@ -556,21 +556,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 38.2,
+      "defenceScore": 37.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T13:00:00.000Z",
       "updatedAt": "2026-08-31T13:00:00.000Z",
       "ssbIntel": {
-        "whyItMatters": "The integration of advanced generative AI into military workflows accelerates administrative and intelligence processing, setting a benchmark for secure adoption in defense. It highlights the growing imperative for militaries to leverage commercial large language models while maintaining rigorous security protocols for unclassified operations.",
-        "strategicAngle": "Adoption of enterprise-grade AI by the world's leading military normalizes artificial intelligence as a foundational layer of modern command support. For peer competitors and allied nations like India, this underscores the urgency to operationalize indigenous sovereign AI solutions to prevent strategic technological gaps in decision-making speed.",
+        "whyItMatters": "The Pentagon's formal integration of commercial generative AI for unclassified workflows establishes a precedent for adopting commercial foundational models into defense architectures. This accelerates bureaucratic efficiency and operational data processing at scale.",
+        "strategicAngle": "Maintains technological asymmetry against peer adversaries by rapidly bridging the gap between commercial Silicon Valley innovation and defense operational deployment, shifting the deterrence paradigm toward software-defined military advantages.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "OpenAI-derived Pentagon Unclassified AI Tool",
+          "platformOrSystem": "Pentagon-Approved Commercial LLM (OpenAI-based unclassified toolset)",
           "specifications": [
-            "Rigorous pre-deployment security testing",
-            "Restricted strictly to unclassified work environments",
-            "Enterprise integration for defense administrative and analytical tasks"
+            "Secured for unclassified defense workloads",
+            "Rigorously evaluated through months of military security testing",
+            "Integrated into Department of Defense operational environments"
           ],
-          "keySignificance": "Demonstrates a viable pathway for militaries to harness commercial frontier AI capabilities safely, transforming bureaucratic and analytical workflows without compromising classified infrastructure."
+          "keySignificance": "Demonstrates a viable pathway for militaries to securely harness enterprise-grade large language models for administrative, logistical, and analytical tasks without compromising core classified infrastructure."
         }
       }
     },
@@ -594,21 +594,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.6,
+      "defenceScore": 36.7,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:42:00.000Z",
       "updatedAt": "2026-08-31T12:42:00.000Z",
       "ssbIntel": {
-        "whyItMatters": "Effective integration of commercial space data is critical for real-time situational awareness and resilience against antisatellite threats. Bridging the gap between acquisition and operations ensures rapid capability deployment for modern multi-domain command and control.",
-        "strategicAngle": "Enhances space-based deterrence and resilience by diversifying intelligence, surveillance, and reconnaissance (ISR) architectures through commercial partnerships, reducing reliance on vulnerable exquisite military assets.",
+        "whyItMatters": "Effective integration of commercial space data is critical for real-time situational awareness and targeting in modern multi-domain operations. Failures in acquisition-operator linkage can create vulnerability gaps during high-intensity conflict.",
+        "strategicAngle": "Emphasizes the shift toward commercial-military fusion in space architecture, reinforcing resilience and distributed sensing for strategic deterrence against peer adversaries.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Commercial Space Integration Architecture",
           "specifications": [
-            "Real-time data fusion pipelines",
-            "Commercial-military interface standards",
-            "Automated tasking and dissemination nodes"
+            "Commercial satellite telemetry integration",
+            "Data fusion and processing pipelines",
+            "Operator-acquisition feedback loops"
           ],
-          "keySignificance": "Enables seamless ingestion of commercial telemetry and imagery into military operational networks, boosting tactical responsiveness and resilience in contested space domains."
+          "keySignificance": "Enhances responsiveness and operational tempo by bridging the gap between commercial space assets and tactical military decision-makers."
         }
       }
     },
@@ -632,21 +632,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:31:07.000Z",
       "updatedAt": "2026-08-31T12:31:07.000Z",
       "ssbIntel": {
-        "whyItMatters": "High-level military purges in the PLA introduce internal friction and leadership uncertainty within China's command structure. For Indian defense planners, this internal turbulence offers a critical window to assess adversary operational readiness and command stability along the LAC.",
-        "strategicAngle": "Internal political instability and leadership churn in the PLA can temporarily degrade rapid escalation dominance and joint-theater command cohesion. India must leverage this strategic distraction to reinforce defensive postures while maintaining dynamic deterrence along the disputed border.",
+        "whyItMatters": "Ongoing high-level purges within the PLA introduce potential internal instability and command friction within China's military hierarchy. For Indian defense planners, this leadership volatility could momentarily impact operational readiness or theater command decision-making along the Line of Actual Control.",
+        "strategicAngle": "From a deterrence perspective, internal political turbulence in Beijing may influence the calculus of the Central Military Commission regarding border management and escalation control. Monitoring these shifts allows India to better assess adversary cohesion and strategic predictability during bilateral standoffs.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "PLA Strategic Support Force / Joint Operations Command Infrastructure",
+          "platformOrSystem": "PLA Theater Command C4ISR Infrastructure",
           "specifications": [
-            "Encrypted tactical communications",
-            "Automated C4ISR integration",
-            "Theater-level joint command networks"
+            "Integrated joint operations networks",
+            "Secure quantum-encrypted communications",
+            "Automated battlefield decision-support systems"
           ],
-          "keySignificance": "Disruptions at the top command tiers risk fracturing the integration of advanced C4ISR systems, impacting the PLA's ability to execute seamless joint operations and real-time network-centric warfare."
+          "keySignificance": "Leadership turnover at senior levels directly affects the institutional oversight of advanced network-centric warfare capabilities, potentially disrupting the seamless integration of joint theater commands opposite India."
         }
       }
     },
@@ -670,21 +670,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:31:04.000Z",
       "updatedAt": "2026-08-31T12:31:04.000Z",
       "ssbIntel": {
-        "whyItMatters": "Delays in GE F404-IN20 engine deliveries directly impede the production schedule of the HAL Tejas Mk1A, leaving critical operational gaps in the Indian Air Force's fighter squadron strength. This supply chain bottleneck undermines indigenous aerospace manufacturing timelines and short-term force posture goals.",
-        "strategicAngle": "The disruption highlights the vulnerabilities of relying on foreign propulsion systems for domestic platforms, reinforcing the urgency of accelerating the indigenous Kaveri engine program to achieve true strategic autonomy in air combat capabilities.",
+        "whyItMatters": "Delays in GE F404-IN20 engine deliveries directly impede the production schedule of the HAL Tejas LCA, slowing the Indian Air Force's operational squadron regeneration and force modernization efforts. This supply chain bottleneck underscores vulnerabilities in domestic aerospace manufacturing dependency on foreign propulsion systems.",
+        "strategicAngle": "Highlights the critical necessity of accelerating domestic propulsion technologies, such as the Kaveri engine revival or joint-development ventures, to ensure strategic autonomy and maintain credible conventional deterrence against regional adversaries.",
         "defenceTechTakeaway": {
           "platformOrSystem": "GE F404-IN20 Turbofan Engine",
           "specifications": [
-            "Afterburning turbofan",
-            "Thrust class of 85 kN",
+            "Afterburning turbofan engine",
+            "Thrust class: 85 kN",
             "Full Authority Digital Engine Control (FADEC)"
           ],
-          "keySignificance": "Serves as the vital powerplant for the Tejas Light Combat Aircraft, dictating the operational readiness and delivery cadence of India's frontline indigenous fighter fleet."
+          "keySignificance": "Serves as the exclusive current powerplant for the indigenous Tejas Light Combat Aircraft (LCA) Mk1A, making its timely delivery paramount for fleet operational readiness."
         }
       }
     },
@@ -708,21 +708,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:30:17.000Z",
       "updatedAt": "2026-08-31T12:30:17.000Z",
       "ssbIntel": {
-        "whyItMatters": "The 4th Tri-Services Future Warfare Course highlights India's institutional push to adapt joint military doctrines against evolving regional security threats. Leadership emphasis on agility and innovation ensures the armed forces can rapidly absorb emerging disruptive technologies for multidomain operations.",
-        "strategicAngle": "Fosters integrated theater-level readiness and jointness, bolstering conventional deterrence through adaptive warfare strategies and technological integration.",
+        "whyItMatters": "The 4th Tri-Services Future Warfare Course highlights India's institutional push to adapt joint military doctrines and foster rapid innovation to counter emerging asymmetric threats. Integrating agile thinking across services is critical for maintaining a decisive edge in modern multi-domain conflict environments.",
+        "strategicAngle": "Emphasizes the Indian Armed Forces' strategic shift toward jointness and integration, aligning capability development with modern deterrence requirements across land, air, sea, cyber, and space domains.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Tri-Services Future Warfare Framework",
-          "specspecifications": [
-            "Cross-domain operational integration",
-            "Network-centric warfare architecture",
-            "Emerging technology adaptation protocols"
+          "specifications": [
+            "Cross-service operational integration",
+            "Advanced innovation adoption protocols",
+            "Agile joint-doctrine implementation"
           ],
-          "keySignificance": "Enhances the cognitive and doctrinal preparedness of military leadership to execute joint missions across land, air, sea, cyber, and space domains."
+          "keySignificance": "Enhances the cognitive and technological readiness of military leadership to deploy disruptive technologies effectively within a unified command structure."
         }
       }
     },
@@ -746,21 +746,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:30:12.000Z",
       "updatedAt": "2026-08-31T12:30:12.000Z",
       "ssbIntel": {
-        "whyItMatters": "PM Modi's participation in the SCO summit highlights India's active diplomatic engagement on regional security, counter-terrorism, and stability in Central and South Asia. Collaborative frameworks within the SCO help address transnational threats that directly impact India's broader security calculus.",
-        "strategicAngle": "From a strategic doctrine perspective, India balances multilateral platforms like the SCO to foster regional deterrence, manage continental security challenges, and counter adversarial geopolitical alignments.",
+        "whyItMatters": "PM Modi's participation in the SCO summit highlights India's proactive diplomatic engagement on regional security architecture and counter-terrorism cooperation. This multilateral platform enables India to coordinate defense strategies and intelligence sharing with Eurasian partners to counter mutual cross-border threats.",
+        "strategicAngle": "The engagement aligns with India's multi-aligned foreign policy and strategic autonomy, fostering regional deterrence through cooperative security frameworks while managing geopolitical competition in Central and South Asia.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Not Specified",
-          "specifications": [
-            "Not Applicable",
-            "Not Applicable",
-            "Not Applicable"
+          "platformOrSystem": "Regional Security and Counter-Terrorism Information Architecture",
+          "specspecifications": [
+            "Secure encrypted communications",
+            "Real-time intelligence sharing protocols",
+            "Interoperable command and control nodes"
           ],
-          "keySignificance": "The provided text focuses on high-level diplomatic engagement rather than specific defence platforms or tactical military hardware."
+          "keySignificance": "Enhances cross-border situational awareness and operational coordination against transnational security threats and asymmetric warfare."
         }
       }
     },
@@ -784,21 +784,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:30:10.000Z",
       "updatedAt": "2026-08-31T12:30:10.000Z",
       "ssbIntel": {
-        "whyItMatters": "The political consolidation of Jammu and Kashmir under the current constitutional framework reinforces the central government's counter-insurgency posture and internal security integration. Stability in the region is vital for maintaining the security grid along the International Border and the Line of Control.",
-        "strategicAngle": "From a strategic doctrine perspective, the permanent abrogation of Article 370 underpins the state's whole-of-government approach to neutralizing proxy warfare and cross-border terrorism, ensuring seamless command and control for security forces.",
+        "whyItMatters": "Political stabilization in Jammu and Kashmir remains a critical component of India's national security framework, directly impacting counter-insurgency operations and regional integration. Maintaining the status quo post-Article 370 abrogation is vital for internal deterrence against cross-border influence operations.",
+        "strategicAngle": "From a strategic doctrine perspective, the irreversibility of constitutional integration supports the Indian state's comprehensive national power paradigm, ensuring unified command structures and unhindered operational readiness for security forces in a sensitive border region.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Comprehensive Integrated Border Management System (CIBMS)",
+          "platformOrSystem": "Integrated Grid for Border Security and Intelligence (C4ISR)",
           "specifications": [
-            "Thermal imagers",
-            "Infrared sensors",
-            "Underground sensors and radar"
+            "Real-time sensor-to-shooter integration",
+            "Encrypted tactical communication networks",
+            "Multispectral border surveillance systems"
           ],
-          "keySignificance": "Enhances real-time surveillance and situational awareness along sensitive borders to prevent infiltration and maintain internal security stability."
+          "keySignificance": "Ensures seamless coordination between military and paramilitary forces to deter infiltration and maintain internal stability in the union territory."
         }
       }
     },
@@ -822,21 +822,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:30:08.000Z",
       "updatedAt": "2026-08-31T12:30:08.000Z",
       "ssbIntel": {
-        "whyItMatters": "Civil unrest and state crackdowns in Pakistan-administered Kashmir (PoK) highlight internal vulnerabilities and governance deficits in regions contiguous to India's borders. Monitoring these developments provides critical insights into local sentiment and potential spillover risks affecting regional stability.",
-        "strategicAngle": "Internal instability and contested governance in PoK serve as critical vectors in the broader information warfare and psychological operations domains. Highlighting human rights violations undermines the adversary's legitimacy while reinforcing India's narrative on state-sponsored suppression.",
+        "whyItMatters": "Civil unrest and state crackdowns in Pakistan-administered Kashmir (PoK) exacerbate regional instability along the Line of Control, potentially creating flashpoints that require constant monitoring by Indian defense forces. Heightened domestic friction in PoK also impacts adversary operational calculus and force posture in the sector.",
+        "strategicAngle": "Internal security failures and human rights abuses in occupied territories undermine the adversary's political narrative and conventional deterrence posture, highlighting vulnerabilities in their rear areas during crisis management.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Unmanned Aerial Systems (UAS) for Border Surveillance",
+          "platformOrSystem": "Unmanned Aerial Surveillance Systems",
           "specifications": [
-            "High-resolution electro-optical/infrared (EO/IR) sensors",
-            "Long-endurance loitering capability exceeding 24 hours",
-            "Secure real-time data link transmission for intelligence gathering"
+            "Long-endurance optical and thermal sensors",
+            "Real-time secure data link integration",
+            "All-weather reconnaissance capability"
           ],
-          "keySignificance": "Advanced ISR platforms enable continuous, real-time monitoring of internal security dynamics, troop movements, and civil unrest near the Line of Control without risking manned assets."
+          "keySignificance": "Provides continuous intelligence, surveillance, and reconnaissance (ISR) over border regions to monitor troop movements and civil disturbances without cross-border escalation."
         }
       }
     },
@@ -860,21 +860,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 37.2,
+      "defenceScore": 36.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:30:05.000Z",
       "updatedAt": "2026-08-31T12:30:05.000Z",
       "ssbIntel": {
-        "whyItMatters": "Civil unrest and violent protests in the sensitive border state of Manipur exacerbate internal security challenges, potentially diverting military and paramilitary resources from primary external defense postures along the international border. Unrest driven by demographic and citizenship grievances threatens regional stability in India's Northeast.",
-        "strategicAngle": "From a domestic defense and internal security doctrine perspective, persistent civil strife in border states complicates counter-insurgency operations and degrades the seamless integration required for multi-domain border management and counter-infiltration strategies.",
+        "whyItMatters": "Civil unrest and ethnic friction in the strategic border state of Manipur exacerbate internal security challenges, requiring sustained deployment of military and paramilitary assets away from external defense roles. Such domestic instability complicates counter-insurgency operations and border management along the sensitive India-Myanmar frontier.",
+        "strategicAngle": "Internal security disruptions in Northeast India directly impact the Indian Armed Forces' doctrine of integrated two-front readiness by continuously drawing down resources for counter-insurgency and law enforcement duties, thereby straining force posture and operational readiness.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Non-Lethal Crowd Control Munitions and Riot Gear",
+          "platformOrSystem": "Non-Lethal Crowd Control and Riot Management Systems",
           "specifications": [
-            "Tear gas canisters and launchers",
-            "Impact-resistant tactical riot shields and body armor",
-            "Non-lethal acoustic and optical deterrent systems"
+            "Tear gas grenade launchers and chemical irritant deployment mechanisms",
+            "Perimeter security surveillance and thermal imaging optics",
+            "Protected mobility vehicles for internal security duties"
           ],
-          "keySignificance": "Essential for law enforcement and paramilitary forces to manage violent internal security disruptions with minimal collateral damage, maintaining public order while preserving high-readiness kinetic assets for external threats."
+          "keySignificance": "Highlights the ongoing reliance on specialized non-lethal kinetic and deterrent equipment by security forces to manage violent civil unrest while minimizing collateral casualties in densely populated urban and semi-urban sectors."
         }
       }
     },
@@ -902,21 +902,21 @@
       "entities": [
         "Rafale"
       ],
-      "defenceScore": 36.7,
+      "defenceScore": 35.9,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:31:16.000Z",
       "updatedAt": "2026-08-31T12:31:16.000Z",
       "ssbIntel": {
-        "whyItMatters": "Vietnam's potential procurement of French Rafale fighters represents a significant shift in Southeast Asian air power dynamics, directly challenging China's regional hegemony and growing J-16 fleet. This potential acquisition enhances interoperability and strategic alignment among Indo-Pacific nations countering aggressive maritime expansion.",
-        "strategicAngle": "The pursuit of advanced 4.5-generation multirole platforms by Hanoi strengthens asymmetric deterrence in the South China Sea, aligning with Vietnam's doctrine of diversifying defense partnerships to prevent strategic encirclement.",
+        "whyItMatters": "Vietnam's potential procurement of the Rafale fighter jet highlights a strategic shift in Southeast Asia to counter advanced Chinese air power like the J-16. This acquisition would significantly bolster regional deterrence and interoperability among Indo-Pacific nations operating similar French defense hardware.",
+        "strategicAngle": "Aligning regional fighter fleet capabilities enhances collaborative air denial strategies in contested airspace, directly challenging Beijing's power projection in the South China Sea.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Dassault Rafale",
           "specifications": [
-            "AESA Radar",
-            "MICA and Meteor Beyond-Visual-Range Air-to-Air Missiles",
-            "SPECTRA Electronic Warfare Suite"
+            "4.5-generation multirole fighter",
+            "AESA radar integration",
+            "Advanced electronic warfare suite"
           ],
-          "keySignificance": "Provides superior multirole capabilities, advanced electronic warfare, and long-range strike options capable of countering advanced Chinese fourth-generation fighters like the J-16."
+          "keySignificance": "Provides superior multirole capabilities, advanced sensor fusion, and long-range strike options critical for countering near-peer adversaries."
         }
       }
     },
@@ -942,21 +942,21 @@
       "entities": [
         "DRDO"
       ],
-      "defenceScore": 36.2,
+      "defenceScore": 35.3,
       "isLeadStory": false,
       "createdAt": "2026-08-31T12:31:00.000Z",
       "updatedAt": "2026-08-31T12:31:00.000Z",
       "ssbIntel": {
-        "whyItMatters": "This contract enhances India's secure military communication infrastructure, ensuring resilient command and control networks for tactical and strategic operations. It reduces foreign dependency by leveraging domestic defense manufacturing capabilities.",
-        "strategicAngle": "Strengthens network-centric warfare capabilities, aligning with India's military modernization doctrine to achieve seamless interoperability, real-time situational awareness, and secure information dominance across all service branches.",
+        "whyItMatters": "This contract enhances India's secure military communication infrastructure, ensuring robust command and control capabilities for strategic assets. A reliable ground segment hub is critical for seamless data transmission and operational coordination across the armed forces.",
+        "strategicAngle": "Strengthens network-centric warfare capabilities and strategic deterrence by securing resilient, indigenous communication pathways that reduce reliance on foreign infrastructure.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Ground Segment Hub",
           "specifications": [
-            "Contract value of ₹117.88 crore",
-            "Advanced communication equipment integration",
-            "Satellite and ground-based tactical networking architecture"
+            "High-bandwidth communication infrastructure",
+            "Secure data transmission protocols",
+            "Interoperability with DRDO-developed defense systems"
           ],
-          "keySignificance": "Provides the foundational infrastructure required for robust, jam-resistant satellite communications and battlefield data dissemination."
+          "keySignificance": "Provides the foundational telemetry and tracking infrastructure necessary for advanced satellite and missile communications."
         }
       }
     },
@@ -980,173 +980,21 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 35.5,
+      "defenceScore": 34.6,
       "isLeadStory": false,
       "createdAt": "2026-08-31T14:00:29.000Z",
       "updatedAt": "2026-08-31T14:00:29.000Z",
       "ssbIntel": {
-        "whyItMatters": "The expanded US-Indonesia military exercises signal deepening defence ties in Southeast Asia, directly impacting regional security architectures. This enhanced partnership offers a strategic counterweight to expanding Chinese maritime assertiveness in the Indo-Pacific.",
-        "strategicAngle": "From a doctrine perspective, these exercises improve interoperability and multilateral deterrence frameworks, integrating conventional jungle warfare with modern cyber defence capabilities to counter hybrid gray-zone tactics.",
+        "whyItMatters": "The expansion of US-Indonesia military exercises highlights deepening strategic alignment in the Indo-Pacific. This partnership bolsters regional deterrence frameworks against potential maritime and territorial coercion.",
+        "strategicAngle": "Enhancing interoperability through joint tactical drills and cyber defense signals a unified front for maritime security and stability in Southeast Asia, complicating adversary power-projection calculus.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Tactical Airborne and Missile Systems",
           "specifications": [
-            "Precision-guided munitions",
-            "Tactical airborne insertion equipment",
-            "Integrated cyber defense networks"
+            "Precision-guided tactical missiles",
+            "Airborne insertion platforms",
+            "Integrated cyber defense systems"
           ],
-          "keySignificance": "Demonstrates combined operational readiness and technological integration across multi-domain environments, enhancing rapid-response capabilities in contested archipelagic theaters."
-        }
-      }
-    },
-    {
-      "id": "cluster-212f258c",
-      "synthesizedHeadline": "IISS Data: Indian Army Holds Major Numerical Edge Over Pakistan",
-      "primarySource": {
-        "id": "feed-idrw-212f258c",
-        "title": "IISS Data: Indian Army Holds Major Numerical Edge Over Pakistan",
-        "url": "https://idrw.org/iiss-data-indian-army-holds-major-numerical-edge-over-pakistan/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T12:31:23.000Z",
-        "snippet": "This article was originally published on idrw.org.\nNew data from the IISS Military Balance only highlight the increasing disparity in conventional manpower and equipment...\nRead the full article on idrw.org: IISS Data: Indian Army Holds Major Numerical Edge Ov",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "army"
-      ],
-      "entities": [],
-      "defenceScore": 34.7,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T12:31:23.000Z",
-      "updatedAt": "2026-08-31T12:31:23.000Z",
-      "ssbIntel": {
-        "whyItMatters": "The widening conventional numerical asymmetry between the Indian Army and Pakistan underscores India's growing conventional deterrence posture. This disparity fundamentally alters regional stability calculations and shapes South Asian strategic calculus.",
-        "strategicAngle": "Reinforces India's capacity for two-front deterrence by ensuring decisive conventional superiority along the western border, allowing for optimized resource allocation toward high-altitude northern readiness.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Main Battle Tank Fleet (e.g., T-90 Bhishma)",
-          "specifications": [
-            "125mm smoothbore gun",
-            "Integrated Fire Control System",
-            "Kontakt-5 explosive reactive armor"
-          ],
-          "keySignificance": "Provides armored spearheads with high mobility and firepower dominance for rapid offensive operations across the western plains."
-        }
-      }
-    },
-    {
-      "id": "cluster-cce8cf5c",
-      "synthesizedHeadline": "Army&#039;s Night Sights RFI Extends Optics Push To AK-203 Fleet",
-      "primarySource": {
-        "id": "feed-idrw-cce8cf5c",
-        "title": "Army&#039;s Night Sights RFI Extends Optics Push To AK-203 Fleet",
-        "url": "https://idrw.org/armys-night-sights-rfi-extends-optics-push-to-ak-203-fleet/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T12:31:20.000Z",
-        "snippet": "This article was originally published on idrw.org.\nWhile the Indian Army&#039;s August 12th RFI for advanced Image Intensification and Thermal Imaging sights isn&#039;t just...\nRead the full article on idrw.org: Army&#039;s Night Sights RFI Extends Optics Push",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "army"
-      ],
-      "entities": [],
-      "defenceScore": 34.7,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T12:31:20.000Z",
-      "updatedAt": "2026-08-31T12:31:20.000Z",
-      "ssbIntel": {
-        "whyItMatters": "The integration of advanced night vision optics into the AK-203 rifle fleet significantly enhances the Indian Army's 24/7 operational readiness and tactical dominance in low-light combat scenarios. This move ensures improved night-fighting capabilities across frontline infantry units.",
-        "strategicAngle": "Aligns with the doctrine of comprehensive modernization and night-fighting superiority, reinforcing tactical deterrence along contested borders by empowering individual soldiers with advanced target acquisition tools.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "AK-203 Fleet Night Sights",
-          "specifications": [
-            "Image Intensification (I2) technology",
-            "Thermal Imaging (TI) capabilities",
-            "RFI-driven modular optic integration"
-          ],
-          "keySignificance": "Enhances all-weather, day-and-night surveillance and precision engagement capabilities for standard-issue infantry assault rifles."
-        }
-      }
-    },
-    {
-      "id": "cluster-308a53c6",
-      "synthesizedHeadline": "India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
-      "primarySource": {
-        "id": "feed-idrw-308a53c6",
-        "title": "India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
-        "url": "https://idrw.org/india-uk-ink-electric-propulsion-pact-for-navys-lpd-fleet/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T12:31:11.000Z",
-        "snippet": "This article was originally published on idrw.org.\nAn agreement between India and the UK is expected to be signed in order to develop integrated...\nRead the full article on idrw.org: India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "navy"
-      ],
-      "entities": [],
-      "defenceScore": 34.7,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T12:31:11.000Z",
-      "updatedAt": "2026-08-31T12:31:11.000Z",
-      "ssbIntel": {
-        "whyItMatters": "This agreement enhances bilateral defense technology cooperation between India and the UK, focusing on advanced naval capabilities for amphibious operations. Adopting advanced propulsion systems for the Landing Platform Dock (LPD) fleet strengthens the Indian Navy's power-projection capabilities in the Indo-Pacific.",
-        "strategicAngle": "Enhances strategic deterrence and operational reach by modernizing amphibious warfare capabilities, supporting the Indian Navy's transition into a globally capable blue-water force with robust logistical and power-projection assets.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Electric Propulsion System for LPD Fleet",
-          "specifications": [
-            "Integrated Electric Propulsion",
-            "High power generation capacity",
-            "Improved acoustic signature management"
-          ],
-          "keySignificance": "Provides increased energy efficiency, enhanced power availability for future weapon systems, and reduced acoustic signatures critical for covert amphibious operations."
-        }
-      }
-    },
-    {
-      "id": "cluster-82a17700",
-      "synthesizedHeadline": "Indian Army Aviation pilots pull off daring rescue at 18,600 ft near Nun Kun",
-      "primarySource": {
-        "id": "feed-idrw-82a17700",
-        "title": "Indian Army Aviation pilots pull off daring rescue at 18,600 ft near Nun Kun",
-        "url": "https://idrw.org/indian-army-aviation-pilots-pull-off-daring-rescue-at-18600-ft-near-nun-kun/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T12:30:14.000Z",
-        "snippet": "This article was originally published on idrw.org.\nIndian Army Aviation pilots successfully carried out a high-altitude casualty evacuation at 18,600 feet near the Nun...\nRead the full article on idrw.org: Indian Army Aviation pilots pull off daring rescue at ",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "army"
-      ],
-      "entities": [],
-      "defenceScore": 34.7,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T12:30:14.000Z",
-      "updatedAt": "2026-08-31T12:30:14.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Demonstrates the Indian Army's superior high-altitude operational readiness and casualty evacuation capabilities in extreme terrain like the Nun Kun massif. It underscores India's logistical resilience along disputed and challenging borders.",
-        "strategicAngle": "Highlights the critical role of rotary-wing assets in power projection, sustainment, and troop morale within High Altitude Warfare (HAW) environments, reinforcing Himalayan domain dominance.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Army Aviation Utility Helicopters (e.g., Cheetah/Dhruv ALH)",
-          "specifications": [
-            "High altitude operational ceiling exceeding 18,000 feet",
-            "Modified engine performance for thin air density",
-            "Integrated medical evacuation (MEDEVAC) configuration"
-          ],
-          "keySignificance": "Proves the operational viability and reliability of indigenous or adapted rotorcraft under extreme meteorological and topographical stress, vital for mountain warfare."
+          "keySignificance": "Demonstrates combined operational readiness across multi-domain environments, integrating kinetic strike capabilities with network-centric defense."
         }
       }
     },
@@ -1170,21 +1018,177 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 34.2,
+      "defenceScore": 34,
       "isLeadStory": false,
       "createdAt": "2026-08-31T06:26:30.000Z",
       "updatedAt": "2026-08-31T06:26:30.000Z",
       "ssbIntel": {
-        "whyItMatters": "The co-production of the Javelin anti-tank missile by Tata Advanced Systems Limited enhances India's domestic defense manufacturing capabilities under the Make in India initiative. It provides frontline infantry units with critical anti-armor capabilities, reducing reliance on foreign imports.",
-        "strategicAngle": "This development aligns with India's broader military modernization and self-reliance goals, bolstering tactical deterrence against mechanized armor threats along disputed borders. Localized production ensures secure supply chains and sustained operational readiness during contingencies.",
+        "whyItMatters": "The co-production of the Javelin anti-tank missile by Tata Advanced Systems Limited enhances India's domestic defence manufacturing capabilities under 'Make in India'. It strengthens frontline infantry anti-armor capabilities along disputed borders.",
+        "strategicAngle": "Aligns with India's broader strategic pivot toward diversifying defense imports, strengthening indigenous defense-industrial ecosystems, and ensuring localized supply chains for critical munitions during prolonged engagements.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Javelin All-Up Round (AUR)",
+          "platformOrSystem": "Javelin Anti-Tank Guided Missile (ATGM)",
           "specifications": [
             "Fire-and-forget guidance",
             "Top-attack capability against armored vehicles",
-            "Man-portable anti-tank missile system"
+            "Man-portable system configuration"
           ],
-          "keySignificance": "Provides infantry forces with superior precision strike capability against modern main battle tanks, significantly enhancing tactical lethality and survivability in complex terrain."
+          "keySignificance": "Provides infantry units with high-precision, localized anti-armor lethality and reduces logistical dependencies on foreign supply lines for critical tactical missiles."
+        }
+      }
+    },
+    {
+      "id": "cluster-e0258c4d",
+      "synthesizedHeadline": "More Indian Navy Warships Get BrahMos Missiles as Pakistani Analysts Raise Alarm",
+      "primarySource": {
+        "id": "feed-idrw-e0258c4d",
+        "title": "More Indian Navy Warships Get BrahMos Missiles as Pakistani Analysts Raise Alarm",
+        "url": "https://idrw.org/more-indian-navy-warships-get-brahmos-missiles-as-pakistani-analysts-raise-alarm/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T02:30:29.000Z",
+        "snippet": "This article was originally published on idrw.org.\nA recent piece in The Diplomat by Pakistani researchers Abdul Moiz Khan and Syeda Saba Batool has...\nRead the full article on idrw.org: More Indian Navy Warships Get BrahMos Missiles as Pakistani Analysts Rais",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "tech",
+        "procurement",
+        "strategic"
+      ],
+      "entities": [
+        "BrahMos"
+      ],
+      "defenceScore": 34,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T02:30:29.000Z",
+      "updatedAt": "2026-08-31T02:30:29.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The integration of BrahMos supersonic cruise missiles across additional Indian Navy warships enhances regional power projection and significantly bolsters India's maritime strike capabilities, triggering heightened strategic anxiety from adversaries.",
+        "strategicAngle": "This deployment reinforces India's sea-denial and power-projection doctrines in the Indian Ocean Region, strengthening conventional deterrence through high-speed, precision anti-surface warfare capabilities.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "BrahMos Supersonic Cruise Missile",
+          "specifications": [
+            "Supersonic speed (Mach 2.8 to 3.0)",
+            "Pinpoint accuracy against land and sea targets",
+            "Versatile launch platform compatibility (surface, sub-surface, air)"
+          ],
+          "keySignificance": "Provides naval platforms with overwhelming strike velocity and response times, minimizing enemy reaction windows and enhancing offensive deterrence."
+        }
+      }
+    },
+    {
+      "id": "cluster-212f258c",
+      "synthesizedHeadline": "IISS Data: Indian Army Holds Major Numerical Edge Over Pakistan",
+      "primarySource": {
+        "id": "feed-idrw-212f258c",
+        "title": "IISS Data: Indian Army Holds Major Numerical Edge Over Pakistan",
+        "url": "https://idrw.org/iiss-data-indian-army-holds-major-numerical-edge-over-pakistan/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T12:31:23.000Z",
+        "snippet": "This article was originally published on idrw.org.\nNew data from the IISS Military Balance only highlight the increasing disparity in conventional manpower and equipment...\nRead the full article on idrw.org: IISS Data: Indian Army Holds Major Numerical Edge Ov",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "army"
+      ],
+      "entities": [],
+      "defenceScore": 33.9,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T12:31:23.000Z",
+      "updatedAt": "2026-08-31T12:31:23.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The widening conventional manpower and equipment disparity highlights India's growing conventional deterrence posture against Pakistan. This numerical edge allows for a more robust multi-front readiness framework.",
+        "strategicAngle": "Reinforces India's capability to maintain qualitative and quantitative superiority in conventional domains, influencing regional stability and asymmetric conflict deterrence.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Main Battle Tanks and Artillery Systems",
+          "specifications": [
+            "Enhanced operational mobility",
+            "All-weather targeting capabilities",
+            "High-rate conventional firepower"
+          ],
+          "keySignificance": "Provides the Indian Army with decisive tactical superiority in mechanized warfare and armored thrust capabilities along the western border."
+        }
+      }
+    },
+    {
+      "id": "cluster-cce8cf5c",
+      "synthesizedHeadline": "Army&#039;s Night Sights RFI Extends Optics Push To AK-203 Fleet",
+      "primarySource": {
+        "id": "feed-idrw-cce8cf5c",
+        "title": "Army&#039;s Night Sights RFI Extends Optics Push To AK-203 Fleet",
+        "url": "https://idrw.org/armys-night-sights-rfi-extends-optics-push-to-ak-203-fleet/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T12:31:20.000Z",
+        "snippet": "This article was originally published on idrw.org.\nWhile the Indian Army&#039;s August 12th RFI for advanced Image Intensification and Thermal Imaging sights isn&#039;t just...\nRead the full article on idrw.org: Army&#039;s Night Sights RFI Extends Optics Push",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "army"
+      ],
+      "entities": [],
+      "defenceScore": 33.9,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T12:31:20.000Z",
+      "updatedAt": "2026-08-31T12:31:20.000Z",
+      "ssbIntel": {
+        "whyItMatters": "The integration of advanced night sights into the newly adopted AK-203 assault rifle fleet significantly enhances the Indian Army's 24/7 operational readiness and night-fighting capabilities in contested border regions. This modernization directly supports infantry lethality and tactical overmatch during low-intensity conflicts and high-altitude engagements.",
+        "strategicAngle": "Equipping frontline infantry with state-of-the-art electro-optics aligns with India's broader doctrinal shift toward decisive, technology-driven conventional warfare and continuous all-weather border dominance.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "AK-203 Assault Rifle Fleet",
+          "specifications": [
+            "Image Intensification (I2) technology",
+            "Thermal Imaging (TI) sights",
+            "Enhanced low-light and night-fighting optics"
+          ],
+          "keySignificance": "Standardizes advanced night-vision capabilities across the core infantry assault rifle inventory, bridging critical capability gaps in nocturnal combat operations."
+        }
+      }
+    },
+    {
+      "id": "cluster-308a53c6",
+      "synthesizedHeadline": "India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
+      "primarySource": {
+        "id": "feed-idrw-308a53c6",
+        "title": "India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
+        "url": "https://idrw.org/india-uk-ink-electric-propulsion-pact-for-navys-lpd-fleet/",
+        "sourceName": "IDRW (Indian Defence Research Wing)",
+        "sourceDomain": "idrw.org",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-08-31T12:31:11.000Z",
+        "snippet": "This article was originally published on idrw.org.\nAn agreement between India and the UK is expected to be signed in order to develop integrated...\nRead the full article on idrw.org: India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "navy"
+      ],
+      "entities": [],
+      "defenceScore": 33.9,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T12:31:11.000Z",
+      "updatedAt": "2026-08-31T12:31:11.000Z",
+      "ssbIntel": {
+        "whyItMatters": "This agreement enhances bilateral defense cooperation between India and the UK to advance critical naval power generation capabilities. Adopting advanced propulsion systems for amphibious fleet units supports long-range power projection and operational endurance in the Indo-Pacific.",
+        "strategicAngle": "Aligns with India's self-reliance (Atmanirbhar Bharat) policy while strengthening interoperability and technological partnerships with key Western allies to counter regional maritime challenges.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Landing Platform Dock (LPD) Fleet",
+          "specifications": [
+            "Integrated Electric Propulsion System",
+            "High-capacity power generation",
+            "Enhanced acoustic signature management"
+          ],
+          "keySignificance": "Provides increased energy efficiency, superior maneuvering control, and the electrical capacity required to support future high-energy weapons and advanced sensor suites on large amphibious assault ships."
         }
       }
     },
@@ -1248,6 +1252,16 @@
       "tier": "TIER_3_SPECIALIZED",
       "publishedAt": "2026-08-31T14:15:49.000Z",
       "snippet": "The USS Abraham Lincoln will visit Thailand this week. Thai officials are anticipating an economic boost but warning of sexual exploitation risks."
+    },
+    {
+      "id": "feed-ndtv-defence-d2cab0b6",
+      "title": "11 Killed, Several Injured After Explosion In UP Firecracker Factory",
+      "url": "https://www.ndtv.com/india-news/24-injured-15-feared-trapped-after-explosion-in-up-firecracker-factory-11981906#publisher=newsstand",
+      "sourceName": "NDTV India (Defence & Border Security)",
+      "sourceDomain": "ndtv.com",
+      "tier": "TIER_2_NATIONAL",
+      "publishedAt": "2026-08-31T14:14:22.000Z",
+      "snippet": "The blast occurred in the Pipri police station area near the Manori power house, following which police, fire brigade and Air Force personnel stationed nearby, launched a joint rescue operation, officials said."
     },
     {
       "id": "feed-stratnews-global-7257d65c",
@@ -1358,16 +1372,6 @@
       "tier": "TIER_3_SPECIALIZED",
       "publishedAt": "2026-08-31T12:31:11.000Z",
       "snippet": "This article was originally published on idrw.org.\nAn agreement between India and the UK is expected to be signed in order to develop integrated...\nRead the full article on idrw.org: India-UK Ink Electric Propulsion Pact For Navy&#039;s LPD Fleet"
-    },
-    {
-      "id": "feed-ndtv-defence-d2cab0b6",
-      "title": "5 Killed, Several Injured After Explosion In UP Firecracker Factory",
-      "url": "https://www.ndtv.com/india-news/24-injured-15-feared-trapped-after-explosion-in-up-firecracker-factory-11981906#publisher=newsstand",
-      "sourceName": "NDTV India (Defence & Border Security)",
-      "sourceDomain": "ndtv.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-31T12:31:09.000Z",
-      "snippet": "The blast occurred in the Pipri police station area near the Manori power house, following which police, fire brigade and Air Force personnel stationed nearby, launched a joint rescue operation, officials said."
     },
     {
       "id": "feed-idrw-2abc9453",
@@ -1568,16 +1572,6 @@
       "tier": "TIER_2_NATIONAL",
       "publishedAt": "2026-08-31T09:20:50.000Z",
       "snippet": "The joint announcement by the companies comes just days after India signed a Rs 292 crore deal to procure Javelin anti-tank guided missile systems for the Army."
-    },
-    {
-      "id": "feed-ndtv-defence-a37cd324",
-      "title": "Ex-Army Man Dies After Banned Chinese &#039;Manjha&#039; Slits His Throat In J&amp;K",
-      "url": "https://www.ndtv.com/india-news/ex-army-man-dies-after-banned-chinese-manjha-slits-his-throat-in-j-k-11981295#publisher=newsstand",
-      "sourceName": "NDTV India (Defence & Border Security)",
-      "sourceDomain": "ndtv.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-31T09:14:21.000Z",
-      "snippet": "The Jammu district has imposed a blanket ban on the thread&#039;s manufacture, sale, purchase, storage, transport and use."
     },
     {
       "id": "feed-naval-news-f884b989",
@@ -2230,9 +2224,9 @@
       "snippet": "“We trust one another, and together we are stronger,” said Finnish President Alexander Stubb on X, by way of welcoming the expanded, bilateral cooperation."
     }
   ],
-  "totalIngested": 282,
-  "totalFiltered": 101,
+  "totalIngested": 281,
+  "totalFiltered": 99,
   "activeFeedsCount": 60,
-  "durationMs": 175207,
-  "generatedAt": "2026-08-31T15:03:42.580Z"
+  "durationMs": 171951,
+  "generatedAt": "2026-08-31T15:28:37.531Z"
 }
