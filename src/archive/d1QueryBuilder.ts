@@ -85,6 +85,27 @@ export function buildBrowseArchiveStatement(cursor: string | null = null, limit:
 }
 
 /**
+ * Selects a batch of rows still carrying the pre-Phase-3 cluster_json in D1,
+ * for the one-off backfill script that migrates them to R2. No offset/cursor
+ * needed — every migrated row nulls its own cluster_json, so this same query
+ * always returns the remaining work, making the backfill naturally resumable.
+ */
+export function buildSelectClusterJsonBackfillStatement(limit: number): D1Statement {
+  return {
+    sql: `SELECT id, cluster_json FROM archived_stories WHERE cluster_json IS NOT NULL LIMIT ?`,
+    params: [limit]
+  };
+}
+
+/** Clears cluster_json for one row once its payload is confirmed written to R2. */
+export function buildNullClusterJsonStatement(id: string): D1Statement {
+  return {
+    sql: `UPDATE archived_stories SET cluster_json = NULL WHERE id = ?`,
+    params: [id]
+  };
+}
+
+/**
  * Removes archived rows for ids that are back in the live feed. A cluster
  * can drop out of the top-N/72h window on one crawl and re-enter on a
  * later one (its source article is still fresh) — without this, it would

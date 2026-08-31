@@ -11,6 +11,8 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "d1:migrate:local": "wrangler d1 execute defencewire-archive --local --file=d1/schema.sql",
     "d1:migrate:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql",
+    "d1:size": "wrangler d1 info defencewire-archive",
+    "backfill:cluster-json": "vite-node --script crawler/scripts/backfillClusterJsonToR2.ts",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",
     "check:crawler": "vite-node scripts/check-crawler.mjs",

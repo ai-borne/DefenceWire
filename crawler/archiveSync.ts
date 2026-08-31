@@ -49,11 +49,18 @@ function d1RestEndpoint(config: D1RestConfig): string {
   return `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}/query`;
 }
 
-async function executeD1Statement(
+/**
+ * Single D1 REST call shared by every write and read in this codebase (the
+ * insert/delete paths below and the backfill script's select/update) — one
+ * fetch implementation, per SSOT/DRY. Row parsing is best-effort: insert and
+ * delete responses carry no JSON body worth reading, so a parse failure
+ * there is swallowed and `rows` stays empty without affecting `ok`/`status`.
+ */
+export async function executeD1Query(
   statement: D1Statement,
   config: D1RestConfig,
   fetchFn: typeof fetch
-): Promise<{ ok: boolean; status?: number }> {
+): Promise<{ ok: boolean; status?: number; rows: Record<string, unknown>[] }> {
   const response = await fetchFn(d1RestEndpoint(config), {
     method: 'POST',
     headers: {
@@ -62,7 +69,14 @@ async function executeD1Statement(
     },
     body: JSON.stringify(statement)
   });
-  return { ok: response.ok, status: response.status };
+  let rows: Record<string, unknown>[] = [];
+  try {
+    const body = (await response.json()) as { result?: Array<{ results?: Record<string, unknown>[] }> };
+    rows = body.result?.[0]?.results ?? [];
+  } catch {
+    // No JSON body worth reading (e.g. insert/delete responses) — leave rows empty.
+  }
+  return { ok: response.ok, status: response.status, rows };
 }
 
 export async function archivePoppedClusters(
@@ -108,7 +122,7 @@ export async function archivePoppedClusters(
 
     const statement = buildInsertArchivedStoryStatement(toArchivedStoryRow(cluster, archivedAt));
     try {
-      const { ok, status } = await executeD1Statement(statement, config, fetchFn);
+      const { ok, status } = await executeD1Query(statement, config, fetchFn);
       if (ok) {
         archived++;
       } else {
@@ -144,7 +158,7 @@ export async function reconcileArchiveWithLiveFeed(
   const statement = buildDeleteArchivedStoriesStatement(ids);
 
   try {
-    const { ok, status } = await executeD1Statement(statement, config, fetchFn);
+    const { ok, status } = await executeD1Query(statement, config, fetchFn);
     if (ok) return { removed: liveClusters.length, failed: 0 };
     console.error(`[ARCHIVE RECONCILE] D1 delete failed: HTTP ${status}`);
     return { removed: 0, failed: 1 };
