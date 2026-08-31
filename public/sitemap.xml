@@ -2,13 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.defencewire.in/</loc>
-    <lastmod>2026-08-31T06:51:36.167Z</lastmod>
+    <lastmod>2026-08-31T07:50:16.730Z</lastmod>
     <changefreq>always</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.defencewire.in/story/cluster-c062f995</loc>
-    <lastmod>2026-08-31T06:45:55.000Z</lastmod>
+    <lastmod>2026-08-31T07:31:21.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -19,14 +19,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-2e8600c7</loc>
-    <lastmod>2026-08-31T02:30:45.000Z</lastmod>
+    <loc>https://www.defencewire.in/story/cluster-826d5d08</loc>
+    <lastmod>2026-08-31T07:19:34.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-071d3188</loc>
-    <lastmod>2026-08-31T06:26:30.000Z</lastmod>
+    <loc>https://www.defencewire.in/story/cluster-2e8600c7</loc>
+    <lastmod>2026-08-31T02:30:45.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -43,8 +43,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-826d5d08</loc>
-    <lastmod>2026-08-31T06:17:33.000Z</lastmod>
+    <loc>https://www.defencewire.in/story/cluster-071d3188</loc>
+    <lastmod>2026-08-31T06:26:30.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-0afc2e89</loc>
+    <lastmod>2026-08-31T06:53:28.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -85,6 +91,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.defencewire.in/story/cluster-7d7e369b</loc>
+    <lastmod>2026-08-30T21:02:42.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-7b918c68</loc>
+    <lastmod>2026-08-30T12:30:53.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.defencewire.in/story/cluster-ae536d0b</loc>
     <lastmod>2026-08-31T02:30:23.000Z</lastmod>
     <changefreq>hourly</changefreq>
@@ -103,18 +121,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-7d7e369b</loc>
-    <lastmod>2026-08-30T21:02:42.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-7b918c68</loc>
-    <lastmod>2026-08-30T12:30:53.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.defencewire.in/story/cluster-cd188a45</loc>
     <lastmod>2026-08-31T02:30:47.000Z</lastmod>
     <changefreq>hourly</changefreq>
@@ -123,6 +129,12 @@
   <url>
     <loc>https://www.defencewire.in/story/cluster-2e97e97c</loc>
     <lastmod>2026-08-30T09:05:27.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-6a0d431d</loc>
+    <lastmod>2026-08-28T10:46:50.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -165,18 +177,6 @@
   <url>
     <loc>https://www.defencewire.in/story/cluster-5151a7b8</loc>
     <lastmod>2026-08-31T02:30:07.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-fc5818e4</loc>
-    <lastmod>2026-08-30T03:01:51.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-6a0d431d</loc>
-    <lastmod>2026-08-28T10:46:50.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
