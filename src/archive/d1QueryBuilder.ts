@@ -83,3 +83,17 @@ export function buildBrowseArchiveStatement(cursor: string | null = null, limit:
     params: cursor ? [cursor, limit] : [limit]
   };
 }
+
+/**
+ * Removes archived rows for ids that are back in the live feed. A cluster
+ * can drop out of the top-N/72h window on one crawl and re-enter on a
+ * later one (its source article is still fresh) — without this, it would
+ * stay permanently archived even while showing live, i.e. duplicated.
+ */
+export function buildDeleteArchivedStoriesStatement(ids: string[]): D1Statement {
+  const placeholders = ids.map(() => '?').join(', ');
+  return {
+    sql: `DELETE FROM archived_stories WHERE id IN (${placeholders})`,
+    params: [...ids]
+  };
+}

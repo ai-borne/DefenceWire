@@ -15,7 +15,7 @@ import { SourceTier } from '../src/types/source.js';
 import { FeedConfig, getActiveFeeds } from './feeds.js';
 import { fetchFeedWithCircuitBreaker } from './parser.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
-import { archivePoppedClusters, buildD1ConfigFromEnv } from './archiveSync.js';
+import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
 
 export interface IngestOptions {
   feeds?: FeedConfig[];
@@ -238,15 +238,16 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
       cluster.ssbIntel = generateHeuristicSSBIntel(cluster);
     }
   }
-  console.log(
-    `[SSB ENRICHMENT] ${geminiCount} via Gemini, ${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`
-  );
+  console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
 
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
 
-  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, buildD1ConfigFromEnv(process.env), { fetchFn });
+  const d1Config = buildD1ConfigFromEnv(process.env);
+  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, { fetchFn });
+  const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed`);
+  console.log(`[ARCHIVE RECONCILE] checked ${finalClusters.length} live ids, ${reconcileResult.failed} failed`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;

@@ -12,6 +12,7 @@ import {
   buildInsertArchivedStoryStatement,
   buildSearchArchiveStatement,
   buildBrowseArchiveStatement,
+  buildDeleteArchivedStoriesStatement,
   sanitizeFtsQuery
 } from '../../src/archive/d1QueryBuilder.js';
 
@@ -135,5 +136,18 @@ describe('buildBrowseArchiveStatement', () => {
   it('never interpolates the cursor value into the SQL string', () => {
     const stmt = buildBrowseArchiveStatement('2026-08-05T00:00:00Z', 30);
     expect(stmt.sql).not.toContain('2026-08-05');
+  });
+});
+
+describe('buildDeleteArchivedStoriesStatement', () => {
+  it('builds a parameterized DELETE with one placeholder per id', () => {
+    const stmt = buildDeleteArchivedStoriesStatement(['cluster-a', 'cluster-b', 'cluster-c']);
+    expect(stmt.sql).toMatch(/^DELETE FROM archived_stories WHERE id IN \(\?, \?, \?\)$/);
+    expect(stmt.params).toEqual(['cluster-a', 'cluster-b', 'cluster-c']);
+  });
+
+  it('never interpolates ids directly into the SQL string', () => {
+    const stmt = buildDeleteArchivedStoriesStatement(['cluster-a']);
+    expect(stmt.sql).not.toContain('cluster-a');
   });
 });

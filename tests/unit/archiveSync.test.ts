@@ -6,7 +6,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
-import { archivePoppedClusters, buildD1ConfigFromEnv } from '../../crawler/archiveSync.js';
+import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from '../../crawler/archiveSync.js';
 
 function makeCluster(id: string): StoryCluster {
   return {
@@ -87,5 +87,51 @@ describe('archivePoppedClusters', () => {
     const result = await archivePoppedClusters([makeCluster('a')], [], config, { fetchFn });
 
     expect(result).toEqual({ archived: 0, failed: 1 });
+  });
+});
+
+describe('reconcileArchiveWithLiveFeed', () => {
+  it('does nothing when D1 config is null', async () => {
+    const fetchFn = vi.fn();
+    const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], null, { fetchFn });
+
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(result).toEqual({ removed: 0, failed: 0 });
+  });
+
+  it('does nothing when the live feed is empty', async () => {
+    const fetchFn = vi.fn();
+    const result = await reconcileArchiveWithLiveFeed([], config, { fetchFn });
+
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(result).toEqual({ removed: 0, failed: 0 });
+  });
+
+  it('issues one DELETE covering every currently-live cluster id, so a re-surfaced story stops being duplicated in the archive', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+    const liveClusters = [makeCluster('a'), makeCluster('b')];
+    const result = await reconcileArchiveWithLiveFeed(liveClusters, config, { fetchFn });
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://api.cloudflare.com/client/v4/accounts/acct-1/d1/database/db-1/query');
+    const body = JSON.parse(init.body as string);
+    expect(body.sql).toContain('DELETE FROM archived_stories');
+    expect(body.params).toEqual(['a', 'b']);
+    expect(result).toEqual({ removed: 2, failed: 0 });
+  });
+
+  it('counts a failed HTTP response without throwing', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, { fetchFn });
+
+    expect(result).toEqual({ removed: 0, failed: 1 });
+  });
+
+  it('counts a network error without throwing', async () => {
+    const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
+    const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, { fetchFn });
+
+    expect(result).toEqual({ removed: 0, failed: 1 });
   });
 });
