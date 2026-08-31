@@ -48,13 +48,38 @@ export function sanitizeFtsQuery(rawQuery: string): string {
   return tokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(' ');
 }
 
-export function buildSearchArchiveStatement(rawQuery: string, limit: number = DEFAULT_SEARCH_LIMIT): D1Statement {
+/**
+ * FTS5 keyword search, optionally paginated with a keyset cursor (the
+ * archived_at of the last row seen) rather than OFFSET, so page N stays
+ * just as fast as page 1 no matter how deep the archive grows.
+ */
+export function buildSearchArchiveStatement(
+  rawQuery: string,
+  limit: number = DEFAULT_SEARCH_LIMIT,
+  cursor: string | null = null
+): D1Statement {
+  const cursorClause = cursor ? 'AND a.archived_at < ?' : '';
   return {
     sql: `SELECT a.* FROM archived_stories_fts f
           JOIN archived_stories a ON a.rowid = f.rowid
-          WHERE archived_stories_fts MATCH ?
+          WHERE archived_stories_fts MATCH ? ${cursorClause}
           ORDER BY a.archived_at DESC
           LIMIT ?`,
-    params: [sanitizeFtsQuery(rawQuery), limit]
+    params: cursor ? [sanitizeFtsQuery(rawQuery), cursor, limit] : [sanitizeFtsQuery(rawQuery), limit]
+  };
+}
+
+/**
+ * Date-descending listing of the whole archive with no search term, for the
+ * default "browse" view. Same keyset cursor pattern as the search statement.
+ */
+export function buildBrowseArchiveStatement(cursor: string | null = null, limit: number = DEFAULT_SEARCH_LIMIT): D1Statement {
+  const cursorClause = cursor ? 'WHERE archived_at < ?' : '';
+  return {
+    sql: `SELECT * FROM archived_stories
+          ${cursorClause}
+          ORDER BY archived_at DESC
+          LIMIT ?`,
+    params: cursor ? [cursor, limit] : [limit]
   };
 }

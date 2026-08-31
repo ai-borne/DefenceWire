@@ -24,19 +24,25 @@ interface PagesFunctionContext {
 }
 
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
-  const rawQuery = new URL(context.request.url).searchParams.get('q') ?? '';
+  const url = new URL(context.request.url);
+  const rawQuery = url.searchParams.get('q') ?? '';
+  const cursor = url.searchParams.get('before');
   const db = context.env.DB;
 
   if (!db) {
-    return Response.json({ stories: [], error: 'Archive database is not configured.' }, { status: 503 });
+    return Response.json({ stories: [], nextCursor: null, error: 'Archive database is not configured.' }, { status: 503 });
   }
 
-  const result = await handleArchiveSearchRequest(rawQuery, {
-    runQuery: async (sql, params) => {
-      const { results } = await db.prepare(sql).bind(...params).all<ArchivedStoryRow>();
-      return results;
-    }
-  });
+  const result = await handleArchiveSearchRequest(
+    rawQuery,
+    {
+      runQuery: async (sql, params) => {
+        const { results } = await db.prepare(sql).bind(...params).all<ArchivedStoryRow>();
+        return results;
+      }
+    },
+    { cursor }
+  );
 
   return Response.json(result, { status: result.error ? 502 : 200 });
 }

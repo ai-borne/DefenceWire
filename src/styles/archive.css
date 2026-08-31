@@ -31,3 +31,18 @@
 .dw-archive-search-btn:hover { opacity: 0.9; }
 
 .dw-archive-results { margin-top: 8px; }
+
+.dw-archive-date-heading {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--dw-text-secondary);
+  margin: 22px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--dw-border-secondary);
+}
+
+.dw-archive-date-heading:first-child { margin-top: 0; }
+
+.dw-archive-scroll-sentinel { height: 1px; }

@@ -8,7 +8,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { ArchivedStoryRow } from '../../src/archive/archiveRow.js';
-import { buildInsertArchivedStoryStatement, buildSearchArchiveStatement, sanitizeFtsQuery } from '../../src/archive/d1QueryBuilder.js';
+import {
+  buildInsertArchivedStoryStatement,
+  buildSearchArchiveStatement,
+  buildBrowseArchiveStatement,
+  sanitizeFtsQuery
+} from '../../src/archive/d1QueryBuilder.js';
 
 const row: ArchivedStoryRow = {
   id: 'cluster-tejas-mk1a',
@@ -96,5 +101,39 @@ describe('buildSearchArchiveStatement', () => {
     const stmt = buildSearchArchiveStatement('Tejas');
     expect(stmt.params[1]).toBeGreaterThan(0);
     expect(stmt.params[1]).toBeLessThanOrEqual(50);
+  });
+
+  it('adds a keyset cursor condition when a cursor is given, without breaking the FTS join', () => {
+    const stmt = buildSearchArchiveStatement('Tejas', 30, '2026-08-05T00:00:00Z');
+    expect(stmt.sql).toContain('archived_stories_fts');
+    expect(stmt.sql).toContain('a.archived_at < ?');
+    expect(stmt.params).toEqual(['"Tejas"', '2026-08-05T00:00:00Z', 30]);
+  });
+
+  it('omits the cursor condition when cursor is null', () => {
+    const stmt = buildSearchArchiveStatement('Tejas', 30, null);
+    expect(stmt.sql).not.toContain('archived_at < ?');
+    expect(stmt.params).toEqual(['"Tejas"', 30]);
+  });
+});
+
+describe('buildBrowseArchiveStatement', () => {
+  it('builds a plain date-descending listing with no query needed', () => {
+    const stmt = buildBrowseArchiveStatement(null, 30);
+    expect(stmt.sql).toContain('FROM archived_stories');
+    expect(stmt.sql).not.toContain('MATCH');
+    expect(stmt.sql).toContain('ORDER BY archived_at DESC');
+    expect(stmt.params).toEqual([30]);
+  });
+
+  it('adds a keyset cursor condition when paginating past the first page', () => {
+    const stmt = buildBrowseArchiveStatement('2026-08-05T00:00:00Z', 30);
+    expect(stmt.sql).toContain('archived_at < ?');
+    expect(stmt.params).toEqual(['2026-08-05T00:00:00Z', 30]);
+  });
+
+  it('never interpolates the cursor value into the SQL string', () => {
+    const stmt = buildBrowseArchiveStatement('2026-08-05T00:00:00Z', 30);
+    expect(stmt.sql).not.toContain('2026-08-05');
   });
 });

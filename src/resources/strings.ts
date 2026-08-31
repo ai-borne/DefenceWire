@@ -167,9 +167,10 @@ export const STRINGS = {
     searchPlaceholder: 'Search the full archive (e.g. Tejas, S-400, Agni-V)...',
     searchButton: 'Search',
     searchAriaLabel: 'Search the story archive',
-    emptyPrompt: 'Search above to browse past defence intelligence briefings.',
+    emptyArchive: 'The archive is still empty — check back once stories start aging out of the live feed.',
     noResults: 'No archived stories matched your search.',
-    loading: 'Searching the archive...',
+    loading: 'Loading the archive...',
+    loadingMore: 'Loading more...',
     error: 'Archive search is temporarily unavailable. Please try again shortly.'
   },
   footer: {
