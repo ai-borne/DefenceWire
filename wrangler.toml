@@ -7,4 +7,4 @@ compatibility_date = "2026-08-31"
 [[d1_databases]]
 binding = "DB"
 database_name = "defencewire-archive"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "6c03abeb-ce1f-4669-8985-dbbdd3735807"
