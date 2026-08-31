@@ -6,7 +6,7 @@
  */
 
 import { StoryCluster } from '../types/news.js';
-import { GetClusterJson } from '../archive/archiveRow.js';
+import { GetClusterJson, ArchiveBindingUnavailableError } from '../archive/archiveRow.js';
 
 /**
  * Escapes SQLite LIKE wildcard characters (`%` and `_`) and the escape character itself
@@ -83,7 +83,8 @@ export async function handleEntityDossierRequest(
             relatedStories.push(parsed);
           }
         }
-      } catch {
+      } catch (err) {
+        if (err instanceof ArchiveBindingUnavailableError) throw err;
         // Skip unparseable legacy row
       }
     }

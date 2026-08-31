@@ -9,6 +9,7 @@ import {
   escapeSqlLikePattern,
   DiscoveredEntityDbRow
 } from '../../src/services/entityDossierHandler.js';
+import { ArchiveBindingUnavailableError } from '../../src/archive/archiveRow.js';
 import { onRequestGet } from '../../functions/api/entity/[slug].js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
@@ -122,6 +123,19 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
       expect(res.error).toBe('Entity not found.');
     });
 
+    it('fails the whole request loudly when the R2 binding itself is unavailable, rather than silently dropping the related story', async () => {
+      const mockDb = {
+        queryEntity: async () => null,
+        queryRelatedStories: async () => [{ id: MOCK_CLUSTER.id, cluster_json: null }],
+        getClusterJson: vi.fn().mockRejectedValue(new ArchiveBindingUnavailableError('ARCHIVE_MEDIA R2 binding is not configured.'))
+      };
+
+      const res = await handleEntityDossierRequest('tejas-mk1a', mockDb);
+      expect(res.entity).toBeNull();
+      expect(res.relatedStories).toEqual([]);
+      expect(res.error).toContain('R2 binding is not configured');
+    });
+
     it('returns 404 error when neither entity row nor stories exist', async () => {
       const mockDb = {
         queryEntity: async () => null,
@@ -202,6 +216,32 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
       expect(data.entity).not.toBeNull();
       // Verify queryRelatedStories passed escaped wildcards `%tejas\_mk1\%%`
       expect(mockBind).toHaveBeenCalledWith('%tejas\\_mk1\\%%', '%tejas\\_mk1\\%%', 20);
+    });
+
+    it('fails loudly (non-2xx) instead of silently dropping results when a row has no cluster_json in D1 and ARCHIVE_MEDIA is unconfigured', async () => {
+      const mockDb = {
+        prepare: vi.fn().mockImplementation((sql: string) => {
+          if (sql.includes('discovered_entities')) {
+            return { bind: vi.fn().mockReturnValue({ first: vi.fn().mockResolvedValue(null) }) };
+          }
+          return {
+            bind: vi.fn().mockReturnValue({
+              all: vi.fn().mockResolvedValue({ results: [{ id: MOCK_CLUSTER.id, cluster_json: null }] })
+            })
+          };
+        })
+      };
+
+      const request = new Request('http://localhost:5176/api/entity/tejas-mk1a');
+      const response = await onRequestGet({
+        request,
+        params: { slug: 'tejas-mk1a' },
+        env: { DB: mockDb as unknown as any }
+      });
+
+      expect(response.status).not.toBe(200);
+      const data = await response.json();
+      expect(data.error).toBeTruthy();
     });
   });
 });

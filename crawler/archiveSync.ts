@@ -89,14 +89,21 @@ export async function archivePoppedClusters(
   let r2Failed = 0;
 
   for (const cluster of popped) {
-    if (r2Config) {
-      // R2 failures don't block the D1 insert this phase — D1 still carries
-      // cluster_json as the fallback of record until Phase 3's cutover.
-      const r2Result = await putClusterJsonFn(cluster.id, JSON.stringify(cluster), r2Config, fetchFn);
-      if (!r2Result.ok) {
-        r2Failed++;
-        console.error(`[ARCHIVE SYNC] R2 blob write failed for ${cluster.id}: HTTP ${r2Result.status ?? 'network error'}`);
-      }
+    // R2 is the sole copy of cluster_json as of Phase 3 — a dangling D1 row
+    // with no blob behind it is unacceptable, so a missing/failed R2 write
+    // now blocks the D1 insert entirely rather than falling back to D1.
+    if (!r2Config) {
+      failed++;
+      console.error(`[ARCHIVE SYNC] R2 is not configured; skipping archive of ${cluster.id} (no fallback copy of cluster_json exists)`);
+      continue;
+    }
+
+    const r2Result = await putClusterJsonFn(cluster.id, JSON.stringify(cluster), r2Config, fetchFn);
+    if (!r2Result.ok) {
+      r2Failed++;
+      failed++;
+      console.error(`[ARCHIVE SYNC] R2 blob write failed for ${cluster.id}: HTTP ${r2Result.status ?? 'network error'}; skipping D1 insert`);
+      continue;
     }
 
     const statement = buildInsertArchivedStoryStatement(toArchivedStoryRow(cluster, archivedAt));

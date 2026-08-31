@@ -25,6 +25,19 @@ export interface ArchivedStoryRow {
 
 export type GetClusterJson = (id: string) => Promise<string | null>;
 
+/**
+ * Thrown by a `GetClusterJson` implementation when the R2 binding/config
+ * itself is unavailable (not merely "blob not found for this id"). Callers
+ * must treat this as a request-level failure, never a per-row skip — see
+ * `archiveSearchHandler.ts` / `entityDossierHandler.ts`.
+ */
+export class ArchiveBindingUnavailableError extends Error {}
+
+/**
+ * cluster_json is never written to D1 as of Phase 3 — R2 is the sole copy
+ * of the full payload going forward, so the flattened columns stay the only
+ * D1 truth for a newly archived row (see fromArchivedStoryRow below).
+ */
 export function toArchivedStoryRow(cluster: StoryCluster, archivedAt: string): ArchivedStoryRow {
   return {
     id: cluster.id,
@@ -36,16 +49,16 @@ export function toArchivedStoryRow(cluster: StoryCluster, archivedAt: string): A
     categories: JSON.stringify(cluster.categories),
     entities: JSON.stringify(cluster.entities),
     defence_score: cluster.defenceScore,
-    cluster_json: JSON.stringify(cluster),
+    cluster_json: null,
     archived_at: archivedAt
   };
 }
 
 /**
- * D1 is authoritative when it holds cluster_json (Phase 1 dual-write); once a
- * row's D1 copy is nulled out (Phase 3+), the R2 blob is the only copy left,
- * so a missing/failed fallback must surface as an error, never a silently
- * empty or malformed story.
+ * D1 is authoritative when it holds cluster_json (rows archived before the
+ * Phase 3 cutover); for every row archived after, the R2 blob is the only
+ * copy left, so a missing/failed fallback must surface as an error, never a
+ * silently empty or malformed story.
  */
 export async function fromArchivedStoryRow(
   row: ArchivedStoryRow,

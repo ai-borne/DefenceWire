@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { ArchivedStoryRow } from '../../src/archive/archiveRow.js';
+import { ArchivedStoryRow, ArchiveBindingUnavailableError } from '../../src/archive/archiveRow.js';
 import { handleArchiveSearchRequest } from '../../src/archive/archiveSearchHandler.js';
 
 function makeRow(id: string, archivedAt: string): ArchivedStoryRow {
@@ -95,6 +95,16 @@ describe('handleArchiveSearchRequest — search mode', () => {
 
     expect(result.stories).toHaveLength(1);
     expect(result.stories[0]?.id).toBe('cluster-tejas-mk1a');
+  });
+
+  it('fails the whole request loudly when the R2 binding itself is unavailable, rather than silently thinning the page', async () => {
+    const r2OnlyRow: ArchivedStoryRow = { ...row, cluster_json: null };
+    const runQuery = vi.fn().mockResolvedValue([r2OnlyRow, row]);
+    const getClusterJson = vi.fn().mockRejectedValue(new ArchiveBindingUnavailableError('ARCHIVE_MEDIA R2 binding is not configured.'));
+    const result = await handleArchiveSearchRequest('Tejas', { runQuery, getClusterJson });
+
+    expect(result.stories).toEqual([]);
+    expect(result.error).toBeTruthy();
   });
 });
 

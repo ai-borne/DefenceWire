@@ -12,7 +12,7 @@
  */
 
 import { StoryCluster } from '../types/news.js';
-import { ArchivedStoryRow, GetClusterJson, fromArchivedStoryRow } from './archiveRow.js';
+import { ArchivedStoryRow, GetClusterJson, fromArchivedStoryRow, ArchiveBindingUnavailableError } from './archiveRow.js';
 import { buildSearchArchiveStatement, buildBrowseArchiveStatement } from './d1QueryBuilder.js';
 
 export interface ArchiveSearchDependencies {
@@ -78,7 +78,12 @@ export async function handleArchiveSearchRequest(
   for (const row of pageRows) {
     try {
       stories.push(await fromArchivedStoryRow(row, deps.getClusterJson));
-    } catch {
+    } catch (err) {
+      if (err instanceof ArchiveBindingUnavailableError) {
+        // Config-level failure, not a per-row data issue — fail the whole
+        // request loudly rather than silently thinning out the results.
+        return { stories: [], nextCursor: null, error: 'Archive media storage is not configured.' };
+      }
       // Skip a corrupt row or unresolved R2 blob rather than failing the whole page.
     }
   }

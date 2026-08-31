@@ -64,9 +64,10 @@ describe('archivePoppedClusters', () => {
     expect(result).toEqual({ archived: 0, failed: 0, r2Failed: 0 });
   });
 
-  it('POSTs one D1 REST query per popped cluster with bearer auth', async () => {
+  it('POSTs one D1 REST query per popped cluster with bearer auth once its R2 write succeeds', async () => {
     const fetchFn = vi.fn().mockResolvedValue({ ok: true });
-    const result = await archivePoppedClusters([makeCluster('a'), makeCluster('b')], [], config, null, { fetchFn });
+    const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const result = await archivePoppedClusters([makeCluster('a'), makeCluster('b')], [], config, r2Config, { fetchFn, putClusterJsonFn });
 
     expect(fetchFn).toHaveBeenCalledTimes(2);
     const firstCall = fetchFn.mock.calls[0] as [string, RequestInit];
@@ -78,14 +79,16 @@ describe('archivePoppedClusters', () => {
 
   it('counts a failed HTTP response without throwing', async () => {
     const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 500 });
-    const result = await archivePoppedClusters([makeCluster('a')], [], config, null, { fetchFn });
+    const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const result = await archivePoppedClusters([makeCluster('a')], [], config, r2Config, { fetchFn, putClusterJsonFn });
 
     expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 0 });
   });
 
   it('counts a network error without throwing', async () => {
     const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
-    const result = await archivePoppedClusters([makeCluster('a')], [], config, null, { fetchFn });
+    const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const result = await archivePoppedClusters([makeCluster('a')], [], config, r2Config, { fetchFn, putClusterJsonFn });
 
     expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 0 });
   });
@@ -103,21 +106,33 @@ describe('archivePoppedClusters', () => {
     expect(result).toEqual({ archived: 2, failed: 0, r2Failed: 0 });
   });
 
-  it('does not call putClusterJson when R2 is not configured (not yet provisioned)', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+  it('skips archiving entirely when R2 is not configured (no fallback copy of cluster_json exists as of Phase 3)', async () => {
+    const fetchFn = vi.fn();
     const putClusterJsonFn = vi.fn();
     const result = await archivePoppedClusters([makeCluster('a')], [], config, null, { fetchFn, putClusterJsonFn });
 
     expect(putClusterJsonFn).not.toHaveBeenCalled();
-    expect(result).toEqual({ archived: 1, failed: 0, r2Failed: 0 });
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 0 });
   });
 
-  it('logs and counts an R2 write failure but still performs the D1 insert (D1 remains the fallback this phase)', async () => {
+  it('blocks the D1 insert entirely when the R2 write fails — D1 is no longer a fallback for cluster_json', async () => {
     const fetchFn = vi.fn().mockResolvedValue({ ok: true });
     const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: false, status: 403 });
     const result = await archivePoppedClusters([makeCluster('a')], [], config, r2Config, { fetchFn, putClusterJsonFn });
 
-    expect(result).toEqual({ archived: 1, failed: 0, r2Failed: 1 });
+    expect(fetchFn).not.toHaveBeenCalled();
+    expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 1 });
+  });
+
+  it('writes cluster_json as null in the D1 insert once the R2 write succeeds', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+    const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    await archivePoppedClusters([makeCluster('a')], [], config, r2Config, { fetchFn, putClusterJsonFn });
+
+    const [, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.params).toContain(null);
   });
 });
 

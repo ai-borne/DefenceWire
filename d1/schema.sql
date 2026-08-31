@@ -95,3 +95,79 @@ CREATE TABLE IF NOT EXISTS source_reputation (
 );
 
 CREATE INDEX IF NOT EXISTS idx_source_reputation_multiplier ON source_reputation (reputation_multiplier DESC);
+
+-- ============================================================================
+-- Migration (Phase 3 of the R2 cluster_json migration): drop the NOT NULL
+-- constraint on archived_stories.cluster_json. As of Phase 3, cluster_json is
+-- written to R2 (crawler/r2ArchiveStore.ts) instead of D1 going forward, so
+-- new rows insert cluster_json = NULL; only rows archived before this
+-- migration ran still carry it in D1 (nulled out later by Phase 4's
+-- backfill). SQLite has no ALTER COLUMN to drop a NOT NULL constraint, so
+-- this rebuilds the table under a temporary name, copies every row across,
+-- and swaps it into place — the standard SQLite "12-step" table migration.
+--
+-- This block is intentionally NOT wrapped in IF NOT EXISTS / IF EXISTS
+-- guards and is NOT idempotent (the final RENAME fails if run twice). Run it
+-- ONCE, manually, after the Phase 3 application code is deployed:
+--   npx wrangler d1 execute defencewire-archive --remote --command "$(cat <<'SQL'
+--     PRAGMA foreign_keys=OFF;
+--     ...the statements below...
+--   SQL
+--   )"
+-- Do not include it in a routine `wrangler d1 execute --file=d1/schema.sql`
+-- re-apply of this file.
+-- ============================================================================
+
+-- PRAGMA foreign_keys=OFF;
+--
+-- CREATE TABLE archived_stories_new (
+--   id TEXT PRIMARY KEY,
+--   synthesized_headline TEXT NOT NULL,
+--   snippet TEXT,
+--   primary_source_name TEXT NOT NULL,
+--   primary_source_url TEXT NOT NULL,
+--   primary_source_published_at TEXT NOT NULL,
+--   categories TEXT NOT NULL,
+--   entities TEXT NOT NULL,
+--   defence_score INTEGER NOT NULL,
+--   cluster_json TEXT,               -- nullable as of Phase 3: R2 is the copy of record
+--   archived_at TEXT NOT NULL
+-- );
+--
+-- INSERT INTO archived_stories_new SELECT * FROM archived_stories;
+--
+-- DROP TABLE archived_stories_fts;
+-- DROP TABLE archived_stories;
+-- ALTER TABLE archived_stories_new RENAME TO archived_stories;
+--
+-- CREATE INDEX IF NOT EXISTS idx_archived_stories_archived_at ON archived_stories (archived_at DESC);
+--
+-- CREATE VIRTUAL TABLE archived_stories_fts USING fts5(
+--   id UNINDEXED,
+--   synthesized_headline,
+--   snippet,
+--   entities,
+--   content='archived_stories',
+--   content_rowid='rowid'
+-- );
+-- INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
+--   SELECT rowid, id, synthesized_headline, snippet, entities FROM archived_stories;
+--
+-- CREATE TRIGGER archived_stories_ai AFTER INSERT ON archived_stories BEGIN
+--   INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
+--   VALUES (new.rowid, new.id, new.synthesized_headline, new.snippet, new.entities);
+-- END;
+--
+-- CREATE TRIGGER archived_stories_ad AFTER DELETE ON archived_stories BEGIN
+--   INSERT INTO archived_stories_fts(archived_stories_fts, rowid, id, synthesized_headline, snippet, entities)
+--   VALUES('delete', old.rowid, old.id, old.synthesized_headline, old.snippet, old.entities);
+-- END;
+--
+-- CREATE TRIGGER archived_stories_au AFTER UPDATE ON archived_stories BEGIN
+--   INSERT INTO archived_stories_fts(archived_stories_fts, rowid, id, synthesized_headline, snippet, entities)
+--   VALUES('delete', old.rowid, old.id, old.synthesized_headline, old.snippet, old.entities);
+--   INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
+--   VALUES (new.rowid, new.id, new.synthesized_headline, new.snippet, new.entities);
+-- END;
+--
+-- PRAGMA foreign_keys=ON;
