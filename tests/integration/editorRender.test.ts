@@ -67,7 +67,7 @@ describe('EditorDashboard Component Integration', () => {
     expect(el.textContent).toContain(STRINGS.editor.authTitle);
     expect(el.textContent).toContain(STRINGS.editor.zeroTrustLoginBtn);
 
-    const btn = el.querySelector('button.dw-editor-btn--promote');
+    const btn = el.querySelector('.dw-editor-btn--promote');
     expect(btn).not.toBeNull();
   });
 

@@ -51,9 +51,9 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   subtitle.textContent = STRINGS.editor.authSubtitle;
   body.appendChild(subtitle);
 
-  // Zero Trust Direct SSO Button
-  const zeroTrustBtn = document.createElement('button');
-  zeroTrustBtn.type = 'button';
+  // Zero Trust Direct Native Anchor Link
+  const zeroTrustBtn = document.createElement('a');
+  zeroTrustBtn.href = '/api/curator/auth?redirect=1';
   zeroTrustBtn.className = 'dw-editor-btn dw-editor-btn--promote';
   zeroTrustBtn.style.padding = '12px 20px';
   zeroTrustBtn.style.textAlign = 'center';
@@ -61,13 +61,10 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   zeroTrustBtn.style.fontSize = '0.95rem';
   zeroTrustBtn.style.cursor = 'pointer';
   zeroTrustBtn.style.width = '100%';
+  zeroTrustBtn.style.display = 'block';
+  zeroTrustBtn.style.textDecoration = 'none';
+  zeroTrustBtn.style.boxSizing = 'border-box';
   zeroTrustBtn.textContent = `🛡️ ${STRINGS.editor.zeroTrustLoginBtn}`;
-  
-  zeroTrustBtn.onclick = () => {
-    zeroTrustBtn.disabled = true;
-    zeroTrustBtn.textContent = 'Redirecting to Zero Trust Gateway...';
-    window.location.assign('/api/curator/auth?redirect=1');
-  };
 
   body.appendChild(zeroTrustBtn);
   panel.appendChild(body);

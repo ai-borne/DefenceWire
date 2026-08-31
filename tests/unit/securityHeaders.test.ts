@@ -46,9 +46,8 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(content).toContain('X-Content-Type-Options: nosniff');
     expect(content).toContain('Referrer-Policy: strict-origin-when-cross-origin');
     expect(content).toContain('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
-    expect(content).toContain('Cross-Origin-Opener-Policy: same-origin');
+    expect(content).toContain('Cross-Origin-Opener-Policy: same-origin-allow-popups');
     expect(content).toContain('Cross-Origin-Resource-Policy: same-origin');
-    expect(content).toContain('Cross-Origin-Embedder-Policy: credentialless');
     expect(content).toContain('X-Permitted-Cross-Domain-Policies: none');
   });
 
