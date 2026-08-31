@@ -12,6 +12,14 @@ on:
 permissions:
   contents: write
 
+# Every crawler-pushed commit re-triggers this workflow (push trigger), and
+# it's also cron- and manually-triggerable — without this, overlapping runs
+# can race on both the git branch and the shared D1 archive. Queue instead
+# of running in parallel; never cancel a run that's mid-write.
+concurrency:
+  group: crawl-and-deploy
+  cancel-in-progress: false
+
 jobs:
   crawl-and-build:
     runs-on: ubuntu-latest

@@ -5,6 +5,7 @@
 
 import { StorySourceItem } from '../src/types/news.js';
 import { isValidUrl, sanitizePlainText } from '../src/utils/security.js';
+import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
 
 export interface CircuitState {
@@ -135,7 +136,7 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
     }
 
     const item: StorySourceItem = {
-      id: `${feed.id}-${Date.now()}-${i}`,
+      id: `${feed.id}-${computeStableHash(rawLink)}`,
       title: cleanTitle,
       url: rawLink,
       sourceName: feed.name,

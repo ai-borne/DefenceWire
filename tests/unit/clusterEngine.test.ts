@@ -199,4 +199,49 @@ describe('Cluster & Deduplication Engine', () => {
     expect(zorawarCluster).toBeDefined();
     expect(zorawarCluster?.relatedCoverage.length).toBe(1);
   });
+
+  it('assigns the same cluster id to the same story across two separate clustering runs', () => {
+    // Regression test: cluster ids used to embed Date.now(), so the exact
+    // same article got a brand-new id on every 20-minute crawl — silently
+    // breaking permalinks, the sitemap, and the archive's popped/live diff.
+    const article: StorySourceItem = {
+      id: 'raw-tejas',
+      title: 'HAL delivers first batch of Tejas Mk1A fighters',
+      url: 'https://pib.gov.in/tejas-mk1a-delivery',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T06:00:00Z'
+    };
+
+    const firstRun = clusterArticles([article], new Date('2026-08-30T08:00:00Z'));
+    const secondRun = clusterArticles([{ ...article }], new Date('2026-08-30T08:20:00Z'));
+
+    expect(firstRun[0]?.id).toBeDefined();
+    expect(firstRun[0]?.id).toBe(secondRun[0]?.id);
+  });
+
+  it('assigns different cluster ids to different stories', () => {
+    const articleA: StorySourceItem = {
+      id: 'raw-a',
+      title: 'HAL delivers first batch of Tejas Mk1A fighters',
+      url: 'https://pib.gov.in/tejas-mk1a-delivery',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T06:00:00Z'
+    };
+    const articleB: StorySourceItem = {
+      id: 'raw-b',
+      title: 'DRDO commences winter trials for Zorawar light tank',
+      url: 'https://drdo.gov.in/zorawar-trials',
+      sourceName: 'DRDO',
+      sourceDomain: 'drdo.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T05:00:00Z'
+    };
+
+    const clusters = clusterArticles([articleA, articleB], new Date('2026-08-30T08:00:00Z'));
+    expect(clusters[0]?.id).not.toBe(clusters[1]?.id);
+  });
 });

@@ -81,6 +81,18 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(second?.url).toBe('https://pib.gov.in/PressReleasePage.aspx?PRID=2048888');
   });
 
+  it('assigns the same article id to the same feed item across two separate parse calls', () => {
+    // Regression test: article ids used to embed Date.now(), so re-parsing
+    // the same RSS item on the next 20-minute crawl produced a brand-new id.
+    const firstParse = parseFeedXml(SAMPLE_RSS_XML, MOCK_FEED);
+    const secondParse = parseFeedXml(SAMPLE_RSS_XML, MOCK_FEED);
+
+    expect(firstParse[0]?.id).toBeDefined();
+    expect(firstParse[0]?.id).toBe(secondParse[0]?.id);
+    expect(firstParse[1]?.id).toBe(secondParse[1]?.id);
+    expect(firstParse[0]?.id).not.toBe(firstParse[1]?.id);
+  });
+
   it('parses Atom feed entries with link href and updated tags', () => {
     const items = parseFeedXml(SAMPLE_ATOM_XML, { ...MOCK_FEED, name: 'Livefist' });
 

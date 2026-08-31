@@ -7,6 +7,7 @@
 import { DomainCategory, StoryCluster, StorySourceItem } from '../types/news.js';
 import { getTierAuthorityWeight } from '../data/sources.js';
 import { calculateScoreBreakdown } from './rankingEngine.js';
+import { computeStableHash } from '../utils/stableId.js';
 
 /** Known Indian defence platforms, agencies, and strategic entities */
 export const KNOWN_MILITARY_ENTITIES: { name: string; pattern: RegExp; categories: DomainCategory[] }[] = [
@@ -184,13 +185,13 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
   }
 
   // Build StoryCluster for each group
-  const clusters: StoryCluster[] = groups.map((group, index) => {
+  const clusters: StoryCluster[] = groups.map((group) => {
     const { primary, related } = pickPrimarySource(group);
     const allTitles = group.map(g => g.title).join(' ');
     const { entities, categories } = extractMilitaryEntities(allTitles);
 
     const baseCluster: StoryCluster = {
-      id: `cluster-${Date.now()}-${index}-${primary.id}`,
+      id: `cluster-${computeStableHash(primary.url)}`,
       synthesizedHeadline: primary.title,
       primarySource: primary,
       relatedCoverage: related,
