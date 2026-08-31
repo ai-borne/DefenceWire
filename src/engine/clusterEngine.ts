@@ -83,10 +83,12 @@ export function extractMilitaryEntities(text: string): { entities: string[]; cat
   // Fallback category if none detected
   if (categoriesSet.size === 0) {
     const lower = text.toLowerCase();
+    const hasDefenceContext = lower.includes('defence') || lower.includes('defense') || lower.includes('military') || lower.includes('mod') || lower.includes('armed forces') || lower.includes('drdo') || lower.includes('weapon') || lower.includes('missile') || lower.includes('ammunition');
+
     if (lower.includes('army') || lower.includes('troop') || lower.includes('soldier')) categoriesSet.add('army');
     else if (lower.includes('navy') || lower.includes('ship') || lower.includes('submarine') || lower.includes('maritime')) categoriesSet.add('navy');
     else if (lower.includes('air force') || lower.includes('iaf') || lower.includes('aircraft') || lower.includes('jet')) categoriesSet.add('airforce');
-    else if (lower.includes('procurement') || lower.includes('deal') || lower.includes('crore') || lower.includes('order')) categoriesSet.add('procurement');
+    else if (hasDefenceContext && (lower.includes('procurement') || lower.includes('deal') || lower.includes('crore') || lower.includes('order') || lower.includes('contract') || lower.includes('acquisition') || lower.includes('tender'))) categoriesSet.add('procurement');
     else categoriesSet.add('strategic');
   }
 

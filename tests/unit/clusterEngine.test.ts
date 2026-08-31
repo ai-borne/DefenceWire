@@ -244,4 +244,12 @@ describe('Cluster & Deduplication Engine', () => {
     const clusters = clusterArticles([articleA, articleB], new Date('2026-08-30T08:00:00Z'));
     expect(clusters[0]?.id).not.toBe(clusters[1]?.id);
   });
+
+  it('should not assign procurement category to generic civic/infrastructure text without defence context', () => {
+    const resCivic = extractMilitaryEntities('State government unveils multi-crore infrastructure push for highways and orders 500 buses');
+    expect(resCivic.categories).not.toContain('procurement');
+
+    const resDefence = extractMilitaryEntities('Defence Ministry signs ₹5,000 crore procurement deal for ammunition');
+    expect(resDefence.categories).toContain('procurement');
+  });
 });

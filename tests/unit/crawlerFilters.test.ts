@@ -114,6 +114,79 @@ describe('Crawler Filters: Relevance & Negative Blacklisting', () => {
 
     expect(isDefenceRelevant(item, nationalFeed)).toBe(false);
   });
+
+  it('rejects agricultural, dairy, civic and commodity procurement from national feeds', () => {
+    const milkItem: StorySourceItem = {
+      id: 'item-milk',
+      title: 'Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre',
+      url: 'https://thehindu.com/news/national/tamil-nadu/milk-procurement-price/1',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z',
+      snippet: 'Last week, CM Vijay had announced that the government had increased the procurement price by ₹3.'
+    };
+
+    const paddyItem: StorySourceItem = {
+      id: 'item-paddy',
+      title: 'Centre hikes paddy procurement MSP by ₹117 per quintal for kharif season',
+      url: 'https://hindustantimes.com/india-news/paddy-msp-procurement/2',
+      sourceName: 'Hindustan Times',
+      sourceDomain: 'hindustantimes.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z'
+    };
+
+    const busItem: StorySourceItem = {
+      id: 'item-bus',
+      title: 'State cabinet approves municipal tender for 500 electric bus procurement',
+      url: 'https://thehindu.com/news/bus-procurement/3',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z'
+    };
+
+    expect(isDefenceRelevant(milkItem, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(paddyItem, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(busItem, nationalFeed)).toBe(false);
+  });
+
+  it('accepts legitimate defence and military procurement items', () => {
+    const akashItem: StorySourceItem = {
+      id: 'item-akash',
+      title: 'IAF, MoD Consider Major Akash-NG Procurement With Around 1,000 Missiles Order Book',
+      url: 'https://thehindu.com/news/defence/akash-procurement/4',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z'
+    };
+
+    const dacItem: StorySourceItem = {
+      id: 'item-dac',
+      title: 'DAC Clears Capital Acquisition of 31 MQ-9B Drones for Armed Forces',
+      url: 'https://thehindu.com/news/defence/dac-mq9b/5',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z'
+    };
+
+    const armyItem: StorySourceItem = {
+      id: 'item-army',
+      title: 'Indian Army floats preliminary tender for 307 ATAGS howitzers',
+      url: 'https://thehindu.com/news/defence/atags-tender/6',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-31T08:00:00Z'
+    };
+
+    expect(isDefenceRelevant(akashItem, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(dacItem, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(armyItem, nationalFeed)).toBe(true);
+  });
 });
 
 describe('Crawler Filters: Article Freshness Window', () => {

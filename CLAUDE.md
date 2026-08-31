@@ -62,7 +62,7 @@ Default to surfacing uncertainty, not hiding it.
 
 ---
 
-## Phase Discipline
+## Phase Discipline for Plans
 
 1. **Phase Independence & Success**: Every single phase must end with a fully successful build. Do not proceed to the next phase if the current build is failing.
 2. **Test-Driven Development (TDD)**: Write tests (both unit and integration) before or alongside the implementation. 100% of tests must pass before a phase is marked complete.

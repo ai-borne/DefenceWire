@@ -209,4 +209,30 @@ describe('Ranking Engine & DefenceScore Calculation', () => {
     expect(isAutoPilotEligible(lowScoreCluster)).toBe(false);
     expect(isAutoPilotEligible(ignoredHighCluster)).toBe(false);
   });
+
+  it('only grants DAC Procurement Clearance bonus when genuine defence acquisition triggers are present', () => {
+    const milkCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      id: 'cluster-milk',
+      synthesizedHeadline: 'Tamil Nadu CM Vijay announces further hike of milk procurement price',
+      entities: [],
+      categories: ['strategic']
+    };
+
+    const dacCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      id: 'cluster-dac',
+      synthesizedHeadline: 'DAC Clears Capital Acquisition of 31 MQ-9B Drones for Armed Forces',
+      entities: ['DAC Clearance'],
+      categories: ['procurement', 'navy']
+    };
+
+    const breakdownMilk = calculateScoreBreakdown(milkCluster, referenceTime);
+    const dacBonusMilk = breakdownMilk.bonuses.find(b => b.name === 'DAC Procurement Clearance');
+    expect(dacBonusMilk?.applied).toBe(false);
+
+    const breakdownDac = calculateScoreBreakdown(dacCluster, referenceTime);
+    const dacBonusDac = breakdownDac.bonuses.find(b => b.name === 'DAC Procurement Clearance');
+    expect(dacBonusDac?.applied).toBe(true);
+  });
 });

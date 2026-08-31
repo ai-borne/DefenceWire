@@ -14,7 +14,10 @@ export const NON_DEFENCE_BLACKLIST = [
   'bollywood', 'box office', 'cricket', 'ipl', 'bcci', 'stock market', 'sensex',
   'nifty', 'gold rate', 'silver rate', 'petrol price', 'diesel price', 'entertainment',
   'celebrity', 'horoscope', 'astrology', 'weather forecast', 'monsoon rainfall',
-  'traffic jam', 'real estate', 'crypto', 'bitcoin', 'mutual fund', 'cinema', 'ott release'
+  'traffic jam', 'real estate', 'crypto', 'bitcoin', 'mutual fund', 'cinema', 'ott release',
+  'milk', 'dairy', 'paddy', 'wheat', 'sugarcane', 'msp', 'farmer', 'farmers',
+  'electricity tariff', 'bus fare', 'toll plaza', 'pension hike', 'cabinet reshuffle',
+  'civic body', 'panchayat', 'municipal corporation', 'municipal tender', 'highway toll'
 ];
 
 export const NON_DEFENCE_BLACKLIST_REGEX = new RegExp(
@@ -22,7 +25,7 @@ export const NON_DEFENCE_BLACKLIST_REGEX = new RegExp(
   'i'
 );
 
-export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|dac|ccs|lac|loc|ssb|aon|iddm|atags|mbbr|iadc|cds|dmr|ssbn|ssn|sam|bvr|qrsam|vshorads?|lch|luh|alhs?|bmd|ecm|c-uas|cuas|uavs?|ucavs?|fpv|loitering munition|defence|defense|military|army|navy|air force|armed forces|warship|corvette|frigate|destroyer|submarine|tejas|amca|rafale|zorawar|brahmos|pinaka|s-400|prachand|aircraft carrier|tri-service|theat(?:er|re) command|procurement|missile|artillery|infantry|air defen[sc]e|atmanirbhar|make in india)\b/i;
+export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|dac|ccs|lac|loc|ssb|aon|iddm|atags|mbbr|iadc|cds|dmr|ssbn|ssn|sam|bvr|qrsam|vshorads?|lch|luh|alhs?|bmd|ecm|c-uas|cuas|uavs?|ucavs?|fpv|loitering munition|defence|defense|military|army|navy|air force|armed forces|warship|corvette|frigate|destroyer|submarine|tejas|amca|rafale|zorawar|brahmos|pinaka|s-400|prachand|aircraft carrier|tri-service|theat(?:er|re) command|missile|artillery|howitzers?|infantry|air defen[sc]e|(?:defence|defense|military|arms|weapons?|capital|iaf|drdo|navy|army|mod)\s+procurement|procurement\s+(?:of|for)\s+(?:defence|defense|military|arms|weapons?|missiles?|aircraft|tanks?|howitzers?|ammunition|radars?|warships?|drones?)|capital\s+acquisition|defence\s+acquisition|(?:atmanirbhar|indigenous)\s+(?:defence|defense|weapon|missile|armou?r|security|military)|make\s+in\s+india\s+in\s+defence)\b/i;
 
 /**
  * Validates if an article item is strictly relevant to Indian defence & military affairs.

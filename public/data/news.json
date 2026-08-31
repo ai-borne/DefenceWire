@@ -1,56 +1,6 @@
 {
   "clusters": [
     {
-      "id": "cluster-c062f995",
-      "synthesizedHeadline": "Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre",
-      "primarySource": {
-        "id": "feed-the-hindu-national-c062f995",
-        "title": "Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre",
-        "url": "https://www.thehindu.com/news/national/tamil-nadu/milk-procurement-price-in-tamil-nadu-increased-further-to-44-per-litre/article71409827.ece",
-        "sourceName": "The Hindu (National Security)",
-        "sourceDomain": "thehindu.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-08-31T07:31:21.000Z",
-        "snippet": "Last week, CM Vijay had announced that the government had increased the procurement price by ₹3 per litre, raising the price from ₹38 to ₹41",
-        "isPrimary": true
-      },
-      "relatedCoverage": [
-        {
-          "id": "feed-hindustan-times-146d65ff",
-          "title": "TN CM Vijay announces further hike in milk procurement prices, unveils multi-crore infrastructure push",
-          "url": "https://www.hindustantimes.com/india-news/tn-cm-vijay-announces-further-hike-in-milk-procurement-prices-unveils-multi-cr-infra-push-101788160301396.html",
-          "sourceName": "Hindustan Times (India Security)",
-          "sourceDomain": "hindustantimes.com",
-          "tier": "TIER_2_NATIONAL",
-          "publishedAt": "2026-08-31T07:11:41.000Z",
-          "snippet": "TN CM Vijay announces further hike in milk procurement prices, unveils multi-cr infra push",
-          "isPrimary": false
-        }
-      ],
-      "discussions": [],
-      "categories": [
-        "procurement"
-      ],
-      "entities": [],
-      "defenceScore": 65.5,
-      "isLeadStory": true,
-      "createdAt": "2026-08-31T07:31:21.000Z",
-      "updatedAt": "2026-08-31T07:31:21.000Z",
-      "ssbIntel": {
-        "whyItMatters": "This news story covers a civilian state welfare policy regarding domestic dairy economics rather than core national security. Indirectly, agricultural pricing trends affect broader food security and local supply chain costs relevant to civil-military supply networks.",
-        "strategicAngle": "Socio-economic stability in key maritime and coastal states like Tamil Nadu underpins comprehensive national power, though this policy holds no direct impact on military doctrine or strategic deterrence.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Not Applicable (Civilian Economic Policy)",
-          "specifications": [
-            "State-level dairy procurement rate set at ₹44 per litre",
-            "Prior incremental price increase of ₹3 per litre (₹38 to ₹41)",
-            "Civilian agricultural governance initiative"
-          ],
-          "keySignificance": "The reported story focuses strictly on state-level agricultural economics and contains no defence technology, military platform, or hardware applications."
-        }
-      }
-    },
-    {
       "id": "cluster-e79341ae",
       "synthesizedHeadline": "India’s Battle for Public Trust Begins in the Cybercrime Marketplace",
       "primarySource": {
@@ -70,8 +20,8 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 53.7,
-      "isLeadStory": false,
+      "defenceScore": 54.4,
+      "isLeadStory": true,
       "createdAt": "2026-08-31T06:35:04.000Z",
       "updatedAt": "2026-08-31T06:35:04.000Z",
       "ssbIntel": {
@@ -1201,16 +1151,6 @@
       "snippet": "Japan’s Ministry of Defense (MoD) on August 31 requested a record 8.9 trillion yen ($55.5 billion) for fiscal year 2027, which begins in April 2027. The fiscal 2027 request places particular emphasis on artificial intelligence (AI) and unmanned assets as Japan"
     },
     {
-      "id": "feed-the-hindu-national-c062f995",
-      "title": "Tamil Nadu CM Vijay announces further hike of milk procurement price to ₹44 per litre",
-      "url": "https://www.thehindu.com/news/national/tamil-nadu/milk-procurement-price-in-tamil-nadu-increased-further-to-44-per-litre/article71409827.ece",
-      "sourceName": "The Hindu (National Security)",
-      "sourceDomain": "thehindu.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-31T07:31:21.000Z",
-      "snippet": "Last week, CM Vijay had announced that the government had increased the procurement price by ₹3 per litre, raising the price from ₹38 to ₹41"
-    },
-    {
       "id": "feed-the-hindu-national-826d5d08",
       "title": "Indian Navy commissions deep-sea diving vessel INS Nipun",
       "url": "https://www.thehindu.com/news/national/indian-navy-commissions-deep-sea-diving-vessel-ins-nipun/article71409836.ece",
@@ -1219,16 +1159,6 @@
       "tier": "TIER_2_NATIONAL",
       "publishedAt": "2026-08-31T07:19:34.000Z",
       "snippet": "INS Nipun was commissioned in the presence of Navy chief Admiral Krishna Swaminathan."
-    },
-    {
-      "id": "feed-hindustan-times-146d65ff",
-      "title": "TN CM Vijay announces further hike in milk procurement prices, unveils multi-crore infrastructure push",
-      "url": "https://www.hindustantimes.com/india-news/tn-cm-vijay-announces-further-hike-in-milk-procurement-prices-unveils-multi-cr-infra-push-101788160301396.html",
-      "sourceName": "Hindustan Times (India Security)",
-      "sourceDomain": "hindustantimes.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-08-31T07:11:41.000Z",
-      "snippet": "TN CM Vijay announces further hike in milk procurement prices, unveils multi-cr infra push"
     },
     {
       "id": "feed-bharat-shakti-bcd2b4b1",

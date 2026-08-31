@@ -145,7 +145,8 @@ function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFac
 
   // DAC / CCS Procurement Clearance
   const text = `${cluster.synthesizedHeadline} ${cluster.entities.join(' ')}`.toLowerCase();
-  const isDac = text.includes('dac') || text.includes('procurement') || text.includes('defence acquisition council');
+  const isDac = /\b(dac|defence acquisition council|ccs approval|acceptance of necessity|aon)\b/i.test(text) ||
+    (/\b(procurement|acquisition|tender)\b/i.test(text) && /\b(defence|defense|mod|iaf|navy|army|drdo|missile|aircraft|warship|ammunition|howitzer|tank|drone|uav|submarine)\b/i.test(text));
   bonuses.push({
     name: 'DAC Procurement Clearance',
     points: params.dacClearanceBonus,
