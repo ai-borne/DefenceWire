@@ -117,6 +117,8 @@ export const STRINGS = {
     // Auth & Stealth Controls
     authTitle: 'Institutional Curator Access',
     authSubtitle: 'Restricted to authorized DefenceWire editorial personnel.',
+    zeroTrustLoginBtn: 'Login with Cloudflare Zero Trust (Email PIN)',
+    orDivider: '— OR ENTER PASSCODE —',
     passcodePlaceholder: 'Enter Security Passcode...',
     unlockButton: 'Unlock Curator Desk',
     invalidPasscode: 'Invalid passcode. Access denied.',

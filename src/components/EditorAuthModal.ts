@@ -1,6 +1,6 @@
 /**
- * Tactical Passcode Unlock Modal Component for Editorial Curator Desk
- * Protects curator desk with SHA-256 cryptographic passcode verification.
+ * Tactical Passcode & Zero Trust Unlock Modal Component for Editorial Curator Desk
+ * Supports 1-click Cloudflare Zero Trust authentication and SHA-256 fallback passcode verification.
  * Hard limit: <= 300 LOC.
  */
 
@@ -51,6 +51,28 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   subtitle.textContent = STRINGS.editor.authSubtitle;
   body.appendChild(subtitle);
 
+  // Zero Trust Direct SSO Button
+  const zeroTrustBtn = document.createElement('a');
+  zeroTrustBtn.href = '/api/curator/auth?redirect=1';
+  zeroTrustBtn.className = 'dw-editor-btn dw-editor-btn--promote';
+  zeroTrustBtn.style.padding = '10px 16px';
+  zeroTrustBtn.style.textAlign = 'center';
+  zeroTrustBtn.style.fontWeight = '700';
+  zeroTrustBtn.style.textDecoration = 'none';
+  zeroTrustBtn.style.display = 'block';
+  zeroTrustBtn.textContent = `🛡️ ${STRINGS.editor.zeroTrustLoginBtn}`;
+  body.appendChild(zeroTrustBtn);
+
+  // Divider
+  const divider = document.createElement('div');
+  divider.style.textAlign = 'center';
+  divider.style.fontSize = '0.72rem';
+  divider.style.fontWeight = '700';
+  divider.style.color = 'var(--dw-text-secondary)';
+  divider.style.margin = '4px 0';
+  divider.textContent = STRINGS.editor.orDivider;
+  body.appendChild(divider);
+
   const errorBox = document.createElement('div');
   errorBox.className = 'dw-editor-auth-error';
   errorBox.style.display = 'none';
@@ -88,7 +110,7 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
 
   const unlockBtn = document.createElement('button');
   unlockBtn.type = 'button';
-  unlockBtn.className = 'dw-editor-btn dw-editor-btn--promote';
+  unlockBtn.className = 'dw-editor-btn';
   unlockBtn.style.padding = '8px 16px';
   unlockBtn.style.fontWeight = '700';
   unlockBtn.textContent = `⚡ ${STRINGS.editor.unlockButton}`;
@@ -122,9 +144,6 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   body.appendChild(unlockBtn);
   panel.appendChild(body);
   overlay.appendChild(panel);
-
-  // Auto-focus input
-  setTimeout(() => input.focus(), 50);
 
   return overlay;
 }
