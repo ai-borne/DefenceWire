@@ -120,16 +120,35 @@ export function openEntityDossierModal(
         (data.entity?.category || 'Strategic').toUpperCase()
       )}</span>`;
 
+      // Deduplicate stories in memory by ID & synthesized headline
+      const uniqueStories: StoryCluster[] = [];
+      const seenIds = new Set<string>();
+      const seenTitles = new Set<string>();
+
+      if (data.relatedStories) {
+        for (const s of data.relatedStories) {
+          const normTitle = (s.synthesizedHeadline || '').trim().toLowerCase();
+          if (!seenIds.has(s.id) && (!normTitle || !seenTitles.has(normTitle))) {
+            seenIds.add(s.id);
+            if (normTitle) seenTitles.add(normTitle);
+            uniqueStories.push(s);
+          }
+        }
+      }
+
+      const sourcesCount = data.entity?.sourceCount || (uniqueStories.length > 0 ? 1 : 0);
+      const mentionsCount = data.entity?.mentionCount || uniqueStories.length;
+
       const sourcesCell = document.createElement('div');
       sourcesCell.className = 'dw-metric-cell';
       sourcesCell.innerHTML = `<span class="dw-metric-label">CORROBORATION</span><span class="dw-metric-val">${
-        data.entity?.sourceCount || 1
-      } Sources</span>`;
+        sourcesCount > 0 ? `${sourcesCount} Sources` : '24/7 Watch'
+      }</span>`;
 
       const mentionsCell = document.createElement('div');
       mentionsCell.className = 'dw-metric-cell';
       mentionsCell.innerHTML = `<span class="dw-metric-label">WIRE MENTIONS</span><span class="dw-metric-val">${
-        data.entity?.mentionCount || data.relatedStories.length || 1
+        mentionsCount > 0 ? mentionsCount : 'Active Tracking'
       }</span>`;
 
       metricsGrid.appendChild(catBadge);
@@ -143,11 +162,11 @@ export function openEntityDossierModal(
       timelineHeader.textContent = 'Development Timeline & Corroborated Coverage:';
       body.appendChild(timelineHeader);
 
-      if (data.relatedStories && data.relatedStories.length > 0) {
+      if (uniqueStories.length > 0) {
         const list = document.createElement('ul');
         list.className = 'dw-dossier-story-list';
 
-        for (const story of data.relatedStories) {
+        for (const story of uniqueStories) {
           const li = document.createElement('li');
           li.className = 'dw-dossier-story-item';
 
@@ -172,7 +191,8 @@ export function openEntityDossierModal(
       } else {
         const noStories = document.createElement('p');
         noStories.className = 'dw-dossier-no-stories';
-        noStories.textContent = 'Active tracking initiated. Historical clusters will aggregate here.';
+        noStories.innerHTML =
+          '🛡️ <strong>Active Intelligence Watch:</strong> Real-time monitoring is active across 50+ official defence feeds. Historical milestones, tests, contracts, and deployments will automatically index here as coverage develops.';
         body.appendChild(noStories);
       }
     })
@@ -182,11 +202,15 @@ export function openEntityDossierModal(
           <div class="dw-metric-cell"><span class="dw-metric-label">PLATFORM</span><span class="dw-metric-val">${sanitizePlainText(
             entityName
           )}</span></div>
-          <div class="dw-metric-cell"><span class="dw-metric-label">STATUS</span><span class="dw-metric-val">Active Service</span></div>
+          <div class="dw-metric-cell"><span class="dw-metric-label">MONITORING</span><span class="dw-metric-val">24/7 Live Wire</span></div>
+          <div class="dw-metric-cell"><span class="dw-metric-label">STATUS</span><span class="dw-metric-val">Active Tracking</span></div>
         </div>
-        <p class="dw-dossier-no-stories">Edge archive query completed. Real-time monitoring active.</p>
+        <p class="dw-dossier-no-stories">
+          🛡️ <strong>Active Intelligence Watch:</strong> This sovereign platform is tracked across 50+ official military feeds. Development milestones, trials, and procurement updates will automatically aggregate here as stories develop.
+        </p>
       `;
     });
+
 
   return backdrop;
 }

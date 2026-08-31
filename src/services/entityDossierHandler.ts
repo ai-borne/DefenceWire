@@ -53,11 +53,19 @@ export async function handleEntityDossierRequest(
     const storyRows = await db.queryRelatedStories(cleanSlug, 20);
 
     const relatedStories: StoryCluster[] = [];
+    const seenIds = new Set<string>();
+    const seenHeadlines = new Set<string>();
+
     for (const row of storyRows) {
       try {
         const parsed = JSON.parse(row.cluster_json) as StoryCluster;
         if (parsed && parsed.id) {
-          relatedStories.push(parsed);
+          const normHeadline = (parsed.synthesizedHeadline || '').trim().toLowerCase();
+          if (!seenIds.has(parsed.id) && (!normHeadline || !seenHeadlines.has(normHeadline))) {
+            seenIds.add(parsed.id);
+            if (normHeadline) seenHeadlines.add(normHeadline);
+            relatedStories.push(parsed);
+          }
         }
       } catch {
         // Skip unparseable legacy row
@@ -68,13 +76,15 @@ export async function handleEntityDossierRequest(
       return { entity: null, relatedStories: [], error: 'Entity not found.' };
     }
 
+    const firstStoryCategory = relatedStories[0]?.categories?.[0] || 'strategic';
+
     const entityData = entityRow
       ? {
           id: entityRow.id,
           name: entityRow.name,
           category: entityRow.category,
           sourceCount: entityRow.source_count,
-          mentionCount: entityRow.mention_count,
+          mentionCount: Math.max(entityRow.mention_count, relatedStories.length),
           isPromoted: Boolean(entityRow.is_promoted),
           firstSeenAt: entityRow.first_seen_at,
           lastSeenAt: entityRow.last_seen_at
@@ -82,13 +92,14 @@ export async function handleEntityDossierRequest(
       : {
           id: cleanSlug,
           name: cleanSlug.toUpperCase(),
-          category: 'strategic',
+          category: firstStoryCategory,
           sourceCount: 1,
           mentionCount: relatedStories.length,
           isPromoted: true,
           firstSeenAt: relatedStories[0]?.createdAt || new Date().toISOString(),
           lastSeenAt: relatedStories[0]?.updatedAt || new Date().toISOString()
         };
+
 
     return {
       entity: entityData,
