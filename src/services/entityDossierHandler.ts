@@ -7,6 +7,18 @@
 
 import { StoryCluster } from '../types/news.js';
 
+/**
+ * Escapes SQLite LIKE wildcard characters (`%` and `_`) and the escape character itself
+ * so that user-supplied input does not trigger full table scans or unintended pattern matches.
+ */
+export function escapeSqlLikePattern(input: string, escapeChar: string = '\\'): string {
+  if (!input) return '';
+  return input
+    .replace(new RegExp(`\\${escapeChar}`, 'g'), `${escapeChar}${escapeChar}`)
+    .replace(/%/g, `${escapeChar}%`)
+    .replace(/_/g, `${escapeChar}_`);
+}
+
 export interface DiscoveredEntityDbRow {
   id: string;
   name: string;

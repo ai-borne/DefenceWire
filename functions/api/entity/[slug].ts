@@ -6,6 +6,7 @@
 
 import {
   handleEntityDossierRequest,
+  escapeSqlLikePattern,
   DiscoveredEntityDbRow
 } from '../../../src/services/entityDossierHandler.js';
 
@@ -43,9 +44,9 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
     },
     queryRelatedStories: async (entitySlug: string, limit = 20) => {
       const sql = `SELECT cluster_json FROM archived_stories
-        WHERE entities LIKE ? OR synthesized_headline LIKE ?
+        WHERE entities LIKE ? ESCAPE '\\' OR synthesized_headline LIKE ? ESCAPE '\\'
         ORDER BY archived_at DESC LIMIT ?;`;
-      const searchPattern = `%${entitySlug}%`;
+      const searchPattern = `%${escapeSqlLikePattern(entitySlug)}%`;
       const { results } = await db
         .prepare(sql)
         .bind(searchPattern, searchPattern, limit)

@@ -32,9 +32,14 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("base-uri 'self'");
     expect(csp).toContain("object-src 'none'");
-    // Connect-src least privilege (excludes direct GitHub API calls)
+    // Connect-src least privilege (excludes direct GitHub API calls and multi-tenant wildcards)
     expect(csp).toContain("connect-src 'self'");
     expect(csp).not.toContain('api.github.com');
+    expect(csp).toContain('https://defencewire.cloudflareaccess.com');
+    expect(csp).toContain('https://defencewire.pages.dev');
+    expect(csp).not.toContain('https://*.cloudflareaccess.com');
+    expect(csp).not.toContain('https://*.pages.dev');
+    expect(csp).toContain("form-action 'self' https://defencewire.cloudflareaccess.com");
     expect(csp).toContain('upgrade-insecure-requests');
   });
 
@@ -61,7 +66,11 @@ describe('Edge Security Headers & CSP Enforcement', () => {
     expect(content).not.toMatch(/script-src[^;"]*'unsafe-inline'/);
     expect(content).toContain("object-src 'none'");
     expect(content).toContain("base-uri 'self'");
-    expect(content).toContain("form-action 'self'");
+    expect(content).toContain("form-action 'self' https://defencewire.cloudflareaccess.com");
+    expect(content).toContain('https://defencewire.cloudflareaccess.com');
+    expect(content).toContain('https://defencewire.pages.dev');
+    expect(content).not.toContain('https://*.cloudflareaccess.com');
+    expect(content).not.toContain('https://*.pages.dev');
   });
 
   it('verifies .gitignore contains strict security and secret exclusion patterns', () => {
