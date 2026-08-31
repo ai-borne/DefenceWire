@@ -71,6 +71,9 @@ export async function archivePoppedClusters(
   if (!config) return { archived: 0, failed: 0 };
 
   const popped = findClustersToArchive(previousClusters, nextClusters);
+  console.log(
+    `[ARCHIVE SYNC] previous=${previousClusters.length} next=${nextClusters.length} popped=${popped.length} ids=${popped.map((c) => c.id).join('|')}`
+  );
   if (popped.length === 0) return { archived: 0, failed: 0 };
 
   const fetchFn = deps.fetchFn ?? globalThis.fetch;
@@ -113,7 +116,9 @@ export async function reconcileArchiveWithLiveFeed(
   if (!config || liveClusters.length === 0) return { removed: 0, failed: 0 };
 
   const fetchFn = deps.fetchFn ?? globalThis.fetch;
-  const statement = buildDeleteArchivedStoriesStatement(liveClusters.map((c) => c.id));
+  const ids = liveClusters.map((c) => c.id);
+  console.log(`[ARCHIVE RECONCILE] live=${ids.length} ids=${ids.join('|')}`);
+  const statement = buildDeleteArchivedStoriesStatement(ids);
 
   try {
     const { ok, status } = await executeD1Statement(statement, config, fetchFn);
