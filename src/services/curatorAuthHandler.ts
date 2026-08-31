@@ -258,3 +258,42 @@ export async function handleCuratorAuthRequest(
   return { success: true, cookie };
 }
 
+/**
+ * Sanitizes and validates a redirect/return URL to eliminate open redirect vulnerabilities and CRLF injection.
+ * Strictly enforces relative paths (e.g. `/#curator`, `/archive`, `/`).
+ */
+export function sanitizeReturnUrl(url: string | null | undefined, fallback: string = '/#curator'): string {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (!trimmed) return fallback;
+
+  // Reject CRLF or control characters (raw or URL-encoded)
+  if (/[\r\n\0\t\x00-\x1F\x7F]/.test(trimmed) || /%(?:0[0-9a-fA-F]|1[0-9a-fA-F]|7[fF])/i.test(trimmed)) {
+    return fallback;
+  }
+
+  // Reject protocol schemes (e.g. https:, http:, javascript:, data:, etc.)
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return fallback;
+
+  // Reject protocol-relative or backslash-prefixed paths (//, /\, \\)
+  if (/^[/\\]{2,}/.test(trimmed) || /^\\[/\\]?/.test(trimmed) || /^\/\\/.test(trimmed)) return fallback;
+
+  // Decode URI component to check for obfuscated schemes or backslashes
+  try {
+    const decoded = decodeURIComponent(trimmed);
+    if (/[\r\n\0\t\x00-\x1F\x7F]/.test(decoded)) return fallback;
+    if (/^[/\\]{2,}/.test(decoded) || /^\/\\/.test(decoded) || /^\\[/\\]?/.test(decoded)) return fallback;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)) return fallback;
+    const pathPart = decoded.split(/[?#]/)[0] || '';
+    if (pathPart.includes('\\')) return fallback;
+  } catch {
+    return fallback;
+  }
+
+  // Must strictly start with '/' or '#'
+  if (!trimmed.startsWith('/') && !trimmed.startsWith('#')) {
+    return fallback;
+  }
+
+  return trimmed;
+}

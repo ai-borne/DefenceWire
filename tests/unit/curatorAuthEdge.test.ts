@@ -13,7 +13,8 @@ import {
   handleCuratorAuthRequest,
   extractCloudflareAccessIdentity,
   verifyCuratorAuthorization,
-  verifyAccessJwtToken
+  verifyAccessJwtToken,
+  sanitizeReturnUrl
 } from '../../src/services/curatorAuthHandler.js';
 import {
   handleGetOverrides,
@@ -232,6 +233,53 @@ describe('Curator D1 Overrides Handler: Zero Trust Audit Logging & CRUD', () => 
     const res = await handleDeleteOverride('cluster-1', validCookie, { runQuery: vi.fn(), runMutation }, secret);
     expect(res.success).toBe(true);
     expect(res.data?.id).toBe('cluster-1');
+  });
+});
+
+describe('Curator Auth Gateway: Open Redirect Sanitization & Relative Path Enforcement', () => {
+  it('allows safe relative paths and fragment navigations', () => {
+    expect(sanitizeReturnUrl('/#curator')).toBe('/#curator');
+    expect(sanitizeReturnUrl('#curator')).toBe('#curator');
+    expect(sanitizeReturnUrl('/')).toBe('/');
+    expect(sanitizeReturnUrl('/archive')).toBe('/archive');
+    expect(sanitizeReturnUrl('/river?source=pib')).toBe('/river?source=pib');
+    expect(sanitizeReturnUrl('/valid#curator')).toBe('/valid#curator');
+  });
+
+  it('rejects external URLs with absolute HTTP/HTTPS schemes', () => {
+    expect(sanitizeReturnUrl('https://evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('http://attacker.org/phish')).toBe('/#curator');
+    expect(sanitizeReturnUrl('https://defencewire.in.evil.com')).toBe('/#curator');
+  });
+
+  it('rejects protocol-relative and backslash obfuscated navigation', () => {
+    expect(sanitizeReturnUrl('//evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('///evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('/\\evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('\\evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('\\/evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('/%2f%2fevil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('/%5cevil.com')).toBe('/#curator');
+  });
+
+  it('rejects dangerous script schemes and data URIs', () => {
+    expect(sanitizeReturnUrl('javascript:alert(1)')).toBe('/#curator');
+    expect(sanitizeReturnUrl('data:text/html,<script>alert(1)</script>')).toBe('/#curator');
+    expect(sanitizeReturnUrl('vbscript:msgbox(1)')).toBe('/#curator');
+  });
+
+  it('rejects CRLF and control character header injection payloads', () => {
+    expect(sanitizeReturnUrl('/\r\nLocation: https://evil.com')).toBe('/#curator');
+    expect(sanitizeReturnUrl('/%0d%0aSet-Cookie: evil=1')).toBe('/#curator');
+    expect(sanitizeReturnUrl('/path\0nullbyte')).toBe('/#curator');
+  });
+
+  it('handles empty, whitespace, non-string, or custom fallback scenarios', () => {
+    expect(sanitizeReturnUrl(null)).toBe('/#curator');
+    expect(sanitizeReturnUrl(undefined)).toBe('/#curator');
+    expect(sanitizeReturnUrl('')).toBe('/#curator');
+    expect(sanitizeReturnUrl('   ')).toBe('/#curator');
+    expect(sanitizeReturnUrl('https://evil.com', '/archive')).toBe('/archive');
   });
 });
 

@@ -9,6 +9,7 @@ import {
   createSessionCookie,
   createClearSessionCookie,
   verifyCuratorAuthorization,
+  sanitizeReturnUrl,
   CuratorAuthPayload
 } from '../../../src/services/curatorAuthHandler.js';
 
@@ -54,7 +55,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   );
 
   if (isHtmlNav) {
-    const returnUrl = url.searchParams.get('return_to') || '/#curator';
+    const returnUrl = sanitizeReturnUrl(url.searchParams.get('return_to'));
     const headers = new Headers();
     headers.set('Location', returnUrl);
     headers.set('Cache-Control', 'no-store');
