@@ -12,6 +12,7 @@ import { StoryCluster } from '../src/types/news.js';
 import { findClustersToArchive } from '../src/archive/archiveDiff.js';
 import { toArchivedStoryRow } from '../src/archive/archiveRow.js';
 import { buildInsertArchivedStoryStatement, buildDeleteArchivedStoriesStatement, D1Statement } from '../src/archive/d1QueryBuilder.js';
+import { putClusterJson, R2Config } from './r2ArchiveStore.js';
 
 export interface D1RestConfig {
   accountId: string;
@@ -22,11 +23,13 @@ export interface D1RestConfig {
 export interface ArchiveSyncDeps {
   fetchFn?: typeof fetch;
   now?: () => Date;
+  putClusterJsonFn?: typeof putClusterJson;
 }
 
 export interface ArchiveSyncResult {
   archived: number;
   failed: number;
+  r2Failed: number;
 }
 
 export interface ArchiveReconcileResult {
@@ -66,23 +69,36 @@ export async function archivePoppedClusters(
   previousClusters: StoryCluster[],
   nextClusters: StoryCluster[],
   config: D1RestConfig | null,
+  r2Config: R2Config | null,
   deps: ArchiveSyncDeps = {}
 ): Promise<ArchiveSyncResult> {
-  if (!config) return { archived: 0, failed: 0 };
+  if (!config) return { archived: 0, failed: 0, r2Failed: 0 };
 
   const popped = findClustersToArchive(previousClusters, nextClusters);
   console.log(
     `[ARCHIVE SYNC] previous=${previousClusters.length} next=${nextClusters.length} popped=${popped.length} ids=${popped.map((c) => c.id).join('|')}`
   );
-  if (popped.length === 0) return { archived: 0, failed: 0 };
+  if (popped.length === 0) return { archived: 0, failed: 0, r2Failed: 0 };
 
   const fetchFn = deps.fetchFn ?? globalThis.fetch;
+  const putClusterJsonFn = deps.putClusterJsonFn ?? putClusterJson;
   const archivedAt = (deps.now ?? (() => new Date()))().toISOString();
 
   let archived = 0;
   let failed = 0;
+  let r2Failed = 0;
 
   for (const cluster of popped) {
+    if (r2Config) {
+      // R2 failures don't block the D1 insert this phase — D1 still carries
+      // cluster_json as the fallback of record until Phase 3's cutover.
+      const r2Result = await putClusterJsonFn(cluster.id, JSON.stringify(cluster), r2Config, fetchFn);
+      if (!r2Result.ok) {
+        r2Failed++;
+        console.error(`[ARCHIVE SYNC] R2 blob write failed for ${cluster.id}: HTTP ${r2Result.status ?? 'network error'}`);
+      }
+    }
+
     const statement = buildInsertArchivedStoryStatement(toArchivedStoryRow(cluster, archivedAt));
     try {
       const { ok, status } = await executeD1Statement(statement, config, fetchFn);
@@ -98,7 +114,7 @@ export async function archivePoppedClusters(
     }
   }
 
-  return { archived, failed };
+  return { archived, failed, r2Failed };
 }
 
 /**

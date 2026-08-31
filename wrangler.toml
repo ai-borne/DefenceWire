@@ -13,3 +13,10 @@ database_id = "6c03abeb-ce1f-4669-8985-dbbdd3735807"
 [ai]
 binding = "AI"
 
+# Archived story cluster_json blobs (moved off D1 to stay under D1 quota) —
+# see crawler/r2ArchiveStore.ts (GitHub Actions write path, S3-compatible REST)
+# and src/archive/archiveRow.ts (Pages Functions read path, native binding).
+[[r2_buckets]]
+binding = "ARCHIVE_MEDIA"
+bucket_name = "defencewire-archive-blobs"
+

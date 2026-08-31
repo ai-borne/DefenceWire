@@ -16,6 +16,7 @@ import { fetchFeedWithCircuitBreaker } from './parser.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
+import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
 import {
   aggregateEntityCandidates,
   getPromotedEntityConfigs,
@@ -222,6 +223,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   // Closed-loop dynamic entity harvesting
 
   const d1Config = buildD1ConfigFromEnv(process.env);
+  const r2Config = buildR2ConfigFromEnv(process.env);
   const aggregatedEntities = aggregateEntityCandidates(entityCandidates);
   const promotedConfigs = getPromotedEntityConfigs(aggregatedEntities);
   if (promotedConfigs.length > 0) {
@@ -238,9 +240,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
-  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, { fetchFn });
+  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, r2Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
-  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed | [RECONCILE] ${reconcileResult.failed} failed`);
+  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
