@@ -31,20 +31,36 @@ export interface ArchiveSearchResult {
 }
 
 const DEFAULT_PAGE_SIZE = 30;
+const MAX_PAGE_SIZE = 50;
+const MAX_QUERY_LENGTH = 100;
+const MAX_QUERY_TOKENS = 10;
+
+/**
+ * Sanitizes and clamps raw user search input to protect D1 from DoS/FTS injection.
+ */
+function sanitizeSearchQueryInput(raw: string): string {
+  // 1. Strip non-printable and control characters
+  const cleanChars = raw.replace(/[\x00-\x1F\x7F]/g, '');
+  // 2. Clamp length to max 100 characters
+  const clamped = cleanChars.slice(0, MAX_QUERY_LENGTH).trim();
+  // 3. Limit to max 10 tokens
+  const tokens = clamped.split(/\s+/).filter(Boolean).slice(0, MAX_QUERY_TOKENS);
+  return tokens.join(' ');
+}
 
 export async function handleArchiveSearchRequest(
   rawQuery: string,
   deps: ArchiveSearchDependencies,
   options: ArchiveSearchOptions = {}
 ): Promise<ArchiveSearchResult> {
-  const limit = options.limit ?? DEFAULT_PAGE_SIZE;
-  const cursor = options.cursor ?? null;
-  const trimmedQuery = rawQuery.trim();
+  const limit = Math.min(Math.max(1, options.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
+  const cursor = options.cursor ? options.cursor.slice(0, 100).trim() : null;
+  const sanitizedQuery = sanitizeSearchQueryInput(rawQuery);
 
   // Fetch one extra row so we can tell whether another page exists without
   // a separate COUNT query.
-  const statement = trimmedQuery
-    ? buildSearchArchiveStatement(trimmedQuery, limit + 1, cursor)
+  const statement = sanitizedQuery
+    ? buildSearchArchiveStatement(sanitizedQuery, limit + 1, cursor)
     : buildBrowseArchiveStatement(cursor, limit + 1);
 
   let rows: ArchivedStoryRow[];

@@ -1,6 +1,6 @@
 /**
- * Worldwide Curator Git Sync Service for DefenceWire.in
- * Commits curated intelligence directly to GitHub Contents API to trigger edge deployments.
+ * Worldwide Curator Cloudflare Edge Sync Service for DefenceWire.in
+ * Persists curated intelligence overrides directly to Cloudflare D1 via authenticated edge endpoints.
  * Hard limit: <= 300 LOC.
  */
 
@@ -13,15 +13,25 @@ export interface CuratorSyncPayload {
 
 export interface CuratorSyncResult {
   success: boolean;
-  commitUrl?: string;
+  message?: string;
   error?: string;
 }
 
-const PAT_STORAGE_KEY = 'dw_curator_github_pat';
-const REPO_OWNER = 'ai-borne';
-const REPO_NAME = 'DefenceWire';
-const TARGET_FILE_PATH = 'public/data/news.json';
-const GITHUB_API_BASE = 'https://api.github.com';
+export interface ActiveOverride {
+  id: string;
+  override_type: string;
+  payload_json: string;
+  updated_at: string;
+}
+
+function resolveEndpoint(path: string): string {
+  if (typeof window !== 'undefined' && window.location?.origin && !window.location.origin.startsWith('null')) {
+    return path;
+  }
+  return `http://localhost${path}`;
+}
+
+const OVERRIDES_API_BASE = '/api/curator/overrides';
 
 export class CuratorSyncService {
   private fetchFn: typeof fetch;
@@ -31,154 +41,106 @@ export class CuratorSyncService {
   }
 
   /**
-   * Retrieves securely stored Personal Access Token.
+   * Fetches all active overrides stored in Cloudflare D1.
    */
-  public getStoredToken(): string | null {
+  public async fetchActiveOverrides(): Promise<ActiveOverride[]> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(PAT_STORAGE_KEY);
-      }
-    } catch {
-      // Storage unavailable
-    }
-    return null;
-  }
-
-  /**
-   * Persists Personal Access Token for 1-click updates.
-   */
-  public setStoredToken(token: string): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(PAT_STORAGE_KEY, token.trim());
-      }
-    } catch {
-      // Storage unavailable
-    }
-  }
-
-  /**
-   * Clears stored Personal Access Token.
-   */
-  public clearStoredToken(): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem(PAT_STORAGE_KEY);
-      }
-    } catch {
-      // Storage unavailable
-    }
-  }
-
-  /**
-   * Checks if a token is configured.
-   */
-  public hasToken(): boolean {
-    return Boolean(this.getStoredToken());
-  }
-
-  /**
-   * Encodes a string to Base64 safely supporting Unicode.
-   */
-  public encodeBase64Unicode(str: string): string {
-    if (typeof Buffer !== 'undefined') {
-      return Buffer.from(str, 'utf-8').toString('base64');
-    }
-    return btoa(unescape(encodeURIComponent(str)));
-  }
-
-  /**
-   * Fetches the current SHA of public/data/news.json on the target repo.
-   */
-  public async fetchCurrentFileSha(token: string): Promise<string | null> {
-    const url = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${TARGET_FILE_PATH}`;
-    try {
-      const response = await this.fetchFn(url, {
+      const response = await this.fetchFn(resolveEndpoint(OVERRIDES_API_BASE), {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token.trim()}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
+        headers: { Accept: 'application/json' }
       });
-
-      if (response.status === 404) {
-        return null;
+      if (response.ok) {
+        const result = (await response.json()) as { success: boolean; data?: ActiveOverride[] };
+        return result.data || [];
       }
-
-      if (response.status === 401) {
-        throw new Error('Unauthorized: Invalid GitHub Token or missing repo scope.');
-      }
-
-      if (!response.ok) {
-        throw new Error(`GitHub API returned status ${response.status}`);
-      }
-
-      const data = (await response.json()) as { sha?: string };
-      return data.sha || null;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to fetch file metadata: ${message}`);
+    } catch {
+      // Offline fallback
     }
+    return [];
   }
 
   /**
-   * Commits the curated snapshot directly to the repository.
+   * Persists an individual cluster override to Cloudflare D1.
    */
-  public async publishCuratedSnapshot(
-    token: string,
-    payload: CuratorSyncPayload
+  public async saveOverride(
+    id: string,
+    overrideType: 'promote' | 'demote' | 'headline' | 'ssb' | 'ignore',
+    payload: Record<string, unknown>
   ): Promise<CuratorSyncResult> {
-    const trimmedToken = token.trim();
-    if (!trimmedToken) {
-      return { success: false, error: 'GitHub Personal Access Token is required.' };
-    }
-
     try {
-      const currentSha = await this.fetchCurrentFileSha(trimmedToken);
-      const jsonContent = JSON.stringify(payload, null, 2);
-      const base64Content = this.encodeBase64Unicode(jsonContent);
-
-      const commitUrl = `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${TARGET_FILE_PATH}`;
-      const commitBody: Record<string, unknown> = {
-        message: 'chore(curator): 1-click curated editorial intelligence update [skip ci]',
-        content: base64Content,
-        branch: 'main'
-      };
-
-      if (currentSha) {
-        commitBody.sha = currentSha;
-      }
-
-      const response = await this.fetchFn(commitUrl, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${trimmedToken}`,
-          Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        },
-        body: JSON.stringify(commitBody)
+      const response = await this.fetchFn(resolveEndpoint(OVERRIDES_API_BASE), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, overrideType, payload })
       });
 
-      if (response.status === 200 || response.status === 201) {
-        const resData = (await response.json()) as { commit?: { html_url?: string } };
-        return {
-          success: true,
-          commitUrl: resData.commit?.html_url || 'https://github.com/ai-borne/DefenceWire'
-        };
+      if (response.ok) {
+        const resData = (await response.json()) as { success: boolean };
+        if (resData.success) {
+          return { success: true, message: 'Override saved to Cloudflare D1' };
+        }
       }
 
       if (response.status === 401) {
-        return { success: false, error: 'Unauthorized: Invalid GitHub Token or missing repo scope.' };
-      }
-
-      if (response.status === 409) {
-        return { success: false, error: 'Conflict: File was updated concurrently. Please retry.' };
+        return { success: false, error: 'Unauthorized: Session expired or invalid.' };
       }
 
       const errText = await response.text();
-      return { success: false, error: `GitHub API error (${response.status}): ${errText}` };
+      return { success: false, error: `D1 sync error (${response.status}): ${errText}` };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Deletes a curator override from Cloudflare D1.
+   */
+  public async deleteOverride(id: string): Promise<CuratorSyncResult> {
+    try {
+      const response = await this.fetchFn(resolveEndpoint(`${OVERRIDES_API_BASE}?id=${encodeURIComponent(id)}`), {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        return { success: true, message: 'Override removed from Cloudflare D1' };
+      }
+
+      if (response.status === 401) {
+        return { success: false, error: 'Unauthorized: Session expired.' };
+      }
+
+      return { success: false, error: `D1 delete error (${response.status})` };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Synchronizes all active cluster overrides in batch.
+   */
+  public async publishCuratedSnapshot(payload: CuratorSyncPayload): Promise<CuratorSyncResult> {
+    try {
+      let savedCount = 0;
+      const promoted = payload.clusters.filter((c) => c.isEditorPromoted || c.isLeadStory || c.isIgnored);
+
+      for (const cluster of promoted) {
+        const type = cluster.isIgnored ? 'ignore' : cluster.isEditorPromoted ? 'promote' : 'headline';
+        const res = await this.saveOverride(cluster.id, type, {
+          headline: cluster.synthesizedHeadline,
+          isLeadStory: cluster.isLeadStory,
+          isEditorPromoted: cluster.isEditorPromoted,
+          isIgnored: cluster.isIgnored,
+          ssbIntel: cluster.ssbIntel
+        });
+        if (res.success) savedCount++;
+      }
+
+      return {
+        success: true,
+        message: `Synced ${savedCount} curated overrides to Cloudflare D1.`
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { success: false, error: message };

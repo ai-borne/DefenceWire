@@ -112,3 +112,50 @@ describe('handleArchiveSearchRequest — cursor pagination', () => {
     expect(params).toContain('2026-08-05T00:00:00Z');
   });
 });
+
+describe('handleArchiveSearchRequest — DoS & Input Sanitization Protection', () => {
+  it('clamps queries longer than 100 characters to prevent D1 CPU exhaustion', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    const longQuery = 'a'.repeat(300);
+    await handleArchiveSearchRequest(longQuery, { runQuery });
+
+    expect(runQuery).toHaveBeenCalledTimes(1);
+    const [, params] = runQuery.mock.calls[0] as [string, unknown[]];
+    const ftsQuery = params[0] as string;
+    // FTS query quoted format: "aaaa..." (max 100 chars inside quotes)
+    expect(ftsQuery.length).toBeLessThanOrEqual(102);
+  });
+
+  it('strips non-printable control characters from search input', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    const dirtyQuery = 'Tejas\x00Mk1A\x1F\x07Radar';
+    await handleArchiveSearchRequest(dirtyQuery, { runQuery });
+
+    const [, params] = runQuery.mock.calls[0] as [string, unknown[]];
+    const ftsQuery = params[0] as string;
+    expect(ftsQuery).not.toContain('\x00');
+    expect(ftsQuery).not.toContain('\x1F');
+    expect(ftsQuery).not.toContain('\x07');
+  });
+
+  it('clamps requested page size limit to max 50 to prevent memory blowup', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    await handleArchiveSearchRequest('', { runQuery }, { limit: 5000 });
+
+    const [, params] = runQuery.mock.calls[0] as [string, unknown[]];
+    // limit + 1 = 51
+    expect(params[0]).toBe(51);
+  });
+
+  it('limits search tokens to a maximum of 10 words', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    const manyTokens = 'one two three four five six seven eight nine ten eleven twelve thirteen';
+    await handleArchiveSearchRequest(manyTokens, { runQuery });
+
+    const [, params] = runQuery.mock.calls[0] as [string, unknown[]];
+    const ftsQuery = params[0] as string;
+    const tokens = ftsQuery.split(/\s+/);
+    expect(tokens.length).toBeLessThanOrEqual(10);
+  });
+});
+

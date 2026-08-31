@@ -47,3 +47,17 @@ CREATE TRIGGER IF NOT EXISTS archived_stories_au AFTER UPDATE ON archived_storie
   INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
   VALUES (new.rowid, new.id, new.synthesized_headline, new.snippet, new.entities);
 END;
+
+-- Editorial Curator Overrides Table
+-- Stores human-in-the-loop promotions, demotions, custom headlines, and SSB brief edits
+-- directly in Cloudflare D1 instead of storing GitHub PATs in browser localStorage.
+CREATE TABLE IF NOT EXISTS curator_overrides (
+  id TEXT PRIMARY KEY,            -- story cluster ID
+  override_type TEXT NOT NULL,    -- 'promote' | 'demote' | 'headline' | 'ssb' | 'ignore'
+  payload_json TEXT NOT NULL,     -- JSON representation of the override
+  updated_at TEXT NOT NULL,       -- ISO 8601 timestamp
+  curator_email TEXT NOT NULL DEFAULT 'curator@institutional.internal' -- Authenticated Zero Trust user identity for audit trail
+);
+
+CREATE INDEX IF NOT EXISTS idx_curator_overrides_updated_at ON curator_overrides (updated_at DESC);
+

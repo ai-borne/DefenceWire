@@ -122,19 +122,17 @@ export const STRINGS = {
     invalidPasscode: 'Invalid passcode. Access denied.',
     lockDesk: 'Lock Desk',
     rememberSession: 'Remember session',
-    // Worldwide Git Sync & Export
-    publishToProduction: 'Publish to Production',
-    publishing: 'Publishing to Cloudflare Pages...',
-    publishSuccess: 'Published to production successfully! Edge cache updating...',
-    publishError: 'Failed to publish to production.',
-    githubTokenPlaceholder: 'Enter GitHub Personal Access Token (PAT)...',
-    tokenRequired: 'GitHub Personal Access Token required to publish.',
-    tokenConfigured: 'PAT Configured',
-    saveToken: 'Save Token',
+    // Worldwide Edge Sync & Export
+    publishToProduction: 'Sync to Cloudflare D1',
+    publishing: 'Syncing to Cloudflare D1...',
+    publishSuccess: 'Synced to Cloudflare D1 successfully!',
+    publishError: 'Failed to sync with Cloudflare D1.',
     exportJson: 'Export JSON',
     copyJson: 'Copy JSON',
     copiedToClipboard: 'Curated intelligence JSON copied to clipboard!',
-    stealthHint: 'Curator Desk unlocked via institutional shortcut.'
+    stealthHint: 'Curator Desk unlocked via institutional shortcut.',
+    zeroTrustBadge: 'Zero Trust Verified',
+    sessionBadge: 'Institutional Session'
   },
   pwa: {
     installPrompt: 'Install DefenceWire for offline tactical intelligence',

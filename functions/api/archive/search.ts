@@ -44,5 +44,19 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
     { cursor }
   );
 
-  return Response.json(result, { status: result.error ? 502 : 200 });
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff'
+  };
+
+  if (!result.error) {
+    headers['Cache-Control'] = 'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
+  } else {
+    headers['Cache-Control'] = 'no-store';
+  }
+
+  return new Response(JSON.stringify(result), {
+    status: result.error ? 502 : 200,
+    headers
+  });
 }

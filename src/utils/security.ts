@@ -43,8 +43,14 @@ export function sanitizeContent(dirty: string): string {
     });
   }
 
-  // Safe isomorphic fallback
-  return dirty.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim();
+  // Safe isomorphic fallback: escape HTML entities completely to eliminate injection
+  return dirty
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .trim();
 }
 
 /**
@@ -66,8 +72,15 @@ export function sanitizePlainText(dirty: string): string {
     }).trim();
   }
 
-  // Safe isomorphic fallback
-  return dirty.replace(/<[^>]*>?/gm, '').trim();
+  // Safe isomorphic fallback: strip all tags and encode residual angle brackets
+  return dirty
+    .replace(/<[^>]*>?/gm, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .trim();
 }
 
 /**

@@ -9,7 +9,6 @@ import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
 import { renderEditorAuthModal } from './EditorAuthModal.js';
 import { renderCandidateCard } from './EditorCandidateCard.js';
-import { defaultCuratorSyncService } from '../services/curatorSyncService.js';
 
 export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   if (!editorVm.isAuthenticated()) {
@@ -31,6 +30,25 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   const title = document.createElement('h2');
   title.className = 'dw-editor-title';
   title.textContent = `🎯 ${STRINGS.editor.dashboardTitle}`;
+
+  const email = editorVm.getCuratorEmail();
+  const provider = editorVm.getAuthProvider();
+  if (email) {
+    const badge = document.createElement('span');
+    badge.className = 'dw-editor-identity-badge';
+    badge.style.fontSize = '0.72rem';
+    badge.style.fontWeight = '700';
+    badge.style.padding = '3px 8px';
+    badge.style.borderRadius = '4px';
+    badge.style.background = provider === 'cloudflare_zero_trust' ? 'var(--dw-status-online-bg)' : 'var(--dw-bg-card)';
+    badge.style.color = provider === 'cloudflare_zero_trust' ? 'var(--dw-status-online-text)' : 'var(--dw-text-secondary)';
+    badge.style.border = '1px solid var(--dw-border-secondary)';
+    badge.style.marginLeft = '12px';
+    badge.textContent = provider === 'cloudflare_zero_trust'
+      ? `🛡️ ${STRINGS.editor.zeroTrustBadge}: ${sanitizePlainText(email)}`
+      : `⚡ ${STRINGS.editor.sessionBadge}`;
+    title.appendChild(badge);
+  }
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
@@ -60,20 +78,14 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   actionGroup.style.gap = '6px';
   actionGroup.style.flexWrap = 'wrap';
 
-  // Publish to Production Button
+  // Sync to Cloudflare D1 Button
   const publishBtn = document.createElement('button');
   publishBtn.type = 'button';
   publishBtn.className = 'dw-editor-btn dw-editor-btn--publish';
   publishBtn.textContent = editorVm.getIsPublishing() ? `⏳ ${STRINGS.editor.publishing}` : `🚀 ${STRINGS.editor.publishToProduction}`;
   publishBtn.disabled = editorVm.getIsPublishing();
   publishBtn.onclick = async () => {
-    let token = defaultCuratorSyncService.getStoredToken() || '';
-    if (!token) {
-      const entered = window.prompt(STRINGS.editor.githubTokenPlaceholder);
-      if (!entered) return;
-      token = entered.trim();
-    }
-    await editorVm.publishToProduction(token);
+    await editorVm.publishToProduction();
   };
   actionGroup.appendChild(publishBtn);
 

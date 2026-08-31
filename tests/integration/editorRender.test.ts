@@ -72,7 +72,7 @@ describe('EditorDashboard Component Integration', () => {
   });
 
   it('renders full curator desk and action bar after authentication', async () => {
-    await editorVm.login('defencewire2026');
+    authService.setAuthenticated(true);
 
     const el = renderEditorDashboard(editorVm);
     expect(el.textContent).toContain(STRINGS.editor.dashboardTitle);
@@ -85,7 +85,7 @@ describe('EditorDashboard Component Integration', () => {
   });
 
   it('handles promote button click and updates lead status when authenticated', async () => {
-    await editorVm.login('defencewire2026');
+    authService.setAuthenticated(true);
 
     const el = renderEditorDashboard(editorVm);
     const promoteBtn = el.querySelector('.dw-editor-btn--promote') as HTMLButtonElement | null;
@@ -96,7 +96,7 @@ describe('EditorDashboard Component Integration', () => {
   });
 
   it('handles ignore button click and toggles ignored status', async () => {
-    await editorVm.login('defencewire2026');
+    authService.setAuthenticated(true);
 
     const el = renderEditorDashboard(editorVm);
     const ignoreBtn = el.querySelector('.dw-editor-btn--ignore') as HTMLButtonElement | null;
@@ -107,7 +107,7 @@ describe('EditorDashboard Component Integration', () => {
   });
 
   it('switches filter mode tabs when clicked in authenticated view', async () => {
-    await editorVm.login('defencewire2026');
+    authService.setAuthenticated(true);
 
     const el = renderEditorDashboard(editorVm);
     const filterTabs = el.querySelectorAll('.dw-editor-filter-tab');
@@ -121,7 +121,7 @@ describe('EditorDashboard Component Integration', () => {
   });
 
   it('locks the desk when lock button is clicked', async () => {
-    await editorVm.login('defencewire2026');
+    authService.setAuthenticated(true);
     expect(editorVm.isAuthenticated()).toBe(true);
 
     const el = renderEditorDashboard(editorVm);

@@ -1,16 +1,14 @@
 /**
- * Unit Tests for CuratorSyncService (GitHub REST API Git Sync)
+ * Unit Tests for CuratorSyncService (Cloudflare D1 Edge Sync)
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
-describe('CuratorSyncService', () => {
-  let syncService: CuratorSyncService;
-
+describe('CuratorSyncService (Cloudflare D1 Edge Sync)', () => {
   const mockPayload: { clusters: StoryCluster[]; river: StorySourceItem[] } = {
     clusters: [
       {
@@ -31,6 +29,7 @@ describe('CuratorSyncService', () => {
         entities: ['AMCA'],
         defenceScore: 92,
         isLeadStory: true,
+        isEditorPromoted: true,
         createdAt: '2026-08-30T10:00:00Z',
         updatedAt: '2026-08-30T10:00:00Z'
       }
@@ -38,103 +37,86 @@ describe('CuratorSyncService', () => {
     river: []
   };
 
-  beforeEach(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.clear();
-    }
-    syncService = new CuratorSyncService();
-  });
-
-  it('manages Personal Access Token in local storage', () => {
-    expect(syncService.hasToken()).toBe(false);
-    expect(syncService.getStoredToken()).toBeNull();
-
-    syncService.setStoredToken('ghp_test_token_12345');
-    expect(syncService.hasToken()).toBe(true);
-    expect(syncService.getStoredToken()).toBe('ghp_test_token_12345');
-
-    syncService.clearStoredToken();
-    expect(syncService.hasToken()).toBe(false);
-  });
-
-  it('encodes unicode strings to base64 correctly', () => {
-    const text = 'Tejas Mk1A delivery to IAF ✈️ — ₹15,000 Cr';
-    const encoded = syncService.encodeBase64Unicode(text);
-    expect(encoded).toBeDefined();
-    expect(encoded.length).toBeGreaterThan(0);
-  });
-
-  it('retrieves current file SHA on successful 200 response', async () => {
-    const mockFetch = async () =>
-      ({
-        ok: true,
-        status: 200,
-        json: async () => ({ sha: 'abc123sha456' })
-      } as unknown as Response);
+  it('fetches active overrides from D1 endpoint', async () => {
+    const mockRows = [
+      { id: 'cluster-1', override_type: 'promote', payload_json: '{}', updated_at: '2026-08-31T00:00:00Z' }
+    ];
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, data: mockRows })
+    } as Response);
 
     const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const sha = await service.fetchCurrentFileSha('ghp_token');
-    expect(sha).toBe('abc123sha456');
+    const overrides = await service.fetchActiveOverrides();
+
+    expect(overrides).toEqual(mockRows);
+    expect(mockFetch).toHaveBeenCalledWith('/api/curator/overrides', expect.objectContaining({ method: 'GET' }));
   });
 
-  it('returns null SHA if file does not exist (404 status)', async () => {
-    const mockFetch = async () =>
-      ({
-        ok: false,
-        status: 404
-      } as unknown as Response);
+  it('saves an individual cluster override to Cloudflare D1', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true })
+    } as Response);
 
     const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const sha = await service.fetchCurrentFileSha('ghp_token');
-    expect(sha).toBeNull();
-  });
-
-  it('publishes curated snapshot to GitHub API and returns commit url on 200', async () => {
-    const mockFetch = async (_url: RequestInfo | URL, init?: RequestInit) => {
-      const method = init?.method || 'GET';
-      if (method === 'GET') {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ sha: 'existing_sha_789' })
-        } as unknown as Response;
-      }
-      if (method === 'PUT') {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            commit: { html_url: 'https://github.com/ai-borne/DefenceWire/commit/testcommit123' }
-          })
-        } as unknown as Response;
-      }
-      return { ok: false, status: 500 } as unknown as Response;
-    };
-
-    const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const result = await service.publishCuratedSnapshot('ghp_token', mockPayload);
+    const result = await service.saveOverride('cluster-1', 'promote', { isLead: true });
 
     expect(result.success).toBe(true);
-    expect(result.commitUrl).toBe('https://github.com/ai-borne/DefenceWire/commit/testcommit123');
+    expect(result.message).toContain('Cloudflare D1');
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/curator/overrides',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ id: 'cluster-1', overrideType: 'promote', payload: { isLead: true } })
+      })
+    );
   });
 
-  it('returns error when publishing without token', async () => {
-    const result = await syncService.publishCuratedSnapshot('', mockPayload);
-    expect(result.success).toBe(false);
-    expect(result.error).toContain('Token is required');
-  });
-
-  it('handles 401 Unauthorized from GitHub API gracefully', async () => {
-    const mockFetch = async () =>
-      ({
-        ok: false,
-        status: 401
-      } as unknown as Response);
+  it('deletes an override from Cloudflare D1', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true })
+    } as Response);
 
     const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const result = await service.publishCuratedSnapshot('invalid_token', mockPayload);
+    const result = await service.deleteOverride('cluster-1');
+
+    expect(result.success).toBe(true);
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/curator/overrides?id=cluster-1',
+      expect.objectContaining({ method: 'DELETE' })
+    );
+  });
+
+  it('handles 401 Unauthorized from edge endpoint gracefully', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => 'Unauthorized'
+    } as Response);
+
+    const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
+    const result = await service.saveOverride('cluster-1', 'promote', {});
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unauthorized');
+  });
+
+  it('synchronizes curated snapshot batch to Cloudflare D1', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true })
+    } as Response);
+
+    const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
+    const result = await service.publishCuratedSnapshot(mockPayload);
+
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('Synced 1 curated overrides');
   });
 });

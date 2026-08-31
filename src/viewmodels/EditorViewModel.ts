@@ -56,6 +56,14 @@ export class EditorViewModel {
     return success;
   }
 
+  public getCuratorEmail(): string | null {
+    return this.authService.getCuratorEmail();
+  }
+
+  public getAuthProvider(): 'cloudflare_zero_trust' | 'edge_session' | null {
+    return this.authService.getAuthProvider();
+  }
+
   public logout(): void {
     this.authService.logout();
     this.notifyListeners();
@@ -184,20 +192,9 @@ export class EditorViewModel {
   }
 
   /**
-   * Publishes curated snapshot to production via GitHub API.
+   * Synchronizes curated snapshot to Cloudflare D1 via authenticated edge endpoint.
    */
-  public async publishToProduction(customToken?: string): Promise<CuratorSyncResult> {
-    const token = customToken || this.syncService.getStoredToken() || '';
-    if (!token) {
-      this.publishStatusMessage = STRINGS.editor.tokenRequired;
-      this.notifyListeners();
-      return { success: false, error: STRINGS.editor.tokenRequired };
-    }
-
-    if (customToken) {
-      this.syncService.setStoredToken(customToken);
-    }
-
+  public async publishToProduction(): Promise<CuratorSyncResult> {
     this.isPublishing = true;
     this.publishStatusMessage = STRINGS.editor.publishing;
     this.notifyListeners();
@@ -208,10 +205,10 @@ export class EditorViewModel {
         river: this.newsVm.getFilteredRiverItems()
       };
 
-      const result = await this.syncService.publishCuratedSnapshot(token, payload);
+      const result = await this.syncService.publishCuratedSnapshot(payload);
       this.isPublishing = false;
       this.publishStatusMessage = result.success
-        ? STRINGS.editor.publishSuccess
+        ? (result.message || STRINGS.editor.publishSuccess)
         : `${STRINGS.editor.publishError} ${result.error || ''}`;
       this.notifyListeners();
       return result;

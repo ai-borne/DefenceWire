@@ -152,12 +152,7 @@ describe('EditorViewModel', () => {
   it('handles auth operations and session state correctly', async () => {
     expect(editorVm.isAuthenticated()).toBe(false);
 
-    const fail = await editorVm.login('bad-passcode');
-    expect(fail).toBe(false);
-    expect(editorVm.isAuthenticated()).toBe(false);
-
-    const success = await editorVm.login('defencewire2026');
-    expect(success).toBe(true);
+    authService.setAuthenticated(true);
     expect(editorVm.isAuthenticated()).toBe(true);
 
     editorVm.logout();
@@ -177,16 +172,15 @@ describe('EditorViewModel', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          commit: { html_url: 'https://github.com/ai-borne/DefenceWire/commit/published123' }
+          success: true
         })
       } as unknown as Response);
 
     const customSync = new CuratorSyncService(mockFetch as unknown as typeof fetch);
     const vm = new EditorViewModel(newsVm, authService, customSync);
 
-    const res = await vm.publishToProduction('ghp_test_token');
+    const res = await vm.publishToProduction();
     expect(res.success).toBe(true);
-    expect(res.commitUrl).toContain('published123');
     expect(vm.getPublishStatusMessage()).toBeDefined();
   });
 });

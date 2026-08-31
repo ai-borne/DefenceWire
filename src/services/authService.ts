@@ -1,48 +1,56 @@
 /**
  * Authentication Service for Editorial Curator Desk
- * Provides SHA-256 passcode hashing, session persistence, and auth listeners.
+ * Integrates with Cloudflare Pages edge authentication (/api/curator/auth) and Zero Trust Access,
+ * maintaining zero secrets in client bundles with verified identity tracking.
  * Hard limit: <= 300 LOC.
  */
 
 export type AuthChangeListener = (isAuthenticated: boolean) => void;
 
-// Precomputed SHA-256 of default editorial passcode: "defencewire2026"
-export const DEFAULT_PASSCODE_HASH = '322c41dfafb6e928d43e943beff0bda52e11436b9eef4530c6440152d4f5e28c';
-const STORAGE_KEY = 'dw_curator_session_token';
+function resolveEndpoint(path: string): string {
+  if (typeof window !== 'undefined' && window.location?.origin && !window.location.origin.startsWith('null')) {
+    return path;
+  }
+  return `http://localhost${path}`;
+}
 
 export class AuthService {
   private authenticated: boolean = false;
-  private expectedHash: string;
+  private curatorEmail: string | null = null;
+  private authProvider: 'cloudflare_zero_trust' | 'edge_session' | null = null;
   private listeners: Set<AuthChangeListener> = new Set();
+  private fetchFn: typeof fetch;
 
-  constructor(customHash?: string) {
-    this.expectedHash = customHash || DEFAULT_PASSCODE_HASH;
-    this.restoreSession();
+  constructor(customFetch?: typeof fetch) {
+    this.fetchFn = customFetch || (typeof window !== 'undefined' ? window.fetch.bind(window) : globalThis.fetch);
+    this.checkSession();
   }
 
   /**
-   * Hashes a string using standard SHA-256.
+   * Verifies current session with edge endpoint and captures Zero Trust identity.
    */
-  public async hashPasscode(passcode: string): Promise<string> {
-    const trimmed = passcode.trim();
-    if (!trimmed) return '';
-
-    if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) {
-      const msgBuffer = new TextEncoder().encode(trimmed);
-      const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  public async checkSession(): Promise<boolean> {
+    try {
+      const response = await this.fetchFn(resolveEndpoint('/api/curator/auth'), {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
+      if (response.ok) {
+        const data = (await response.json()) as {
+          authenticated?: boolean;
+          userEmail?: string | null;
+          provider?: 'cloudflare_zero_trust' | 'edge_session';
+        };
+        this.authenticated = Boolean(data.authenticated);
+        this.curatorEmail = data.userEmail || (this.authenticated ? 'curator@institutional.internal' : null);
+        this.authProvider = data.provider || (this.authenticated ? 'edge_session' : null);
+        this.notifyListeners();
+        return this.authenticated;
+      }
+    } catch {
+      // Offline or local dev without function runner
     }
-    return '';
-  }
-
-  /**
-   * Verifies if the provided passcode matches the expected SHA-256 hash.
-   */
-  public async verifyPasscode(passcode: string): Promise<boolean> {
-    if (!passcode) return false;
-    const computed = await this.hashPasscode(passcode);
-    return computed === this.expectedHash;
+    return this.authenticated;
   }
 
   /**
@@ -53,28 +61,84 @@ export class AuthService {
   }
 
   /**
-   * Attempts to login with the given passcode.
+   * Returns verified curator email if authenticated via Zero Trust.
+   */
+  public getCuratorEmail(): string | null {
+    return this.curatorEmail;
+  }
+
+  /**
+   * Returns active authentication provider.
+   */
+  public getAuthProvider(): 'cloudflare_zero_trust' | 'edge_session' | null {
+    return this.authProvider;
+  }
+
+  /**
+   * Sets authentication state directly (primarily for testing/mocking).
+   */
+  public setAuthenticated(
+    state: boolean,
+    email: string | null = null,
+    provider: 'cloudflare_zero_trust' | 'edge_session' | null = null
+  ): void {
+    this.authenticated = state;
+    this.curatorEmail = email || (state ? 'curator@institutional.internal' : null);
+    this.authProvider = provider || (state ? 'edge_session' : null);
+    this.notifyListeners();
+  }
+
+  /**
+   * Attempts login with the provided passcode against edge endpoint.
    */
   public async login(passcode: string, remember: boolean = true): Promise<boolean> {
-    const valid = await this.verifyPasscode(passcode);
-    if (valid) {
-      this.authenticated = true;
-      if (remember) {
-        this.saveSessionToken(this.expectedHash);
+    const trimmed = passcode.trim();
+    if (!trimmed) return false;
+
+    try {
+      const response = await this.fetchFn(resolveEndpoint('/api/curator/auth'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: trimmed, remember })
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as { success?: boolean };
+        if (data.success) {
+          this.authenticated = true;
+          this.curatorEmail = 'curator@institutional.internal';
+          this.authProvider = 'edge_session';
+          this.notifyListeners();
+          return true;
+        }
       }
-      this.notifyListeners();
-      return true;
+    } catch {
+      // Fallback
     }
+
     return false;
   }
 
   /**
-   * Logs out and invalidates session token.
+   * Logs out and invalidates edge session cookie.
    */
   public logout(): void {
     this.authenticated = false;
-    this.clearSessionToken();
+    this.curatorEmail = null;
+    this.authProvider = null;
     this.notifyListeners();
+    try {
+      const p = this.fetchFn(resolveEndpoint('/api/curator/auth'), {
+        method: 'DELETE'
+      });
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          // Suppress offline / mock errors
+        });
+      }
+    } catch {
+      // Best-effort
+    }
   }
 
   /**
@@ -90,39 +154,6 @@ export class AuthService {
   private notifyListeners(): void {
     for (const listener of this.listeners) {
       listener(this.authenticated);
-    }
-  }
-
-  private restoreSession(): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        if (stored === this.expectedHash) {
-          this.authenticated = true;
-        }
-      }
-    } catch {
-      // Storage unavailable or disabled
-    }
-  }
-
-  private saveSessionToken(token: string): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY, token);
-      }
-    } catch {
-      // Silently ignore storage errors
-    }
-  }
-
-  private clearSessionToken(): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch {
-      // Silently ignore storage errors
     }
   }
 }
