@@ -62,7 +62,7 @@ function extractTagValue(xmlBlock: string, tagName: string): string {
 }
 
 function extractLink(xmlBlock: string): string {
-  const hrefMatch = xmlBlock.match(/<link[^>]+href=["']([^"']+)["'][^>]*\/>/i);
+  const hrefMatch = xmlBlock.match(/<link\b[^>]*?\bhref=["']([^"']+)["'][^>]*>/i);
   if (hrefMatch?.[1]) return decodeHtmlEntities(hrefMatch[1]);
 
   const standardLink = extractTagValue(xmlBlock, 'link');
@@ -72,6 +72,25 @@ function extractLink(xmlBlock: string): string {
   if (guidLink && isValidUrl(guidLink)) return guidLink;
 
   return '';
+}
+
+function extractThumbnail(xmlBlock: string): string | undefined {
+  const thumbMatch = xmlBlock.match(/<media:thumbnail\b[^>]*?\burl=["']([^"']+)["'][^>]*>/i);
+  if (thumbMatch?.[1] && isValidUrl(thumbMatch[1])) {
+    return decodeHtmlEntities(thumbMatch[1]);
+  }
+
+  const mediaContentMatch = xmlBlock.match(/<media:content\b[^>]*?\burl=["']([^"']+)["'][^>]*(?:type=["']image\/|medium=["']image["'])[^>]*>/i);
+  if (mediaContentMatch?.[1] && isValidUrl(mediaContentMatch[1])) {
+    return decodeHtmlEntities(mediaContentMatch[1]);
+  }
+
+  const enclosureMatch = xmlBlock.match(/<enclosure\b[^>]*?\burl=["']([^"']+)["'][^>]*\btype=["']image\/[^"']+["'][^>]*>/i);
+  if (enclosureMatch?.[1] && isValidUrl(enclosureMatch[1])) {
+    return decodeHtmlEntities(enclosureMatch[1]);
+  }
+
+  return undefined;
 }
 
 function parsePublicationDate(dateStr: string): string {
@@ -109,9 +128,11 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       extractTagValue(block, 'dc:date');
     const rawDescription =
       extractTagValue(block, 'description') ||
+      extractTagValue(block, 'media:description') ||
       extractTagValue(block, 'summary') ||
       extractTagValue(block, 'content:encoded') ||
       extractTagValue(block, 'content');
+    const rawImageUrl = extractThumbnail(block);
 
     const cleanTitle = sanitizePlainText(rawTitle);
     const cleanSnippet = sanitizePlainText(rawDescription).slice(0, 260);
@@ -128,7 +149,8 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       sourceDomain: feed.domain,
       tier: feed.tier,
       publishedAt: parsePublicationDate(rawPubDate),
-      snippet: cleanSnippet.length > 0 ? cleanSnippet : undefined
+      snippet: cleanSnippet.length > 0 ? cleanSnippet : undefined,
+      imageUrl: rawImageUrl
     };
 
     items.push(item);

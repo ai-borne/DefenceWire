@@ -174,4 +174,28 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(trippedRes).toEqual([]);
     expect(fetchCalled).toBe(false);
   });
+
+  it('extracts media:thumbnail and media:description from multimedia Atom feeds', () => {
+    const atomWithMedia = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <title>Indian Navy Media</title>
+  <entry>
+    <title>Stealth Frigate Conducts Live-Fire Missile Engagement in Arabian Sea</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=NAVY_TEST_101" />
+    <updated>2026-08-31T08:00:00Z</updated>
+    <media:group>
+      <media:description>Indian Navy warship successfully neutralized high-speed aerial target with MRSAM missile.</media:description>
+      <media:thumbnail url="https://i.ytimg.com/vi/NAVY_TEST_101/hqdefault.jpg" />
+    </media:group>
+  </entry>
+</feed>`;
+
+    const items = parseFeedXml(atomWithMedia, { ...MOCK_FEED, domain: 'youtube.com', tier: SourceTier.TIER_1_SOCIAL });
+    expect(items.length).toBe(1);
+    expect(items[0]?.title).toBe('Stealth Frigate Conducts Live-Fire Missile Engagement in Arabian Sea');
+    expect(items[0]?.url).toBe('https://www.youtube.com/watch?v=NAVY_TEST_101');
+    expect(items[0]?.snippet).toContain('Indian Navy warship successfully neutralized');
+    expect(items[0]?.imageUrl).toBe('https://i.ytimg.com/vi/NAVY_TEST_101/hqdefault.jpg');
+    expect(items[0]?.tier).toBe(SourceTier.TIER_1_SOCIAL);
+  });
 });

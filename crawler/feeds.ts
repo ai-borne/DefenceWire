@@ -10,13 +10,16 @@ import { FeedConfig } from './feedTypes.js';
 import { OFFICIAL_AND_NATIONAL_FEEDS } from './feedsOfficialNational.js';
 import { SPECIALIZED_AND_THINKTANK_FEEDS } from './feedsSpecializedThinkTanks.js';
 import { INTERNATIONAL_DEFENCE_FEEDS } from './feedsInternational.js';
+import { SOCIAL_FEEDS } from './feedsSocial.js';
 
 export * from './feedTypes.js';
+export * from './feedsSocial.js';
 
 export const CRAWLER_FEEDS: FeedConfig[] = [
   ...OFFICIAL_AND_NATIONAL_FEEDS,
   ...SPECIALIZED_AND_THINKTANK_FEEDS,
-  ...INTERNATIONAL_DEFENCE_FEEDS
+  ...INTERNATIONAL_DEFENCE_FEEDS,
+  ...SOCIAL_FEEDS
 ];
 
 

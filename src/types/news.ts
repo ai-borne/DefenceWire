@@ -15,6 +15,7 @@ export interface StorySourceItem {
   publishedAt: string; // ISO 8601 string
   snippet?: string;
   author?: string;
+  imageUrl?: string;
   isPrimary?: boolean;
 }
 
