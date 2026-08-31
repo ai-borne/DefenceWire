@@ -1,11 +1,12 @@
 /**
  * Verified Social & Multimedia Intelligence Feeds
- * YouTube Armed Forces Atom Feeds & Official Social Ingestion Endpoints.
+ * YouTube Armed Forces Atom Feeds & Official X.com Operational Signal Ingestion Endpoints.
  * Hard limit: <= 300 LOC.
  */
 
 import { SourceTier } from '../src/types/source.js';
 import { FeedConfig } from './feedTypes.js';
+import { buildXFeedUrl, XHandleMetadata } from './socialNormalizer.js';
 
 export const YOUTUBE_ARMED_FORCES_FEEDS: FeedConfig[] = [
   {
@@ -70,6 +71,88 @@ export const YOUTUBE_ARMED_FORCES_FEEDS: FeedConfig[] = [
   }
 ];
 
+export const X_OFFICIAL_HANDLES: XHandleMetadata[] = [
+  {
+    handle: '@adgpi',
+    name: 'ADG PI - Indian Army',
+    domain: 'x.com',
+    defaultCategory: 'army',
+    isOfficialGov: true
+  },
+  {
+    handle: '@IAF_MCC',
+    name: 'Indian Air Force',
+    domain: 'x.com',
+    defaultCategory: 'airforce',
+    isOfficialGov: true
+  },
+  {
+    handle: '@indiannavy',
+    name: 'SpokespersonNavy - Indian Navy',
+    domain: 'x.com',
+    defaultCategory: 'navy',
+    isOfficialGov: true
+  },
+  {
+    handle: '@DRDO_India',
+    name: 'DRDO',
+    domain: 'x.com',
+    defaultCategory: 'tech',
+    isOfficialGov: true
+  },
+  {
+    handle: '@DefenceMinIndia',
+    name: 'Ministry of Defence',
+    domain: 'x.com',
+    defaultCategory: 'strategic',
+    isOfficialGov: true
+  },
+  {
+    handle: '@NorthernComd_IA',
+    name: 'Northern Command Indian Army',
+    domain: 'x.com',
+    defaultCategory: 'army',
+    isOfficialGov: true
+  },
+  {
+    handle: '@EasternCommand_IA',
+    name: 'Eastern Command Indian Army',
+    domain: 'x.com',
+    defaultCategory: 'army',
+    isOfficialGov: true
+  },
+  {
+    handle: '@PRODefEast',
+    name: 'PRO Defence Eastern Region',
+    domain: 'x.com',
+    defaultCategory: 'strategic',
+    isOfficialGov: true
+  }
+];
+
+export function createXFeedConfig(
+  meta: XHandleMetadata,
+  provider?: string,
+  customBaseUrl?: string
+): FeedConfig {
+  const cleanHandle = meta.handle.replace(/^@/, '').toLowerCase();
+  return {
+    id: `feed-x-${cleanHandle}`,
+    name: `${meta.name} (${meta.handle})`,
+    url: buildXFeedUrl(meta.handle, provider as any, customBaseUrl),
+    domain: 'x.com',
+    tier: SourceTier.TIER_1_SOCIAL,
+    defaultCategory: meta.defaultCategory,
+    enabled: true,
+    timeoutMs: 8000
+  };
+}
+
+export const X_ARMED_FORCES_FEEDS: FeedConfig[] = X_OFFICIAL_HANDLES.map((meta) =>
+  createXFeedConfig(meta)
+);
+
 export const SOCIAL_FEEDS: FeedConfig[] = [
-  ...YOUTUBE_ARMED_FORCES_FEEDS
+  ...YOUTUBE_ARMED_FORCES_FEEDS,
+  ...X_ARMED_FORCES_FEEDS
 ];

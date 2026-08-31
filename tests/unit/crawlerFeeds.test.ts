@@ -28,7 +28,7 @@ describe('Crawler Feed Registry', () => {
     const tier4 = getFeedsByTier(SourceTier.TIER_4_OSINT);
 
     expect(tier1.length).toBeGreaterThanOrEqual(5);
-    expect(tier1Social.length).toBeGreaterThanOrEqual(6);
+    expect(tier1Social.length).toBeGreaterThanOrEqual(14);
     expect(tier2.length).toBeGreaterThanOrEqual(10);
     expect(tier3.length).toBeGreaterThanOrEqual(15);
     expect(tier4.length).toBeGreaterThanOrEqual(12);
@@ -38,6 +38,10 @@ describe('Crawler Feed Registry', () => {
     expect(feedIds).toContain('feed-youtube-army');
     expect(feedIds).toContain('feed-youtube-iaf');
     expect(feedIds).toContain('feed-youtube-navy');
+    expect(feedIds).toContain('feed-x-adgpi');
+    expect(feedIds).toContain('feed-x-iaf_mcc');
+    expect(feedIds).toContain('feed-x-indiannavy');
+    expect(feedIds).toContain('feed-x-drdo_india');
     expect(feedIds).toContain('feed-usni-news');
     expect(feedIds).toContain('feed-naval-tech');
     expect(feedIds).toContain('feed-airforce-tech');

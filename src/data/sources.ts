@@ -22,6 +22,8 @@ export const SOURCE_REGISTRY: NewsSource[] = [
   { id: 'indian-navy', name: 'SpokespersonNavy - Indian Navy', domain: 'indiannavy.nic.in', tier: SourceTier.TIER_1_OFFICIAL, isOfficialGov: true },
   { id: 'indian-air-force', name: 'Indian Air Force (IAF Media)', domain: 'indianairforce.nic.in', tier: SourceTier.TIER_1_OFFICIAL, isOfficialGov: true },
   { id: 'youtube-armed-forces', name: 'Armed Forces Official (YouTube Atom)', domain: 'youtube.com', tier: SourceTier.TIER_1_SOCIAL, isOfficialGov: true },
+  { id: 'x-armed-forces', name: 'Armed Forces Official (X / Twitter)', domain: 'x.com', tier: SourceTier.TIER_1_SOCIAL, isOfficialGov: true },
+  { id: 'twitter-armed-forces', name: 'Armed Forces Official (Twitter)', domain: 'twitter.com', tier: SourceTier.TIER_1_SOCIAL, isOfficialGov: true },
 
   // Tier 2 — National & Global Wire
   { id: 'the-hindu', name: 'The Hindu (National Security)', domain: 'thehindu.com', tier: SourceTier.TIER_2_NATIONAL, feedUrl: 'https://www.thehindu.com/news/national/feeder/default.rss', isOfficialGov: false },

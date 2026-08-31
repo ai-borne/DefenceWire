@@ -4,9 +4,11 @@
  */
 
 import { StorySourceItem } from '../src/types/news.js';
+import { SourceTier } from '../src/types/source.js';
 import { isValidUrl, sanitizePlainText, decodeHtmlEntities } from '../src/utils/security.js';
 import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
+import { normalizeSocialPostItem } from './socialNormalizer.js';
 
 export interface CircuitState {
   failures: number;
@@ -141,7 +143,7 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       continue;
     }
 
-    const item: StorySourceItem = {
+    let item: StorySourceItem = {
       id: `${feed.id}-${computeStableHash(rawLink)}`,
       title: cleanTitle,
       url: rawLink,
@@ -152,6 +154,10 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       snippet: cleanSnippet.length > 0 ? cleanSnippet : undefined,
       imageUrl: rawImageUrl
     };
+
+    if (feed.tier === SourceTier.TIER_1_SOCIAL || feed.domain === 'x.com' || feed.domain === 'twitter.com') {
+      item = normalizeSocialPostItem(item);
+    }
 
     items.push(item);
   }
