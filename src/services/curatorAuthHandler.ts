@@ -9,6 +9,69 @@ const DEFAULT_DEV_PASSCODE_HASH = '322c41dfafb6e928d43e943beff0bda52e11436b9eef4
 const DEFAULT_SESSION_SECRET = 'dw-curator-edge-secret-key-2026';
 const SESSION_COOKIE_NAME = 'dw_curator_session';
 const SESSION_MAX_AGE_DEFAULT = 60 * 60 * 24 * 7; // 7 days
+const DEFAULT_ACCESS_TEAM_DOMAIN = 'defencewire.cloudflareaccess.com';
+
+function base64UrlToUint8Array(b64url: string): Uint8Array {
+  const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(b64url.length / 4) * 4, '=');
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+/**
+ * Verifies a Cloudflare Access CF_Authorization cookie's JWT signature against the team's
+ * published JWKS, falling back to this path only when Access identity headers are absent.
+ */
+export async function verifyAccessSessionCookie(
+  cookieHeader: string | null | undefined,
+  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN
+): Promise<{ email: string } | null> {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';').map((c) => c.trim());
+  const cfCookie = cookies.find((c) => c.startsWith('CF_Authorization='));
+  if (!cfCookie) return null;
+  const token = cfCookie.slice('CF_Authorization='.length);
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+
+  const [headerB64, payloadB64, sigB64] = parts;
+  if (!headerB64 || !payloadB64 || !sigB64) return null;
+  let header: { kid?: string };
+  let payload: { email?: string; exp?: number; aud?: string[] };
+  try {
+    header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(headerB64)));
+    payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(payloadB64)));
+  } catch {
+    return null;
+  }
+
+  if (!payload.email || !payload.exp || Date.now() / 1000 > payload.exp) return null;
+
+  try {
+    const certsResponse = await fetch(`https://${teamDomain}/cdn-cgi/access/certs`);
+    if (!certsResponse.ok) return null;
+    const certs = (await certsResponse.json()) as { keys: JsonWebKey[] };
+    const matchedKey = certs.keys.find((k) => (k as unknown as { kid?: string }).kid === header.kid);
+    if (!matchedKey) return null;
+
+    const cryptoKey = await globalThis.crypto.subtle.importKey(
+      'jwk',
+      matchedKey,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    const signedData = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+    const signature = base64UrlToUint8Array(sigB64).slice().buffer;
+    const isValid = await globalThis.crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, signature, signedData);
+    if (!isValid) return null;
+
+    return { email: payload.email.trim().toLowerCase() };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Constant-time comparison between two strings to prevent timing attacks.
@@ -137,13 +200,23 @@ export interface CuratorAuthContext {
 export async function verifyCuratorAuthorization(
   headers: Headers | Record<string, string | null | undefined>,
   cookieHeader?: string | null,
-  secret: string = DEFAULT_SESSION_SECRET
+  secret: string = DEFAULT_SESSION_SECRET,
+  teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN
 ): Promise<CuratorAuthContext> {
   const cfIdentity = extractCloudflareAccessIdentity(headers);
   if (cfIdentity?.isAccessAuthenticated) {
     return {
       authorized: true,
       email: cfIdentity.email,
+      provider: 'cloudflare_zero_trust'
+    };
+  }
+
+  const cfSession = await verifyAccessSessionCookie(cookieHeader, teamDomain);
+  if (cfSession) {
+    return {
+      authorized: true,
+      email: cfSession.email,
       provider: 'cloudflare_zero_trust'
     };
   }

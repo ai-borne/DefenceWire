@@ -17,6 +17,7 @@ interface PagesFunctionContext {
   env: {
     CURATOR_PASSCODE_HASH?: string;
     CURATOR_SESSION_SECRET?: string;
+    CURATOR_TEAM_DOMAIN?: string;
   };
 }
 
@@ -45,7 +46,12 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   const isHtmlNav = url.searchParams.get('redirect') === '1' || (context.request.headers.get('accept') || '').includes('text/html');
   const cookieHeader = context.request.headers.get('cookie');
   const secret = context.env.CURATOR_SESSION_SECRET;
-  const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+  const authContext = await verifyCuratorAuthorization(
+    context.request.headers,
+    cookieHeader,
+    secret,
+    context.env.CURATOR_TEAM_DOMAIN
+  );
 
   if (isHtmlNav) {
     const returnUrl = url.searchParams.get('return_to') || '/#curator';
