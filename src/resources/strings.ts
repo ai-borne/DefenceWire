@@ -11,7 +11,7 @@ export const STRINGS = {
     shortTagline: 'Indian Defence Intelligence Wire',
     metaDescription:
       'Real-time automated news aggregator for Indian defence, military technology, procurement, geopolitics, and SSB preparation.',
-    institutionalBadge: 'INSTITUTIONAL INTELLIGENCE WIRE',
+    institutionalBadge: '🌏 Intelligent Wire',
     liveUpdateLabel: 'LIVE IST',
     offlineNotice: 'You are viewing cached offline intelligence.',
     onlineNotice: 'Live feed connected.'

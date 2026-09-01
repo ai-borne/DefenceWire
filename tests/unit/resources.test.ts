@@ -11,7 +11,7 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.app.name).toBe('DefenceWire.in');
     expect(STRINGS.app.tagline).toBeDefined();
     expect(STRINGS.app.tagline.length).toBeGreaterThan(10);
-    expect(STRINGS.app.institutionalBadge).toBe('INSTITUTIONAL INTELLIGENCE WIRE');
+    expect(STRINGS.app.institutionalBadge).toBe('🌏 Intelligent Wire');
   });
 
   it('should have all navigation tab labels defined', () => {

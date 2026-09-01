@@ -11,32 +11,50 @@
     gap: 20px;
   }
 
-  /* Streamlined Single-Row Header */
+  /* 2-Tier Header Layout */
   .dw-header-inner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     padding: 8px 12px;
-    gap: 8px;
-    height: 54px;
+    gap: 6px;
   }
 
   .dw-brand-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    width: 100%;
     min-width: 0;
-    overflow: hidden;
+    min-height: 44px;
   }
 
   .dw-brand-title {
-    font-size: 1.12rem;
+    font-size: 1.35rem;
     white-space: nowrap;
     flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  .dw-inst-badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+    min-height: 32px;
+    min-width: 44px;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+
+  .dw-utility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+    min-height: 44px;
   }
 
   .dw-live-clock {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    min-height: 36px;
     gap: 5px;
     white-space: nowrap;
     flex-shrink: 1;
@@ -44,28 +62,22 @@
     text-overflow: ellipsis;
   }
 
-  .dw-inst-badge {
-    display: none;
-  }
-
   .dw-header-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
   }
 
-  /* Thumb-Friendly Compact Icon Actions on Mobile (38x38px) */
+  /* Thumb-Friendly Compact Icon Action Tiles on Mobile (44x44px) */
   .dw-search-toggle-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
-    font-size: 0.95rem;
-    border-radius: var(--dw-radius-md);
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
   }
 
@@ -73,12 +85,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
-    border-radius: var(--dw-radius-md);
   }
 
   .dw-sync-label {
@@ -94,12 +105,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
-    border-radius: var(--dw-radius-md);
   }
 
   .dw-theme-label {
@@ -111,11 +121,7 @@
     line-height: 1;
   }
 
-  /* Full-width Expandable Search Overlay with in-field dismiss button */
-  .dw-search-box {
-    display: none;
-  }
-
+  /* Full-width Expandable Search Overlay */
   .dw-search-box.is-open {
     display: flex;
     position: absolute;
@@ -126,7 +132,7 @@
     width: 100%;
     height: 100%;
     background-color: var(--dw-bg-canvas);
-    z-index: 10;
+    z-index: 20;
     align-items: center;
     padding: 6px 12px;
     box-sizing: border-box;
@@ -136,28 +142,28 @@
     width: 100%;
     flex: 1;
     min-width: 0;
-    height: 38px;
-    padding: 0 40px 0 12px;
-    font-size: 16px; /* Prevents iOS Safari from auto-zooming viewport on tap */
-    border-radius: var(--dw-radius-md);
+    height: 44px;
+    padding: 0 46px 0 14px;
+    font-size: 16px; /* Prevents iOS Safari auto-zoom */
+    border-radius: var(--dw-radius-sm);
     box-sizing: border-box;
   }
 
   .dw-search-box.is-open .dw-search-close-btn {
     display: inline-flex;
     position: absolute;
-    right: 18px;
+    right: 14px;
     top: 50%;
     transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    min-height: 26px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     background-color: var(--dw-bg-secondary);
     border: 1px solid var(--dw-border-primary);
-    border-radius: var(--dw-radius-full, 9999px);
+    border-radius: var(--dw-radius-sm);
     color: var(--dw-text-secondary);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 700;
     cursor: pointer;
     align-items: center;
@@ -165,6 +171,7 @@
     padding: 0;
     line-height: 1;
     z-index: 2;
+    touch-action: manipulation;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
 
@@ -172,6 +179,10 @@
     background-color: var(--dw-bg-hover);
     color: var(--dw-text-accent);
     border-color: var(--dw-text-accent);
+  }
+
+  .dw-cluster-main {
+    gap: 10px;
   }
 
   .dw-headline--lead {
@@ -183,8 +194,9 @@
   }
 
   .dw-nav-tab {
-    padding: 8px 10px;
-    font-size: 0.78rem;
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 0.8rem;
   }
 
   .dw-related-box {
@@ -204,20 +216,26 @@
   .dw-ssb-cta-btn {
     text-align: center;
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 14px;
+    min-height: 44px;
   }
 
   .dw-ssb-toggle-btn,
   .dw-ssb-bottom-collapse-btn {
-    height: 32px;
-    padding: 0 12px;
-    font-size: 0.78rem;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    font-size: 0.95rem;
   }
 
   .dw-permalink-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.85rem;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    font-size: 0.95rem;
   }
 }
 

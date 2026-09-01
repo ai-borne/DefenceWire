@@ -8,7 +8,11 @@
   border-bottom: 1px solid var(--dw-border-secondary);
 }
 
-.dw-cluster--lead { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 2px solid var(--dw-border-primary); }
+.dw-cluster--lead {
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--dw-border-primary);
+}
 
 .dw-lead-tag {
   display: inline-block;
@@ -17,13 +21,26 @@
   text-transform: uppercase;
   color: var(--dw-text-accent);
   letter-spacing: 0.8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+/* Two-column Story Card Layout: Content (Left) + Action Dock (Right) */
+.dw-cluster-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dw-cluster-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .dw-headline { font-size: 1.05rem; font-weight: 700; line-height: var(--dw-leading-tight); margin-bottom: 4px; }
 .dw-headline--lead { font-size: 1.25rem; font-weight: 800; line-height: 1.3; }
-.dw-headline a { color: var(--dw-text-primary); }
-.dw-headline a:hover { color: var(--dw-link); }
+.dw-headline a { color: var(--dw-text-primary); text-decoration: none; }
+.dw-headline a:hover { color: var(--dw-link); text-decoration: underline; }
 
 .dw-source-line {
   font-size: 0.78rem;
@@ -109,64 +126,51 @@
 .dw-discussion-link { font-size: 0.72rem; color: var(--dw-link); text-decoration: none; }
 .dw-discussion-link:hover { text-decoration: underline; }
 
-/* Story Actions & SSB Intelligence Drawer */
+/* Right-Edge Action Dock (Permalink + Red Brand Triangle) */
 .dw-cluster-actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
+.dw-permalink-btn,
 .dw-ssb-toggle-btn,
 .dw-ssb-bottom-collapse-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  height: 26px;
-  box-sizing: border-box;
-  color: var(--dw-text-accent);
-  background-color: rgba(179, 25, 25, 0.08);
-  border: 1px solid rgba(179, 25, 25, 0.25);
-  padding: 0 10px;
-  border-radius: var(--dw-radius-sm);
-  cursor: pointer;
-  line-height: 1;
-  transition: background-color 0.15s ease;
-}
-.dw-ssb-toggle-btn:hover,
-.dw-ssb-bottom-collapse-btn:hover { background-color: rgba(179, 25, 25, 0.16); }
-
-.dw-permalink-btn {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   box-sizing: border-box;
   padding: 0;
-  font-size: 0.76rem;
+  font-size: 0.85rem;
   line-height: 1;
-  color: var(--dw-text-secondary);
   background-color: var(--dw-bg-secondary);
-  border: 1px solid var(--dw-border-secondary);
+  border: 1px solid var(--dw-border-primary);
   border-radius: var(--dw-radius-sm);
   cursor: pointer;
+  touch-action: manipulation;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.dw-permalink-btn:hover {
-  background-color: var(--dw-bg-hover);
-  border-color: var(--dw-border-primary);
-  color: var(--dw-text-primary);
-}
-.dw-permalink-btn--copied {
-  color: var(--dw-status-online-bg);
-  border-color: var(--dw-status-online-bg);
-}
 
+.dw-permalink-btn { color: var(--dw-text-secondary); }
+.dw-permalink-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); color: var(--dw-text-primary); }
+.dw-permalink-btn--copied { color: var(--dw-status-online-bg); border-color: var(--dw-status-online-bg); }
+
+.dw-ssb-toggle-btn,
+.dw-ssb-bottom-collapse-btn { color: var(--dw-text-accent); }
+.dw-ssb-toggle-btn:hover,
+.dw-ssb-bottom-collapse-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); }
+.dw-ssb-toggle-btn.is-expanded { background-color: rgba(179, 25, 25, 0.12); border-color: var(--dw-text-accent); }
+
+/* SSB Intelligence Drawer */
 .dw-ssb-drawer {
-  margin-top: 10px;
+  margin-top: 12px;
   padding: 14px;
   background-color: var(--dw-bg-card);
   border: 1px solid var(--dw-border-primary);
@@ -232,12 +236,13 @@
   margin-bottom: 4px;
 }
 
+/* Right-aligned Drawer Footer */
 .dw-ssb-footer {
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px dashed var(--dw-border-primary);
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
 /* Sidebar Rails */

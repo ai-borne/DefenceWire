@@ -199,7 +199,7 @@ export function renderSSBDrawer(
   //    when explicitly viewing the SSB Intel tab, never inline in general article feeds.
   appendSSBInsightBox(drawer, intel, clusterId, showSSBInsight);
 
-  // 6. Bottom Collapse Button (provides direct exit point for long summaries on mobile and desktop)
+  // 6. Right-aligned Bottom Collapse Button with Red Brand Triangle
   if (onCollapse) {
     const footerEl = document.createElement('div');
     footerEl.className = 'dw-ssb-footer';
@@ -208,7 +208,8 @@ export function renderSSBDrawer(
     collapseBtn.type = 'button';
     collapseBtn.className = 'dw-ssb-bottom-collapse-btn';
     collapseBtn.setAttribute('aria-label', STRINGS.summary.collapseAriaLabel);
-    collapseBtn.textContent = `▲ ${STRINGS.summary.collapseDrawerBtn}`;
+    collapseBtn.setAttribute('title', STRINGS.summary.collapseDrawerBtn);
+    collapseBtn.textContent = '▲';
 
     collapseBtn.addEventListener('click', () => {
       onCollapse();

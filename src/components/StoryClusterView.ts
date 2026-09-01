@@ -1,6 +1,7 @@
 /**
  * Story Cluster Component for DefenceWire.in
  * Techmeme-style synthesized headline, primary source, related coverage, discussions, and SSB drawer.
+ * Right-edge action dock with brand crimson triangle expander and permalink button.
  * Hard limit: <= 300 LOC.
  */
 
@@ -14,7 +15,6 @@ import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { openEntityDossierModal } from './EntityDossierModal.js';
-
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -33,6 +33,13 @@ export function renderStoryCluster(
     article.appendChild(leadTag);
   }
 
+  // Two-column layout: Story Content (Left) + Action Dock (Right)
+  const mainLayout = document.createElement('div');
+  mainLayout.className = 'dw-cluster-main';
+
+  const contentCol = document.createElement('div');
+  contentCol.className = 'dw-cluster-content';
+
   // 2. Synthesized Headline
   const headlineEl = document.createElement('h2');
   headlineEl.className = `dw-headline ${isLead ? 'dw-headline--lead' : ''}`;
@@ -45,7 +52,7 @@ export function renderStoryCluster(
   headlineLink.textContent = sanitizePlainText(cluster.synthesizedHeadline);
 
   headlineEl.appendChild(headlineLink);
-  article.appendChild(headlineEl);
+  contentCol.appendChild(headlineEl);
 
   // 3. Primary Source Meta Line
   const metaLine = document.createElement('div');
@@ -104,15 +111,14 @@ export function renderStoryCluster(
     metaLine.appendChild(entityBox);
   }
 
-  article.appendChild(metaLine);
-
+  contentCol.appendChild(metaLine);
 
   // 4. Primary Snippet
   if (cluster.primarySource.snippet) {
     const snippetEl = document.createElement('p');
     snippetEl.className = 'dw-snippet';
     snippetEl.textContent = cleanStorySnippet(cluster.primarySource.snippet);
-    article.appendChild(snippetEl);
+    contentCol.appendChild(snippetEl);
   }
 
   // 5. Related Coverage Sub-list
@@ -150,7 +156,7 @@ export function renderStoryCluster(
     }
 
     relatedBox.appendChild(relatedUl);
-    article.appendChild(relatedBox);
+    contentCol.appendChild(relatedBox);
   }
 
   // 6. Discussion Quotes
@@ -197,43 +203,14 @@ export function renderStoryCluster(
       discBox.appendChild(metaP);
     }
 
-    article.appendChild(discBox);
+    contentCol.appendChild(discBox);
   }
 
-  // 6b. Story Cluster Action Bar (Summary trigger + Permalink icon)
-  const actionsRow = document.createElement('div');
-  actionsRow.className = 'dw-cluster-actions';
+  // 7. Right-Edge Action Dock (Permalink + Red Brand Triangle Expander)
+  const actionsDock = document.createElement('div');
+  actionsDock.className = 'dw-cluster-actions';
 
-  let ssbDrawerEl: HTMLElement | null = null;
-  if (cluster.ssbIntel) {
-    const isExpanded = newsVm.isSSBExpanded(cluster.id);
-
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'dw-ssb-toggle-btn';
-    toggleBtn.type = 'button';
-    toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-    toggleBtn.setAttribute('aria-controls', `ssb-drawer-${cluster.id}`);
-    toggleBtn.setAttribute('aria-label', STRINGS.story.expandSummaryAriaLabel);
-    toggleBtn.textContent = isExpanded
-      ? `▲ ${STRINGS.summary.drawerTitle} (${STRINGS.summary.collapseSuffix})`
-      : `📄 ${STRINGS.summary.drawerTitle}`;
-
-    toggleBtn.addEventListener('click', () => {
-      newsVm.toggleSSBDrawer(cluster.id);
-    });
-
-    actionsRow.appendChild(toggleBtn);
-
-    if (isExpanded) {
-      const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
-      ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight, () => {
-        newsVm.toggleSSBDrawer(cluster.id);
-      });
-      ssbDrawerEl.id = `ssb-drawer-${cluster.id}`;
-    }
-  }
-
-  // 7. Compact Permalink / Share Action Icon
+  // 7a. Compact Permalink / Share Action Icon
   const permalinkBtn = document.createElement('button');
   permalinkBtn.className = 'dw-permalink-btn';
   permalinkBtn.type = 'button';
@@ -257,8 +234,40 @@ export function renderStoryCluster(
     });
   });
 
-  actionsRow.appendChild(permalinkBtn);
-  article.appendChild(actionsRow);
+  actionsDock.appendChild(permalinkBtn);
+
+  // 7b. Red Brand Triangle Intelligence Briefing Expander
+  let ssbDrawerEl: HTMLElement | null = null;
+  if (cluster.ssbIntel) {
+    const isExpanded = newsVm.isSSBExpanded(cluster.id);
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = `dw-ssb-toggle-btn ${isExpanded ? 'is-expanded' : ''}`;
+    toggleBtn.type = 'button';
+    toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    toggleBtn.setAttribute('aria-controls', `ssb-drawer-${cluster.id}`);
+    toggleBtn.setAttribute('aria-label', isExpanded ? STRINGS.summary.collapseAriaLabel : STRINGS.story.expandSummaryAriaLabel);
+    toggleBtn.setAttribute('title', isExpanded ? STRINGS.summary.collapseDrawerBtn : STRINGS.summary.drawerTitle);
+    toggleBtn.textContent = isExpanded ? '▲' : '▼';
+
+    toggleBtn.addEventListener('click', () => {
+      newsVm.toggleSSBDrawer(cluster.id);
+    });
+
+    actionsDock.appendChild(toggleBtn);
+
+    if (isExpanded) {
+      const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
+      ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight, () => {
+        newsVm.toggleSSBDrawer(cluster.id);
+      });
+      ssbDrawerEl.id = `ssb-drawer-${cluster.id}`;
+    }
+  }
+
+  mainLayout.appendChild(contentCol);
+  mainLayout.appendChild(actionsDock);
+  article.appendChild(mainLayout);
 
   if (ssbDrawerEl) {
     article.appendChild(ssbDrawerEl);

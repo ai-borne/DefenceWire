@@ -1,6 +1,6 @@
 /**
  * Header Component for DefenceWire.in
- * Displays institutional branding, compact live IST clock, expandable search, sync trigger, and theme toggle.
+ * Displays institutional branding, compact live IST clock, rectangular action tiles, and search.
  * Hard limit: <= 300 LOC.
  */
 
@@ -24,9 +24,9 @@ export function renderHeader(
   const inner = document.createElement('div');
   inner.className = 'dw-header-inner';
 
-  // 1. Brand & Live Clock Section
-  const brandRow = document.createElement('div');
-  brandRow.className = 'dw-brand-row';
+  // 1. Top Row: Brand & Institutional Badge
+  const topRow = document.createElement('div');
+  topRow.className = 'dw-brand-row';
 
   const brandLink = document.createElement('a');
   brandLink.className = 'dw-brand-title';
@@ -49,23 +49,6 @@ export function renderHeader(
   restBrandSpan.textContent = prefix.substring(7) + suffix; // "Wire.in"
   brandLink.appendChild(accentSpan);
   brandLink.appendChild(restBrandSpan);
-
-  // Compact Live IST Clock (with pulsing green dot)
-  const clockContainer = document.createElement('div');
-  clockContainer.className = 'dw-live-clock';
-  clockContainer.setAttribute('aria-label', STRINGS.app.liveUpdateLabel);
-
-  const dot = document.createElement('span');
-  dot.className = 'dw-live-dot';
-  dot.setAttribute('aria-hidden', 'true');
-
-  const timeText = document.createElement('span');
-  timeText.id = 'dw-header-ist-clock';
-  timeText.className = 'dw-clock-text';
-  timeText.textContent = formatLiveIST();
-
-  clockContainer.appendChild(dot);
-  clockContainer.appendChild(timeText);
 
   // Institutional Badge with stealth 5-click curator trigger
   const badge = document.createElement('span');
@@ -90,15 +73,35 @@ export function renderHeader(
     });
   }
 
-  brandRow.appendChild(brandLink);
-  brandRow.appendChild(clockContainer);
-  brandRow.appendChild(badge);
+  topRow.appendChild(brandLink);
+  topRow.appendChild(badge);
 
-  // 2. Action Controls Group
+  // 2. Utility Row: Live IST Clock & Action Control Tiles
+  const utilityRow = document.createElement('div');
+  utilityRow.className = 'dw-utility-row';
+
+  // Live IST Clock (with pulsing green dot)
+  const clockContainer = document.createElement('div');
+  clockContainer.className = 'dw-live-clock';
+  clockContainer.setAttribute('aria-label', STRINGS.app.liveUpdateLabel);
+
+  const dot = document.createElement('span');
+  dot.className = 'dw-live-dot';
+  dot.setAttribute('aria-hidden', 'true');
+
+  const timeText = document.createElement('span');
+  timeText.id = 'dw-header-ist-clock';
+  timeText.className = 'dw-clock-text';
+  timeText.textContent = formatLiveIST();
+
+  clockContainer.appendChild(dot);
+  clockContainer.appendChild(timeText);
+
+  // Controls Group: [ 🔍 ] [ ↻ ] [ ⚙ ]
   const controls = document.createElement('div');
   controls.className = 'dw-header-controls';
 
-  // Mobile Search Toggle Button
+  // Search Toggle Button (Tile)
   const searchToggleBtn = document.createElement('button');
   searchToggleBtn.className = 'dw-search-toggle-btn';
   searchToggleBtn.type = 'button';
@@ -106,7 +109,7 @@ export function renderHeader(
   searchToggleBtn.title = STRINGS.search.expandSearchTooltip;
   searchToggleBtn.innerHTML = '<span class="dw-search-icon" aria-hidden="true">🔍</span>';
 
-  // Search Box Container (Desktop inline, Mobile expandable overlay)
+  // Search Box Container (Expandable search overlay/box)
   const searchBox = document.createElement('div');
   searchBox.className = 'dw-search-box';
 
@@ -159,7 +162,7 @@ export function renderHeader(
   searchBox.appendChild(searchInput);
   searchBox.appendChild(searchCloseBtn);
 
-  // Live Feed Sync Button & Status Indicator
+  // Live Feed Sync Button (Tile)
   const syncBtn = document.createElement('button');
   syncBtn.className = 'dw-sync-btn';
   syncBtn.type = 'button';
@@ -221,7 +224,7 @@ export function renderHeader(
     void feedSyncService.syncNow(true);
   });
 
-  // Theme Toggle Button
+  // Theme Toggle Button (Tile)
   const themeBtn = document.createElement('button');
   themeBtn.className = 'dw-theme-btn';
   themeBtn.type = 'button';
@@ -256,8 +259,11 @@ export function renderHeader(
   controls.appendChild(syncBtn);
   controls.appendChild(themeBtn);
 
-  inner.appendChild(brandRow);
-  inner.appendChild(controls);
+  utilityRow.appendChild(clockContainer);
+  utilityRow.appendChild(controls);
+
+  inner.appendChild(topRow);
+  inner.appendChild(utilityRow);
   header.appendChild(inner);
 
   // Update clock every second safely

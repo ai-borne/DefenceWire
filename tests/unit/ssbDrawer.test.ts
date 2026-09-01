@@ -65,7 +65,7 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
 
     const collapseBtn = el.querySelector('.dw-ssb-bottom-collapse-btn') as HTMLButtonElement | null;
     expect(collapseBtn).not.toBeNull();
-    expect(collapseBtn?.textContent).toContain(STRINGS.summary.collapseDrawerBtn);
+    expect(collapseBtn?.textContent).toBe('▲');
     expect(collapseBtn?.getAttribute('aria-label')).toBe(STRINGS.summary.collapseAriaLabel);
 
     // Trigger click on bottom collapse button
@@ -73,7 +73,7 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     expect(onCollapse).toHaveBeenCalledTimes(1);
   });
 
-  it('renders Summary button to the left of Permalink button for vertical alignment with summary drawer', () => {
+  it('renders Permalink button and red brand triangle toggle button in right-edge action dock', () => {
     const newsVm = new NewsViewModel();
     const articleEl = renderStoryCluster(mockCluster, newsVm);
 
@@ -82,9 +82,10 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
 
     expect(toggleBtn).not.toBeNull();
     expect(permalinkBtn).not.toBeNull();
+    expect(toggleBtn?.textContent).toBe('▼');
 
-    // Verify toggleBtn comes before permalinkBtn in DOM order
-    expect(toggleBtn?.compareDocumentPosition(permalinkBtn!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    // Verify permalinkBtn comes before toggleBtn in action dock
+    expect(permalinkBtn?.compareDocumentPosition(toggleBtn!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('integrates with StoryClusterView and NewsViewModel to collapse summary from bottom', () => {
