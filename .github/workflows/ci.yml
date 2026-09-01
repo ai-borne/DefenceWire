@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'public/data/news.json'
+      - 'public/sitemap.xml'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'public/data/news.json'
+      - 'public/sitemap.xml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
