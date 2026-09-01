@@ -10,11 +10,13 @@ import { formatLiveIST } from '../utils/dateUtils.js';
 import { ThemeViewModel } from '../viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { EditorViewModel } from '../viewmodels/EditorViewModel.js';
+import { FeedSyncService, defaultFeedSyncService, SyncStatus } from '../services/feedSyncService.js';
 
 export function renderHeader(
   themeVm: ThemeViewModel,
   newsVm: NewsViewModel,
-  editorVm?: EditorViewModel
+  editorVm?: EditorViewModel,
+  feedSyncService: FeedSyncService = defaultFeedSyncService
 ): HTMLElement {
   const header = document.createElement('header');
   header.className = 'dw-header';
@@ -94,6 +96,87 @@ export function renderHeader(
   clockContainer.appendChild(dot);
   clockContainer.appendChild(timeText);
 
+  // Live Feed Sync Button & Status Indicator
+  const syncBtn = document.createElement('button');
+  syncBtn.className = 'dw-sync-btn';
+  syncBtn.type = 'button';
+  syncBtn.setAttribute('aria-label', STRINGS.sync.ariaSyncNow);
+  syncBtn.title = STRINGS.sync.idleTooltip;
+
+  const syncIcon = document.createElement('span');
+  syncIcon.className = 'dw-sync-icon';
+  syncIcon.setAttribute('aria-hidden', 'true');
+  syncIcon.textContent = '↻';
+
+  const syncLabel = document.createElement('span');
+  syncLabel.className = 'dw-sync-label';
+  syncLabel.textContent = STRINGS.sync.buttonLabel;
+
+  syncBtn.appendChild(syncIcon);
+  syncBtn.appendChild(syncLabel);
+
+  let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const updateSyncUI = (status: SyncStatus) => {
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      resetTimer = null;
+    }
+
+    syncBtn.classList.remove('is-syncing', 'is-updated', 'is-error');
+
+    switch (status) {
+      case 'checking':
+        syncBtn.classList.add('is-syncing');
+        syncBtn.disabled = true;
+        syncBtn.title = STRINGS.sync.checkingTooltip;
+        syncLabel.textContent = STRINGS.sync.checkingLabel;
+        break;
+      case 'syncing':
+        syncBtn.classList.add('is-syncing');
+        syncBtn.disabled = true;
+        syncBtn.title = STRINGS.sync.syncingTooltip;
+        syncLabel.textContent = STRINGS.sync.syncingLabel;
+        break;
+      case 'updated':
+        syncBtn.classList.add('is-updated');
+        syncBtn.disabled = false;
+        syncBtn.title = STRINGS.sync.updatedTooltip;
+        syncLabel.textContent = STRINGS.sync.updatedLabel;
+        resetTimer = setTimeout(() => {
+          syncBtn.classList.remove('is-updated');
+          syncBtn.title = STRINGS.sync.idleTooltip;
+          syncLabel.textContent = STRINGS.sync.buttonLabel;
+        }, 2500);
+        break;
+      case 'error':
+        syncBtn.classList.add('is-error');
+        syncBtn.disabled = false;
+        syncBtn.title = STRINGS.sync.errorTooltip;
+        syncLabel.textContent = STRINGS.sync.errorLabel;
+        resetTimer = setTimeout(() => {
+          syncBtn.classList.remove('is-error');
+          syncBtn.title = STRINGS.sync.idleTooltip;
+          syncLabel.textContent = STRINGS.sync.buttonLabel;
+        }, 4000);
+        break;
+      case 'idle':
+      default:
+        syncBtn.disabled = false;
+        syncBtn.title = STRINGS.sync.idleTooltip;
+        syncLabel.textContent = STRINGS.sync.buttonLabel;
+        break;
+    }
+  };
+
+  feedSyncService.onSyncStateChange((status) => {
+    updateSyncUI(status);
+  });
+
+  syncBtn.addEventListener('click', () => {
+    void feedSyncService.syncNow(true);
+  });
+
   // Search Box
   const searchBox = document.createElement('div');
   searchBox.className = 'dw-search-box';
@@ -139,6 +222,7 @@ export function renderHeader(
   });
 
   controls.appendChild(clockContainer);
+  controls.appendChild(syncBtn);
   controls.appendChild(searchBox);
   controls.appendChild(themeBtn);
 

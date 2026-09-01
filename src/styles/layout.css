@@ -135,6 +135,58 @@
   font-weight: 600;
 }
 
+.dw-sync-btn {
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-primary);
+  color: var(--dw-text-secondary);
+  padding: 4px 8px;
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.dw-sync-btn:hover:not(:disabled) {
+  background-color: var(--dw-bg-hover);
+  color: var(--dw-text-primary);
+  border-color: var(--dw-text-accent);
+}
+
+.dw-sync-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dw-sync-icon {
+  display: inline-block;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.dw-sync-btn.is-syncing .dw-sync-icon {
+  animation: dwSpin 1s infinite linear;
+}
+
+.dw-sync-btn.is-updated {
+  color: var(--dw-badge-text);
+  border-color: var(--dw-badge-bg);
+}
+
+.dw-sync-btn.is-error {
+  color: var(--dw-text-accent);
+  border-color: var(--dw-text-accent);
+}
+
+@keyframes dwSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Navigation Bar */
 .dw-nav {
   background-color: var(--dw-bg-secondary);

@@ -12,6 +12,7 @@ import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
 import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
+import { defaultFeedSyncService } from './services/feedSyncService.js';
 import { renderHeader } from './components/Header.js';
 import { renderNavigationBar } from './components/NavigationBar.js';
 import { renderMainFeedContent } from './components/MainFeedRouter.js';
@@ -41,7 +42,12 @@ export function initializeApp(): void {
       try {
         const res = await fetch('/data/news.json');
         if (res.ok) {
-          const data = (await res.json()) as { clusters?: import('./types/news.js').StoryCluster[]; river?: import('./types/news.js').StorySourceItem[] };
+          const data = (await res.json()) as {
+            clusters?: import('./types/news.js').StoryCluster[];
+            river?: import('./types/news.js').StorySourceItem[];
+            generatedAt?: string;
+          };
+          if (data.generatedAt) defaultFeedSyncService.setLastGeneratedAt(data.generatedAt);
           if (data.clusters && data.clusters.length > 0) newsVm.setClusters(data.clusters);
           if (data.river && data.river.length > 0) newsVm.setRiverItems(data.river);
         }
@@ -63,7 +69,7 @@ export function initializeApp(): void {
   // 4. Build Base Static Layout
   appElement.innerHTML = '';
 
-  const header = renderHeader(themeVm, newsVm, editorVm);
+  const header = renderHeader(themeVm, newsVm, editorVm, defaultFeedSyncService);
   const nav = renderNavigationBar(newsVm);
   appElement.appendChild(header);
   appElement.appendChild(nav);
@@ -200,6 +206,18 @@ export function initializeApp(): void {
   archiveVm.subscribe(() => {
     updateFeedAndSidebar();
   });
+
+  defaultFeedSyncService.onFeedUpdated(async (payload) => {
+    if (payload.clusters && payload.clusters.length > 0) {
+      newsVm.setClusters(payload.clusters);
+      await defaultStorageService.saveClusters(newsVm.getAllClusters(true));
+    }
+    if (payload.river && payload.river.length > 0) {
+      newsVm.setRiverItems(payload.river);
+      await defaultStorageService.saveRiverItems(newsVm.getFilteredRiverItems());
+    }
+  });
+  defaultFeedSyncService.start();
 
   // Initial renders
   updateFeedAndSidebar();

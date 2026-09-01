@@ -74,11 +74,14 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.funnel.utmMediumSSB).toBe('ssb_drawer');
   });
 
-  it('should have valid non-empty values for all error and theme strings', () => {
+  it('should have valid non-empty values for all error, theme, and sync strings', () => {
     expect(STRINGS.errors.feedLoadFailed).toBeDefined();
     expect(STRINGS.errors.invalidUrl).toBeDefined();
     expect(STRINGS.theme.light).toBeDefined();
     expect(STRINGS.theme.dark).toBeDefined();
+    expect(STRINGS.sync.buttonLabel).toBe('Sync');
+    expect(STRINGS.sync.ariaSyncNow).toBeDefined();
+    expect(STRINGS.sync.idleTooltip).toBeDefined();
   });
 });
 

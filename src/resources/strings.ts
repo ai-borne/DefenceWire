@@ -200,6 +200,20 @@ export const STRINGS = {
     feedLoadFailed: 'Unable to retrieve live feed. Loading cached intelligence...',
     invalidUrl: 'Invalid or unsafe external URL detected.',
     emptyCluster: 'No stories available in this category at this time.'
+  },
+  sync: {
+    buttonLabel: 'Sync',
+    syncingLabel: 'Syncing...',
+    checkingLabel: 'Checking...',
+    updatedLabel: 'Updated',
+    errorLabel: 'Sync failed',
+    idleTooltip: 'Click to revalidate live intelligence feed',
+    checkingTooltip: 'Checking for newer intelligence updates...',
+    syncingTooltip: 'Fetching latest defence intelligence...',
+    updatedTooltip: 'Live intelligence feed is up to date',
+    errorTooltip: 'Unable to sync feed. Showing cached intelligence.',
+    ariaSyncNow: 'Revalidate and synchronize live defence intelligence feed',
+    liveStatus: 'Live Feed Connected'
   }
 } as const;
 
