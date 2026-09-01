@@ -2,13 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.defencewire.in/</loc>
-    <lastmod>2026-09-01T00:40:50.910Z</lastmod>
+    <lastmod>2026-09-01T02:35:03.262Z</lastmod>
     <changefreq>always</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.defencewire.in/story/cluster-8d1a1f96</loc>
     <lastmod>2026-08-31T21:08:08.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-09c3dcc8</loc>
+    <lastmod>2026-09-01T02:30:07.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-6fff849a</loc>
+    <lastmod>2026-09-01T02:31:44.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-4fa6acb6</loc>
+    <lastmod>2026-09-01T02:31:39.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -25,20 +43,116 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.defencewire.in/story/cluster-bc0ab713</loc>
+    <lastmod>2026-09-01T02:31:30.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-444fc41b</loc>
+    <lastmod>2026-09-01T02:30:29.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.defencewire.in/story/cluster-380d27b4</loc>
     <lastmod>2026-08-31T11:46:56.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-2e8600c7</loc>
-    <lastmod>2026-08-31T02:30:45.000Z</lastmod>
+    <loc>https://www.defencewire.in/story/cluster-5342e521</loc>
+    <lastmod>2026-09-01T02:31:41.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-51255305</loc>
+    <lastmod>2026-09-01T02:30:37.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-a712342c</loc>
+    <lastmod>2026-09-01T02:30:33.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-17e58509</loc>
+    <lastmod>2026-09-01T02:30:26.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-f4ef21d0</loc>
+    <lastmod>2026-09-01T02:30:22.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-8eb3c3b7</loc>
+    <lastmod>2026-09-01T02:30:18.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-21a8e8ab</loc>
+    <lastmod>2026-09-01T02:30:15.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-39aa64aa</loc>
+    <lastmod>2026-09-01T02:30:11.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-ffb1a96f</loc>
+    <lastmod>2026-09-01T02:11:00.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-cb460d95</loc>
+    <lastmod>2026-09-01T02:31:35.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-834d3a6f</loc>
+    <lastmod>2026-09-01T02:30:42.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-cfd7b91b</loc>
+    <lastmod>2026-09-01T01:27:30.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-a3565881</loc>
+    <lastmod>2026-09-01T00:49:27.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-f3721dd4</loc>
+    <lastmod>2026-09-01T01:11:07.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.defencewire.in/story/cluster-4d861816</loc>
     <lastmod>2026-08-31T23:49:15.000Z</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.defencewire.in/story/cluster-02d07aa3</loc>
+    <lastmod>2026-08-31T12:30:42.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -55,134 +169,20 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-02d07aa3</loc>
-    <lastmod>2026-08-31T12:30:42.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-3fef8494</loc>
-    <lastmod>2026-08-31T21:26:28.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.defencewire.in/story/cluster-486875c6</loc>
     <lastmod>2026-08-31T17:16:41.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.defencewire.in/story/cluster-53eb955d</loc>
-    <lastmod>2026-08-31T22:24:26.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-b28b2e48</loc>
-    <lastmod>2026-08-31T19:42:08.000Z</lastmod>
+    <loc>https://www.defencewire.in/story/cluster-381ddf91</loc>
+    <lastmod>2026-08-31T16:35:19.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.defencewire.in/story/cluster-cf8d4a5b</loc>
     <lastmod>2026-08-31T16:20:41.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-73808a1d</loc>
-    <lastmod>2026-08-31T20:27:36.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-588dcec6</loc>
-    <lastmod>2026-08-31T12:30:38.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-e0258c4d</loc>
-    <lastmod>2026-08-31T02:30:29.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-071d3188</loc>
-    <lastmod>2026-08-31T06:26:30.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-448491fa</loc>
-    <lastmod>2026-08-31T17:57:58.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-4947b1f7</loc>
-    <lastmod>2026-08-31T17:53:48.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-72852122</loc>
-    <lastmod>2026-08-31T20:09:41.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-a57a123b</loc>
-    <lastmod>2026-08-31T20:02:08.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-a1514817</loc>
-    <lastmod>2026-08-31T17:09:06.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-25d46790</loc>
-    <lastmod>2026-08-31T16:47:41.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-f59e9bf3</loc>
-    <lastmod>2026-08-31T16:36:51.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-cad9c19a</loc>
-    <lastmod>2026-08-31T16:25:22.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-91f452ff</loc>
-    <lastmod>2026-08-31T16:05:36.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-88bc7a24</loc>
-    <lastmod>2026-08-31T15:31:18.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-82d51424</loc>
-    <lastmod>2026-08-31T14:15:49.000Z</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.defencewire.in/story/cluster-0d24c9c7</loc>
-    <lastmod>2026-08-31T13:37:12.000Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
