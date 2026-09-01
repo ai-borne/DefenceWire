@@ -8,7 +8,10 @@ import { FeedConfig } from '../../crawler/feedTypes.js';
 import {
   fetchFeedWithCircuitBreaker,
   getCircuitBreakerStatus,
+  isSafeFeedUrl,
+  MAX_FEED_BYTES,
   parseFeedXml,
+  readStreamWithLimit,
   resetCircuitBreakers
 } from '../../crawler/parser.js';
 import { SourceTier } from '../../src/types/source.js';
@@ -229,5 +232,44 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(items[0]?.snippet).toBe('If several key cost and production milestones are met, India’s ambitious Advanced Medium Combat Aircraft (AMCA) programme will achieve its targets.');
     expect(items[0]?.snippet).not.toContain('This article was originally published');
     expect(items[0]?.snippet).not.toContain('Read the full article on idrw.org');
+  });
+
+  it('blocks private, loopback, link-local, and internal SSRF URLs via isSafeFeedUrl', () => {
+    expect(isSafeFeedUrl('http://127.0.0.1/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://localhost:8080/feed')).toBe(false);
+    expect(isSafeFeedUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
+    expect(isSafeFeedUrl('http://10.0.1.5/feed.xml')).toBe(false);
+    expect(isSafeFeedUrl('http://172.16.0.1/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://192.168.1.1/feed')).toBe(false);
+    expect(isSafeFeedUrl('http://0.0.0.0/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://[::1]/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://[fe80::1]/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://[fc00::1]/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://[::ffff:127.0.0.1]/rss')).toBe(false);
+    expect(isSafeFeedUrl('http://internal.service.local/rss')).toBe(false);
+    expect(isSafeFeedUrl('file:///etc/passwd')).toBe(false);
+    expect(isSafeFeedUrl('https://pib.gov.in/feed.xml')).toBe(true);
+    expect(isSafeFeedUrl('https://thehindu.com/defence/rss')).toBe(true);
+  });
+
+  it('rejects feeds exceeding MAX_FEED_BYTES stream size limit', async () => {
+    expect(MAX_FEED_BYTES).toBe(5 * 1024 * 1024);
+    const oversizedResponse = new Response('huge content', {
+      status: 200,
+      headers: { 'Content-Length': String(6 * 1024 * 1024) }
+    });
+    const result = await readStreamWithLimit(oversizedResponse, 5 * 1024 * 1024);
+    expect(result).toBeNull();
+
+    const ssrfFeed: FeedConfig = { ...MOCK_FEED, id: 'ssrf-feed', url: 'http://169.254.169.254/metadata' };
+    let fetchCalled = false;
+    const items = await fetchFeedWithCircuitBreaker(ssrfFeed, {
+      fetchFn: (async () => {
+        fetchCalled = true;
+        return new Response('<rss></rss>');
+      }) as typeof fetch
+    });
+    expect(items).toEqual([]);
+    expect(fetchCalled).toBe(false);
   });
 });

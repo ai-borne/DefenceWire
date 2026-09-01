@@ -7,9 +7,14 @@
 
 import * as crypto from 'node:crypto';
 import { DomainCategory, SSBIntelligence, StoryCluster, StorySourceItem } from '../src/types/news.js';
+import { isValidSSBIntelligence, sanitizePromptInput } from './summarizer.js';
 
 export const DEFAULT_CF_AI_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 export const CF_AI_MEMORY_CACHE = new Map<string, string>();
+
+const VALID_CATEGORIES = new Set(['army', 'navy', 'airforce', 'tech', 'procurement', 'strategic', 'ssb']);
+const VALID_SIGNIFICANCES = new Set(['critical', 'high', 'medium', 'routine']);
+const VALID_SIGNATURES = new Set(['trial', 'procurement', 'induction', 'general']);
 
 export interface WorkersAIScreeningResult {
   isMilitaryDefence: boolean;
@@ -20,6 +25,10 @@ export interface WorkersAIScreeningResult {
   discoveredEntities: string[];
   actionSignature?: string;
   rationale: string;
+}
+
+export function isValidWorkersAIScreeningResult(data: unknown): data is Partial<WorkersAIScreeningResult> {
+  return Boolean(data && typeof data === 'object' && !Array.isArray(data) && typeof (data as Record<string, unknown>).isMilitaryDefence === 'boolean');
 }
 
 export function getCloudflareAIModel(env: NodeJS.ProcessEnv = process.env): string {
@@ -120,8 +129,10 @@ export async function screenItemWithCloudflareAI(
   item: StorySourceItem,
   options: CloudflareAIOptions = {}
 ): Promise<WorkersAIScreeningResult | null> {
-  const text = `${item.title} ${item.snippet || ''}`.trim();
-  const cacheKey = computeCFAICacheHash('screen', text);
+  const cleanTitle = sanitizePromptInput(item.title, 300);
+  const cleanSnippet = sanitizePromptInput(item.snippet || '', 1000);
+  const cleanSource = sanitizePromptInput(item.sourceName, 100);
+  const cacheKey = computeCFAICacheHash('screen', `${cleanTitle} ${cleanSnippet}`);
 
   if (CF_AI_MEMORY_CACHE.has(cacheKey)) {
     const cached = CF_AI_MEMORY_CACHE.get(cacheKey);
@@ -147,24 +158,36 @@ JSON schema:
   "rationale": "one sentence rationale"
 }`;
 
-  const userPrompt = `<article_content>\nTitle: ${item.title}\nSnippet: ${item.snippet || ''}\nSource: ${item.sourceName}\n</article_content>`;
+  const userPrompt = `<article_content>\nTitle: ${cleanTitle}\nSnippet: ${cleanSnippet}\nSource: ${cleanSource}\n</article_content>`;
   const rawResponse = await runCloudflareAIInference(userPrompt, systemPrompt, options);
   if (!rawResponse) return null;
 
-  const parsed = extractJsonFromText(rawResponse) as Partial<WorkersAIScreeningResult> | null;
-  if (!parsed || typeof parsed.isMilitaryDefence !== 'boolean') {
+  const parsed = extractJsonFromText(rawResponse);
+  if (!isValidWorkersAIScreeningResult(parsed)) {
     return null;
   }
 
+  const rawCat = String(parsed.category || '').toLowerCase();
+  const category: DomainCategory = VALID_CATEGORIES.has(rawCat) ? (rawCat as DomainCategory) : 'strategic';
+  const rawSig = String(parsed.strategicSignificance || '').toLowerCase();
+  const strategicSignificance = VALID_SIGNIFICANCES.has(rawSig) ? (rawSig as 'critical' | 'high' | 'medium' | 'routine') : 'medium';
+  const rawAction = String(parsed.actionSignature || '').toLowerCase();
+  const actionSignature = VALID_SIGNATURES.has(rawAction) ? rawAction : 'general';
+  const rawEntities = Array.isArray(parsed.discoveredEntities) ? parsed.discoveredEntities : [];
+  const discoveredEntities = rawEntities
+    .filter((e): e is string => typeof e === 'string' && e.trim().length >= 3 && e.trim().length <= 60)
+    .map((e) => e.trim())
+    .slice(0, 10);
+
   const sanitized: WorkersAIScreeningResult = {
-    isMilitaryDefence: parsed.isMilitaryDefence,
-    confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.8,
-    category: (parsed.category as DomainCategory) || 'strategic',
-    strategicSignificance: parsed.strategicSignificance || 'medium',
-    strategicBonus: Math.min(20, Math.max(0, typeof parsed.strategicBonus === 'number' ? parsed.strategicBonus : 5)),
-    discoveredEntities: Array.isArray(parsed.discoveredEntities) ? parsed.discoveredEntities.filter(Boolean) : [],
-    actionSignature: parsed.actionSignature || 'general',
-    rationale: parsed.rationale || ''
+    isMilitaryDefence: parsed.isMilitaryDefence!,
+    confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0.8,
+    category,
+    strategicSignificance,
+    strategicBonus: typeof parsed.strategicBonus === 'number' ? Math.max(0, Math.min(20, parsed.strategicBonus)) : 5,
+    discoveredEntities,
+    actionSignature,
+    rationale: typeof parsed.rationale === 'string' ? parsed.rationale.slice(0, 500) : ''
   };
 
   CF_AI_MEMORY_CACHE.set(cacheKey, JSON.stringify(sanitized));
@@ -175,7 +198,14 @@ export async function summarizeWithCloudflareAI(
   cluster: StoryCluster,
   options: CloudflareAIOptions = {}
 ): Promise<SSBIntelligence | null> {
-  const cacheKey = computeCFAICacheHash('summary', `${cluster.synthesizedHeadline}|${cluster.primarySource.url}`);
+  const cleanHeadline = sanitizePromptInput(cluster.synthesizedHeadline, 300);
+  const cleanSource = sanitizePromptInput(cluster.primarySource.sourceName, 100);
+  const cleanEntities = (cluster.entities || [])
+    .slice(0, 15)
+    .map((e) => sanitizePromptInput(e, 50))
+    .filter(Boolean);
+
+  const cacheKey = computeCFAICacheHash('summary', `${cleanHeadline}|${cluster.primarySource.url}`);
 
   if (CF_AI_MEMORY_CACHE.has(cacheKey)) {
     const cached = CF_AI_MEMORY_CACHE.get(cacheKey);
@@ -198,21 +228,25 @@ JSON schema:
   }
 }`;
 
-  const userPrompt = `<article_content>\nHeadline: ${cluster.synthesizedHeadline}\nPrimary Source: ${cluster.primarySource.sourceName}\nEntities: ${cluster.entities.join(', ')}\n</article_content>`;
+  const userPrompt = `<article_content>\nHeadline: ${cleanHeadline}\nPrimary Source: ${cleanSource}\nEntities: ${cleanEntities.join(', ')}\n</article_content>`;
   const rawResponse = await runCloudflareAIInference(userPrompt, systemPrompt, options);
   if (!rawResponse) return null;
 
-  const parsed = extractJsonFromText(rawResponse) as Partial<SSBIntelligence> | null;
-  if (!parsed || !parsed.whyItMatters) return null;
+  const parsed = extractJsonFromText(rawResponse);
+  if (!isValidSSBIntelligence(parsed)) return null;
 
   const sanitized: SSBIntelligence = {
-    whyItMatters: parsed.whyItMatters,
-    strategicAngle: parsed.strategicAngle || '',
-    defenceTechTakeaway: parsed.defenceTechTakeaway || {
-      platformOrSystem: cluster.entities[0] || 'Strategic Defence Platform',
-      specifications: ['Indigenous capability milestone'],
-      keySignificance: 'Enhances multi-domain operational deterrence.'
-    }
+    whyItMatters: parsed.whyItMatters.trim(),
+    ...(parsed.strategicAngle ? { strategicAngle: parsed.strategicAngle.trim() } : {}),
+    ...(parsed.defenceTechTakeaway
+      ? {
+          defenceTechTakeaway: {
+            platformOrSystem: parsed.defenceTechTakeaway.platformOrSystem.trim(),
+            specifications: parsed.defenceTechTakeaway.specifications.map((s) => s.trim()).filter(Boolean),
+            keySignificance: parsed.defenceTechTakeaway.keySignificance.trim()
+          }
+        }
+      : {})
   };
 
   CF_AI_MEMORY_CACHE.set(cacheKey, JSON.stringify(sanitized));

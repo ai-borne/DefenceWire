@@ -1,5 +1,5 @@
 /**
- * Isolated Resilient RSS/Atom Feed Parser with Circuit Breakers
+ * Isolated Resilient RSS/Atom Feed Parser with Circuit Breakers & SSRF Defense
  * Hard limit: <= 300 LOC.
  */
 
@@ -10,6 +10,8 @@ import { cleanStorySnippet } from '../src/utils/snippetCleaner.js';
 import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
 import { normalizeSocialPostItem } from './socialNormalizer.js';
+
+export const MAX_FEED_BYTES = 5 * 1024 * 1024; // 5 MB stream cap
 
 export interface CircuitState {
   failures: number;
@@ -54,6 +56,80 @@ function recordFeedSuccess(feedId: string): void {
   state.isOpen = false;
 }
 
+function isPrivateOrReservedIPv4(ip: string): boolean {
+  const [a, b, c] = ip.split('.').map((p) => parseInt(p, 10)) as [number, number, number, number];
+  if ([a, b, c].some((p) => isNaN(p) || p < 0 || p > 255)) return true;
+  if (a === 0 || a === 10 || a === 127 || (a === 169 && b === 254)) return true;
+  if ((a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127)) return true;
+  if ((a === 192 && b === 0 && (c === 0 || c === 2)) || (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100)))) return true;
+  return a === 203 && b === 0 && c === 113 ? true : a >= 224;
+}
+
+function isPrivateOrReservedIPv6(ip: string): boolean {
+  const clean = ip.toLowerCase().replace(/^\[|\]$/g, '');
+  if (clean === '::1' || clean === '::' || clean === '0:0:0:0:0:0:0:1' || clean === '0:0:0:0:0:0:0:0') return true;
+  if (clean.startsWith('fe8') || clean.startsWith('fe9') || clean.startsWith('fea') || clean.startsWith('feb')) return true;
+  if (clean.startsWith('fc') || clean.startsWith('fd') || clean.startsWith('ff')) return true;
+  return clean.startsWith('::ffff:') ? isPrivateOrReservedIPv4(clean.slice(7)) : false;
+}
+
+const BLOCKED_HOST_SUFFIXES = ['.localhost', '.local', '.internal', '.lan', '.localdomain', '.home.arpa'];
+
+export function isSafeFeedUrl(urlStr: string): boolean {
+  if (!urlStr || typeof urlStr !== 'string') return false;
+  try {
+    const parsed = new URL(urlStr);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    const host = parsed.hostname.toLowerCase();
+    if (!host || host === 'localhost' || BLOCKED_HOST_SUFFIXES.some((s) => host.endsWith(s))) return false;
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) && isPrivateOrReservedIPv4(host)) return false;
+    if (/^(0x[0-9a-f]+|\d+)$/i.test(host)) return false;
+    return !(host.includes(':') && isPrivateOrReservedIPv6(host));
+  } catch {
+    return false;
+  }
+}
+
+export async function readStreamWithLimit(
+  response: Response,
+  maxBytes: number = MAX_FEED_BYTES
+): Promise<string | null> {
+  const cl = response.headers?.get?.('content-length');
+  if (cl && parseInt(cl, 10) > maxBytes) return null;
+
+  if (response.body && typeof response.body.getReader === 'function') {
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          totalBytes += value.byteLength;
+          if (totalBytes > maxBytes) {
+            await reader.cancel('Feed byte limit exceeded');
+            return null;
+          }
+          chunks.push(value);
+        }
+      }
+      const combined = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      return new TextDecoder('utf-8').decode(combined);
+    } catch {
+      return null;
+    }
+  }
+
+  const text = await response.text();
+  return text.length > maxBytes ? null : text;
+}
+
 function extractTagValue(xmlBlock: string, tagName: string): string {
   const cdataRegex = new RegExp(`<${tagName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tagName}>`, 'i');
   const cdataMatch = xmlBlock.match(cdataRegex);
@@ -79,19 +155,13 @@ function extractLink(xmlBlock: string): string {
 
 function extractThumbnail(xmlBlock: string): string | undefined {
   const thumbMatch = xmlBlock.match(/<media:thumbnail\b[^>]*?\burl=["']([^"']+)["'][^>]*>/i);
-  if (thumbMatch?.[1] && isValidUrl(thumbMatch[1])) {
-    return decodeHtmlEntities(thumbMatch[1]);
-  }
+  if (thumbMatch?.[1] && isValidUrl(thumbMatch[1])) return decodeHtmlEntities(thumbMatch[1]);
 
   const mediaContentMatch = xmlBlock.match(/<media:content\b[^>]*?\burl=["']([^"']+)["'][^>]*(?:type=["']image\/|medium=["']image["'])[^>]*>/i);
-  if (mediaContentMatch?.[1] && isValidUrl(mediaContentMatch[1])) {
-    return decodeHtmlEntities(mediaContentMatch[1]);
-  }
+  if (mediaContentMatch?.[1] && isValidUrl(mediaContentMatch[1])) return decodeHtmlEntities(mediaContentMatch[1]);
 
   const enclosureMatch = xmlBlock.match(/<enclosure\b[^>]*?\burl=["']([^"']+)["'][^>]*\btype=["']image\/[^"']+["'][^>]*>/i);
-  if (enclosureMatch?.[1] && isValidUrl(enclosureMatch[1])) {
-    return decodeHtmlEntities(enclosureMatch[1]);
-  }
+  if (enclosureMatch?.[1] && isValidUrl(enclosureMatch[1])) return decodeHtmlEntities(enclosureMatch[1]);
 
   return undefined;
 }
@@ -100,9 +170,7 @@ function parsePublicationDate(dateStr: string): string {
   if (!dateStr) return new Date().toISOString();
   try {
     const timestamp = Date.parse(dateStr);
-    if (!isNaN(timestamp)) {
-      return new Date(timestamp).toISOString();
-    }
+    if (!isNaN(timestamp)) return new Date(timestamp).toISOString();
   } catch {
     // Fallback
   }
@@ -111,17 +179,13 @@ function parsePublicationDate(dateStr: string): string {
 
 export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceItem[] {
   if (!xmlContent || typeof xmlContent !== 'string') return [];
-
   const items: StorySourceItem[] = [];
   const isAtom = xmlContent.includes('<feed') || xmlContent.includes('<entry');
   const blockRegex = isAtom ? /<entry[\s\S]*?<\/entry>/gi : /<item[\s\S]*?<\/item>/gi;
-
   const matches = xmlContent.match(blockRegex) || [];
 
-  for (let i = 0; i < matches.length; i++) {
-    const block = matches[i];
+  for (const block of matches) {
     if (!block) continue;
-
     const rawTitle = extractTagValue(block, 'title');
     const rawLink = extractLink(block);
     const rawPubDate =
@@ -136,13 +200,10 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       extractTagValue(block, 'content:encoded') ||
       extractTagValue(block, 'content');
     const rawImageUrl = extractThumbnail(block);
-
     const cleanTitle = sanitizePlainText(rawTitle);
     const cleanSnippet = cleanStorySnippet(rawDescription, 280);
 
-    if (!cleanTitle || !rawLink || !isValidUrl(rawLink)) {
-      continue;
-    }
+    if (!cleanTitle || !rawLink || !isValidUrl(rawLink)) continue;
 
     let item: StorySourceItem = {
       id: `${feed.id}-${computeStableHash(rawLink)}`,
@@ -159,10 +220,8 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
     if (feed.tier === SourceTier.TIER_1_SOCIAL || feed.domain === 'x.com' || feed.domain === 'twitter.com') {
       item = normalizeSocialPostItem(item);
     }
-
     items.push(item);
   }
-
   return items;
 }
 
@@ -171,11 +230,14 @@ export async function fetchFeedWithCircuitBreaker(
   options: { timeoutMs?: number; fetchFn?: typeof fetch } = {}
 ): Promise<StorySourceItem[]> {
   const circuit = getCircuitBreakerStatus(feed.id);
-  if (circuit.isOpen) {
+  if (circuit.isOpen) return [];
+
+  if (!isSafeFeedUrl(feed.url)) {
+    recordFeedFailure(feed.id);
     return [];
   }
 
-  const timeoutMs = options.timeoutMs ?? feed.timeoutMs ?? 7500;
+  const timeoutMs = options.timeoutMs ?? feed.timeoutMs ?? 8000;
   const fetcher = options.fetchFn ?? globalThis.fetch;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -196,7 +258,12 @@ export async function fetchFeedWithCircuitBreaker(
       return [];
     }
 
-    const xml = await response.text();
+    const xml = await readStreamWithLimit(response, MAX_FEED_BYTES);
+    if (!xml) {
+      recordFeedFailure(feed.id);
+      return [];
+    }
+
     recordFeedSuccess(feed.id);
     return parseFeedXml(xml, feed);
   } catch {

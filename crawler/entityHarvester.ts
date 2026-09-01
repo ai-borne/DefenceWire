@@ -33,6 +33,15 @@ export interface EntityHarvestCandidate {
 export const PROMOTION_MIN_MENTIONS = 3;
 export const PROMOTION_MIN_SOURCES = 2;
 
+export const VALID_ENTITY_NAME_REGEX = /^[a-zA-Z0-9\s\-./()[\]]{3,60}$/;
+
+export function isValidEntityName(name: string): boolean {
+  if (!name || typeof name !== 'string') return false;
+  const trimmed = name.trim();
+  if (trimmed.length < 3 || trimmed.length > 60) return false;
+  return VALID_ENTITY_NAME_REGEX.test(trimmed);
+}
+
 export function slugifyEntityName(name: string): string {
   return (name || '')
     .trim()
@@ -41,14 +50,16 @@ export function slugifyEntityName(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function escapeRegex(text: string): string {
+export function escapeRegExpPattern(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export const escapeRegex = escapeRegExpPattern;
+
 export function buildEntityPatternString(name: string): string {
-  const clean = name.trim();
-  const escaped = escapeRegex(clean);
-  // Match roman numerals / variations (e.g., Rudram-II / Rudram-2)
+  const clean = (name || '').trim();
+  if (!isValidEntityName(clean)) return '';
+  const escaped = escapeRegExpPattern(clean);
   const patternWithVariations = escaped
     .replace(/-ii\b/i, '-?(ii|2)\\b')
     .replace(/-iii\b/i, '-?(iii|3)\\b')
@@ -59,7 +70,12 @@ export function buildEntityPatternString(name: string): string {
 }
 
 export function buildEntityRegex(patternStr: string): RegExp {
-  return new RegExp(patternStr, 'i');
+  if (!patternStr) return /(?!)/;
+  try {
+    return new RegExp(patternStr, 'i');
+  } catch {
+    return /(?!)/;
+  }
 }
 
 export function aggregateEntityCandidates(
@@ -71,12 +87,13 @@ export function aggregateEntityCandidates(
   const domainsBySlug = new Map<string, Set<string>>();
 
   for (const record of existingRecords) {
+    if (!isValidEntityName(record.name)) continue;
     recordMap.set(record.id, { ...record });
     domainsBySlug.set(record.id, new Set());
   }
 
   for (const cand of candidates) {
-    if (!cand.name || cand.name.trim().length < 3) continue;
+    if (!cand.name || !isValidEntityName(cand.name)) continue;
     const cleanName = cand.name.trim();
     const slug = slugifyEntityName(cleanName);
     if (!slug) continue;
@@ -111,6 +128,8 @@ export function aggregateEntityCandidates(
     } else {
       const isPromoted = 1 >= PROMOTION_MIN_MENTIONS && domainSet.size >= PROMOTION_MIN_SOURCES;
       const pattern = buildEntityPatternString(cleanName);
+      if (!pattern) continue;
+
       recordMap.set(slug, {
         id: slug,
         name: cleanName,
@@ -130,7 +149,7 @@ export function aggregateEntityCandidates(
 
 export function getPromotedEntityConfigs(records: DiscoveredEntityRecord[]): MilitaryEntityConfig[] {
   return records
-    .filter((r) => r.isPromoted)
+    .filter((r) => r.isPromoted && isValidEntityName(r.name) && r.pattern)
     .map((r) => ({
       name: r.name,
       pattern: buildEntityRegex(r.pattern),
@@ -149,9 +168,9 @@ export async function syncDiscoveredEntitiesToD1(
   d1Config: D1RestConfig | null,
   options: { fetchFn?: typeof fetch } = {}
 ): Promise<D1EntitySyncResult> {
-
-  const promotedCount = records.filter((r) => r.isPromoted).length;
-  if (!d1Config || records.length === 0) {
+  const validRecords = records.filter((r) => isValidEntityName(r.name) && r.pattern);
+  const promotedCount = validRecords.filter((r) => r.isPromoted).length;
+  if (!d1Config || validRecords.length === 0) {
     return { synced: 0, failed: 0, promotedCount };
   }
 
@@ -163,7 +182,7 @@ export async function syncDiscoveredEntitiesToD1(
   let synced = 0;
   let failed = 0;
 
-  for (const rec of records) {
+  for (const rec of validRecords) {
     const sql = `INSERT INTO discovered_entities (
       id, name, pattern, category, source_count, mention_count, is_promoted, first_seen_at, last_seen_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

@@ -1,15 +1,12 @@
-/**
- * Unit Tests for Dynamic Entity Harvester & Closed-Loop Knowledge Base
- * Hard limit: <= 300 LOC.
- */
-
 import { describe, expect, it, beforeEach } from 'vitest';
 import {
   aggregateEntityCandidates,
   buildEntityPatternString,
   buildEntityRegex,
   escapeRegex,
+  escapeRegExpPattern,
   getPromotedEntityConfigs,
+  isValidEntityName,
   slugifyEntityName,
   syncDiscoveredEntitiesToD1,
   EntityHarvestCandidate,
@@ -30,6 +27,17 @@ describe('Closed-Loop Dynamic Entity Harvester', () => {
     expect(slugifyEntityName('Rudram-II (Air-to-Surface)')).toBe('rudram-ii-air-to-surface');
     expect(slugifyEntityName('  Project 76 Submarine  ')).toBe('project-76-submarine');
     expect(escapeRegex('Akash-NG [AD-1] (v1.0)')).toBe('Akash-NG \\[AD-1\\] \\(v1\\.0\\)');
+    expect(escapeRegExpPattern('AK-203 / BrahMos+')).toBe('AK-203 / BrahMos\\+');
+  });
+
+  it('validates entity names against strict alphanumeric and punctuation whitelist', () => {
+    expect(isValidEntityName('Tejas Mk-1A')).toBe(true);
+    expect(isValidEntityName('INS Arighat (SSBN)')).toBe(true);
+    expect(isValidEntityName('S-400 / AD-1')).toBe(true);
+    expect(isValidEntityName('ab')).toBe(false); // too short (<3)
+    expect(isValidEntityName('a'.repeat(65))).toBe(false); // too long (>60)
+    expect(isValidEntityName('Tejas<script>alert(1)</script>')).toBe(false);
+    expect(isValidEntityName('Akash; DROP TABLE discovered_entities;--')).toBe(false);
   });
 
   it('builds smart regex patterns matching roman numeral and numeric variations', () => {
@@ -41,11 +49,34 @@ describe('Closed-Loop Dynamic Entity Harvester', () => {
     expect(regex.test('Unrelated Rudram news')).toBe(false);
   });
 
-  it('aggregates candidates and counts distinct publisher domains', () => {
+  it('handles potential ReDoS patterns safely without catastrophic backtracking', () => {
+    const adversarialNames = [
+      '((((a+)+)+)+)',
+      'a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?',
+      'a*a*a*a*a*a*a*a*a*a*b',
+      'Tejas-II [v1.0]'
+    ];
+
+    for (const name of adversarialNames) {
+      const pattern = buildEntityPatternString(name);
+      if (pattern) {
+        const regex = buildEntityRegex(pattern);
+        const startTime = Date.now();
+        const testStr = 'a'.repeat(100) + '!';
+        const matched = regex.test(testStr);
+        const duration = Date.now() - startTime;
+        expect(matched).toBe(false);
+        expect(duration).toBeLessThan(50); // Must complete in < 50ms (no ReDoS hang)
+      }
+    }
+  });
+
+  it('aggregates candidates and counts distinct publisher domains while rejecting invalid candidates', () => {
     const candidates: EntityHarvestCandidate[] = [
       { name: 'Nagastra-1', category: 'army', sourceDomain: 'pib.gov.in' },
       { name: 'Nagastra-1', category: 'army', sourceDomain: 'thehindu.com' },
-      { name: 'Nagastra-1', category: 'army', sourceDomain: 'pib.gov.in' } // Duplicate domain
+      { name: 'Nagastra-1', category: 'army', sourceDomain: 'pib.gov.in' },
+      { name: 'Invalid<script>', category: 'tech', sourceDomain: 'evil.com' } // Should be filtered out
     ];
 
     const records = aggregateEntityCandidates(candidates);
@@ -55,7 +86,7 @@ describe('Closed-Loop Dynamic Entity Harvester', () => {
     expect(nagastra.id).toBe('nagastra-1');
     expect(nagastra.mentionCount).toBe(3);
     expect(nagastra.sourceCount).toBe(2);
-    expect(nagastra.isPromoted).toBe(true); // >= 3 mentions and >= 2 sources!
+    expect(nagastra.isPromoted).toBe(true);
   });
 
   it('does not promote an entity if source domain diversity threshold (< 2) is not met', () => {
@@ -85,7 +116,6 @@ describe('Closed-Loop Dynamic Entity Harvester', () => {
     expect(promotedConfigs).toHaveLength(1);
     expect(promotedConfigs[0]!.name).toBe('Project 76');
 
-    // Register into active NLP extractor
     registerDynamicEntities(promotedConfigs);
 
     const extracted = extractMilitaryEntities('Indian Navy initiates design for Project 76 next-gen submarine');
