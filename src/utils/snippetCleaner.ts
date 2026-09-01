@@ -119,6 +119,30 @@ export function truncateIntelligently(text: string, maxLen = 280, minSentenceLen
 }
 
 /**
+ * Cleans publication and news source names to concise display brand names.
+ * e.g., "IDRW (Indian Defence Research Wing)" -> "IDRW"
+ *       "Defense News (Global Top 100)" -> "Defense News"
+ *       "The Hindu (National Security)" -> "The Hindu"
+ *       "Press Information Bureau (PIB MoD)" -> "PIB"
+ */
+export function cleanSourceName(rawName: string | undefined | null): string {
+  if (!rawName || typeof rawName !== 'string') return '';
+  const trimmed = rawName.trim();
+
+  // Known standard short aliases
+  if (/^Press Information Bureau/i.test(trimmed)) return 'PIB';
+  if (/^ADG PI/i.test(trimmed)) return 'Indian Army';
+  if (/^SpokespersonNavy/i.test(trimmed)) return 'Indian Navy';
+  if (/^Asian News International/i.test(trimmed)) return 'ANI';
+
+  // Strip trailing parenthetical or dashed subtitles: e.g. "Name (Subtitle)" or "Name - Subtitle"
+  return trimmed
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/\s*[-—–]\s+[A-Za-z0-9 &.,]+$/, '')
+    .trim() || trimmed;
+}
+
+/**
  * Full Pipeline: Sanitizes HTML/entities, strips syndication boilerplate,
  * and formats snippet with intelligent boundary truncation.
  *

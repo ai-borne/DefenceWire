@@ -4,7 +4,31 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { cleanStorySnippet, stripSyndicationBoilerplate, truncateIntelligently } from '../../src/utils/snippetCleaner.js';
+import { cleanStorySnippet, cleanSourceName, stripSyndicationBoilerplate, truncateIntelligently } from '../../src/utils/snippetCleaner.js';
+
+describe('cleanSourceName Utility', () => {
+  it('strips long descriptive subtitles in parentheses', () => {
+    expect(cleanSourceName('IDRW (Indian Defence Research Wing)')).toBe('IDRW');
+    expect(cleanSourceName('Defense News (Global Top 100)')).toBe('Defense News');
+    expect(cleanSourceName('The Hindu (National Security)')).toBe('The Hindu');
+    expect(cleanSourceName('ThePrint (Defence & Strategic Affairs)')).toBe('ThePrint');
+    expect(cleanSourceName('Armada International (EW & Land Systems)')).toBe('Armada International');
+    expect(cleanSourceName('Livefist Defence (Shiv Aroor)')).toBe('Livefist Defence');
+  });
+
+  it('handles standard short aliases', () => {
+    expect(cleanSourceName('Press Information Bureau (PIB MoD)')).toBe('PIB');
+    expect(cleanSourceName('Asian News International (ANI Defence)')).toBe('ANI');
+    expect(cleanSourceName('ADG PI - Indian Army')).toBe('Indian Army');
+  });
+
+  it('handles empty and short names without modification', () => {
+    expect(cleanSourceName('')).toBe('');
+    expect(cleanSourceName(null)).toBe('');
+    expect(cleanSourceName('Reuters')).toBe('Reuters');
+    expect(cleanSourceName('Janes')).toBe('Janes');
+  });
+});
 
 describe('Snippet Cleaner Utility', () => {
   describe('stripSyndicationBoilerplate', () => {

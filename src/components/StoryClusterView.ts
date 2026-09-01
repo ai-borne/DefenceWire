@@ -8,7 +8,7 @@
 import { StoryCluster } from '../types/news.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
-import { cleanStorySnippet } from '../utils/snippetCleaner.js';
+import { cleanStorySnippet, cleanSourceName } from '../utils/snippetCleaner.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
@@ -81,7 +81,7 @@ export function renderStoryCluster(
       const itemMeta = document.createElement('span');
       itemMeta.className = 'dw-river-meta';
       itemMeta.style.marginLeft = '6px';
-      itemMeta.textContent = `(${sanitizePlainText(item.sourceName)}, ${formatTimeAgo(item.publishedAt)})`;
+      itemMeta.textContent = `(${sanitizePlainText(cleanSourceName(item.sourceName))}, ${formatTimeAgo(item.publishedAt)})`;
 
       li.appendChild(link);
       li.appendChild(itemMeta);
@@ -152,7 +152,7 @@ export function renderStoryCluster(
 
   const sourceNameEl = document.createElement('span');
   sourceNameEl.className = 'dw-source-name';
-  sourceNameEl.textContent = sanitizePlainText(cluster.primarySource.sourceName);
+  sourceNameEl.textContent = sanitizePlainText(cleanSourceName(cluster.primarySource.sourceName));
 
   // Relative Time
   const timeSpan = document.createElement('span');
