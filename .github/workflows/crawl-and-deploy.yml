@@ -65,18 +65,6 @@ jobs:
       - name: Build Production Assets
         run: npm run build
 
-      - name: Commit & Push Refreshed News Feed
-        run: |
-          git config user.name "DefenceWire Bot"
-          git config user.email "bot@defencewire.in"
-          git add public/data/news.json public/sitemap.xml
-          if git diff --staged --quiet; then
-            echo "No feed changes detected."
-          else
-            git commit -m "chore(crawler): autonomous refresh of defence intelligence feed [skip ci]"
-            git push origin main
-          fi
-
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

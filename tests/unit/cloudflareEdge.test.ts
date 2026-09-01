@@ -76,6 +76,6 @@ describe('Cloudflare Pages Edge & Production Deployment Configuration', () => {
     expect(content).toContain('npm test');
     expect(content).toContain('npx vite-node crawler/ingest.ts');
     expect(content).toContain('npm run build');
-    expect(content).toContain('[skip ci]');
+    expect(content).toContain('npx wrangler pages deploy dist --project-name=defencewire');
   });
 });

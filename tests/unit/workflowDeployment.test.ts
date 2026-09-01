@@ -36,7 +36,7 @@ describe('Workflow CI/CD Deployment & Automation Guardrails', () => {
     expect(content).toContain('npx vite-node crawler/ingest.ts');
     expect(content).toContain('npm run sitemap');
     expect(content).toContain('npm run build');
-    expect(content).toContain('[skip ci]');
+    expect(content).toContain('npx wrangler pages deploy dist --project-name=defencewire');
   });
 
   it('verifies .github/workflows/ci.yml includes paths-ignore for data/sitemap artifacts', () => {
