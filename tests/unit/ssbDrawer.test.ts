@@ -60,22 +60,32 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     expect(el.querySelector('.dw-ssb-footer')).toBeNull();
   });
 
-  it('renders Permalink button and red brand triangle toggle button in right-edge action dock', () => {
+  it('renders inline metadata and action buttons inside card footer', () => {
     const newsVm = new NewsViewModel();
     const articleEl = renderStoryCluster(mockCluster, newsVm);
 
-    const toggleBtn = articleEl.querySelector('.dw-ssb-toggle-btn');
-    const permalinkBtn = articleEl.querySelector('.dw-permalink-btn');
+    const footerEl = articleEl.querySelector('.dw-cluster-footer');
+    expect(footerEl).not.toBeNull();
+
+    const sourceLine = footerEl?.querySelector('.dw-source-line');
+    const actionsGroup = footerEl?.querySelector('.dw-cluster-actions');
+
+    expect(sourceLine).not.toBeNull();
+    expect(actionsGroup).not.toBeNull();
+
+    const toggleBtn = actionsGroup?.querySelector('.dw-ssb-toggle-btn');
+    const permalinkBtn = actionsGroup?.querySelector('.dw-permalink-btn');
 
     expect(toggleBtn).not.toBeNull();
     expect(permalinkBtn).not.toBeNull();
-    expect(toggleBtn?.textContent).toBe('▼');
+    expect(toggleBtn?.textContent).toContain('▼');
+    expect(toggleBtn?.textContent).toContain(STRINGS.summary.summaryToggleText);
 
-    // Verify permalinkBtn comes before toggleBtn in action dock
+    // Verify permalinkBtn comes before toggleBtn in action group
     expect(permalinkBtn?.compareDocumentPosition(toggleBtn!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('integrates with StoryClusterView and NewsViewModel to expand and collapse summary via action dock', () => {
+  it('integrates with StoryClusterView and NewsViewModel to expand and collapse summary via base footer toggle', () => {
     const newsVm = new NewsViewModel();
     // Expand drawer for cluster
     newsVm.toggleSSBDrawer(mockCluster.id);
@@ -84,12 +94,11 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     const articleEl = renderStoryCluster(mockCluster, newsVm);
     const drawerEl = articleEl.querySelector('.dw-ssb-drawer');
     expect(drawerEl).not.toBeNull();
-    expect(drawerEl?.querySelector('.dw-ssb-bottom-collapse-btn')).toBeNull();
-    expect(drawerEl?.querySelector('.dw-ssb-footer')).toBeNull();
 
     const toggleBtn = articleEl.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement | null;
     expect(toggleBtn).not.toBeNull();
-    expect(toggleBtn?.textContent).toBe('▲');
+    expect(toggleBtn?.textContent).toContain('▲');
+    expect(toggleBtn?.textContent).toContain(STRINGS.summary.summaryCollapseText);
     expect(toggleBtn?.getAttribute('aria-expanded')).toBe('true');
 
     // Click toggle button to collapse
@@ -99,13 +108,14 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     expect(newsVm.isSSBExpanded(mockCluster.id)).toBe(false);
   });
 
-  it('renders compact permalink icon button with tooltip and handles click', async () => {
+  it('renders permalink share button with subtle text label, tooltip and handles click', async () => {
     const newsVm = new NewsViewModel();
     const articleEl = renderStoryCluster(mockCluster, newsVm);
 
     const permalinkBtn = articleEl.querySelector('.dw-permalink-btn') as HTMLButtonElement | null;
     expect(permalinkBtn).not.toBeNull();
-    expect(permalinkBtn?.textContent).toBe(STRINGS.story.permalinkIcon);
+    expect(permalinkBtn?.textContent).toContain(STRINGS.story.permalinkIcon);
+    expect(permalinkBtn?.textContent).toContain(STRINGS.story.shareBtnText);
     expect(permalinkBtn?.getAttribute('title')).toBe(STRINGS.story.permalinkTooltip);
     expect(permalinkBtn?.getAttribute('aria-label')).toBe(STRINGS.story.shareAriaLabel);
 
@@ -119,7 +129,8 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     permalinkBtn?.click();
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(permalinkBtn?.textContent).toBe(STRINGS.story.permalinkCopiedIcon);
+    expect(permalinkBtn?.textContent).toContain(STRINGS.story.permalinkCopiedIcon);
+    expect(permalinkBtn?.textContent).toContain(STRINGS.story.shareBtnCopiedText);
     expect(permalinkBtn?.getAttribute('title')).toBe(STRINGS.story.permalinkCopiedTooltip);
     expect(permalinkBtn?.classList.contains('dw-permalink-btn--copied')).toBe(true);
   });

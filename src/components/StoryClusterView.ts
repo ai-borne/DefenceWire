@@ -6,7 +6,6 @@
  */
 
 import { StoryCluster } from '../types/news.js';
-import { SourceTier } from '../types/source.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { cleanStorySnippet } from '../utils/snippetCleaner.js';
@@ -33,13 +32,6 @@ export function renderStoryCluster(
     article.appendChild(leadTag);
   }
 
-  // Two-column layout: Story Content (Left) + Action Dock (Right)
-  const mainLayout = document.createElement('div');
-  mainLayout.className = 'dw-cluster-main';
-
-  const contentCol = document.createElement('div');
-  contentCol.className = 'dw-cluster-content';
-
   // 2. Synthesized Headline
   const headlineEl = document.createElement('h2');
   headlineEl.className = `dw-headline ${isLead ? 'dw-headline--lead' : ''}`;
@@ -52,76 +44,17 @@ export function renderStoryCluster(
   headlineLink.textContent = sanitizePlainText(cluster.synthesizedHeadline);
 
   headlineEl.appendChild(headlineLink);
-  contentCol.appendChild(headlineEl);
+  article.appendChild(headlineEl);
 
-  // 3. Primary Source Meta Line
-  const metaLine = document.createElement('div');
-  metaLine.className = 'dw-source-line';
-
-  const viaSpan = document.createElement('span');
-  viaSpan.textContent = `${STRINGS.story.primarySourcePrefix} `;
-
-  const sourceNameEl = document.createElement('span');
-  sourceNameEl.className = 'dw-source-name';
-  sourceNameEl.textContent = sanitizePlainText(cluster.primarySource.sourceName);
-
-  // Tier Badge
-  const tierBadge = document.createElement('span');
-  tierBadge.className = `dw-tier-badge dw-tier-${cluster.primarySource.tier}`;
-  tierBadge.title = STRINGS.story.sourceTierTooltip;
-
-  if (cluster.primarySource.tier === SourceTier.TIER_1_OFFICIAL) {
-    tierBadge.textContent = STRINGS.tiers.tier1;
-  } else if (cluster.primarySource.tier === SourceTier.TIER_1_SOCIAL) {
-    tierBadge.textContent = STRINGS.tiers.tier1Social;
-  } else if (cluster.primarySource.tier === SourceTier.TIER_2_NATIONAL) {
-    tierBadge.textContent = STRINGS.tiers.tier2;
-  } else if (cluster.primarySource.tier === SourceTier.TIER_3_SPECIALIZED) {
-    tierBadge.textContent = STRINGS.tiers.tier3;
-  } else {
-    tierBadge.textContent = STRINGS.tiers.tier4;
-  }
-
-  // Relative Time
-  const timeSpan = document.createElement('span');
-  timeSpan.className = 'dw-river-meta';
-  timeSpan.textContent = `• ${formatTimeAgo(cluster.primarySource.publishedAt)}`;
-
-  metaLine.appendChild(viaSpan);
-  metaLine.appendChild(sourceNameEl);
-  metaLine.appendChild(tierBadge);
-  metaLine.appendChild(timeSpan);
-
-  // Clickable Entity Chips for Techmeme-grade intelligence
-  if (cluster.entities && cluster.entities.length > 0) {
-    const entityBox = document.createElement('span');
-    entityBox.className = 'dw-entity-chips';
-    for (const ent of cluster.entities.slice(0, 3)) {
-      const chip = document.createElement('button');
-      chip.className = 'dw-entity-chip';
-      chip.type = 'button';
-      chip.textContent = `#${sanitizePlainText(ent)}`;
-      chip.title = `View sovereign intelligence dossier for ${sanitizePlainText(ent)}`;
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openEntityDossierModal(ent);
-      });
-      entityBox.appendChild(chip);
-    }
-    metaLine.appendChild(entityBox);
-  }
-
-  contentCol.appendChild(metaLine);
-
-  // 4. Primary Snippet
+  // 3. Primary Snippet
   if (cluster.primarySource.snippet) {
     const snippetEl = document.createElement('p');
     snippetEl.className = 'dw-snippet';
     snippetEl.textContent = cleanStorySnippet(cluster.primarySource.snippet);
-    contentCol.appendChild(snippetEl);
+    article.appendChild(snippetEl);
   }
 
-  // 5. Related Coverage Sub-list
+  // 4. Related Coverage Sub-list
   if (cluster.relatedCoverage && cluster.relatedCoverage.length > 0) {
     const relatedBox = document.createElement('div');
     relatedBox.className = 'dw-related-box';
@@ -156,10 +89,10 @@ export function renderStoryCluster(
     }
 
     relatedBox.appendChild(relatedUl);
-    contentCol.appendChild(relatedBox);
+    article.appendChild(relatedBox);
   }
 
-  // 6. Discussion Quotes
+  // 5. Discussion Quotes
   if (cluster.discussions && cluster.discussions.length > 0) {
     const discBox = document.createElement('div');
     discBox.className = 'dw-discussions';
@@ -203,30 +136,87 @@ export function renderStoryCluster(
       discBox.appendChild(metaP);
     }
 
-    contentCol.appendChild(discBox);
+    article.appendChild(discBox);
   }
 
-  // 7. Right-Edge Action Dock (Permalink + Red Brand Triangle Expander)
-  const actionsDock = document.createElement('div');
-  actionsDock.className = 'dw-cluster-actions';
+  // 6. Inline Base Footer (Metadata on Left + Action Buttons on Right)
+  const footerEl = document.createElement('div');
+  footerEl.className = 'dw-cluster-footer';
 
-  // 7a. Compact Permalink / Share Action Icon
+  // 6a. Primary Source Meta Line
+  const metaLine = document.createElement('div');
+  metaLine.className = 'dw-source-line';
+
+  const viaSpan = document.createElement('span');
+  viaSpan.textContent = `${STRINGS.story.primarySourcePrefix} `;
+
+  const sourceNameEl = document.createElement('span');
+  sourceNameEl.className = 'dw-source-name';
+  sourceNameEl.textContent = sanitizePlainText(cluster.primarySource.sourceName);
+
+  // Relative Time
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'dw-river-meta';
+  timeSpan.textContent = `• ${formatTimeAgo(cluster.primarySource.publishedAt)}`;
+
+  metaLine.appendChild(viaSpan);
+  metaLine.appendChild(sourceNameEl);
+  metaLine.appendChild(timeSpan);
+
+  // Clickable Entity Chips for Techmeme-grade intelligence
+  if (cluster.entities && cluster.entities.length > 0) {
+    const entityBox = document.createElement('span');
+    entityBox.className = 'dw-entity-chips';
+    for (const ent of cluster.entities.slice(0, 3)) {
+      const chip = document.createElement('button');
+      chip.className = 'dw-entity-chip';
+      chip.type = 'button';
+      chip.textContent = `#${sanitizePlainText(ent)}`;
+      chip.title = `View sovereign intelligence dossier for ${sanitizePlainText(ent)}`;
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEntityDossierModal(ent);
+      });
+      entityBox.appendChild(chip);
+    }
+    metaLine.appendChild(entityBox);
+  }
+
+  footerEl.appendChild(metaLine);
+
+  // 6b. Base Action Group (Permalink / Share + Summary Accordion Expander)
+  const actionsGroup = document.createElement('div');
+  actionsGroup.className = 'dw-cluster-actions';
+
+  // Share / Permalink Button with subtle text and tooltip
   const permalinkBtn = document.createElement('button');
   permalinkBtn.className = 'dw-permalink-btn';
   permalinkBtn.type = 'button';
   permalinkBtn.setAttribute('aria-label', STRINGS.story.shareAriaLabel);
   permalinkBtn.setAttribute('title', STRINGS.story.permalinkTooltip);
-  permalinkBtn.textContent = STRINGS.story.permalinkIcon;
+
+  const permalinkIconSpan = document.createElement('span');
+  permalinkIconSpan.className = 'dw-btn-icon';
+  permalinkIconSpan.textContent = STRINGS.story.permalinkIcon;
+
+  const permalinkTextSpan = document.createElement('span');
+  permalinkTextSpan.className = 'dw-btn-label';
+  permalinkTextSpan.textContent = STRINGS.story.shareBtnText;
+
+  permalinkBtn.appendChild(permalinkIconSpan);
+  permalinkBtn.appendChild(permalinkTextSpan);
 
   permalinkBtn.addEventListener('click', () => {
     pushStoryUrl(cluster);
     copyStoryLink(cluster.id).then((copied) => {
-      permalinkBtn.textContent = copied ? STRINGS.story.permalinkCopiedIcon : STRINGS.story.permalinkIcon;
+      permalinkIconSpan.textContent = copied ? STRINGS.story.permalinkCopiedIcon : STRINGS.story.permalinkIcon;
+      permalinkTextSpan.textContent = copied ? STRINGS.story.shareBtnCopiedText : STRINGS.story.shareBtnText;
       permalinkBtn.setAttribute('title', copied ? STRINGS.story.permalinkCopiedTooltip : STRINGS.story.permalinkTooltip);
       if (copied) {
         permalinkBtn.classList.add('dw-permalink-btn--copied');
         setTimeout(() => {
-          permalinkBtn.textContent = STRINGS.story.permalinkIcon;
+          permalinkIconSpan.textContent = STRINGS.story.permalinkIcon;
+          permalinkTextSpan.textContent = STRINGS.story.shareBtnText;
           permalinkBtn.setAttribute('title', STRINGS.story.permalinkTooltip);
           permalinkBtn.classList.remove('dw-permalink-btn--copied');
         }, 2000);
@@ -234,9 +224,9 @@ export function renderStoryCluster(
     });
   });
 
-  actionsDock.appendChild(permalinkBtn);
+  actionsGroup.appendChild(permalinkBtn);
 
-  // 7b. Red Brand Triangle Intelligence Briefing Expander
+  // Summary Expander Button with subtle text and tooltip
   let ssbDrawerEl: HTMLElement | null = null;
   if (cluster.ssbIntel) {
     const isExpanded = newsVm.isSSBExpanded(cluster.id);
@@ -248,13 +238,23 @@ export function renderStoryCluster(
     toggleBtn.setAttribute('aria-controls', `ssb-drawer-${cluster.id}`);
     toggleBtn.setAttribute('aria-label', isExpanded ? STRINGS.summary.collapseAriaLabel : STRINGS.story.expandSummaryAriaLabel);
     toggleBtn.setAttribute('title', isExpanded ? STRINGS.summary.collapseDrawerBtn : STRINGS.summary.drawerTitle);
-    toggleBtn.textContent = isExpanded ? '▲' : '▼';
+
+    const toggleIconSpan = document.createElement('span');
+    toggleIconSpan.className = 'dw-btn-icon';
+    toggleIconSpan.textContent = isExpanded ? '▲' : '▼';
+
+    const toggleTextSpan = document.createElement('span');
+    toggleTextSpan.className = 'dw-btn-label';
+    toggleTextSpan.textContent = isExpanded ? STRINGS.summary.summaryCollapseText : STRINGS.summary.summaryToggleText;
+
+    toggleBtn.appendChild(toggleIconSpan);
+    toggleBtn.appendChild(toggleTextSpan);
 
     toggleBtn.addEventListener('click', () => {
       newsVm.toggleSSBDrawer(cluster.id);
     });
 
-    actionsDock.appendChild(toggleBtn);
+    actionsGroup.appendChild(toggleBtn);
 
     if (isExpanded) {
       const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
@@ -263,12 +263,15 @@ export function renderStoryCluster(
     }
   }
 
-  mainLayout.appendChild(contentCol);
-  mainLayout.appendChild(actionsDock);
-  article.appendChild(mainLayout);
+  footerEl.appendChild(actionsGroup);
+  article.appendChild(footerEl);
 
+  // 7. Expandable SSB Intelligence Drawer Container
   if (ssbDrawerEl) {
-    article.appendChild(ssbDrawerEl);
+    const drawerWrapper = document.createElement('div');
+    drawerWrapper.className = 'dw-ssb-drawer-wrapper is-open';
+    drawerWrapper.appendChild(ssbDrawerEl);
+    article.appendChild(drawerWrapper);
   }
 
   return article;

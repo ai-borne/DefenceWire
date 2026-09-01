@@ -57,6 +57,8 @@ export const STRINGS = {
     permalinkCopiedTooltip: 'Link copied to clipboard',
     permalinkLabel: '🔗 Permalink',
     permalinkCopied: '✓ Link copied',
+    shareBtnText: 'Share',
+    shareBtnCopiedText: 'Copied',
     sourceTierTooltip: 'Institutional Reliability Tier',
     officialSignalBadge: 'Verified Signal'
   },
@@ -64,6 +66,8 @@ export const STRINGS = {
     drawerTitle: 'Summary',
     collapseDrawerBtn: 'Collapse Summary',
     collapseAriaLabel: 'Collapse article summary',
+    summaryToggleText: 'Summary',
+    summaryCollapseText: 'Collapse',
     whyItMattersHeading: 'Why It Matters',
     techTakeawayHeading: 'Key Specifications',
     strategicAngleHeading: 'Strategic Angle'

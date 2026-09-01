@@ -181,8 +181,18 @@
     border-color: var(--dw-text-accent);
   }
 
-  .dw-cluster-main {
-    gap: 10px;
+  .dw-cluster-footer {
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .dw-source-line {
+    gap: 4px;
+    font-size: 0.74rem;
+  }
+
+  .dw-source-name {
+    max-width: 140px;
   }
 
   .dw-headline--lead {
@@ -220,21 +230,23 @@
     min-height: 44px;
   }
 
-  .dw-ssb-toggle-btn {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
-    padding: 0;
-    font-size: 0.95rem;
+  /* Compact Icon-Only Buttons on Mobile for strictly single-line footers */
+  .dw-cluster-actions .dw-btn-label {
+    display: none !important;
   }
 
+  .dw-cluster-actions {
+    gap: 5px;
+  }
+
+  .dw-ssb-toggle-btn,
   .dw-permalink-btn {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
-    font-size: 0.95rem;
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    font-size: 0.85rem;
   }
 }
 
