@@ -4,6 +4,15 @@
  * Enforces hard limit: Total gzipped JS bundle in dist/ must be < 40 KB (40,960 bytes).
  * Raised from 35 KB when the D1-backed Archive feature (search, cursor
  * pagination, infinite scroll) needed real client code beyond a search box.
+ *
+ * FUTURE OPTIMIZATION STRATEGIES (If bundle exceeds budget):
+ * 1. Code-Split / Lazy-Load Rare Features (~12 KB saving):
+ *    - Dynamically import EditorDashboard (`import('./components/EditorDashboard.js')`)
+ *      and ArchiveView (`import('./components/ArchiveView.js')`) only when activated.
+ * 2. Lazy-Load DOMPurify or Rely on Native Sanitizer API (~8 KB saving):
+ *    - Dynamically load DOMPurify only when rendering complex user drawers or rely
+ *      on native Browser Sanitizer API with fallback to safe DOM text nodes.
+ *
  * Hard limit: <= 300 LOC.
  */
 

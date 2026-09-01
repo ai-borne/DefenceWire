@@ -1,6 +1,8 @@
 /**
  * Security & Sanitization Utility for DefenceWire.in
  * DOMPurify wrapper for content sanitization, strict URL schema validator.
+ * NOTE: If bundle budget requires reduction, DOMPurify (~8 KB) can be dynamically
+ * imported or migrated to the native Browser Sanitizer API.
  * Hard limit: <= 300 LOC.
  */
 
