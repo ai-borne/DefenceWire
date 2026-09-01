@@ -134,17 +134,20 @@
 .dw-search-box {
   position: relative;
   width: 260px;
+  display: flex;
+  align-items: center;
 }
 
 .dw-search-input {
   width: 100%;
-  padding: 6px 10px;
+  padding: 6px 30px 6px 10px;
   font-size: 0.8rem;
   border: 1px solid var(--dw-border-primary);
   border-radius: var(--dw-radius-sm);
   background-color: var(--dw-bg-card);
   color: var(--dw-text-primary);
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s ease;
 }
 

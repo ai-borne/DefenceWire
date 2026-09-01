@@ -139,6 +139,11 @@ export function renderHeader(
   const closeSearch = () => {
     header.classList.remove('is-search-expanded');
     searchBox.classList.remove('is-open');
+    if (searchInput.value || newsVm.getSearchQuery()) {
+      searchInput.value = '';
+      newsVm.setSearchQuery('');
+      searchToggleBtn.classList.remove('has-query');
+    }
     searchToggleBtn.focus();
   };
 

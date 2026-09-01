@@ -6,6 +6,7 @@
 import { StorySourceItem } from '../src/types/news.js';
 import { SourceTier } from '../src/types/source.js';
 import { isValidUrl, sanitizePlainText, decodeHtmlEntities } from '../src/utils/security.js';
+import { cleanStorySnippet } from '../src/utils/snippetCleaner.js';
 import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
 import { normalizeSocialPostItem } from './socialNormalizer.js';
@@ -137,7 +138,7 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
     const rawImageUrl = extractThumbnail(block);
 
     const cleanTitle = sanitizePlainText(rawTitle);
-    const cleanSnippet = sanitizePlainText(rawDescription).slice(0, 260);
+    const cleanSnippet = cleanStorySnippet(rawDescription, 280);
 
     if (!cleanTitle || !rawLink || !isValidUrl(rawLink)) {
       continue;

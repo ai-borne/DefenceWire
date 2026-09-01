@@ -198,4 +198,36 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(items[0]?.imageUrl).toBe('https://i.ytimg.com/vi/NAVY_TEST_101/hqdefault.jpg');
     expect(items[0]?.tier).toBe(SourceTier.TIER_1_SOCIAL);
   });
+
+  it('strips repetitive IDRW syndication prefix and suffix when parsing RSS feed', () => {
+    const idrwRss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>IDRW (Indian Defence Research Wing)</title>
+    <link>https://idrw.org</link>
+    <item>
+      <title>Exclusive: India's AMCA Could Stay Below $100 Million Per Aircraft</title>
+      <link>https://idrw.org/exclusive-amca-cost/</link>
+      <pubDate>2026-09-01T02:30:00Z</pubDate>
+      <description><![CDATA[<p>This article was originally published on idrw.org.</p><p>If several key cost and production milestones are met, India’s ambitious Advanced Medium Combat Aircraft (AMCA) programme will achieve its targets.</p><p>Read the full article on idrw.org: Exclusive: India's AMCA Could Stay Below $100 Mil</p>]]></description>
+    </item>
+  </channel>
+</rss>`;
+
+    const idrwFeed: FeedConfig = {
+      id: 'feed-idrw',
+      name: 'IDRW (Indian Defence Research Wing)',
+      url: 'https://idrw.org/feed/',
+      domain: 'idrw.org',
+      tier: SourceTier.TIER_3_SPECIALIZED,
+      defaultCategory: 'airforce',
+      enabled: true
+    };
+
+    const items = parseFeedXml(idrwRss, idrwFeed);
+    expect(items.length).toBe(1);
+    expect(items[0]?.snippet).toBe('If several key cost and production milestones are met, India’s ambitious Advanced Medium Combat Aircraft (AMCA) programme will achieve its targets.');
+    expect(items[0]?.snippet).not.toContain('This article was originally published');
+    expect(items[0]?.snippet).not.toContain('Read the full article on idrw.org');
+  });
 });

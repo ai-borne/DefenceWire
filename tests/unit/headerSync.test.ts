@@ -166,16 +166,24 @@ describe('Header Component - Streamlined Single-Row Controls & Sync', () => {
     expect(newsVm.getSearchQuery()).toBe('Tejas');
     expect(toggleBtn.classList.contains('has-query')).toBe(true);
 
-    // Close via close button
+    // Close via close button (should clear search and close)
     closeBtn.click();
     expect(header.classList.contains('is-search-expanded')).toBe(false);
     expect(searchBox.classList.contains('is-open')).toBe(false);
+    expect(newsVm.getSearchQuery()).toBe('');
+    expect(searchInput.value).toBe('');
+    expect(toggleBtn.classList.contains('has-query')).toBe(false);
 
-    // Reopen and close via Escape key
+    // Reopen, enter query, and close via Escape key
     toggleBtn.click();
     expect(header.classList.contains('is-search-expanded')).toBe(true);
+    searchInput.value = 'Rafale';
+    searchInput.dispatchEvent(new Event('input'));
+    expect(newsVm.getSearchQuery()).toBe('Rafale');
     searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(header.classList.contains('is-search-expanded')).toBe(false);
+    expect(newsVm.getSearchQuery()).toBe('');
+    expect(searchInput.value).toBe('');
   });
 
   it('renders theme toggle button with correct theme icons and cycles mode', () => {

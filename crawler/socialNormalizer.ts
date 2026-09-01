@@ -8,6 +8,7 @@
 import { StorySourceItem } from '../src/types/news.js';
 import { SourceTier } from '../src/types/source.js';
 import { decodeHtmlEntities, isValidUrl, sanitizePlainText } from '../src/utils/security.js';
+import { cleanStorySnippet } from '../src/utils/snippetCleaner.js';
 
 export type XFeedProvider = 'rss_bridge' | 'nitter' | 'twitterapi' | 'cf_browser';
 
@@ -141,7 +142,7 @@ export function normalizeSocialPostItem(
   handleMeta?: Partial<XHandleMetadata>
 ): StorySourceItem {
   const cleanTitle = cleanTweetHeadline(item.title);
-  const cleanSnippet = normalizeSocialText(item.snippet || item.title).slice(0, 260);
+  const cleanSnippet = cleanStorySnippet(normalizeSocialText(item.snippet || item.title), 280);
 
   // Determine handle
   const handle =

@@ -9,6 +9,7 @@
 import { SourceTier } from '../types/source.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
+import { cleanStorySnippet } from '../utils/snippetCleaner.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
@@ -85,7 +86,7 @@ function renderRiverView(mainFeed: HTMLElement, newsVm: NewsViewModel): void {
       const snip = document.createElement('p');
       snip.className = 'dw-snippet';
       snip.style.margin = '4px 0';
-      snip.textContent = sanitizePlainText(item.snippet);
+      snip.textContent = cleanStorySnippet(item.snippet);
       row.appendChild(snip);
     }
     row.appendChild(meta);

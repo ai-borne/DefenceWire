@@ -8,6 +8,7 @@ import { StoryCluster } from '../types/news.js';
 import { SourceTier } from '../types/source.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
+import { cleanStorySnippet } from '../utils/snippetCleaner.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
@@ -110,7 +111,7 @@ export function renderStoryCluster(
   if (cluster.primarySource.snippet) {
     const snippetEl = document.createElement('p');
     snippetEl.className = 'dw-snippet';
-    snippetEl.textContent = sanitizePlainText(cluster.primarySource.snippet);
+    snippetEl.textContent = cleanStorySnippet(cluster.primarySource.snippet);
     article.appendChild(snippetEl);
   }
 
