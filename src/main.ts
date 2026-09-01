@@ -21,6 +21,7 @@ import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
 import { renderEditorDashboard } from './components/EditorDashboard.js';
 import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
+import { initSummaryAutoCollapse } from './services/summaryAutoCollapseService.js';
 
 export function initializeApp(): void {
   const appElement = document.getElementById('app');
@@ -31,6 +32,9 @@ export function initializeApp(): void {
   const newsVm = new NewsViewModel();
   const editorVm = new EditorViewModel(newsVm);
   const archiveVm = new ArchiveViewModel();
+
+  // Initialize summary auto-collapse listener
+  initSummaryAutoCollapse(newsVm);
 
   // Set document title
   document.title = `${STRINGS.app.name} — ${STRINGS.app.shortTagline}`;

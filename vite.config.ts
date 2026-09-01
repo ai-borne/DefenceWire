@@ -10,6 +10,9 @@ export default defineConfig({
   build: {
     target: 'es2022'
   },
+  esbuild: {
+    legalComments: 'none'
+  },
   test: {
     globals: true,
     environment: 'jsdom',

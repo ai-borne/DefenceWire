@@ -1,15 +1,17 @@
 /**
  * Security & Sanitization Utility for DefenceWire.in
- * DOMPurify wrapper for content sanitization, strict URL schema validator.
- * NOTE: If bundle budget requires reduction, DOMPurify (~8 KB) can be dynamically
- * imported or migrated to the native Browser Sanitizer API.
+ * Native content sanitization, entity decoding, and strict URL schema validator.
  * Hard limit: <= 300 LOC.
  */
 
-import DOMPurify from 'dompurify';
-
 /** Allowed URL protocols */
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
+
+const ALLOWED_TAGS = new Set([
+  'b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br', 'code', 'div',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote'
+]);
+const ALLOWED_ATTRS = new Set(['href', 'title', 'target', 'rel', 'class', 'id']);
 
 /**
  * Sanitizes arbitrary HTML or text content to prevent XSS.
@@ -18,31 +20,57 @@ const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
  * @param dirty - Unsanitized string input
  * @returns Clean, safe HTML/text string
  */
-function getPurifier(): typeof DOMPurify | null {
-  if (typeof DOMPurify?.sanitize === 'function') {
-    return DOMPurify;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anyPurify = DOMPurify as any;
-  if (typeof anyPurify?.default?.sanitize === 'function') {
-    return anyPurify.default;
-  }
-  return null;
-}
-
 export function sanitizeContent(dirty: string): string {
   if (!dirty || typeof dirty !== 'string') {
     return '';
   }
 
-  const purifier = getPurifier();
-  if (purifier) {
-    return purifier.sanitize(dirty, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br', 'code'],
-      ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'class'],
-      ALLOW_DATA_ATTR: false,
-      RETURN_DOM: false
-    });
+  // Remove script, style, svg, and iframe tags with their contents first
+  let cleaned = dirty.replace(/<(script|style|svg|iframe)[^>]*>[\s\S]*?<\/\1>/gi, '');
+  cleaned = cleaned.replace(/<(script|style|svg|iframe)[^>]*\/?>/gi, '');
+
+  if (typeof document !== 'undefined') {
+    const template = document.createElement('template');
+    template.innerHTML = cleaned;
+
+    const sanitizeNode = (node: Node) => {
+      const children = Array.from(node.childNodes);
+      for (const child of children) {
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const el = child as HTMLElement;
+          const tagName = el.tagName.toLowerCase();
+          if (!ALLOWED_TAGS.has(tagName)) {
+            const childNodes = Array.from(el.childNodes);
+            el.replaceWith(...childNodes);
+            for (const cn of childNodes) {
+              if (cn.nodeType === Node.ELEMENT_NODE) sanitizeNode(cn);
+            }
+            continue;
+          }
+
+          // Clean attributes
+          const attrs = Array.from(el.attributes);
+          for (const attr of attrs) {
+            const attrName = attr.name.toLowerCase();
+            if (!ALLOWED_ATTRS.has(attrName) || attrName.startsWith('on') || attrName === 'autofocus') {
+              el.removeAttribute(attr.name);
+            } else if (attrName === 'href') {
+              const val = attr.value.trim().toLowerCase();
+              if (val.startsWith('javascript:') || val.startsWith('vbscript:') || val.startsWith('data:')) {
+                el.removeAttribute(attr.name);
+              }
+            }
+          }
+
+          sanitizeNode(el);
+        } else if (child.nodeType !== Node.TEXT_NODE) {
+          child.remove();
+        }
+      }
+    };
+
+    sanitizeNode(template.content);
+    return template.innerHTML;
   }
 
   // Safe isomorphic fallback: escape HTML entities completely to eliminate injection
@@ -115,19 +143,9 @@ export function sanitizePlainText(dirty: string): string {
     return '';
   }
 
-  // Remove script and style tags with their contents first
-  let text = dirty.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '');
-
-  const purifier = getPurifier();
-  if (purifier) {
-    text = purifier.sanitize(text, {
-      ALLOWED_TAGS: [],
-      ALLOWED_ATTR: []
-    });
-  } else {
-    // Isomorphic fallback: strip all remaining HTML tags
-    text = text.replace(/<[^>]*>?/gm, '');
-  }
+  // Remove script, style, svg, and iframe tags with their contents first
+  let text = dirty.replace(/<(script|style|svg|iframe)[^>]*>[\s\S]*?<\/\1>/gi, '');
+  text = text.replace(/<[^>]*>?/gm, '');
 
   return decodeHtmlEntities(text);
 }
@@ -157,7 +175,6 @@ export function isValidExternalUrl(urlString: string): boolean {
  */
 export const isSafeHttpUrl = isValidExternalUrl;
 export const isValidUrl = isValidExternalUrl;
-
 
 /**
  * Normalizes and sanitizes a URL.
