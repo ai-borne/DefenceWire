@@ -34,9 +34,12 @@ describe('Integration: Feed Rendering & UI Components', () => {
     );
     expect(curatorBtn).toBeUndefined();
 
-    // Verify Live Clock & Search Input
+    // Verify Live Clock, Feed Sync Button & Search Input
     const clock = app?.querySelector('#dw-header-ist-clock');
     expect(clock).not.toBeNull();
+    const syncBtn = app?.querySelector('.dw-sync-btn');
+    expect(syncBtn).not.toBeNull();
+    expect(syncBtn?.getAttribute('aria-label')).toBe(STRINGS.sync.ariaSyncNow);
     const searchInput = app?.querySelector('input[type="search"]');
     expect(searchInput).not.toBeNull();
 
