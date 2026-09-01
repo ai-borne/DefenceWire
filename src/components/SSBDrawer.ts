@@ -162,8 +162,7 @@ function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, cluste
 export function renderSSBDrawer(
   intel: SSBIntelligence,
   clusterId: string,
-  showSSBInsight: boolean = false,
-  onCollapse?: () => void
+  showSSBInsight: boolean = false
 ): HTMLElement {
   const drawer = document.createElement('section');
   drawer.className = 'dw-ssb-drawer';
@@ -198,26 +197,6 @@ export function renderSSBDrawer(
   // 5. SSB Insight box (GD points, interview questions, SSBMax.ai CTA) — rendered only
   //    when explicitly viewing the SSB Intel tab, never inline in general article feeds.
   appendSSBInsightBox(drawer, intel, clusterId, showSSBInsight);
-
-  // 6. Right-aligned Bottom Collapse Button with Red Brand Triangle
-  if (onCollapse) {
-    const footerEl = document.createElement('div');
-    footerEl.className = 'dw-ssb-footer';
-
-    const collapseBtn = document.createElement('button');
-    collapseBtn.type = 'button';
-    collapseBtn.className = 'dw-ssb-bottom-collapse-btn';
-    collapseBtn.setAttribute('aria-label', STRINGS.summary.collapseAriaLabel);
-    collapseBtn.setAttribute('title', STRINGS.summary.collapseDrawerBtn);
-    collapseBtn.textContent = '▲';
-
-    collapseBtn.addEventListener('click', () => {
-      onCollapse();
-    });
-
-    footerEl.appendChild(collapseBtn);
-    drawer.appendChild(footerEl);
-  }
 
   return drawer;
 }

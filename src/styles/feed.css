@@ -137,8 +137,7 @@
 }
 
 .dw-permalink-btn,
-.dw-ssb-toggle-btn,
-.dw-ssb-bottom-collapse-btn {
+.dw-ssb-toggle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -162,10 +161,8 @@
 .dw-permalink-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); color: var(--dw-text-primary); }
 .dw-permalink-btn--copied { color: var(--dw-status-online-bg); border-color: var(--dw-status-online-bg); }
 
-.dw-ssb-toggle-btn,
-.dw-ssb-bottom-collapse-btn { color: var(--dw-text-accent); }
-.dw-ssb-toggle-btn:hover,
-.dw-ssb-bottom-collapse-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); }
+.dw-ssb-toggle-btn { color: var(--dw-text-accent); }
+.dw-ssb-toggle-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); }
 .dw-ssb-toggle-btn.is-expanded { background-color: rgba(179, 25, 25, 0.12); border-color: var(--dw-text-accent); }
 
 /* SSB Intelligence Drawer */
@@ -236,14 +233,6 @@
   margin-bottom: 4px;
 }
 
-/* Right-aligned Drawer Footer */
-.dw-ssb-footer {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--dw-border-primary);
-  display: flex;
-  justify-content: flex-end;
-}
 
 /* Sidebar Rails */
 .dw-rail-card {

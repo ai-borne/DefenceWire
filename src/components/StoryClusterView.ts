@@ -258,9 +258,7 @@ export function renderStoryCluster(
 
     if (isExpanded) {
       const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
-      ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight, () => {
-        newsVm.toggleSSBDrawer(cluster.id);
-      });
+      ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight);
       ssbDrawerEl.id = `ssb-drawer-${cluster.id}`;
     }
   }

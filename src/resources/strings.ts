@@ -62,7 +62,6 @@ export const STRINGS = {
   },
   summary: {
     drawerTitle: 'Summary',
-    collapseSuffix: 'Collapse',
     collapseDrawerBtn: 'Collapse Summary',
     collapseAriaLabel: 'Collapse article summary',
     whyItMattersHeading: 'Why It Matters',
