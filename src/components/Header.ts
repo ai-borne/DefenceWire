@@ -255,12 +255,12 @@ export function renderHeader(
   themeBtn.addEventListener('click', () => themeVm.toggleTheme());
 
   controls.appendChild(searchToggleBtn);
-  controls.appendChild(searchBox);
   controls.appendChild(syncBtn);
   controls.appendChild(themeBtn);
 
   utilityRow.appendChild(clockContainer);
   utilityRow.appendChild(controls);
+  utilityRow.appendChild(searchBox);
 
   inner.appendChild(topRow);
   inner.appendChild(utilityRow);
