@@ -7,6 +7,7 @@
 
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
+import { STRINGS } from '../resources/strings.js';
 import { StoryCluster } from '../types/news.js';
 
 export interface EntityDossierData {
@@ -32,6 +33,23 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function createMetricCell(label: string, value: string, valClass?: string): HTMLElement {
+  const cell = document.createElement('div');
+  cell.className = 'dw-metric-cell';
+
+  const labelSpan = document.createElement('span');
+  labelSpan.className = 'dw-metric-label';
+  labelSpan.textContent = label;
+
+  const valSpan = document.createElement('span');
+  valSpan.className = valClass ? `dw-metric-val ${valClass}` : 'dw-metric-val';
+  valSpan.textContent = value;
+
+  cell.appendChild(labelSpan);
+  cell.appendChild(valSpan);
+  return cell;
+}
+
 export function openEntityDossierModal(
   entityName: string,
   fetchFn: typeof fetch = globalThis.fetch
@@ -54,8 +72,8 @@ export function openEntityDossierModal(
   const closeBtn = document.createElement('button');
   closeBtn.className = 'dw-modal-close-btn';
   closeBtn.type = 'button';
-  closeBtn.innerHTML = '&times;';
-  closeBtn.setAttribute('aria-label', 'Close Dossier');
+  closeBtn.textContent = '×';
+  closeBtn.setAttribute('aria-label', STRINGS.dossier.closeAriaLabel);
 
   const closeModal = () => {
     backdrop.classList.add('dw-modal-closing');
@@ -80,7 +98,7 @@ export function openEntityDossierModal(
 
   const title = document.createElement('h3');
   title.className = 'dw-modal-title';
-  title.textContent = `🛡️ Sovereign Dossier: ${entityName}`;
+  title.textContent = `${STRINGS.dossier.modalTitlePrefix}${entityName}`;
 
   header.appendChild(title);
   header.appendChild(closeBtn);
@@ -88,7 +106,12 @@ export function openEntityDossierModal(
 
   const body = document.createElement('div');
   body.className = 'dw-modal-body';
-  body.innerHTML = '<div class="dw-modal-loading">Querying D1 intelligence archive...</div>';
+
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'dw-modal-loading';
+  loadingEl.textContent = STRINGS.dossier.loading;
+  body.appendChild(loadingEl);
+
   modal.appendChild(body);
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
@@ -101,12 +124,17 @@ export function openEntityDossierModal(
       return (await res.json()) as EntityDossierData;
     })
     .then((data) => {
-      body.innerHTML = '';
+      body.textContent = '';
 
       if (data.error && !data.entity && (!data.relatedStories || data.relatedStories.length === 0)) {
-        body.innerHTML = `<div class="dw-modal-empty">No historical dossier records found for <strong>${sanitizePlainText(
-          entityName
-        )}</strong>.</div>`;
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'dw-modal-empty';
+        emptyDiv.appendChild(document.createTextNode(STRINGS.dossier.noRecordsPrefix));
+        const strong = document.createElement('strong');
+        strong.textContent = entityName;
+        emptyDiv.appendChild(strong);
+        emptyDiv.appendChild(document.createTextNode('.'));
+        body.appendChild(emptyDiv);
         return;
       }
 
@@ -114,11 +142,11 @@ export function openEntityDossierModal(
       const metricsGrid = document.createElement('div');
       metricsGrid.className = 'dw-dossier-metrics';
 
-      const catBadge = document.createElement('div');
-      catBadge.className = 'dw-metric-cell';
-      catBadge.innerHTML = `<span class="dw-metric-label">DOMAIN</span><span class="dw-metric-val dw-cat-tag">${sanitizePlainText(
-        (data.entity?.category || 'Strategic').toUpperCase()
-      )}</span>`;
+      const catBadge = createMetricCell(
+        STRINGS.dossier.domainLabel,
+        (data.entity?.category || STRINGS.dossier.defaultCategory).toUpperCase(),
+        'dw-cat-tag'
+      );
 
       // Deduplicate stories in memory by ID & synthesized headline
       const uniqueStories: StoryCluster[] = [];
@@ -139,17 +167,15 @@ export function openEntityDossierModal(
       const sourcesCount = data.entity?.sourceCount || (uniqueStories.length > 0 ? 1 : 0);
       const mentionsCount = data.entity?.mentionCount || uniqueStories.length;
 
-      const sourcesCell = document.createElement('div');
-      sourcesCell.className = 'dw-metric-cell';
-      sourcesCell.innerHTML = `<span class="dw-metric-label">CORROBORATION</span><span class="dw-metric-val">${
-        sourcesCount > 0 ? `${sourcesCount} Sources` : '24/7 Watch'
-      }</span>`;
+      const sourcesCell = createMetricCell(
+        STRINGS.dossier.corroborationLabel,
+        sourcesCount > 0 ? `${sourcesCount} ${STRINGS.dossier.sourcesSuffix}` : STRINGS.dossier.watch247
+      );
 
-      const mentionsCell = document.createElement('div');
-      mentionsCell.className = 'dw-metric-cell';
-      mentionsCell.innerHTML = `<span class="dw-metric-label">WIRE MENTIONS</span><span class="dw-metric-val">${
-        mentionsCount > 0 ? mentionsCount : 'Active Tracking'
-      }</span>`;
+      const mentionsCell = createMetricCell(
+        STRINGS.dossier.wireMentionsLabel,
+        mentionsCount > 0 ? `${mentionsCount}` : STRINGS.dossier.activeTracking
+      );
 
       metricsGrid.appendChild(catBadge);
       metricsGrid.appendChild(sourcesCell);
@@ -159,7 +185,7 @@ export function openEntityDossierModal(
       // Related Stories Timeline
       const timelineHeader = document.createElement('h4');
       timelineHeader.className = 'dw-timeline-heading';
-      timelineHeader.textContent = 'Development Timeline & Corroborated Coverage:';
+      timelineHeader.textContent = STRINGS.dossier.timelineHeading;
       body.appendChild(timelineHeader);
 
       if (uniqueStories.length > 0) {
@@ -191,26 +217,33 @@ export function openEntityDossierModal(
       } else {
         const noStories = document.createElement('p');
         noStories.className = 'dw-dossier-no-stories';
-        noStories.innerHTML =
-          '🛡️ <strong>Active Intelligence Watch:</strong> Real-time monitoring is active across 50+ official defence feeds. Historical milestones, tests, contracts, and deployments will automatically index here as coverage develops.';
+        noStories.appendChild(document.createTextNode('🛡️ '));
+        const strong = document.createElement('strong');
+        strong.textContent = STRINGS.dossier.activeWatchTitle;
+        noStories.appendChild(strong);
+        noStories.appendChild(document.createTextNode(` ${STRINGS.dossier.activeWatchBody}`));
         body.appendChild(noStories);
       }
     })
     .catch(() => {
-      body.innerHTML = `
-        <div class="dw-dossier-metrics">
-          <div class="dw-metric-cell"><span class="dw-metric-label">PLATFORM</span><span class="dw-metric-val">${sanitizePlainText(
-            entityName
-          )}</span></div>
-          <div class="dw-metric-cell"><span class="dw-metric-label">MONITORING</span><span class="dw-metric-val">24/7 Live Wire</span></div>
-          <div class="dw-metric-cell"><span class="dw-metric-label">STATUS</span><span class="dw-metric-val">Active Tracking</span></div>
-        </div>
-        <p class="dw-dossier-no-stories">
-          🛡️ <strong>Active Intelligence Watch:</strong> This sovereign platform is tracked across 50+ official military feeds. Development milestones, trials, and procurement updates will automatically aggregate here as stories develop.
-        </p>
-      `;
-    });
+      body.textContent = '';
 
+      const fallbackGrid = document.createElement('div');
+      fallbackGrid.className = 'dw-dossier-metrics';
+      fallbackGrid.appendChild(createMetricCell(STRINGS.dossier.platformLabel, entityName));
+      fallbackGrid.appendChild(createMetricCell(STRINGS.dossier.monitoringLabel, STRINGS.dossier.liveWire247));
+      fallbackGrid.appendChild(createMetricCell(STRINGS.dossier.statusLabel, STRINGS.dossier.activeTracking));
+      body.appendChild(fallbackGrid);
+
+      const fallbackWatch = document.createElement('p');
+      fallbackWatch.className = 'dw-dossier-no-stories';
+      fallbackWatch.appendChild(document.createTextNode('🛡️ '));
+      const strong = document.createElement('strong');
+      strong.textContent = STRINGS.dossier.activeWatchTitle;
+      fallbackWatch.appendChild(strong);
+      fallbackWatch.appendChild(document.createTextNode(` ${STRINGS.dossier.activeWatchFallbackBody}`));
+      body.appendChild(fallbackWatch);
+    });
 
   return backdrop;
 }

@@ -232,6 +232,29 @@ export const STRINGS = {
     errorTooltip: 'Unable to sync feed. Showing cached intelligence.',
     ariaSyncNow: 'Revalidate and synchronize live defence intelligence feed',
     liveStatus: 'Live Feed Connected'
+  },
+  dossier: {
+    modalTitlePrefix: '🛡️ Sovereign Dossier: ',
+    closeAriaLabel: 'Close Dossier',
+    loading: 'Querying D1 intelligence archive...',
+    noRecordsPrefix: 'No historical dossier records found for ',
+    domainLabel: 'DOMAIN',
+    corroborationLabel: 'CORROBORATION',
+    wireMentionsLabel: 'WIRE MENTIONS',
+    platformLabel: 'PLATFORM',
+    monitoringLabel: 'MONITORING',
+    statusLabel: 'STATUS',
+    defaultCategory: 'Strategic',
+    sourcesSuffix: 'Sources',
+    watch247: '24/7 Watch',
+    liveWire247: '24/7 Live Wire',
+    activeTracking: 'Active Tracking',
+    timelineHeading: 'Development Timeline & Corroborated Coverage:',
+    activeWatchTitle: 'Active Intelligence Watch:',
+    activeWatchBody:
+      'Real-time monitoring is active across 50+ official defence feeds. Historical milestones, tests, contracts, and deployments will automatically index here as coverage develops.',
+    activeWatchFallbackBody:
+      'This sovereign platform is tracked across 50+ official military feeds. Development milestones, trials, and procurement updates will automatically aggregate here as stories develop.'
   }
 } as const;
 

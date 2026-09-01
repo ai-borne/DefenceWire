@@ -92,6 +92,11 @@ export function decodeHtmlEntities(raw: string): string {
     .replace(/&trade;/g, '™')
     .replace(/&copy;/g, '©')
     .replace(/&reg;/g, '®')
+    .replace(/&bull;/g, '•')
+    .replace(/&middot;/g, '·')
+    .replace(/&euro;/g, '€')
+    .replace(/&pound;/g, '£')
+    .replace(/&yen;/g, '¥')
     .replace(/&amp;/g, '&')
     .trim();
 }

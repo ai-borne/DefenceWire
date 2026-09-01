@@ -7,6 +7,9 @@ export default defineConfig({
     port: 5176,
     host: true
   },
+  build: {
+    target: 'es2022'
+  },
   test: {
     globals: true,
     environment: 'jsdom',
