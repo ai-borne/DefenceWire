@@ -61,10 +61,22 @@ describe('Cloudflare Pages Edge & Production Deployment Configuration', () => {
     expect(content).toContain('/*    /index.html   200');
   });
 
-  it('verifies vite.config.ts configures base: "./" for universal edge routing', () => {
+  it('verifies vite.config.ts configures base: "/" for SPA deep-linking and edge routing', () => {
     const viteConfigPath = path.join(rootDir, 'vite.config.ts');
     const content = fs.readFileSync(viteConfigPath, 'utf-8');
-    expect(content).toContain("base: './'");
+    expect(content).toContain("base: '/'");
+  });
+
+  it('verifies dist/index.html (if built) never uses relative asset or manifest paths', () => {
+    const distIndexPath = path.join(rootDir, 'dist/index.html');
+    if (fs.existsSync(distIndexPath)) {
+      const html = fs.readFileSync(distIndexPath, 'utf-8');
+      expect(html).not.toMatch(/src=["']\.\/assets\//);
+      expect(html).not.toMatch(/href=["']\.\/assets\//);
+      expect(html).not.toMatch(/href=["']\.\/manifest\.json["']/);
+      expect(html).toMatch(/src=["']\/assets\//);
+      expect(html).toMatch(/href=["']\/manifest\.json["']/);
+    }
   });
 
   it('verifies .github/workflows/crawl-and-deploy.yml has hourly off-peak cron and test execution', () => {
