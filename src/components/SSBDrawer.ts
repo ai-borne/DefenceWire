@@ -159,7 +159,12 @@ function appendSSBInsightBox(parent: HTMLElement, intel: SSBIntelligence, cluste
   parent.appendChild(box);
 }
 
-export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string, showSSBInsight: boolean = false): HTMLElement {
+export function renderSSBDrawer(
+  intel: SSBIntelligence,
+  clusterId: string,
+  showSSBInsight: boolean = false,
+  onCollapse?: () => void
+): HTMLElement {
   const drawer = document.createElement('section');
   drawer.className = 'dw-ssb-drawer';
   drawer.setAttribute('aria-label', STRINGS.summary.drawerTitle);
@@ -193,6 +198,25 @@ export function renderSSBDrawer(intel: SSBIntelligence, clusterId: string, showS
   // 5. SSB Insight box (GD points, interview questions, SSBMax.ai CTA) — rendered only
   //    when explicitly viewing the SSB Intel tab, never inline in general article feeds.
   appendSSBInsightBox(drawer, intel, clusterId, showSSBInsight);
+
+  // 6. Bottom Collapse Button (provides direct exit point for long summaries on mobile and desktop)
+  if (onCollapse) {
+    const footerEl = document.createElement('div');
+    footerEl.className = 'dw-ssb-footer';
+
+    const collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'dw-ssb-bottom-collapse-btn';
+    collapseBtn.setAttribute('aria-label', STRINGS.summary.collapseAriaLabel);
+    collapseBtn.textContent = `▲ ${STRINGS.summary.collapseDrawerBtn}`;
+
+    collapseBtn.addEventListener('click', () => {
+      onCollapse();
+    });
+
+    footerEl.appendChild(collapseBtn);
+    drawer.appendChild(footerEl);
+  }
 
   return drawer;
 }

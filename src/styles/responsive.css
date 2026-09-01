@@ -65,6 +65,19 @@
     width: 100%;
     padding: 8px 12px;
   }
+
+  .dw-ssb-toggle-btn,
+  .dw-ssb-bottom-collapse-btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+  }
+
+  .dw-permalink-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
 }
 
 @media (min-width: 1200px) {
@@ -87,6 +100,8 @@
   .dw-sidebar-rail,
   .dw-theme-btn,
   .dw-ssb-toggle-btn,
+  .dw-permalink-btn,
+  .dw-ssb-bottom-collapse-btn,
   .dw-footer {
     display: none !important;
   }

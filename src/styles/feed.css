@@ -109,39 +109,61 @@
 .dw-discussion-link { font-size: 0.72rem; color: var(--dw-link); text-decoration: none; }
 .dw-discussion-link:hover { text-decoration: underline; }
 
-/* SSB Intelligence Drawer */
-.dw-ssb-toggle-btn {
+/* Story Actions & SSB Intelligence Drawer */
+.dw-cluster-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dw-ssb-toggle-btn,
+.dw-ssb-bottom-collapse-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 700;
+  height: 26px;
+  box-sizing: border-box;
   color: var(--dw-text-accent);
   background-color: rgba(179, 25, 25, 0.08);
   border: 1px solid rgba(179, 25, 25, 0.25);
-  padding: 4px 10px;
+  padding: 0 10px;
   border-radius: var(--dw-radius-sm);
-  margin-top: 10px;
   cursor: pointer;
+  line-height: 1;
   transition: background-color 0.15s ease;
 }
-.dw-ssb-toggle-btn:hover { background-color: rgba(179, 25, 25, 0.16); }
+.dw-ssb-toggle-btn:hover,
+.dw-ssb-bottom-collapse-btn:hover { background-color: rgba(179, 25, 25, 0.16); }
 
 .dw-permalink-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  padding: 0;
+  font-size: 0.76rem;
+  line-height: 1;
   color: var(--dw-text-secondary);
-  background-color: transparent;
+  background-color: var(--dw-bg-secondary);
   border: 1px solid var(--dw-border-secondary);
-  padding: 4px 10px;
   border-radius: var(--dw-radius-sm);
-  margin: 10px 0 0 8px;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.dw-permalink-btn:hover { background-color: var(--dw-bg-hover); }
+.dw-permalink-btn:hover {
+  background-color: var(--dw-bg-hover);
+  border-color: var(--dw-border-primary);
+  color: var(--dw-text-primary);
+}
+.dw-permalink-btn--copied {
+  color: var(--dw-status-online-bg);
+  border-color: var(--dw-status-online-bg);
+}
 
 .dw-ssb-drawer {
   margin-top: 10px;
@@ -208,6 +230,14 @@
   letter-spacing: 0.5px;
   color: var(--dw-text-accent);
   margin-bottom: 4px;
+}
+
+.dw-ssb-footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--dw-border-primary);
+  display: flex;
+  justify-content: flex-start;
 }
 
 /* Sidebar Rails */

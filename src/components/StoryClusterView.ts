@@ -199,28 +199,11 @@ export function renderStoryCluster(
     article.appendChild(discBox);
   }
 
-  // 6b. Permalink Button
-  const permalinkBtn = document.createElement('button');
-  permalinkBtn.className = 'dw-permalink-btn';
-  permalinkBtn.type = 'button';
-  permalinkBtn.setAttribute('aria-label', STRINGS.story.shareAriaLabel);
-  permalinkBtn.textContent = '🔗 Permalink';
+  // 6b. Story Cluster Action Bar (Summary trigger + Permalink icon)
+  const actionsRow = document.createElement('div');
+  actionsRow.className = 'dw-cluster-actions';
 
-  permalinkBtn.addEventListener('click', () => {
-    pushStoryUrl(cluster);
-    copyStoryLink(cluster.id).then((copied) => {
-      permalinkBtn.textContent = copied ? '✓ Link copied' : '🔗 Permalink';
-      if (copied) {
-        setTimeout(() => {
-          permalinkBtn.textContent = '🔗 Permalink';
-        }, 2000);
-      }
-    });
-  });
-
-  article.appendChild(permalinkBtn);
-
-  // 7. SSB Intelligence Drawer Trigger
+  let ssbDrawerEl: HTMLElement | null = null;
   if (cluster.ssbIntel) {
     const isExpanded = newsVm.isSSBExpanded(cluster.id);
 
@@ -238,14 +221,46 @@ export function renderStoryCluster(
       newsVm.toggleSSBDrawer(cluster.id);
     });
 
-    article.appendChild(toggleBtn);
+    actionsRow.appendChild(toggleBtn);
 
     if (isExpanded) {
       const showSSBInsight = newsVm.getActiveCategory() === 'ssb';
-      const ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight);
+      ssbDrawerEl = renderSSBDrawer(cluster.ssbIntel, cluster.id, showSSBInsight, () => {
+        newsVm.toggleSSBDrawer(cluster.id);
+      });
       ssbDrawerEl.id = `ssb-drawer-${cluster.id}`;
-      article.appendChild(ssbDrawerEl);
     }
+  }
+
+  // 7. Compact Permalink / Share Action Icon
+  const permalinkBtn = document.createElement('button');
+  permalinkBtn.className = 'dw-permalink-btn';
+  permalinkBtn.type = 'button';
+  permalinkBtn.setAttribute('aria-label', STRINGS.story.shareAriaLabel);
+  permalinkBtn.setAttribute('title', STRINGS.story.permalinkTooltip);
+  permalinkBtn.textContent = STRINGS.story.permalinkIcon;
+
+  permalinkBtn.addEventListener('click', () => {
+    pushStoryUrl(cluster);
+    copyStoryLink(cluster.id).then((copied) => {
+      permalinkBtn.textContent = copied ? STRINGS.story.permalinkCopiedIcon : STRINGS.story.permalinkIcon;
+      permalinkBtn.setAttribute('title', copied ? STRINGS.story.permalinkCopiedTooltip : STRINGS.story.permalinkTooltip);
+      if (copied) {
+        permalinkBtn.classList.add('dw-permalink-btn--copied');
+        setTimeout(() => {
+          permalinkBtn.textContent = STRINGS.story.permalinkIcon;
+          permalinkBtn.setAttribute('title', STRINGS.story.permalinkTooltip);
+          permalinkBtn.classList.remove('dw-permalink-btn--copied');
+        }, 2000);
+      }
+    });
+  });
+
+  actionsRow.appendChild(permalinkBtn);
+  article.appendChild(actionsRow);
+
+  if (ssbDrawerEl) {
+    article.appendChild(ssbDrawerEl);
   }
 
   return article;

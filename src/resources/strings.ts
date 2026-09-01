@@ -51,12 +51,20 @@ export const STRINGS = {
     justNow: 'Just now',
     shareAriaLabel: 'Share this intelligence briefing',
     expandSummaryAriaLabel: 'Expand article summary',
+    permalinkIcon: '🔗',
+    permalinkCopiedIcon: '✓',
+    permalinkTooltip: 'Copy share link',
+    permalinkCopiedTooltip: 'Link copied to clipboard',
+    permalinkLabel: '🔗 Permalink',
+    permalinkCopied: '✓ Link copied',
     sourceTierTooltip: 'Institutional Reliability Tier',
     officialSignalBadge: 'Verified Signal'
   },
   summary: {
     drawerTitle: 'Summary',
     collapseSuffix: 'Collapse',
+    collapseDrawerBtn: 'Collapse Summary',
+    collapseAriaLabel: 'Collapse article summary',
     whyItMattersHeading: 'Why It Matters',
     techTakeawayHeading: 'Key Specifications',
     strategicAngleHeading: 'Strategic Angle'

@@ -26,11 +26,19 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.nav.river).toBe('River of News');
   });
 
-  it('should have all default article summary drawer headings defined', () => {
+  it('should have all default article summary drawer headings and collapse strings defined', () => {
     expect(STRINGS.summary.drawerTitle).toBe('Summary');
     expect(STRINGS.summary.whyItMattersHeading).toBeDefined();
     expect(STRINGS.summary.techTakeawayHeading).toBeDefined();
     expect(STRINGS.summary.strategicAngleHeading).toBeDefined();
+    expect(STRINGS.summary.collapseDrawerBtn).toBe('Collapse Summary');
+    expect(STRINGS.summary.collapseAriaLabel).toBe('Collapse article summary');
+    expect(STRINGS.story.permalinkIcon).toBe('🔗');
+    expect(STRINGS.story.permalinkCopiedIcon).toBe('✓');
+    expect(STRINGS.story.permalinkTooltip).toBe('Copy share link');
+    expect(STRINGS.story.permalinkCopiedTooltip).toBe('Link copied to clipboard');
+    expect(STRINGS.story.permalinkLabel).toBe('🔗 Permalink');
+    expect(STRINGS.story.permalinkCopied).toBe('✓ Link copied');
   });
 
   it('should have all opt-in SSB insight box strings defined, reserved for ssb-tagged clusters', () => {
