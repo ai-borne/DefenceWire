@@ -27,7 +27,7 @@ describe('Workflow CI/CD Deployment & Automation Guardrails', () => {
     expect(content).toContain('cancel-in-progress: false');
 
     // Autonomous schedule and triggers
-    expect(content).toContain("cron: '*/20 * * * *'");
+    expect(content).toContain("cron: '17 * * * *'");
     expect(content).toContain('workflow_dispatch:');
     expect(content).toContain('push:');
 

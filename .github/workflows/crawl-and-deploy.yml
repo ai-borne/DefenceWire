@@ -2,8 +2,8 @@ name: 24/7 Autonomous Defence Intelligence Ingestion & Deploy
 
 on:
   schedule:
-    # Autonomous ingestion run every 20 minutes ($0 serverless GitHub Actions cron)
-    - cron: '*/20 * * * *'
+    # Autonomous ingestion run hourly at off-peak minute :17 ($0 serverless GitHub Actions cron)
+    - cron: '17 * * * *'
   workflow_dispatch:
   push:
     branches:

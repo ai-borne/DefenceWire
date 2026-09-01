@@ -99,12 +99,52 @@ describe('NewsViewModel', () => {
     const testId = INITIAL_STORY_CLUSTERS[0]!.id;
 
     expect(vm.isSSBExpanded(testId)).toBe(false);
+    expect(vm.hasExpandedSSBDrawers()).toBe(false);
+    expect(vm.getExpandedSSBClusterIds().size).toBe(0);
 
     vm.toggleSSBDrawer(testId);
     expect(vm.isSSBExpanded(testId)).toBe(true);
+    expect(vm.hasExpandedSSBDrawers()).toBe(true);
+    expect(vm.getExpandedSSBClusterIds().has(testId)).toBe(true);
 
     vm.toggleSSBDrawer(testId);
     expect(vm.isSSBExpanded(testId)).toBe(false);
+    expect(vm.hasExpandedSSBDrawers()).toBe(false);
+    expect(vm.getExpandedSSBClusterIds().size).toBe(0);
+  });
+
+  it('should allow setting SSB expanded state directly with and without notification', () => {
+    const vm = new NewsViewModel(INITIAL_STORY_CLUSTERS, INITIAL_RIVER_ITEMS);
+    const id1 = INITIAL_STORY_CLUSTERS[0]!.id;
+    const id2 = INITIAL_STORY_CLUSTERS[1]!.id;
+    const listener = vi.fn();
+    vm.subscribe(listener);
+
+    // Expand with notify = false (e.g. scroll auto-collapse)
+    vm.setSSBExpanded(id1, true, false);
+    expect(vm.isSSBExpanded(id1)).toBe(true);
+    expect(vm.hasExpandedSSBDrawers()).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(0);
+
+    // Expand with notify = true
+    vm.setSSBExpanded(id2, true, true);
+    expect(vm.isSSBExpanded(id2)).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    // No-op if already expanded
+    vm.setSSBExpanded(id2, true, true);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    // Collapse with notify = false
+    vm.setSSBExpanded(id1, false, false);
+    expect(vm.isSSBExpanded(id1)).toBe(false);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    // Defensive copy check for getExpandedSSBClusterIds
+    const expandedSet = vm.getExpandedSSBClusterIds();
+    expect(expandedSet.has(id2)).toBe(true);
+    expandedSet.delete(id2);
+    expect(vm.isSSBExpanded(id2)).toBe(true);
   });
 
   it('should filter river items by search query', () => {

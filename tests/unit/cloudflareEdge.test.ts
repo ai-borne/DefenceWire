@@ -67,12 +67,12 @@ describe('Cloudflare Pages Edge & Production Deployment Configuration', () => {
     expect(content).toContain("base: './'");
   });
 
-  it('verifies .github/workflows/crawl-and-deploy.yml has 20-min cron and test execution', () => {
+  it('verifies .github/workflows/crawl-and-deploy.yml has hourly off-peak cron and test execution', () => {
     const workflowPath = path.join(rootDir, '.github/workflows/crawl-and-deploy.yml');
     expect(fs.existsSync(workflowPath)).toBe(true);
     const content = fs.readFileSync(workflowPath, 'utf-8');
 
-    expect(content).toContain("cron: '*/20 * * * *'");
+    expect(content).toContain("cron: '17 * * * *'");
     expect(content).toContain('npm test');
     expect(content).toContain('npx vite-node crawler/ingest.ts');
     expect(content).toContain('npm run build');

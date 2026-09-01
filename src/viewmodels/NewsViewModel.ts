@@ -52,16 +52,35 @@ export class NewsViewModel {
   }
 
   public toggleSSBDrawer(clusterId: string): void {
-    if (this.expandedSSBClusterIds.has(clusterId)) {
-      this.expandedSSBClusterIds.delete(clusterId);
-    } else {
+    const isExpanded = this.expandedSSBClusterIds.has(clusterId);
+    this.setSSBExpanded(clusterId, !isExpanded, true);
+  }
+
+  public setSSBExpanded(clusterId: string, expanded: boolean, notify: boolean = true): void {
+    const currentlyExpanded = this.expandedSSBClusterIds.has(clusterId);
+    if (currentlyExpanded === expanded) return;
+
+    if (expanded) {
       this.expandedSSBClusterIds.add(clusterId);
+    } else {
+      this.expandedSSBClusterIds.delete(clusterId);
     }
-    this.notifyListeners();
+
+    if (notify) {
+      this.notifyListeners();
+    }
   }
 
   public isSSBExpanded(clusterId: string): boolean {
     return this.expandedSSBClusterIds.has(clusterId);
+  }
+
+  public hasExpandedSSBDrawers(): boolean {
+    return this.expandedSSBClusterIds.size > 0;
+  }
+
+  public getExpandedSSBClusterIds(): Set<string> {
+    return new Set(this.expandedSSBClusterIds);
   }
 
   public setOffline(offline: boolean): void {
@@ -87,24 +106,17 @@ export class NewsViewModel {
    */
   private matchesSearch(cluster: StoryCluster, queryLower: string): boolean {
     if (!queryLower) return true;
-
     if (cluster.synthesizedHeadline.toLowerCase().includes(queryLower)) return true;
     if (cluster.primarySource.title.toLowerCase().includes(queryLower)) return true;
     if (cluster.primarySource.sourceName.toLowerCase().includes(queryLower)) return true;
     if (cluster.primarySource.snippet?.toLowerCase().includes(queryLower)) return true;
     if (cluster.entities.some((e) => e.toLowerCase().includes(queryLower))) return true;
-
     if (cluster.ssbIntel) {
       if (cluster.ssbIntel.whyItMatters.toLowerCase().includes(queryLower)) return true;
       if (cluster.ssbIntel.gdLecturettePoints?.some((p) => p.toLowerCase().includes(queryLower))) return true;
       if (cluster.ssbIntel.defenceTechTakeaway?.platformOrSystem.toLowerCase().includes(queryLower)) return true;
     }
-
-    if (cluster.relatedCoverage.some((r) => r.title.toLowerCase().includes(queryLower) || r.sourceName.toLowerCase().includes(queryLower))) {
-      return true;
-    }
-
-    return false;
+    return cluster.relatedCoverage.some((r) => r.title.toLowerCase().includes(queryLower) || r.sourceName.toLowerCase().includes(queryLower));
   }
 
   /**
@@ -112,37 +124,20 @@ export class NewsViewModel {
    */
   public getFilteredClusters(): FilteredFeedResult {
     const queryLower = this.searchQuery.toLowerCase();
-
-    // 1. Filter out ignored clusters and apply category & search filters
-    let eligible = this.clusters.filter((c) => {
+    const eligible = this.clusters.filter((c) => {
       if (c.isIgnored) return false;
-
-      // Category filter
       if (this.activeCategory !== 'all' && this.activeCategory !== 'river') {
-        const cat = this.activeCategory as DomainCategory;
-        if (!c.categories.includes(cat)) {
-          return false;
-        }
+        if (!c.categories.includes(this.activeCategory as DomainCategory)) return false;
       }
-
-      // Search filter
       return this.matchesSearch(c, queryLower);
     });
-
-    // 2. Sort by defenceScore descending
     eligible.sort((a, b) => b.defenceScore - a.defenceScore);
-
     if (eligible.length === 0) {
       return { leadStory: null, regularClusters: [], totalMatchingStories: 0 };
     }
-
-    // Designate first cluster as lead story
-    const leadStory = eligible[0] ?? null;
-    const regularClusters = eligible.slice(1);
-
     return {
-      leadStory,
-      regularClusters,
+      leadStory: eligible[0] ?? null,
+      regularClusters: eligible.slice(1),
       totalMatchingStories: eligible.length
     };
   }
@@ -152,26 +147,19 @@ export class NewsViewModel {
    */
   public getFilteredRiverItems(): StorySourceItem[] {
     const queryLower = this.searchQuery.toLowerCase();
-    if (!queryLower) {
-      return this.riverItems;
-    }
-
-    return this.riverItems.filter((item) => {
-      return (
-        item.title.toLowerCase().includes(queryLower) ||
-        item.sourceName.toLowerCase().includes(queryLower) ||
-        (item.snippet && item.snippet.toLowerCase().includes(queryLower))
-      );
-    });
+    if (!queryLower) return this.riverItems;
+    return this.riverItems.filter((item) => (
+      item.title.toLowerCase().includes(queryLower) ||
+      item.sourceName.toLowerCase().includes(queryLower) ||
+      (item.snippet && item.snippet.toLowerCase().includes(queryLower))
+    ));
   }
 
   /**
    * Returns all clusters, optionally including ignored ones.
    */
   public getAllClusters(includeIgnored: boolean = true): StoryCluster[] {
-    if (includeIgnored) {
-      return [...this.clusters];
-    }
+    if (includeIgnored) return [...this.clusters];
     return this.clusters.filter((c) => !c.isIgnored);
   }
 
@@ -201,14 +189,11 @@ export class NewsViewModel {
   public updateCluster(id: string, updater: (cluster: StoryCluster) => StoryCluster): void {
     const idx = this.clusters.findIndex((c) => c.id === id);
     if (idx === -1) return;
-
     const current = this.clusters[idx];
     if (!current) return;
-
     this.clusters[idx] = updater({ ...current });
     this.notifyListeners();
   }
-
 
   /**
    * Promotes a cluster to Lead story.
@@ -226,10 +211,7 @@ export class NewsViewModel {
           updatedAt: new Date().toISOString()
         };
       }
-      return {
-        ...c,
-        isLeadStory: false
-      };
+      return { ...c, isLeadStory: false };
     });
     this.notifyListeners();
   }
@@ -292,4 +274,3 @@ export class NewsViewModel {
     }
   }
 }
-
