@@ -31,6 +31,21 @@ describe('Edge Rate Limiter: Core Engine & IP Identification', () => {
     expect(getClientIp(headers)).toBe('1.1.1.1');
   });
 
+  it('strictly prioritizes cf-connecting-ip over spoofed x-forwarded-for and x-real-ip headers', () => {
+    const spoofedHeaders = {
+      'cf-connecting-ip': '203.0.113.50',
+      'x-forwarded-for': '1.2.3.4, 5.6.7.8',
+      'x-real-ip': '9.10.11.12'
+    };
+    expect(getClientIp(spoofedHeaders)).toBe('203.0.113.50');
+  });
+
+  it('sanitizes ports, control characters, and clamps extracted IP address strings', () => {
+    expect(getClientIp({ 'cf-connecting-ip': '198.51.100.22:8080' })).toBe('198.51.100.22');
+    expect(getClientIp({ 'x-forwarded-for': '  192.0.2.1\r\n:9000  ' })).toBe('192.0.2.1');
+    expect(getClientIp({ 'x-real-ip': '2001:db8::1' })).toBe('2001:db8::1');
+  });
+
   it('allows requests within threshold and decrements remaining quota', () => {
     const key = 'test-client-1';
     const now = 1000000;

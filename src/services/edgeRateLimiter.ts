@@ -20,7 +20,9 @@ const RATE_LIMIT_STORE = new Map<string, RateLimitBucket>();
 const MAX_STORE_SIZE = 10_000;
 
 /**
- * Extracts client IP identifier from edge request headers.
+ * Extracts and sanitizes client IP identifier from edge request headers.
+ * Prioritizes CF-Connecting-IP (trusted edge header) over client-supplied headers
+ * to prevent rate limiter spoofing and bypass attacks.
  */
 export function getClientIp(headers: Headers | Record<string, string | null | undefined>): string {
   const getHeader = (name: string): string | null => {
@@ -29,17 +31,27 @@ export function getClientIp(headers: Headers | Record<string, string | null | un
     return rec[name] || rec[name.toLowerCase()] || null;
   };
 
-  const cfIp = getHeader('cf-connecting-ip');
-  if (cfIp && cfIp.trim()) return cfIp.trim();
+  const sanitizeIp = (rawIp: string): string => {
+    let clean = rawIp.replace(/[\x00-\x1F\x7F"'`]/g, '').trim();
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/.test(clean)) {
+      clean = clean.split(':')[0]!;
+    }
+    return clean.slice(0, 64);
+  };
 
+  // 1. Strict Priority: Cloudflare trusted edge connecting IP
+  const cfIp = getHeader('cf-connecting-ip');
+  if (cfIp && cfIp.trim()) return sanitizeIp(cfIp);
+
+  // 2. Fallbacks for non-Cloudflare / dev proxy environments
   const xff = getHeader('x-forwarded-for');
   if (xff && xff.trim()) {
     const first = xff.split(',')[0]?.trim();
-    if (first) return first;
+    if (first) return sanitizeIp(first);
   }
 
   const realIp = getHeader('x-real-ip');
-  if (realIp && realIp.trim()) return realIp.trim();
+  if (realIp && realIp.trim()) return sanitizeIp(realIp);
 
   return '127.0.0.1';
 }
@@ -64,11 +76,12 @@ export function checkRateLimit(
   windowMs: number,
   now: number = Date.now()
 ): RateLimitResult {
+  const cleanKey = (key || '').replace(/[\x00-\x1F\x7F]/g, '').slice(0, 100);
   if (RATE_LIMIT_STORE.size > MAX_STORE_SIZE) {
     pruneExpiredBuckets(now);
   }
 
-  const existing = RATE_LIMIT_STORE.get(key);
+  const existing = RATE_LIMIT_STORE.get(cleanKey);
 
   if (!existing || now >= existing.resetAt) {
     const resetAt = now + windowMs;

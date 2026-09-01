@@ -40,12 +40,34 @@ export function buildInsertArchivedStoryStatement(row: ArchivedStoryRow): D1Stat
 /**
  * Wraps each whitespace-separated token as a quoted FTS5 phrase so
  * user-typed search text (hyphens, colons, boolean keywords) can never
- * produce a MATCH syntax error.
+ * produce a MATCH syntax error or wildcard token explosion.
  */
 export function sanitizeFtsQuery(rawQuery: string): string {
-  const tokens = rawQuery.trim().split(/\s+/).filter(Boolean);
+  if (!rawQuery || typeof rawQuery !== 'string') return '';
+  const clean = rawQuery.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 100).trim();
+  const tokens = clean.split(/\s+/).filter(Boolean).slice(0, 10);
   if (tokens.length === 0) return '';
-  return tokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(' ');
+  return tokens.map((token) => `"${token.slice(0, 40).replace(/"/g, '""')}"`).join(' ');
+}
+
+/**
+ * Queries related archived stories for an entity using the indexed FTS5 virtual table
+ * rather than unindexed full-table LIKE scans.
+ */
+export function buildEntityRelatedStoriesStatement(
+  rawEntity: string,
+  limit: number = 20
+): D1Statement {
+  const cleanLimit = Math.min(50, Math.max(1, limit));
+  const sanitizedQuery = sanitizeFtsQuery(rawEntity);
+  return {
+    sql: `SELECT a.id, a.cluster_json FROM archived_stories_fts f
+          JOIN archived_stories a ON a.rowid = f.rowid
+          WHERE archived_stories_fts MATCH ?
+          ORDER BY a.archived_at DESC
+          LIMIT ?`,
+    params: [sanitizedQuery, cleanLimit]
+  };
 }
 
 /**
@@ -58,6 +80,7 @@ export function buildSearchArchiveStatement(
   limit: number = DEFAULT_SEARCH_LIMIT,
   cursor: string | null = null
 ): D1Statement {
+  const cleanLimit = Math.min(50, Math.max(1, limit));
   const cursorClause = cursor ? 'AND a.archived_at < ?' : '';
   return {
     sql: `SELECT a.* FROM archived_stories_fts f
@@ -65,7 +88,7 @@ export function buildSearchArchiveStatement(
           WHERE archived_stories_fts MATCH ? ${cursorClause}
           ORDER BY a.archived_at DESC
           LIMIT ?`,
-    params: cursor ? [sanitizeFtsQuery(rawQuery), cursor, limit] : [sanitizeFtsQuery(rawQuery), limit]
+    params: cursor ? [sanitizeFtsQuery(rawQuery), cursor, cleanLimit] : [sanitizeFtsQuery(rawQuery), cleanLimit]
   };
 }
 

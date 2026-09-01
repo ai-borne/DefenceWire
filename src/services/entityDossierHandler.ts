@@ -10,11 +10,12 @@ import { GetClusterJson, ArchiveBindingUnavailableError } from '../archive/archi
 
 /**
  * Escapes SQLite LIKE wildcard characters (`%` and `_`) and the escape character itself
- * so that user-supplied input does not trigger full table scans or unintended pattern matches.
+ * and clamps input length to prevent wildcard explosion attacks.
  */
 export function escapeSqlLikePattern(input: string, escapeChar: string = '\\'): string {
-  if (!input) return '';
-  return input
+  if (!input || typeof input !== 'string') return '';
+  const clean = input.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 100);
+  return clean
     .replace(new RegExp(`\\${escapeChar}`, 'g'), `${escapeChar}${escapeChar}`)
     .replace(/%/g, `${escapeChar}%`)
     .replace(/_/g, `${escapeChar}_`);
@@ -57,7 +58,11 @@ export async function handleEntityDossierRequest(
   slug: string,
   db: EntityDossierDatabaseAdapter
 ): Promise<EntityDossierResponse> {
-  const cleanSlug = (slug || '').trim().toLowerCase();
+  const cleanSlug = (slug || '')
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    .slice(0, 80)
+    .trim()
+    .toLowerCase();
   if (!cleanSlug) {
     return { entity: null, relatedStories: [], error: 'Entity slug is required.' };
   }

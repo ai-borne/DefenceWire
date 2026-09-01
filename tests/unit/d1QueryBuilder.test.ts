@@ -13,6 +13,7 @@ import {
   buildSearchArchiveStatement,
   buildBrowseArchiveStatement,
   buildDeleteArchivedStoriesStatement,
+  buildEntityRelatedStoriesStatement,
   sanitizeFtsQuery
 } from '../../src/archive/d1QueryBuilder.js';
 
@@ -78,9 +79,34 @@ describe('sanitizeFtsQuery', () => {
     expect(sanitizeFtsQuery('  Tejas    Mk1A  ')).toBe('"Tejas" "Mk1A"');
   });
 
+  it('strips ASCII control characters and clamps token count to 10', () => {
+    const wildInput = 'word1\x00 word2\x1F word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
+    const sanitized = sanitizeFtsQuery(wildInput);
+    const tokens = sanitized.split(' ');
+    expect(tokens.length).toBeLessThanOrEqual(10);
+    expect(sanitized).not.toContain('\x00');
+    expect(sanitized).not.toContain('\x1F');
+  });
+
   it('returns an empty string for empty or whitespace-only input', () => {
     expect(sanitizeFtsQuery('')).toBe('');
     expect(sanitizeFtsQuery('   ')).toBe('');
+  });
+});
+
+describe('buildEntityRelatedStoriesStatement', () => {
+  it('builds an indexed FTS5 query to retrieve related story IDs and cluster_json', () => {
+    const stmt = buildEntityRelatedStoriesStatement('Tejas Mk1A', 20);
+    expect(stmt.sql).toContain('archived_stories_fts');
+    expect(stmt.sql).toContain('MATCH ?');
+    expect(stmt.sql).toContain('ORDER BY a.archived_at DESC');
+    expect(stmt.sql).toContain('LIMIT ?');
+    expect(stmt.params).toEqual(['"Tejas" "Mk1A"', 20]);
+  });
+
+  it('clamps limit to safe bounds [1, 50]', () => {
+    expect(buildEntityRelatedStoriesStatement('BrahMos', 0).params[1]).toBe(1);
+    expect(buildEntityRelatedStoriesStatement('BrahMos', 500).params[1]).toBe(50);
   });
 });
 

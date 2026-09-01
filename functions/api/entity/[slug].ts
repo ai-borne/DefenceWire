@@ -6,10 +6,10 @@
 
 import {
   handleEntityDossierRequest,
-  escapeSqlLikePattern,
   DiscoveredEntityDbRow
 } from '../../../src/services/entityDossierHandler.js';
 import { ArchiveBindingUnavailableError } from '../../../src/archive/archiveRow.js';
+import { buildEntityRelatedStoriesStatement } from '../../../src/archive/d1QueryBuilder.js';
 import {
   checkRateLimit,
   getClientIp,
@@ -70,13 +70,10 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
       return db.prepare(sql).bind(entitySlug).first<DiscoveredEntityDbRow>();
     },
     queryRelatedStories: async (entitySlug: string, limit = 20) => {
-      const sql = `SELECT id, cluster_json FROM archived_stories
-        WHERE entities LIKE ? ESCAPE '\\' OR synthesized_headline LIKE ? ESCAPE '\\'
-        ORDER BY archived_at DESC LIMIT ?;`;
-      const searchPattern = `%${escapeSqlLikePattern(entitySlug)}%`;
+      const stmt = buildEntityRelatedStoriesStatement(entitySlug, limit);
       const { results } = await db
-        .prepare(sql)
-        .bind(searchPattern, searchPattern, limit)
+        .prepare(stmt.sql)
+        .bind(...stmt.params)
         .all<{ id: string; cluster_json: string | null }>();
       return results;
     },

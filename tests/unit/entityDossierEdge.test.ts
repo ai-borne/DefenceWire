@@ -175,7 +175,7 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
       expect(data.error).toBe('Dossier database is not configured.');
     });
 
-    it('binds sanitized and escaped LIKE wildcard pattern in D1 query', async () => {
+    it('binds sanitized FTS query pattern in D1 query', async () => {
       const mockBind = vi.fn().mockReturnThis();
       const mockDb = {
         prepare: vi.fn().mockImplementation((sql: string) => {
@@ -214,8 +214,8 @@ describe('Entity Dossier Edge Handler & SQL LIKE Protection', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.entity).not.toBeNull();
-      // Verify queryRelatedStories passed escaped wildcards `%tejas\_mk1\%%`
-      expect(mockBind).toHaveBeenCalledWith('%tejas\\_mk1\\%%', '%tejas\\_mk1\\%%', 20);
+      // Verify queryRelatedStories passed sanitized FTS query pattern
+      expect(mockBind).toHaveBeenCalledWith('"tejas_mk1%"', 20);
     });
 
     it('fails loudly (non-2xx) instead of silently dropping results when a row has no cluster_json in D1 and ARCHIVE_MEDIA is unconfigured', async () => {
