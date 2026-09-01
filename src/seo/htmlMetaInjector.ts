@@ -1,9 +1,8 @@
 /**
  * Story HTML Meta Injector for DefenceWire.in
  * Pure string-level rewriter that swaps the built index.html's <title>,
- * description, Open Graph, Twitter, and canonical tags for a story's own
- * meta document. No DOM or Workers runtime required, so it can be unit
- * tested directly and reused verbatim inside the edge prerender handler.
+ * description, Open Graph, Twitter, canonical tags, JSON-LD Schema, and
+ * semantic HTML article body for social & AI crawlers.
  * Hard limit: <= 300 LOC.
  */
 
@@ -30,6 +29,23 @@ function replaceTagAttribute(html: string, tagMatcher: RegExp, attribute: 'conte
   return html.replace(match[0], updatedTag);
 }
 
+function injectJsonLd(html: string, jsonLd: string): string {
+  const scriptTag = `<script type="application/ld+json">${jsonLd}</script>`;
+  const existingJsonLdMatch = html.match(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i);
+  if (existingJsonLdMatch) {
+    return html.replace(existingJsonLdMatch[0], scriptTag);
+  }
+  return html.replace(/<\/head>/i, `    ${scriptTag}\n  </head>`);
+}
+
+function injectSemanticBody(html: string, semanticBodyHtml: string): string {
+  const appContainerMatch = html.match(/<(?:div|main)\s+id="app">[\s\S]*?<\/(?:div|main)>/i);
+  if (appContainerMatch) {
+    return html.replace(appContainerMatch[0], semanticBodyHtml);
+  }
+  return html;
+}
+
 export function injectStoryMetaIntoHtml(html: string, meta: StoryMetaDocument): string {
   let result = html;
 
@@ -45,6 +61,14 @@ export function injectStoryMetaIntoHtml(html: string, meta: StoryMetaDocument): 
   result = replaceTagAttribute(result, /<meta[^>]*name="twitter:title"[^>]*>/i, 'content', meta.title);
   result = replaceTagAttribute(result, /<meta[^>]*name="twitter:description"[^>]*>/i, 'content', meta.description);
   result = replaceTagAttribute(result, /<meta[^>]*name="twitter:image"[^>]*>/i, 'content', meta.imageUrl);
+
+  if (meta.jsonLd) {
+    result = injectJsonLd(result, meta.jsonLd);
+  }
+
+  if (meta.semanticBodyHtml) {
+    result = injectSemanticBody(result, meta.semanticBodyHtml);
+  }
 
   return result;
 }

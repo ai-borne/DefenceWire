@@ -1,0 +1,20 @@
+# DefenceWire.in
+
+> Real-time institutional defence intelligence aggregator and strategic news wire focusing on Indian defence, military technology, capital procurement, geopolitics, and SSB current affairs.
+
+## Overview
+DefenceWire.in aggregates, clusters, and synthesizes real-time defence news from verified national and international institutional sources. Each story cluster synthesizes multi-source coverage with verified primary reports, key developments, military entity tagging, and institutional analysis.
+
+## Key Resources
+- [Live Feed JSON](https://www.defencewire.in/data/news.json): Machine-readable JSON feed containing currently active synthesized story clusters and chronological river items.
+- [Sitemap](https://www.defencewire.in/sitemap.xml): XML sitemap indexing all permalinked story URLs.
+- [Full LLM Specification](https://www.defencewire.in/llms-full.txt): Comprehensive schema documentation, taxonomy, and entity extraction guidelines.
+
+## Intelligence Domains
+- **Indian Army**: Land systems, Northern/Western borders, combat vehicles, artillery modernization, infantry weapons.
+- **Indian Navy**: Maritime domain awareness, carrier strike groups, indigenous submarines (Project 75/75I), Indo-Pacific posture.
+- **Indian Air Force**: Combat aviation (AMCA, Tejas Mk1A/Mk2, MRFA), long-range air defence (S-400, Project Kusha), drone swarms.
+- **Defence Technology & R&D**: DRDO laboratories, ADA, hypersonic glide vehicles, electronic warfare, directed energy weapons, AI in defence.
+- **Strategic & Geopolitics**: Line of Actual Control (LAC), Line of Control (LOC), Quad, Indian Ocean Region (IOR) security, bilateral defence pacts.
+- **Procurement & Industry**: Defence Acquisition Council (DAC) clearances, Make-in-India / Aatmanirbhar Bharat, DAP 2020, iDEX startups.
+- **SSB Preparation**: Structured geopolitical briefings, leadership case studies, and Group Testing Officer (GTO) / Lecturette discussion dossiers.

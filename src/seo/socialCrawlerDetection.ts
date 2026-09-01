@@ -21,7 +21,20 @@ const SOCIAL_CRAWLER_USER_AGENT_PATTERNS: readonly RegExp[] = [
   /Pinterest/i,
   /SkypeUriPreview/i,
   /vkShare/i,
-  /Bingbot/i
+  /Bingbot/i,
+  /GPTBot/i,
+  /OAI-SearchBot/i,
+  /ChatGPT-User/i,
+  /ClaudeBot/i,
+  /Claude-Web/i,
+  /anthropic-ai/i,
+  /PerplexityBot/i,
+  /Google-Extended/i,
+  /Applebot-Extended/i,
+  /Amazonbot/i,
+  /Bytespider/i,
+  /cohere-ai/i,
+  /Diffbot/i
 ];
 
 export function isSocialMediaCrawler(userAgent: string | null | undefined): boolean {

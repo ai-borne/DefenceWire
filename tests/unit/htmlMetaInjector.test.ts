@@ -35,7 +35,9 @@ const meta: StoryMetaDocument = {
   title: 'HAL delivers Tejas Mk1A — DefenceWire.in',
   description: 'Equipped with Uttam AESA radar.',
   url: 'https://www.defencewire.in/story/cluster-tejas-mk1a',
-  imageUrl: 'https://www.defencewire.in/icons/icon-512.png'
+  imageUrl: 'https://www.defencewire.in/icons/icon-512.png',
+  jsonLd: '{"@context":"https://schema.org","@type":"NewsArticle","headline":"HAL delivers Tejas Mk1A"}',
+  semanticBodyHtml: '<main id="app"><article class="dw-prerender-story"><h1 itemprop="headline">HAL delivers Tejas Mk1A</h1></article></main>'
 };
 
 describe('injectStoryMetaIntoHtml', () => {
@@ -79,6 +81,17 @@ describe('injectStoryMetaIntoHtml', () => {
     const result = injectStoryMetaIntoHtml(baseHtml, xssMeta);
     expect(result).not.toContain('<script>alert(1)</script>');
     expect(result).toContain('&lt;script&gt;');
+  });
+
+  it('injects JSON-LD schema into the head', () => {
+    const result = injectStoryMetaIntoHtml(baseHtml, meta);
+    expect(result).toContain('<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":"HAL delivers Tejas Mk1A"}</script>');
+  });
+
+  it('replaces div#app with the semantic prerendered body for AI crawlers', () => {
+    const result = injectStoryMetaIntoHtml(baseHtml, meta);
+    expect(result).toContain('<main id="app"><article class="dw-prerender-story"><h1 itemprop="headline">HAL delivers Tejas Mk1A</h1></article></main>');
+    expect(result).not.toContain('<div id="app"></div>');
   });
 
   it('is a pure function that does not mutate its input', () => {

@@ -69,6 +69,20 @@ describe('handleStoryPrerenderRequest', () => {
     expect(deps.fetchNewsFeed).toHaveBeenCalledWith('https://www.defencewire.in/data/news.json');
   });
 
+  it('injects JSON-LD and semantic article body for AI search crawlers', async () => {
+    const deps = makeDeps();
+    const result = await handleStoryPrerenderRequest(
+      { userAgent: 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)', url: 'https://www.defencewire.in/story/cluster-tejas-mk1a-delivery-2026' },
+      deps
+    );
+
+    expect(result.body).toContain('<script type="application/ld+json">');
+    expect(result.body).toContain('"@type":"NewsArticle"');
+    expect(result.body).toContain('<article class="dw-prerender-story"');
+    expect(result.body).toContain('Equipped with Uttam AESA radar.');
+    expect(result.body).not.toContain('<div id="app"></div>');
+  });
+
   it('falls back to the original HTML for a crawler on a non-story path', async () => {
     const deps = makeDeps();
     const result = await handleStoryPrerenderRequest(

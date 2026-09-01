@@ -1,0 +1,62 @@
+# DefenceWire.in — Full Machine-Readable LLM Specification & Taxonomy
+
+## Platform Metadata
+- **Entity**: DefenceWire.in
+- **Type**: Institutional Defence News Aggregator & Intelligence Feed
+- **Target Geographic Focus**: India & Indo-Pacific Security
+- **Update Cadence**: Continuous / Near Real-Time
+- **Canonical URL**: https://www.defencewire.in
+- **Live Feed Endpoint**: https://www.defencewire.in/data/news.json
+- **Sitemap**: https://www.defencewire.in/sitemap.xml
+
+## Feed Architecture & Schema
+The primary data endpoint is `https://www.defencewire.in/data/news.json`, returning a structured JSON payload:
+
+```json
+{
+  "generatedAt": "ISO-8601 UTC Timestamp",
+  "clusters": [
+    {
+      "id": "Unique cluster ID (e.g., cluster-8d1a1f96)",
+      "category": "army | navy | airforce | tech | strategic | procurement | ssb",
+      "synthesizedHeadline": "Clear, informative headline synthesizing all reporting sources",
+      "timestamp": "ISO-8601 UTC Timestamp",
+      "primarySource": {
+        "title": "Article headline from primary publisher",
+        "url": "Canonical source URL",
+        "source": "Publisher name",
+        "tier": "official | tier1 | tier2 | social",
+        "snippet": "Editorial summary / key findings of the report"
+      },
+      "relatedSources": [
+        {
+          "title": "Related reporting headline",
+          "url": "Related source URL",
+          "source": "Publisher name",
+          "tier": "Publisher tier"
+        }
+      ],
+      "entities": ["DRDO", "Indian Air Force", "AMCA", "Tejas", "DAC"]
+    }
+  ],
+  "river": [
+    {
+      "title": "Chronological raw source item",
+      "url": "Direct link",
+      "source": "Source name",
+      "publishedAt": "ISO-8601 Timestamp"
+    }
+  ]
+}
+```
+
+## Story Permalinks
+Individual story clusters are addressable via permalinks:
+- Format: `https://www.defencewire.in/story/[cluster-id]`
+- Crawler Support: Returns fully prerendered semantic HTML (`<article>`) and Schema.org `NewsArticle` JSON-LD for AI search crawlers.
+
+## Institutional Source Reliability Tiers
+1. **Tier Official**: Ministry of Defence (MoD), Press Information Bureau (PIB), DRDO, Indian Army/Navy/IAF official communications.
+2. **Tier 1 (Institutional)**: The Hindu, Indian Express, ANI, PTI, Livefist, Force Magazine, Janes, USNI News.
+3. **Tier 2 (General Media)**: Hindustan Times, Times of India, Business Standard, The Print, NDTV.
+4. **Tier Social**: Verified OSINT analysts and institutional defence correspondents.

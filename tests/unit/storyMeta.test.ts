@@ -84,4 +84,24 @@ describe('buildStoryMetaDocument', () => {
     const meta = buildStoryMetaDocument(mockCluster);
     expect(meta.imageUrl).toMatch(/^https:\/\/www\.defencewire\.in\//);
   });
+
+  it('generates valid Schema.org NewsArticle JSON-LD', () => {
+    const meta = buildStoryMetaDocument(mockCluster);
+    expect(meta.jsonLd).toBeDefined();
+    const parsed = JSON.parse(meta.jsonLd!);
+    expect(parsed['@context']).toBe('https://schema.org');
+    expect(parsed['@type']).toBe('NewsArticle');
+    expect(parsed.headline).toBe(mockCluster.synthesizedHeadline);
+    expect(parsed.articleSection).toBe('airforce');
+    expect(parsed.publisher.name).toBe('DefenceWire.in');
+  });
+
+  it('generates clean semantic HTML body for AI crawlers', () => {
+    const meta = buildStoryMetaDocument(mockCluster);
+    expect(meta.semanticBodyHtml).toBeDefined();
+    expect(meta.semanticBodyHtml).toContain('<article class="dw-prerender-story"');
+    expect(meta.semanticBodyHtml).toContain('<h1 itemprop="headline">HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force</h1>');
+    expect(meta.semanticBodyHtml).toContain('Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.');
+    expect(meta.semanticBodyHtml).toContain('https://pib.gov.in/news/tejas');
+  });
 });
