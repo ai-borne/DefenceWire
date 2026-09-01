@@ -46,12 +46,14 @@ export function formatTimeAgo(isoString: string, now: Date = new Date()): string
 
 /**
  * Formats a Date object into live Indian Standard Time (IST, UTC+5:30) string.
- * Example output: "30 Aug 2026, 15:30:45 IST"
+ * Example compact output: "01 Sep 2026, 08:03 IST"
+ * Example with seconds: "01 Sep 2026, 08:03:11 IST"
  *
  * @param date - Date instance to format (defaults to current date)
+ * @param includeSeconds - Whether to include seconds in the output (defaults to false for compact UI)
  * @returns Formatted IST timestamp string
  */
-export function formatLiveIST(date: Date = new Date()): string {
+export function formatLiveIST(date: Date = new Date(), includeSeconds: boolean = false): string {
   try {
     const options: Intl.DateTimeFormatOptions = {
       timeZone: 'Asia/Kolkata',
@@ -60,9 +62,12 @@ export function formatLiveIST(date: Date = new Date()): string {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
       hour12: false
     };
+
+    if (includeSeconds) {
+      options.second = '2-digit';
+    }
 
     const formatter = new Intl.DateTimeFormat('en-IN', options);
     const parts = formatter.formatToParts(date);
@@ -76,16 +81,20 @@ export function formatLiveIST(date: Date = new Date()): string {
 
     for (const part of parts) {
       if (part.type === 'day') day = part.value;
-      if (part.type === 'month') month = part.value;
+      if (part.type === 'month') month = part.value === 'Sept' ? 'Sep' : part.value;
       if (part.type === 'year') year = part.value;
       if (part.type === 'hour') hour = part.value;
       if (part.type === 'minute') minute = part.value;
       if (part.type === 'second') second = part.value;
     }
 
-    return `${day} ${month} ${year}, ${hour}:${minute}:${second} IST`;
+    if (includeSeconds && second) {
+      return `${day} ${month} ${year}, ${hour}:${minute}:${second} IST`;
+    }
+
+    return `${day} ${month} ${year}, ${hour}:${minute} IST`;
   } catch {
     // Fallback if Intl is unavailable
-    return date.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    return date.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
   }
 }

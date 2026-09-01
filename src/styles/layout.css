@@ -15,9 +15,7 @@
   align-items: start;
 }
 
-.dw-main-feed {
-  min-width: 0;
-}
+.dw-main-feed { min-width: 0; }
 
 .dw-sidebar-rail {
   min-width: 0;
@@ -43,12 +41,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  position: relative;
 }
 
 .dw-brand-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .dw-brand-title {
@@ -57,11 +57,10 @@
   letter-spacing: -0.4px;
   color: var(--dw-text-primary);
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.dw-brand-accent {
-  color: var(--dw-text-accent);
-}
+.dw-brand-accent { color: var(--dw-text-accent); }
 
 .dw-inst-badge {
   font-size: 0.68rem;
@@ -72,12 +71,14 @@
   color: var(--dw-badge-text);
   border-radius: var(--dw-radius-sm);
   text-transform: uppercase;
+  user-select: none;
 }
 
 .dw-header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .dw-live-clock {
@@ -88,21 +89,46 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  user-select: none;
 }
 
 .dw-live-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #1E7E34;
+  background-color: var(--dw-status-online-bg);
   display: inline-block;
   animation: dwPulse 2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
 @keyframes dwPulse {
   0% { transform: scale(0.95); opacity: 0.8; }
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.dw-search-toggle-btn {
+  display: none;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-primary);
+  color: var(--dw-text-secondary);
+  border-radius: var(--dw-radius-sm);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.dw-search-toggle-btn:hover {
+  background-color: var(--dw-bg-hover);
+  color: var(--dw-text-primary);
+  border-color: var(--dw-text-accent);
+}
+
+.dw-search-toggle-btn.has-query {
+  border-color: var(--dw-text-accent);
+  color: var(--dw-text-accent);
 }
 
 .dw-search-box {
@@ -112,18 +138,18 @@
 
 .dw-search-input {
   width: 100%;
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: 0.8rem;
   border: 1px solid var(--dw-border-primary);
   border-radius: var(--dw-radius-sm);
   background-color: var(--dw-bg-card);
   color: var(--dw-text-primary);
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
-.dw-search-input:focus {
-  border-color: var(--dw-text-accent);
-}
+.dw-search-input:focus { border-color: var(--dw-text-accent); }
+.dw-search-close-btn { display: none; }
 
 .dw-theme-btn {
   background-color: var(--dw-bg-secondary);
@@ -133,6 +159,17 @@
   border-radius: var(--dw-radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dw-theme-btn:hover {
+  background-color: var(--dw-bg-hover);
+  border-color: var(--dw-text-accent);
 }
 
 .dw-sync-btn {
@@ -168,19 +205,9 @@
   line-height: 1;
 }
 
-.dw-sync-btn.is-syncing .dw-sync-icon {
-  animation: dwSpin 1s infinite linear;
-}
-
-.dw-sync-btn.is-updated {
-  color: var(--dw-badge-text);
-  border-color: var(--dw-badge-bg);
-}
-
-.dw-sync-btn.is-error {
-  color: var(--dw-text-accent);
-  border-color: var(--dw-text-accent);
-}
+.dw-sync-btn.is-syncing .dw-sync-icon { animation: dwSpin 1s infinite linear; }
+.dw-sync-btn.is-updated { color: var(--dw-badge-text); border-color: var(--dw-badge-bg); }
+.dw-sync-btn.is-error { color: var(--dw-text-accent); border-color: var(--dw-text-accent); }
 
 @keyframes dwSpin {
   from { transform: rotate(0deg); }
@@ -195,9 +222,7 @@
   scrollbar-width: none;
 }
 
-.dw-nav::-webkit-scrollbar {
-  display: none;
-}
+.dw-nav::-webkit-scrollbar { display: none; }
 
 .dw-nav-inner {
   max-width: 1240px;
@@ -220,9 +245,7 @@
   transition: all 0.1s ease;
 }
 
-.dw-nav-tab:hover {
-  color: var(--dw-text-primary);
-}
+.dw-nav-tab:hover { color: var(--dw-text-primary); }
 
 .dw-nav-tab.active {
   color: var(--dw-text-accent);
@@ -253,3 +276,4 @@
   gap: 14px;
   flex-wrap: wrap;
 }
+

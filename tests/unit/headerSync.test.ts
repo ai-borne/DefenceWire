@@ -1,6 +1,6 @@
 /**
- * Unit Tests for Header Component Sync Trigger & Status Indicator (Phase 3)
- * Tests tactile manual sync trigger, aria accessibility, state transitions, and DOM rendering.
+ * Unit Tests for Header Component (Phase 3 & Mobile Single-Row Streamlining)
+ * Tests tactile manual sync trigger, expandable search, live IST clock, theme toggle, and accessibility.
  * Hard limit: <= 300 LOC.
  */
 
@@ -8,10 +8,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHeader } from '../../src/components/Header.js';
 import { ThemeViewModel } from '../../src/viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
+import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { FeedSyncService, SyncStatus } from '../../src/services/feedSyncService.js';
 import { STRINGS } from '../../src/resources/strings.js';
 
-describe('Header Component - Sync Indicator & Manual Trigger', () => {
+describe('Header Component - Streamlined Single-Row Controls & Sync', () => {
   let themeVm: ThemeViewModel;
   let newsVm: NewsViewModel;
   let feedSyncService: FeedSyncService;
@@ -26,6 +27,21 @@ describe('Header Component - Sync Indicator & Manual Trigger', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+  });
+
+  it('renders branding and compact live IST clock with pulsing green dot', () => {
+    const header = renderHeader(themeVm, newsVm, undefined, feedSyncService);
+    const brandTitle = header.querySelector('.dw-brand-title') as HTMLAnchorElement | null;
+    const clock = header.querySelector('.dw-live-clock');
+    const dot = clock?.querySelector('.dw-live-dot');
+    const clockText = clock?.querySelector('#dw-header-ist-clock');
+
+    expect(brandTitle).not.toBeNull();
+    expect(brandTitle?.textContent).toContain('Defence');
+    expect(brandTitle?.textContent).toContain('Wire.in');
+    expect(clock).not.toBeNull();
+    expect(dot).not.toBeNull();
+    expect(clockText?.textContent).toMatch(/\d{2}\s[A-Za-z]{3}\s\d{4},\s\d{2}:\d{2}\sIST/);
   });
 
   it('renders sync trigger button with proper accessible attributes and SSOT strings', () => {
@@ -127,25 +143,71 @@ describe('Header Component - Sync Indicator & Manual Trigger', () => {
     expect(syncBtn.title).toBe(STRINGS.sync.idleTooltip);
   });
 
-  it('positions sync button inside controls container alongside live clock', () => {
+  it('renders expandable search controls and synchronizes search queries with NewsViewModel', () => {
     const header = renderHeader(themeVm, newsVm, undefined, feedSyncService);
-    const controls = header.querySelector('.dw-header-controls');
-    const clock = controls?.querySelector('.dw-live-clock');
-    const syncBtn = controls?.querySelector('.dw-sync-btn');
-    const searchBox = controls?.querySelector('.dw-search-box');
-    const themeBtn = controls?.querySelector('.dw-theme-btn');
+    const toggleBtn = header.querySelector('.dw-search-toggle-btn') as HTMLButtonElement;
+    const searchBox = header.querySelector('.dw-search-box') as HTMLDivElement;
+    const searchInput = header.querySelector('.dw-search-input') as HTMLInputElement;
+    const closeBtn = header.querySelector('.dw-search-close-btn') as HTMLButtonElement;
 
-    expect(controls).not.toBeNull();
-    expect(clock).not.toBeNull();
-    expect(syncBtn).not.toBeNull();
+    expect(toggleBtn).not.toBeNull();
     expect(searchBox).not.toBeNull();
-    expect(themeBtn).not.toBeNull();
+    expect(searchInput).not.toBeNull();
+    expect(closeBtn).not.toBeNull();
 
-    // Verify ordering: clock -> syncBtn -> searchBox -> themeBtn
-    const children = Array.from(controls?.children || []);
-    expect(children.indexOf(clock!)).toBe(0);
-    expect(children.indexOf(syncBtn!)).toBe(1);
-    expect(children.indexOf(searchBox!)).toBe(2);
-    expect(children.indexOf(themeBtn!)).toBe(3);
+    // Toggle search open
+    toggleBtn.click();
+    expect(header.classList.contains('is-search-expanded')).toBe(true);
+    expect(searchBox.classList.contains('is-open')).toBe(true);
+
+    // Input query
+    searchInput.value = 'Tejas';
+    searchInput.dispatchEvent(new Event('input'));
+    expect(newsVm.getSearchQuery()).toBe('Tejas');
+    expect(toggleBtn.classList.contains('has-query')).toBe(true);
+
+    // Close via close button
+    closeBtn.click();
+    expect(header.classList.contains('is-search-expanded')).toBe(false);
+    expect(searchBox.classList.contains('is-open')).toBe(false);
+
+    // Reopen and close via Escape key
+    toggleBtn.click();
+    expect(header.classList.contains('is-search-expanded')).toBe(true);
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(header.classList.contains('is-search-expanded')).toBe(false);
+  });
+
+  it('renders theme toggle button with correct theme icons and cycles mode', () => {
+    const header = renderHeader(themeVm, newsVm, undefined, feedSyncService);
+    const themeBtn = header.querySelector('.dw-theme-btn') as HTMLButtonElement;
+    const themeIcon = themeBtn.querySelector('.dw-theme-icon') as HTMLSpanElement;
+
+    expect(themeBtn).not.toBeNull();
+    expect(themeIcon.textContent).toBe(STRINGS.theme.iconSystem);
+
+    // Toggle to Light
+    themeBtn.click();
+    expect(themeVm.getTheme()).toBe('light');
+    expect(themeIcon.textContent).toBe(STRINGS.theme.iconLight);
+
+    // Toggle to Dark
+    themeBtn.click();
+    expect(themeVm.getTheme()).toBe('dark');
+    expect(themeIcon.textContent).toBe(STRINGS.theme.iconDark);
+  });
+
+  it('triggers stealth curator desk toggle on rapid 5-click on badge', () => {
+    const editorVm = new EditorViewModel(newsVm);
+    const toggleSpy = vi.spyOn(editorVm, 'toggleOpen');
+
+    const header = renderHeader(themeVm, newsVm, editorVm, feedSyncService);
+    const badge = header.querySelector('.dw-inst-badge') as HTMLSpanElement;
+
+    for (let i = 0; i < 5; i++) {
+      badge.click();
+    }
+
+    expect(toggleSpy).toHaveBeenCalledTimes(1);
   });
 });

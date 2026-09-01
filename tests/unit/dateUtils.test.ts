@@ -40,10 +40,17 @@ describe('Date Utilities: formatTimeAgo', () => {
 });
 
 describe('Date Utilities: formatLiveIST', () => {
-  it('should format timestamp with IST suffix', () => {
+  it('should format timestamp with compact IST format by default', () => {
     const fixedDate = new Date('2026-08-30T10:00:00Z');
     const istString = formatLiveIST(fixedDate);
     expect(istString).toContain('IST');
     expect(istString).toContain('2026');
+    expect(istString).toBe('30 Aug 2026, 15:30 IST');
+  });
+
+  it('should format timestamp with seconds when requested', () => {
+    const fixedDate = new Date('2026-08-30T10:00:15Z');
+    const istString = formatLiveIST(fixedDate, true);
+    expect(istString).toBe('30 Aug 2026, 15:30:15 IST');
   });
 });

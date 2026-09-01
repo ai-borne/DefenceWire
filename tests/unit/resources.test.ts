@@ -82,11 +82,17 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.funnel.utmMediumSSB).toBe('ssb_drawer');
   });
 
-  it('should have valid non-empty values for all error, theme, and sync strings', () => {
+  it('should have valid non-empty values for all error, theme, search, and sync strings', () => {
     expect(STRINGS.errors.feedLoadFailed).toBeDefined();
     expect(STRINGS.errors.invalidUrl).toBeDefined();
     expect(STRINGS.theme.light).toBeDefined();
     expect(STRINGS.theme.dark).toBeDefined();
+    expect(STRINGS.theme.iconLight).toBe('☀️');
+    expect(STRINGS.theme.iconDark).toBe('🌙');
+    expect(STRINGS.theme.iconSystem).toBe('⚙️');
+    expect(STRINGS.search.toggleSearchAria).toBeDefined();
+    expect(STRINGS.search.closeSearchAria).toBeDefined();
+    expect(STRINGS.search.expandSearchTooltip).toBeDefined();
     expect(STRINGS.sync.buttonLabel).toBe('Sync');
     expect(STRINGS.sync.ariaSyncNow).toBeDefined();
     expect(STRINGS.sync.idleTooltip).toBeDefined();

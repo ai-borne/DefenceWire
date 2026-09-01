@@ -162,7 +162,10 @@ export const STRINGS = {
     toggleThemeAria: 'Switch visual theme mode',
     light: 'Light (Newsprint)',
     dark: 'Dark (Tactical Slate)',
-    system: 'System Default'
+    system: 'System Default',
+    iconLight: '☀️',
+    iconDark: '🌙',
+    iconSystem: '⚙️'
   },
   river: {
     heading: 'River of News',
@@ -194,6 +197,9 @@ export const STRINGS = {
     placeholder: 'Search intelligence, systems, entities (e.g. Tejas, LAC, DRDO)...',
     ariaLabel: 'Search defence news and intelligence',
     clearAriaLabel: 'Clear search query',
+    toggleSearchAria: 'Toggle search bar',
+    closeSearchAria: 'Close search bar',
+    expandSearchTooltip: 'Search intelligence',
     resultsFound: 'briefings matching query',
     noResults: 'No intelligence briefings matching query.'
   },
