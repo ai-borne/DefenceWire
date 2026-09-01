@@ -69,4 +69,21 @@ describe('Workflow CI/CD Deployment & Automation Guardrails', () => {
     expect(content).toContain('database_name = "defencewire-archive"');
     expect(content).toContain('binding = "ARCHIVE_MEDIA"');
   });
+
+  it('verifies all third-party GitHub Actions in workflows are pinned to immutable 40-character commit SHAs', () => {
+    const workflowFiles = ['ci.yml', 'crawl-and-deploy.yml', 'backfill-cluster-json.yml'];
+    const unpinnedRegex = /uses:\s+actions\/(checkout|setup-node)@v\d+/i;
+    const shaPinnedRegex = /uses:\s+actions\/(checkout|setup-node)@[a-f0-9]{40}/i;
+
+    for (const file of workflowFiles) {
+      const filePath = path.join(rootDir, '.github/workflows', file);
+      expect(fs.existsSync(filePath)).toBe(true);
+      const content = fs.readFileSync(filePath, 'utf-8');
+
+      // No unpinned tag references
+      expect(content).not.toMatch(unpinnedRegex);
+      // Contains valid 40-char commit SHA pinning
+      expect(content).toMatch(shaPinnedRegex);
+    }
+  });
 });
