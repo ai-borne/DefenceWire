@@ -1,12 +1,12 @@
 /**
  * Curator Edge Authentication & Zero Trust Identity Handler for DefenceWire.in
  * Edge-agnostic core behind functions/api/curator/auth.ts.
- * Implements Cloudflare Access JWT signature verification, constant-time hash verification, and HMAC session cookie signing.
+ * Implements Cloudflare Access JWT verification, constant-time comparison, and HMAC session cookie signing.
  * Hard limit: <= 300 LOC.
  */
 
-const DEFAULT_DEV_PASSCODE_HASH = '322c41dfafb6e928d43e943beff0bda52e11436b9eef4530c6440152d4f5e28c';
-const DEFAULT_SESSION_SECRET = 'dw-curator-edge-secret-key-2026';
+import { STRINGS } from '../resources/strings.js';
+
 const SESSION_COOKIE_NAME = 'dw_curator_session';
 const SESSION_MAX_AGE_DEFAULT = 60 * 60 * 24 * 7; // 7 days
 const DEFAULT_ACCESS_TEAM_DOMAIN = 'defencewire.cloudflareaccess.com';
@@ -35,9 +35,8 @@ export async function verifyAccessJwtToken(
 ): Promise<{ email: string } | null> {
   if (!token) return null;
   const parts = token.trim().split('.');
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return null;
   const [headerB64, payloadB64, sigB64] = parts;
-  if (!headerB64 || !payloadB64 || !sigB64) return null;
 
   let header: { kid?: string };
   let payload: { email?: string; exp?: number; aud?: string[] };
@@ -47,7 +46,6 @@ export async function verifyAccessJwtToken(
   } catch {
     return null;
   }
-
   if (!payload.email || !payload.exp || Date.now() / 1000 > payload.exp) return null;
 
   try {
@@ -61,9 +59,7 @@ export async function verifyAccessJwtToken(
     const signedData = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
     const signature = base64UrlToUint8Array(sigB64).slice().buffer;
     const isValid = await globalThis.crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, signature, signedData);
-    if (!isValid) return null;
-
-    return { email: payload.email.trim().toLowerCase() };
+    return isValid ? { email: payload.email.trim().toLowerCase() } : null;
   } catch {
     return null;
   }
@@ -78,19 +74,21 @@ export async function verifyAccessSessionCookie(
   fetchFn: typeof fetch = globalThis.fetch
 ): Promise<{ email: string } | null> {
   if (!cookieHeader) return null;
-  const cookies = cookieHeader.split(';').map((c) => c.trim());
-  const cfCookie = cookies.find((c) => c.startsWith('CF_Authorization='));
+  const cfCookie = cookieHeader.split(';').map((c) => c.trim()).find((c) => c.startsWith('CF_Authorization='));
   if (!cfCookie) return null;
   return verifyAccessJwtToken(cfCookie.slice('CF_Authorization='.length), teamDomain, fetchFn);
 }
 
 /**
- * Constant-time comparison between two strings to prevent timing attacks.
+ * Constant-time comparison between two strings to prevent timing oracles and length leakage.
  */
 export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const maxLen = Math.max(a.length, b.length);
+  let result = a.length ^ b.length;
+  for (let i = 0; i < maxLen; i++) {
+    result |= (i < a.length ? a.charCodeAt(i) : 0) ^ (i < b.length ? b.charCodeAt(i) : 0);
+  }
   return result === 0;
 }
 
@@ -98,8 +96,7 @@ export function timingSafeEqual(a: string, b: string): boolean {
  * Computes standard SHA-256 hex string using Web Crypto API.
  */
 export async function sha256Hex(text: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', encoder.encode(text.trim()));
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.trim()));
   return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -116,32 +113,43 @@ export async function hmacSign(payload: string, secret: string): Promise<string>
 /**
  * Generates an HttpOnly signed session cookie string with v1 version prefix.
  */
-export async function createSessionCookie(secret: string = DEFAULT_SESSION_SECRET, maxAge: number = SESSION_MAX_AGE_DEFAULT): Promise<string> {
-  const primarySecret = secret.split(',')[0]?.trim() || DEFAULT_SESSION_SECRET;
+export async function createSessionCookie(secret: string, maxAge: number = SESSION_MAX_AGE_DEFAULT): Promise<string> {
+  if (!secret || typeof secret !== 'string' || !secret.trim()) {
+    throw new Error('Cannot create session cookie: session secret is required.');
+  }
+  const primarySecret = secret.split(',')[0]?.trim();
+  if (!primarySecret) throw new Error('Cannot create session cookie: primary secret is required.');
   const timestamp = Date.now().toString();
   const signature = await hmacSign(timestamp, primarySecret);
   return `${SESSION_COOKIE_NAME}=v1.${timestamp}.${signature}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
 }
 
-/**
- * Generates a cookie-clearing header.
- */
 export function createClearSessionCookie(): string {
   return `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`;
 }
 
+function parseSessionEpoch(epoch?: number | string | null): number {
+  if (!epoch) return 0;
+  if (typeof epoch === 'number') return epoch < 1e11 ? epoch * 1000 : epoch;
+  const trimmed = epoch.trim();
+  if (!trimmed) return 0;
+  const num = parseInt(trimmed, 10);
+  if (!isNaN(num)) return num < 1e11 ? num * 1000 : num;
+  const parsedDate = Date.parse(trimmed);
+  return !isNaN(parsedDate) ? parsedDate : 0;
+}
+
 /**
- * Verifies an incoming cookie against the HMAC secret (or comma-separated secret list for zero-downtime rotation).
- * Supports both versioned ('v1.timestamp.signature') and legacy ('timestamp.signature') tokens.
+ * Verifies an incoming cookie against HMAC secret(s) and epoch revocation bounds.
  */
 export async function verifySessionCookie(
   cookieHeader: string | null | undefined,
-  secret: string = DEFAULT_SESSION_SECRET,
-  maxAgeMs: number = SESSION_MAX_AGE_DEFAULT * 1000
+  secret: string | null | undefined,
+  maxAgeMs: number = SESSION_MAX_AGE_DEFAULT * 1000,
+  sessionEpoch?: number | string | null
 ): Promise<boolean> {
-  if (!cookieHeader) return false;
-  const cookies = cookieHeader.split(';').map((c) => c.trim());
-  const sessionCookie = cookies.find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
+  if (!cookieHeader || !secret || typeof secret !== 'string' || !secret.trim()) return false;
+  const sessionCookie = cookieHeader.split(';').map((c) => c.trim()).find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
   if (!sessionCookie) return false;
 
   const token = sessionCookie.slice(`${SESSION_COOKIE_NAME}=`.length);
@@ -160,29 +168,28 @@ export async function verifySessionCookie(
   }
 
   const timestamp = parseInt(timestampStr, 10);
-  if (isNaN(timestamp) || Date.now() - timestamp > maxAgeMs) return false;
+  if (isNaN(timestamp)) return false;
+
+  const now = Date.now();
+  if (now - timestamp > maxAgeMs || timestamp > now + 60_000) return false;
+
+  const minEpochMs = parseSessionEpoch(sessionEpoch);
+  if (minEpochMs > 0 && timestamp < minEpochMs) return false;
 
   const secretCandidates = secret.split(',').map((s) => s.trim()).filter(Boolean);
   for (const s of secretCandidates) {
     const expectedSig = await hmacSign(timestampStr, s);
     if (timingSafeEqual(providedSig, expectedSig)) return true;
   }
-
   return false;
 }
 
-/**
- * Extracts Cloudflare Zero Trust (Access) identity from request headers.
- */
 export function extractCloudflareAccessIdentity(
   headers: Headers | Record<string, string | null | undefined>
 ): { email: string; isAccessAuthenticated: boolean } | null {
   const email = extractHeader(headers, 'cf-access-authenticated-user-email');
   const jwt = extractHeader(headers, 'cf-access-jwt-assertion');
-  if (email && email.includes('@')) {
-    return { email: email.trim().toLowerCase(), isAccessAuthenticated: Boolean(jwt) };
-  }
-  return null;
+  return email && email.includes('@') ? { email: email.trim().toLowerCase(), isAccessAuthenticated: Boolean(jwt) } : null;
 }
 
 export interface CuratorAuthContext {
@@ -197,25 +204,21 @@ export interface CuratorAuthContext {
 export async function verifyCuratorAuthorization(
   headers: Headers | Record<string, string | null | undefined>,
   cookieHeader?: string | null,
-  secret: string = DEFAULT_SESSION_SECRET,
+  secret?: string | null,
   teamDomain: string = DEFAULT_ACCESS_TEAM_DOMAIN,
-  fetchFn: typeof fetch = globalThis.fetch
+  fetchFn: typeof fetch = globalThis.fetch,
+  sessionEpoch?: number | string | null
 ): Promise<CuratorAuthContext> {
   const jwtAssertion = extractHeader(headers, 'cf-access-jwt-assertion');
   if (jwtAssertion) {
     const verifiedHeader = await verifyAccessJwtToken(jwtAssertion, teamDomain, fetchFn);
-    if (verifiedHeader) {
-      return { authorized: true, email: verifiedHeader.email, provider: 'cloudflare_zero_trust' };
-    }
+    if (verifiedHeader) return { authorized: true, email: verifiedHeader.email, provider: 'cloudflare_zero_trust' };
   }
 
   const cfSession = await verifyAccessSessionCookie(cookieHeader, teamDomain, fetchFn);
-  if (cfSession) {
-    return { authorized: true, email: cfSession.email, provider: 'cloudflare_zero_trust' };
-  }
+  if (cfSession) return { authorized: true, email: cfSession.email, provider: 'cloudflare_zero_trust' };
 
-  const isCookieValid = await verifySessionCookie(cookieHeader, secret);
-  if (isCookieValid) {
+  if (secret && (await verifySessionCookie(cookieHeader, secret, undefined, sessionEpoch))) {
     return { authorized: true, email: 'curator@institutional.internal', provider: 'edge_session' };
   }
 
@@ -225,6 +228,7 @@ export async function verifyCuratorAuthorization(
 export interface CuratorAuthEnv {
   CURATOR_PASSCODE_HASH?: string;
   CURATOR_SESSION_SECRET?: string;
+  CURATOR_SESSION_EPOCH?: string | number;
   NODE_ENV?: string;
 }
 
@@ -240,26 +244,21 @@ export interface CuratorAuthResponse {
 }
 
 /**
- * Processes edge authentication requests.
+ * Processes edge authentication requests with fail-closed security.
  */
 export async function handleCuratorAuthRequest(
   payload: CuratorAuthPayload,
   env: CuratorAuthEnv = {}
 ): Promise<CuratorAuthResponse> {
-  const isProd = (env.NODE_ENV || (typeof process !== 'undefined' ? process.env?.NODE_ENV : undefined)) === 'production';
-  if (isProd && (!env.CURATOR_PASSCODE_HASH || !env.CURATOR_SESSION_SECRET)) {
-    return { success: false, error: 'Production environment requires configured secrets.' };
-  }
+  const expectedHash = env.CURATOR_PASSCODE_HASH?.trim();
+  const secret = env.CURATOR_SESSION_SECRET?.trim();
+  if (!expectedHash || !secret) return { success: false, error: STRINGS.errors.authConfigMissing };
 
   const passcode = payload.passcode?.trim();
   if (!passcode) return { success: false, error: 'Passcode is required.' };
 
-  const expectedHash = env.CURATOR_PASSCODE_HASH || DEFAULT_DEV_PASSCODE_HASH;
-  const secret = env.CURATOR_SESSION_SECRET || DEFAULT_SESSION_SECRET;
-
   const computedHash = await sha256Hex(passcode);
-  const isValid = timingSafeEqual(computedHash, expectedHash);
-  if (!isValid) return { success: false, error: 'Invalid passcode.' };
+  if (!timingSafeEqual(computedHash, expectedHash)) return { success: false, error: STRINGS.editor.invalidPasscode };
 
   const maxAge = payload.remember ? SESSION_MAX_AGE_DEFAULT : 60 * 60 * 8;
   const cookie = await createSessionCookie(secret, maxAge);
@@ -268,16 +267,13 @@ export async function handleCuratorAuthRequest(
 
 /**
  * Sanitizes and validates a redirect/return URL to eliminate open redirect vulnerabilities and CRLF injection.
- * Strictly enforces relative paths (e.g. `/#curator`, `/archive`, `/`).
  */
 export function sanitizeReturnUrl(url: string | null | undefined, fallback: string = '/#curator'): string {
   if (!url || typeof url !== 'string') return fallback;
   const trimmed = url.trim();
   if (!trimmed) return fallback;
 
-  // Reject CRLF or control characters (raw or URL-encoded)
   if (/[\r\n\0\t\x00-\x1F\x7F]/.test(trimmed) || /%(?:0[0-9a-fA-F]|1[0-9a-fA-F]|7[fF])/i.test(trimmed)) return fallback;
-  // Reject protocol schemes and protocol-relative or backslash paths
   if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) || /^[/\\]{2,}/.test(trimmed) || /^\\[/\\]?/.test(trimmed) || /^\/\\/.test(trimmed)) return fallback;
 
   try {
@@ -285,8 +281,7 @@ export function sanitizeReturnUrl(url: string | null | undefined, fallback: stri
     if (/[\r\n\0\t\x00-\x1F\x7F]/.test(decoded) || /^[/\\]{2,}/.test(decoded) || /^\/\\/.test(decoded) || /^\\[/\\]?/.test(decoded) || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)) {
       return fallback;
     }
-    const pathPart = decoded.split(/[?#]/)[0] || '';
-    if (pathPart.includes('\\')) return fallback;
+    if ((decoded.split(/[?#]/)[0] || '').includes('\\')) return fallback;
   } catch {
     return fallback;
   }

@@ -17,12 +17,14 @@ import {
   getClientIp,
   getRateLimitHeaders
 } from '../../../src/services/edgeRateLimiter.js';
+import { STRINGS } from '../../../src/resources/strings.js';
 
 interface PagesFunctionContext {
   request: Request;
   env: {
     CURATOR_PASSCODE_HASH?: string;
     CURATOR_SESSION_SECRET?: string;
+    CURATOR_SESSION_EPOCH?: string;
     CURATOR_TEAM_DOMAIN?: string;
   };
 }
@@ -35,7 +37,7 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
 
   if (!rateLimit.allowed) {
     return Response.json(
-      { success: false, error: 'Too many login attempts. Please try again later.' },
+      { success: false, error: STRINGS.errors.rateLimitExceeded },
       { status: 429, headers: { ...rateLimitHeaders, 'X-Content-Type-Options': 'nosniff' } }
     );
   }
@@ -45,9 +47,11 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
     const result = await handleCuratorAuthRequest(payload, context.env);
 
     if (!result.success || !result.cookie) {
+      const isConfigError = result.error === STRINGS.errors.authConfigMissing || (!context.env.CURATOR_PASSCODE_HASH || !context.env.CURATOR_SESSION_SECRET);
+      const status = isConfigError ? 500 : 401;
       return Response.json(
-        { success: false, error: result.error || 'Authentication failed' },
-        { status: 401, headers: { ...rateLimitHeaders, 'X-Content-Type-Options': 'nosniff' } }
+        { success: false, error: result.error || STRINGS.errors.authFailed },
+        { status, headers: { ...rateLimitHeaders, 'X-Content-Type-Options': 'nosniff' } }
       );
     }
 
@@ -73,11 +77,14 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   const isHtmlNav = url.searchParams.get('redirect') === '1' || (context.request.headers.get('accept') || '').includes('text/html');
   const cookieHeader = context.request.headers.get('cookie');
   const secret = context.env.CURATOR_SESSION_SECRET;
+  const epoch = context.env.CURATOR_SESSION_EPOCH;
   const authContext = await verifyCuratorAuthorization(
     context.request.headers,
     cookieHeader,
     secret,
-    context.env.CURATOR_TEAM_DOMAIN
+    context.env.CURATOR_TEAM_DOMAIN,
+    globalThis.fetch,
+    epoch
   );
 
   if (isHtmlNav) {
@@ -85,7 +92,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
     const headers = new Headers();
     headers.set('Location', returnUrl);
     headers.set('Cache-Control', 'no-store');
-    if (authContext.authorized) {
+    if (authContext.authorized && secret) {
       headers.set('Set-Cookie', await createSessionCookie(secret));
     }
     return new Response(null, {

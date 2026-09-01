@@ -213,7 +213,11 @@ export const STRINGS = {
   errors: {
     feedLoadFailed: 'Unable to retrieve live feed. Loading cached intelligence...',
     invalidUrl: 'Invalid or unsafe external URL detected.',
-    emptyCluster: 'No stories available in this category at this time.'
+    emptyCluster: 'No stories available in this category at this time.',
+    authRequired: 'Authentication required.',
+    authFailed: 'Authentication failed.',
+    authConfigMissing: 'Server configuration error: Authentication secrets not configured.',
+    rateLimitExceeded: 'Too many login attempts. Please try again later.'
   },
   sync: {
     buttonLabel: 'Sync',

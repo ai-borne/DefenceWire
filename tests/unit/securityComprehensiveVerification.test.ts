@@ -175,7 +175,7 @@ describe('Comprehensive Security Verification Suite', () => {
     for (let i = 0; i < 5; i++) {
       const res = await curatorAuthPost({
         request: makeRequest(),
-        env: { CURATOR_PASSCODE_HASH: 'dummy-hash' }
+        env: { CURATOR_PASSCODE_HASH: 'dummy-hash', CURATOR_SESSION_SECRET: 'dummy-secret' }
       });
       expect(res.status).toBe(401);
       expect(res.headers.get('RateLimit-Remaining')).toBe(String(4 - i));
@@ -184,7 +184,7 @@ describe('Comprehensive Security Verification Suite', () => {
     // 6th attempt is throttled with HTTP 429 Too Many Requests
     const throttledRes = await curatorAuthPost({
       request: makeRequest(),
-      env: { CURATOR_PASSCODE_HASH: 'dummy-hash' }
+      env: { CURATOR_PASSCODE_HASH: 'dummy-hash', CURATOR_SESSION_SECRET: 'dummy-secret' }
     });
 
     expect(throttledRes.status).toBe(429);

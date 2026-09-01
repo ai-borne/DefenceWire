@@ -98,13 +98,13 @@ describe('Edge Endpoints: Rate Limiting & D1 Guardrail Protection', () => {
 
     // 5 attempts allowed (returns 401 invalid passcode)
     for (let i = 0; i < 5; i++) {
-      const res = await curatorAuthPost({ request: requestFactory(), env: { CURATOR_PASSCODE_HASH: 'abc' } });
+      const res = await curatorAuthPost({ request: requestFactory(), env: { CURATOR_PASSCODE_HASH: 'abc', CURATOR_SESSION_SECRET: 'test-secret' } });
       expect(res.status).toBe(401);
       expect(res.headers.get('RateLimit-Remaining')).toBe(String(4 - i));
     }
 
     // 6th attempt rejected with HTTP 429 Too Many Requests
-    const resBlocked = await curatorAuthPost({ request: requestFactory(), env: { CURATOR_PASSCODE_HASH: 'abc' } });
+    const resBlocked = await curatorAuthPost({ request: requestFactory(), env: { CURATOR_PASSCODE_HASH: 'abc', CURATOR_SESSION_SECRET: 'test-secret' } });
     expect(resBlocked.status).toBe(429);
     expect(resBlocked.headers.get('Retry-After')).toBeTruthy();
     const data = (await resBlocked.json()) as { error: string };

@@ -28,6 +28,7 @@ interface PagesFunctionContext {
   env: {
     DB?: D1Database;
     CURATOR_SESSION_SECRET?: string;
+    CURATOR_SESSION_EPOCH?: string;
   };
 }
 
@@ -39,7 +40,15 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
 
   const cookieHeader = context.request.headers.get('cookie');
   const secret = context.env.CURATOR_SESSION_SECRET;
-  const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+  const epoch = context.env.CURATOR_SESSION_EPOCH;
+  const authContext = await verifyCuratorAuthorization(
+    context.request.headers,
+    cookieHeader,
+    secret,
+    undefined,
+    globalThis.fetch,
+    epoch
+  );
 
   const result = await handleGetOverrides(
     {
@@ -72,7 +81,15 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
     const body = (await context.request.json()) as CuratorOverrideRequest;
     const cookieHeader = context.request.headers.get('cookie');
     const secret = context.env.CURATOR_SESSION_SECRET;
-    const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+    const epoch = context.env.CURATOR_SESSION_EPOCH;
+    const authContext = await verifyCuratorAuthorization(
+      context.request.headers,
+      cookieHeader,
+      secret,
+      undefined,
+      globalThis.fetch,
+      epoch
+    );
 
     if (!authContext.authorized) {
       return Response.json({ success: false, error: 'Unauthorized: Valid curator session required.' }, { status: 401 });
@@ -117,7 +134,15 @@ export async function onRequestDelete(context: PagesFunctionContext): Promise<Re
   const id = url.searchParams.get('id') || '';
   const cookieHeader = context.request.headers.get('cookie');
   const secret = context.env.CURATOR_SESSION_SECRET;
-  const authContext = await verifyCuratorAuthorization(context.request.headers, cookieHeader, secret);
+  const epoch = context.env.CURATOR_SESSION_EPOCH;
+  const authContext = await verifyCuratorAuthorization(
+    context.request.headers,
+    cookieHeader,
+    secret,
+    undefined,
+    globalThis.fetch,
+    epoch
+  );
 
   if (!authContext.authorized) {
     return Response.json({ success: false, error: 'Unauthorized: Valid curator session required.' }, { status: 401 });
