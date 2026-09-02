@@ -96,6 +96,64 @@ CREATE TABLE IF NOT EXISTS source_reputation (
 
 CREATE INDEX IF NOT EXISTS idx_source_reputation_multiplier ON source_reputation (reputation_multiplier DESC);
 
+-- Defence Tender/RFP Tracker (MOAT3) — active tenders + DRDO TDF/iDEX grants.
+-- Metadata only: full tender JSON/PDF payloads go to R2 (pdf_r2_key), same
+-- discipline as the archived_stories cluster_json -> R2 migration above.
+CREATE TABLE IF NOT EXISTS tenders (
+  id TEXT PRIMARY KEY,                 -- native tender ID, e.g. '2026_IAF_787429_1'
+  source TEXT NOT NULL,                -- 'defproc' | 'eprocure' | 'bdl' | 'mazagon_dock' | 'beml' | 'coast_guard' | 'idex' | 'tdf'
+  title TEXT NOT NULL,
+  organisation_chain TEXT NOT NULL,
+  reference_number TEXT,
+  category TEXT,                       -- 'Goods' | 'Services' | 'Works' | 'RFI' | 'grant' (idex/tdf)
+  domain TEXT,                         -- Army/Navy/Air Force/DRDO/multi — Gemini-extracted
+  published_at TEXT,
+  closing_at TEXT,
+  emd_amount REAL,
+  iddm_percent REAL,                   -- Gemini-extracted, nullable
+  program_ids TEXT,                    -- JSON array, linked via programMatcher.ts
+  detail_url TEXT NOT NULL,
+  pdf_r2_key TEXT,                     -- e.g. 'tenders/{id}.pdf'
+  status TEXT NOT NULL DEFAULT 'active', -- 'active' | 'closed' | 'cancelled'
+  first_seen_at TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tenders_closing_at ON tenders (closing_at ASC);
+CREATE INDEX IF NOT EXISTS idx_tenders_source ON tenders (source, status);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS tenders_fts USING fts5(
+  id UNINDEXED, title, organisation_chain,
+  content='tenders', content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS tenders_ai AFTER INSERT ON tenders BEGIN
+  INSERT INTO tenders_fts(rowid, id, title, organisation_chain)
+  VALUES (new.rowid, new.id, new.title, new.organisation_chain);
+END;
+
+CREATE TRIGGER IF NOT EXISTS tenders_ad AFTER DELETE ON tenders BEGIN
+  INSERT INTO tenders_fts(tenders_fts, rowid, id, title, organisation_chain)
+  VALUES('delete', old.rowid, old.id, old.title, old.organisation_chain);
+END;
+
+CREATE TRIGGER IF NOT EXISTS tenders_au AFTER UPDATE ON tenders BEGIN
+  INSERT INTO tenders_fts(tenders_fts, rowid, id, title, organisation_chain)
+  VALUES('delete', old.rowid, old.id, old.title, old.organisation_chain);
+  INSERT INTO tenders_fts(rowid, id, title, organisation_chain)
+  VALUES (new.rowid, new.id, new.title, new.organisation_chain);
+END;
+
+-- Per-source circuit breaker for the tender crawler. A separate table from
+-- source_reputation on purpose: source_reputation tracks ranking/quality
+-- signal, this tracks fetch health/captcha-gating for graceful degradation.
+CREATE TABLE IF NOT EXISTS tender_source_health (
+  source TEXT PRIMARY KEY,
+  last_success_at TEXT,
+  consecutive_failures INTEGER DEFAULT 0,
+  last_failure_reason TEXT,            -- 'captcha_detected' | 'http_error' | 'schema_mismatch'
+  updated_at TEXT NOT NULL
+);
+
 -- ============================================================================
 -- Migration (Phase 3 of the R2 cluster_json migration): drop the NOT NULL
 -- constraint on archived_stories.cluster_json. As of Phase 3, cluster_json is
