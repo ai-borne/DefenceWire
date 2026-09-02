@@ -4,7 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { SourceTier } from '../../src/types/source.js';
-import type { StoryCluster, StorySourceItem, SSBIntelligence } from '../../src/types/news.js';
+import type {
+  StoryCluster,
+  StorySourceItem,
+  SSBIntelligence,
+  ParliamentQuestionMeta,
+  DomainCategory
+} from '../../src/types/news.js';
 import type { ScoreBreakdown, RankingParams } from '../../src/types/ranking.js';
 
 describe('Data Contracts: SourceTier Enum', () => {
@@ -122,5 +128,53 @@ describe('Data Contracts: Ranking & Scoring Structures', () => {
     expect(params.gravity).toBe(1.6);
     expect(breakdown.finalDefenceScore).toBeGreaterThan(90);
     expect(breakdown.bonuses.length).toBe(1);
+  });
+});
+
+describe('Data Contracts: Parliament and MOAT Categories', () => {
+  it('should support ParliamentQuestionMeta and OfficialSourceType fields on StorySourceItem', () => {
+    const meta: ParliamentQuestionMeta = {
+      house: 'Lok Sabha',
+      questionNumber: 'USQ 1234',
+      questionType: 'Unstarred',
+      answeringDate: '2026-08-30',
+      ministry: 'Ministry of Defence',
+      minister: 'Raksha Mantri',
+      subject: 'Defence Procurement',
+      pdfUrl: 'https://sansad.in/doc.pdf'
+    };
+
+    const source: StorySourceItem = {
+      id: 'src-test',
+      title: 'Parliament Q&A',
+      url: 'https://sansad.in/q',
+      sourceName: 'Lok Sabha Secretariat',
+      sourceDomain: 'sansad.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T09:00:00Z',
+      officialType: 'lok_sabha',
+      parliamentMeta: meta
+    };
+
+    expect(source.officialType).toBe('lok_sabha');
+    expect(source.parliamentMeta?.house).toBe('Lok Sabha');
+    expect(source.parliamentMeta?.questionNumber).toBe('USQ 1234');
+  });
+
+  it('should support all MOAT and domain categories', () => {
+    const categories: DomainCategory[] = [
+      'official',
+      'programs',
+      'tenders',
+      'idex',
+      'tech',
+      'strategic',
+      'procurement',
+      'ssb',
+      'army',
+      'navy',
+      'airforce'
+    ];
+    expect(categories).toHaveLength(11);
   });
 });
