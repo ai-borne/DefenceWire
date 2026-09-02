@@ -74,14 +74,22 @@ describe('Crawler Feed Registry', () => {
     expect(active.every((f) => f.enabled)).toBe(true);
   });
 
-  it('filters feeds correctly by category', () => {
+  it('filters feeds correctly by category including official feeds', () => {
+    const officialFeeds = getFeedsByCategory('official');
     const techFeeds = getFeedsByCategory('tech');
     const armyFeeds = getFeedsByCategory('army');
     const strategicFeeds = getFeedsByCategory('strategic');
 
+    expect(officialFeeds.length).toBeGreaterThan(0);
     expect(techFeeds.length).toBeGreaterThan(0);
     expect(armyFeeds.length).toBeGreaterThan(0);
     expect(strategicFeeds.length).toBeGreaterThan(0);
+    expect(officialFeeds.every((f) => f.defaultCategory === 'official')).toBe(true);
     expect(techFeeds.every((f) => f.defaultCategory === 'tech')).toBe(true);
+
+    const officialIds = officialFeeds.map((f) => f.id);
+    expect(officialIds).toContain('feed-pib-mod-en');
+    expect(officialIds).toContain('feed-sansad-ls-defence');
+    expect(officialIds).toContain('feed-sansad-rs-defence');
   });
 });

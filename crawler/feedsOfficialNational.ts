@@ -14,7 +14,7 @@ export const OFFICIAL_AND_NATIONAL_FEEDS: FeedConfig[] = [
     url: 'https://pib.gov.in/RssMain.aspx?ModId=4',
     domain: 'pib.gov.in',
     tier: SourceTier.TIER_1_OFFICIAL,
-    defaultCategory: 'strategic',
+    defaultCategory: 'official',
     enabled: true,
     timeoutMs: 8000
   },
@@ -24,7 +24,27 @@ export const OFFICIAL_AND_NATIONAL_FEEDS: FeedConfig[] = [
     url: 'https://mod.gov.in/rss.xml',
     domain: 'mod.gov.in',
     tier: SourceTier.TIER_1_OFFICIAL,
-    defaultCategory: 'procurement',
+    defaultCategory: 'official',
+    enabled: true,
+    timeoutMs: 8000
+  },
+  {
+    id: 'feed-sansad-ls-defence',
+    name: 'Sansad Lok Sabha (Defence Q&A)',
+    url: 'https://sansad.in/ls/questions/rss?ministry=defence',
+    domain: 'sansad.in',
+    tier: SourceTier.TIER_1_OFFICIAL,
+    defaultCategory: 'official',
+    enabled: true,
+    timeoutMs: 8000
+  },
+  {
+    id: 'feed-sansad-rs-defence',
+    name: 'Sansad Rajya Sabha (Defence Q&A)',
+    url: 'https://sansad.in/rs/questions/rss?ministry=defence',
+    domain: 'sansad.in',
+    tier: SourceTier.TIER_1_OFFICIAL,
+    defaultCategory: 'official',
     enabled: true,
     timeoutMs: 8000
   },

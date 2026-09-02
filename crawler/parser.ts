@@ -9,6 +9,7 @@ import { isValidUrl, sanitizePlainText, decodeHtmlEntities } from '../src/utils/
 import { cleanStorySnippet } from '../src/utils/snippetCleaner.js';
 import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
+import { parseSansadXmlFeed } from './sansadScraper.js';
 import { normalizeSocialPostItem } from './socialNormalizer.js';
 
 export const MAX_FEED_BYTES = 5 * 1024 * 1024; // 5 MB stream cap
@@ -179,6 +180,10 @@ function parsePublicationDate(dateStr: string): string {
 
 export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceItem[] {
   if (!xmlContent || typeof xmlContent !== 'string') return [];
+  if (feed.domain === 'sansad.in') {
+    return parseSansadXmlFeed(xmlContent, feed.name.includes('Rajya') ? 'Rajya Sabha' : 'Lok Sabha');
+  }
+
   const items: StorySourceItem[] = [];
   const isAtom = xmlContent.includes('<feed') || xmlContent.includes('<entry');
   const blockRegex = isAtom ? /<entry[\s\S]*?<\/entry>/gi : /<item[\s\S]*?<\/item>/gi;
@@ -216,6 +221,13 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       snippet: cleanSnippet.length > 0 ? cleanSnippet : undefined,
       imageUrl: rawImageUrl
     };
+
+    if (
+      feed.tier === SourceTier.TIER_1_OFFICIAL &&
+      (feed.domain === 'pib.gov.in' || feed.domain === 'mod.gov.in' || feed.defaultCategory === 'official')
+    ) {
+      item.officialType = 'pib_mod';
+    }
 
     if (feed.tier === SourceTier.TIER_1_SOCIAL || feed.domain === 'x.com' || feed.domain === 'twitter.com') {
       item = normalizeSocialPostItem(item);

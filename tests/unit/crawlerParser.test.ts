@@ -75,6 +75,7 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(first?.sourceName).toBe('PIB Defence (Mock)');
     expect(first?.sourceDomain).toBe('pib.gov.in');
     expect(first?.tier).toBe(SourceTier.TIER_1_OFFICIAL);
+    expect(first?.officialType).toBe('pib_mod');
     expect(first?.snippet).toContain('Defence Acquisition Council chaired by Raksha Mantri');
     expect(first?.snippet).not.toContain('<p>');
     expect(first?.snippet).not.toContain('<b>');
@@ -82,6 +83,25 @@ describe('Feed Parser & Circuit Breakers', () => {
     const second = items[1];
     expect(second?.title).toBe('Indian Navy inducts 2nd Arihant-class SSBN INS Arighat');
     expect(second?.url).toBe('https://pib.gov.in/PressReleasePage.aspx?PRID=2048888');
+    expect(second?.officialType).toBe('pib_mod');
+  });
+
+  it('delegates sansad.in feeds to Sansad XML parser in parseFeedXml', () => {
+    const sansadFeed: FeedConfig = {
+      id: 'feed-sansad-ls',
+      name: 'Sansad Lok Sabha (Defence)',
+      url: 'https://sansad.in/ls/questions/rss',
+      domain: 'sansad.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      defaultCategory: 'official',
+      enabled: true
+    };
+    const xml = `<rss version="2.0"><channel><item><title><![CDATA[Lok Sabha Unstarred Question 501: Tejas MK1A Updates]]></title><link>https://sansad.in/501</link><pubDate>2026-08-30</pubDate><description>HAL update</description></item></channel></rss>`;
+    const items = parseFeedXml(xml, sansadFeed);
+    expect(items.length).toBe(1);
+    expect(items[0]?.officialType).toBe('lok_sabha');
+    expect(items[0]?.parliamentMeta?.house).toBe('Lok Sabha');
+    expect(items[0]?.parliamentMeta?.questionNumber).toBe('USQ 501');
   });
 
   it('assigns the same article id to the same feed item across two separate parse calls', () => {
