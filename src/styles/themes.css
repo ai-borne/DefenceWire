@@ -32,6 +32,27 @@
   --dw-status-online-bg: #1E7E34;
   --dw-status-online-text: #FFFFFF;
 
+  /* Strategic Program Domains */
+  --dw-domain-aerospace: #0284C7;
+  --dw-domain-naval: #0F766E;
+  --dw-domain-land: #854D0E;
+  --dw-domain-missiles: #DC2626;
+  --dw-domain-unmanned: #7C3AED;
+
+  /* Strategic Program Stages */
+  --dw-stage-concept-bg: #F3F4F6;
+  --dw-stage-concept-text: #4B5563;
+  --dw-stage-sanctioned-bg: #FEF3C7;
+  --dw-stage-sanctioned-text: #92400E;
+  --dw-stage-dev-bg: #DBEAFE;
+  --dw-stage-dev-text: #1E40AF;
+  --dw-stage-trials-bg: #FFEDD5;
+  --dw-stage-trials-text: #9A3412;
+  --dw-stage-prod-bg: #CCFBF1;
+  --dw-stage-prod-text: #115E59;
+  --dw-stage-induction-bg: #DCFCE7;
+  --dw-stage-induction-text: #166534;
+
   /* Typography & Density Tokens */
   --dw-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --dw-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -74,6 +95,25 @@
   --dw-status-offline-text: #1A1A1A;
   --dw-status-online-bg: #1E7E34;
   --dw-status-online-text: #FFFFFF;
+
+  --dw-domain-aerospace: #38BDF8;
+  --dw-domain-naval: #2DD4BF;
+  --dw-domain-land: #FACC15;
+  --dw-domain-missiles: #F87171;
+  --dw-domain-unmanned: #C084FC;
+
+  --dw-stage-concept-bg: #1F2937;
+  --dw-stage-concept-text: #9CA3AF;
+  --dw-stage-sanctioned-bg: #451A03;
+  --dw-stage-sanctioned-text: #FDE68A;
+  --dw-stage-dev-bg: #1E3A8A;
+  --dw-stage-dev-text: #93C5FD;
+  --dw-stage-trials-bg: #431407;
+  --dw-stage-trials-text: #FDBA74;
+  --dw-stage-prod-bg: #134E4A;
+  --dw-stage-prod-text: #99F6E4;
+  --dw-stage-induction-bg: #14532D;
+  --dw-stage-induction-text: #86EFAC;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -106,6 +146,25 @@
     --dw-status-offline-text: #1A1A1A;
     --dw-status-online-bg: #1E7E34;
     --dw-status-online-text: #FFFFFF;
+
+    --dw-domain-aerospace: #38BDF8;
+    --dw-domain-naval: #2DD4BF;
+    --dw-domain-land: #FACC15;
+    --dw-domain-missiles: #F87171;
+    --dw-domain-unmanned: #C084FC;
+
+    --dw-stage-concept-bg: #1F2937;
+    --dw-stage-concept-text: #9CA3AF;
+    --dw-stage-sanctioned-bg: #451A03;
+    --dw-stage-sanctioned-text: #FDE68A;
+    --dw-stage-dev-bg: #1E3A8A;
+    --dw-stage-dev-text: #93C5FD;
+    --dw-stage-trials-bg: #431407;
+    --dw-stage-trials-text: #FDBA74;
+    --dw-stage-prod-bg: #134E4A;
+    --dw-stage-prod-text: #99F6E4;
+    --dw-stage-induction-bg: #14532D;
+    --dw-stage-induction-text: #86EFAC;
   }
 }
 

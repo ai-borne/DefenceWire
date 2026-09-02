@@ -1,0 +1,192 @@
+/* Strategic Defence Programs & Lifecycle Trackers Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+.dw-programs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.dw-program-card {
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  border-left: 4px solid var(--dw-border-primary);
+}
+
+.dw-program-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--dw-link);
+}
+
+.dw-program-card--aerospace { border-left-color: var(--dw-domain-aerospace); }
+.dw-program-card--naval { border-left-color: var(--dw-domain-naval); }
+.dw-program-card--land { border-left-color: var(--dw-domain-land); }
+.dw-program-card--missiles { border-left-color: var(--dw-domain-missiles); }
+.dw-program-card--unmanned { border-left-color: var(--dw-domain-unmanned); }
+
+.dw-program-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.dw-program-domain-badge {
+  font-family: var(--dw-font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+  letter-spacing: 0.5px;
+}
+
+.dw-domain--aerospace { background-color: rgba(2, 132, 199, 0.15); color: var(--dw-domain-aerospace); }
+.dw-domain--naval { background-color: rgba(15, 118, 110, 0.15); color: var(--dw-domain-naval); }
+.dw-domain--land { background-color: rgba(133, 77, 14, 0.15); color: var(--dw-domain-land); }
+.dw-domain--missiles { background-color: rgba(220, 38, 38, 0.15); color: var(--dw-domain-missiles); }
+.dw-domain--unmanned { background-color: rgba(124, 58, 237, 0.15); color: var(--dw-domain-unmanned); }
+
+.dw-program-branches { display: flex; flex-wrap: wrap; gap: 4px; }
+.dw-program-branch-pill {
+  font-size: 0.68rem;
+  color: var(--dw-text-secondary);
+  background-color: var(--dw-bg-secondary);
+  padding: 1px 5px;
+  border-radius: var(--dw-radius-sm);
+  border: 1px solid var(--dw-border-secondary);
+}
+
+.dw-iddm-pill {
+  font-family: var(--dw-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background-color: rgba(30, 126, 52, 0.12);
+  color: #1E7E34;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+  margin-left: auto;
+  white-space: nowrap;
+}
+[data-theme="dark"] .dw-iddm-pill { color: #86EFAC; background-color: rgba(20, 83, 45, 0.35); }
+
+.dw-program-card-title-block { display: flex; flex-direction: column; gap: 3px; }
+.dw-program-title { font-size: 1.05rem; font-weight: 700; line-height: var(--dw-leading-tight); }
+.dw-program-title a { color: var(--dw-text-primary); text-decoration: none; }
+.dw-program-title a:hover { color: var(--dw-link); text-decoration: underline; }
+.dw-program-designation { font-size: 0.76rem; color: var(--dw-text-secondary); font-style: italic; }
+.dw-program-agency { font-size: 0.74rem; color: var(--dw-text-muted); font-weight: 500; }
+
+.dw-program-stage-bar {
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  padding: 8px 10px;
+}
+.dw-stage-bar-track { display: flex; list-style: none; align-items: center; justify-content: space-between; gap: 4px; }
+.dw-stage-step { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.dw-stage-step-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--dw-font-mono);
+  background-color: var(--dw-bg-canvas);
+  border: 1px solid var(--dw-border-primary);
+  color: var(--dw-text-muted);
+}
+.dw-stage-step-label { font-size: 0.62rem; color: var(--dw-text-muted); white-space: nowrap; letter-spacing: -0.2px; }
+
+.dw-stage-step--completed .dw-stage-step-marker { background-color: #1E7E34; color: #FFFFFF; border-color: #1E7E34; }
+.dw-stage-step--completed .dw-stage-step-label { color: var(--dw-text-secondary); font-weight: 500; }
+.dw-stage-step--active .dw-stage-step-marker {
+  background-color: var(--dw-link);
+  color: #FFFFFF;
+  border-color: var(--dw-link);
+  box-shadow: 0 0 0 2px rgba(15, 84, 153, 0.25);
+}
+.dw-stage-step--active .dw-stage-step-label { color: var(--dw-text-primary); font-weight: 700; }
+
+.dw-program-stage-bar--compact { padding: 6px 8px; }
+.dw-program-stage-bar--compact .dw-stage-step-marker { width: 15px; height: 15px; font-size: 0.58rem; }
+.dw-program-stage-bar--compact .dw-stage-step-label { font-size: 0.58rem; }
+
+.dw-program-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: var(--dw-bg-secondary);
+  padding: 8px 10px;
+  border-radius: var(--dw-radius-sm);
+  border: 1px solid var(--dw-border-secondary);
+}
+.dw-program-metric { display: flex; flex-direction: column; gap: 2px; }
+.dw-program-metric-label { font-size: 0.62rem; text-transform: uppercase; color: var(--dw-text-muted); font-weight: 600; letter-spacing: 0.3px; }
+.dw-program-metric-value { font-family: var(--dw-font-mono); font-size: 0.74rem; font-weight: 700; color: var(--dw-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.dw-program-summary {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--dw-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dw-program-subsystems-preview { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; }
+.dw-program-subsystems-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--dw-text-muted); }
+.dw-program-subsystems-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.dw-subsystem-tag {
+  background-color: var(--dw-bg-secondary);
+  color: var(--dw-text-secondary);
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+  border: 1px solid var(--dw-border-secondary);
+  font-size: 0.68rem;
+}
+
+.dw-program-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--dw-border-secondary);
+}
+.dw-program-wire-pulse {
+  font-family: var(--dw-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #B31919;
+  background-color: rgba(179, 25, 25, 0.08);
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+}
+[data-theme="dark"] .dw-program-wire-pulse { color: #E55353; background-color: rgba(229, 83, 83, 0.15); }
+.dw-program-wire-pulse--watch { color: var(--dw-text-muted); background-color: var(--dw-bg-secondary); }
+
+.dw-program-dossier-btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--dw-link);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+  transition: background-color 0.15s ease;
+}
+.dw-program-dossier-btn:hover { background-color: var(--dw-bg-hover); text-decoration: underline; }
