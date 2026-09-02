@@ -32,13 +32,11 @@ export class ProgramsViewModel {
   private selectedProgram: StrategicProgram | null = null;
   private listeners: Set<ProgramsStateListener> = new Set();
   private newsVm: NewsViewModel | null = null;
+  private newsVmUnsubscribe: (() => void) | null = null;
 
   constructor(newsVm?: NewsViewModel) {
     if (newsVm) {
-      this.newsVm = newsVm;
-      this.newsVm.subscribe(() => {
-        this.notifyListeners();
-      });
+      this.setNewsViewModel(newsVm);
     }
   }
 
@@ -130,8 +128,12 @@ export class ProgramsViewModel {
   }
 
   public setNewsViewModel(newsVm: NewsViewModel): void {
+    if (this.newsVmUnsubscribe) {
+      this.newsVmUnsubscribe();
+      this.newsVmUnsubscribe = null;
+    }
     this.newsVm = newsVm;
-    this.newsVm.subscribe(() => {
+    this.newsVmUnsubscribe = this.newsVm.subscribe(() => {
       this.notifyListeners();
     });
     this.notifyListeners();
@@ -148,5 +150,13 @@ export class ProgramsViewModel {
     for (const listener of this.listeners) {
       listener();
     }
+  }
+
+  public destroy(): void {
+    if (this.newsVmUnsubscribe) {
+      this.newsVmUnsubscribe();
+      this.newsVmUnsubscribe = null;
+    }
+    this.listeners.clear();
   }
 }

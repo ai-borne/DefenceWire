@@ -36,7 +36,13 @@ export function openProgramDetailModal(
   const modal = document.createElement('div');
   modal.className = 'dw-modal-content dw-program-modal-content';
 
+  let handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
+
   const closeModal = () => {
+    if (typeof window !== 'undefined' && handleKeyDown) {
+      window.removeEventListener('keydown', handleKeyDown);
+      handleKeyDown = null;
+    }
     backdrop.classList.add('dw-modal-closing');
     setTimeout(() => {
       backdrop.remove();
@@ -242,12 +248,9 @@ export function openProgramDetailModal(
     if (e.target === backdrop) closeModal();
   });
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       closeModal();
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('keydown', handleKeyDown);
-      }
     }
   };
   if (typeof window !== 'undefined') {

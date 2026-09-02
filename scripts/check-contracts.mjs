@@ -65,7 +65,8 @@ function checkContracts() {
     'src/types/news.ts',
     'src/types/source.ts',
     'src/types/ranking.ts',
-    'src/types/viewState.ts'
+    'src/types/viewState.ts',
+    'src/types/programs.ts'
   ];
 
   for (const relPath of requiredContracts) {

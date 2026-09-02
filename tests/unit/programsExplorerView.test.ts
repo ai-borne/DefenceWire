@@ -93,6 +93,29 @@ describe('Unit: ProgramsViewModel', () => {
 
     expect(vm.getProgramNewsCount('amca')).toBe(0);
   });
+
+  it('should manage subscriptions and clean up with destroy()', () => {
+    const newsVm1 = new NewsViewModel([], []);
+    const newsVm2 = new NewsViewModel([], []);
+    const vm = new ProgramsViewModel(newsVm1);
+
+    let notifyCount = 0;
+    const unsubscribe = vm.subscribe(() => {
+      notifyCount++;
+    });
+
+    // Re-assigning newsVm switches subscription cleanly
+    vm.setNewsViewModel(newsVm2);
+    expect(notifyCount).toBe(1);
+
+    // Unsubscribe removes listener
+    unsubscribe();
+    vm.setActiveDomain('naval');
+    expect(notifyCount).toBe(1);
+
+    // Destroy cleans up all subscriptions
+    vm.destroy();
+  });
 });
 
 describe('Unit: ProgramsExplorerView Component', () => {

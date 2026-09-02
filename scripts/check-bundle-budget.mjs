@@ -49,8 +49,8 @@ for (const jsFile of jsFiles) {
 console.log(`📊 Total Gzipped JS Payload: ${(totalGzipBytes / 1024).toFixed(2)} KB (Max Budget: ${(MAX_BYTES / 1024).toFixed(2)} KB)`);
 
 if (totalGzipBytes > MAX_BYTES) {
-  console.error(`\n❌ [PERFORMANCE BUDGET EXCEEDED] Total JS payload is ${(totalGzipBytes / 1024).toFixed(2)} KB (> 40 KB limit)!`);
+  console.error(`\n❌ [PERFORMANCE BUDGET EXCEEDED] Total JS payload is ${(totalGzipBytes / 1024).toFixed(2)} KB (> ${(MAX_BYTES / 1024).toFixed(0)} KB limit)!`);
   process.exit(1);
 } else {
-  console.log('✅ [PERFORMANCE BUDGET PASSED] Production bundle is within the < 40 KB performance budget.');
+  console.log(`✅ [PERFORMANCE BUDGET PASSED] Production bundle is within the < ${(MAX_BYTES / 1024).toFixed(0)} KB performance budget.`);
 }
