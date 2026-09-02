@@ -55,7 +55,7 @@
         "airforce"
       ],
       "entities": [],
-      "defenceScore": 57.3,
+      "defenceScore": 48.3,
       "isLeadStory": true,
       "createdAt": "2026-09-02T06:37:25.000Z",
       "updatedAt": "2026-09-02T06:37:25.000Z",
@@ -95,7 +95,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 44.8,
+      "defenceScore": 44.7,
       "isLeadStory": false,
       "createdAt": "2026-09-01T15:08:48.000Z",
       "updatedAt": "2026-09-01T15:08:48.000Z",
@@ -115,18 +115,17 @@
       }
     },
     {
-      "id": "cluster-98969cb4",
-      "synthesizedHeadline": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
+      "id": "cluster-ea089460",
+      "synthesizedHeadline": "Why is India acquiring the Javelin anti-tank missile system? | Explained",
       "primarySource": {
-        "id": "feed-ndtv-defence-98969cb4",
-        "title": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
-        "url": "https://www.ndtv.com/india-news/nepal-flash-flood-non-stop-choppers-48-hour-queues-inside-nepals-himalayan-rescue-11990853#publisher=newsstand",
-        "sourceName": "NDTV India (Defence & Border Security)",
-        "sourceDomain": "ndtv.com",
+        "id": "feed-the-hindu-national-ea089460",
+        "title": "Why is India acquiring the Javelin anti-tank missile system? | Explained",
+        "url": "https://www.thehindu.com/news/national/why-is-india-acquiring-the-javelin-anti-tank-missile-system-explained/article71418807.ece",
+        "sourceName": "The Hindu (National Security)",
+        "sourceDomain": "thehindu.com",
         "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-09-02T07:25:28.000Z",
-        "snippet": "The NDTV team reporting from the Dhunche Army helipad on the rescue operations witnessed long queues of locals and rescued citizens waiting in line for a ride to Kathmandu.",
-        "imageUrl": "https://c.ndtvimg.com/2026-09/s8tjbjhc_nepal_625x300_02_September_26.jpg?im=FitAndFill,algorithm=dnn,width=1280,height=720",
+        "publishedAt": "2026-09-02T08:51:58.000Z",
+        "snippet": "The Javelin’s induction took nearly 15 years because India and the U.S. could not initially bridge differences over technology transfer and local production",
         "isPrimary": true
       },
       "relatedCoverage": [],
@@ -135,10 +134,10 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 44.5,
+      "defenceScore": 44.1,
       "isLeadStory": false,
-      "createdAt": "2026-09-02T07:25:28.000Z",
-      "updatedAt": "2026-09-02T07:25:28.000Z",
+      "createdAt": "2026-09-02T08:51:58.000Z",
+      "updatedAt": "2026-09-02T08:51:58.000Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
         "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
@@ -150,7 +149,7 @@
             "Multi-domain network-centric warfare integration",
             "High-altitude / extreme-environment operational envelope"
           ],
-          "keySignificance": "NDTV India (Defence & Border Security) report highlights critical milestone in operational deployment."
+          "keySignificance": "The Hindu (National Security) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -175,7 +174,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 44,
+      "defenceScore": 43.9,
       "isLeadStory": false,
       "createdAt": "2026-08-31T21:08:08.000Z",
       "updatedAt": "2026-08-31T21:08:08.000Z",
@@ -293,7 +292,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 43.1,
+      "defenceScore": 43,
       "isLeadStory": false,
       "createdAt": "2026-09-01T12:30:47.000Z",
       "updatedAt": "2026-09-01T12:30:47.000Z",
@@ -333,7 +332,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 43.1,
+      "defenceScore": 43,
       "isLeadStory": false,
       "createdAt": "2026-09-01T12:30:37.000Z",
       "updatedAt": "2026-09-01T12:30:37.000Z",
@@ -349,6 +348,45 @@
             "High-altitude / extreme-environment operational envelope"
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-9e95821e",
+      "synthesizedHeadline": "4 AK-203 rifles among 11 weapons stolen from army facility in Telangana",
+      "primarySource": {
+        "id": "feed-hindustan-times-9e95821e",
+        "title": "4 AK-203 rifles among 11 weapons stolen from army facility in Telangana",
+        "url": "https://www.hindustantimes.com/india-news/4-ak-203-rifles-among-11-weapons-stolen-from-army-facility-in-telangana-101788338866644.html",
+        "sourceName": "Hindustan Times (India Security)",
+        "sourceDomain": "hindustantimes.com",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-09-02T09:28:57.000Z",
+        "snippet": "The missing weapons include four AK-203 assault rifles, a 5.56mm INSAS rifle, six 9mm auto pistols and a 6.35-bore civilian pistol.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "army"
+      ],
+      "entities": [],
+      "defenceScore": 42.8,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T09:28:57.000Z",
+      "updatedAt": "2026-09-02T09:28:57.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the ARMY domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Focus on mechanized combat power, northern border logistics, and indigenous firepower.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Hindustan Times (India Security) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -373,7 +411,7 @@
         "army"
       ],
       "entities": [],
-      "defenceScore": 42.6,
+      "defenceScore": 42.4,
       "isLeadStory": false,
       "createdAt": "2026-09-01T17:00:04.000Z",
       "updatedAt": "2026-09-01T17:00:04.000Z",
@@ -389,6 +427,46 @@
             "High-altitude / extreme-environment operational envelope"
           ],
           "keySignificance": "The War Zone (TWZ) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-98969cb4",
+      "synthesizedHeadline": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
+      "primarySource": {
+        "id": "feed-ndtv-defence-98969cb4",
+        "title": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
+        "url": "https://www.ndtv.com/india-news/nepal-flash-flood-non-stop-choppers-48-hour-queues-inside-nepals-himalayan-rescue-11990853#publisher=newsstand",
+        "sourceName": "NDTV India (Defence & Border Security)",
+        "sourceDomain": "ndtv.com",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-09-02T08:02:36.000Z",
+        "snippet": "The NDTV team reporting from the Dhunche Army helipad on the rescue operations witnessed long queues of locals and rescued citizens waiting in line for a ride to Kathmandu.",
+        "imageUrl": "https://c.ndtvimg.com/2026-09/s8tjbjhc_nepal_625x300_02_September_26.jpg?im=FitAndFill,algorithm=dnn,width=1280,height=720",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 42.2,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T08:02:36.000Z",
+      "updatedAt": "2026-09-02T08:02:36.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "NDTV India (Defence & Border Security) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -432,6 +510,128 @@
       }
     },
     {
+      "id": "cluster-6c08121d",
+      "synthesizedHeadline": "Europe’s airpower future is evolving. Here’s what to know.",
+      "primarySource": {
+        "id": "feed-breaking-defense-6c08121d",
+        "title": "Europe’s airpower future is evolving. Here’s what to know.",
+        "url": "https://breakingdefense.com/2026/09/europes-airpower-future-is-evolving-heres-what-to-know/",
+        "sourceName": "Breaking Defense (Strategic Tech)",
+        "sourceDomain": "breakingdefense.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-09-02T08:45:00.000Z",
+        "snippet": "Breaking Defense kicks off a new video series focused on how Europe is modernizing its manned and unmanned aircraft.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 40.1,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T08:45:00.000Z",
+      "updatedAt": "2026-09-02T08:45:00.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Breaking Defense (Strategic Tech) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-9aa76366",
+      "synthesizedHeadline": "German government blames Russia for Leipzig airport drone attack with explosives",
+      "primarySource": {
+        "id": "feed-defense-news-9aa76366",
+        "title": "German government blames Russia for Leipzig airport drone attack with explosives",
+        "url": "https://www.defensenews.com/global/europe/2026/09/02/german-government-blames-russia-for-leipzig-airport-drone-attack-with-explosives/",
+        "sourceName": "Defense News (Global Top 100)",
+        "sourceDomain": "defensenews.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-09-02T08:33:53.000Z",
+        "snippet": "Russia was behind the failed explosive drone attack on Germany’s key Leipzig/Halle Airport last month, the authorities in Berlin have concluded.",
+        "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/TA6AZYV36ZEG5ECBT7MWRZDIJM.jpg",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 39.7,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T08:33:53.000Z",
+      "updatedAt": "2026-09-02T08:33:53.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Defense News (Global Top 100) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-d569f830",
+      "synthesizedHeadline": "Indian Navy receives multipurpose and diving support vessels",
+      "primarySource": {
+        "id": "feed-asian-military-review-d569f830",
+        "title": "Indian Navy receives multipurpose and diving support vessels",
+        "url": "https://www.asianmilitaryreview.com/2026/09/indian-navy-receives-multipurpose-and-diving-support-vessels-foc/",
+        "sourceName": "Asian Military Review (Indo-Pacific)",
+        "sourceDomain": "asianmilitaryreview.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-09-02T08:37:43.000Z",
+        "snippet": "The Indian Navy has taken delivery of INS Samarthak (pennant number ‘A10’), the first of two multipurpose vessels designed to support indigenous naval weapons development and a range of operations other than war.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "navy",
+        "tech",
+        "programs"
+      ],
+      "entities": [
+        "INS Nipun"
+      ],
+      "defenceScore": 38.8,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T08:37:43.000Z",
+      "updatedAt": "2026-09-02T08:37:43.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "INS Nipun",
+          "programTag": "INS Nipun",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Asian Military Review (Indo-Pacific) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
       "id": "cluster-3cc4ef22",
       "synthesizedHeadline": "How a middling Chinese guided-missile frigate unnerves Japan, Taiwan and the US",
       "primarySource": {
@@ -452,7 +652,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 41.8,
+      "defenceScore": 38.4,
       "isLeadStory": false,
       "createdAt": "2026-09-02T08:00:10.000Z",
       "updatedAt": "2026-09-02T08:00:10.000Z",
@@ -491,7 +691,7 @@
         "army"
       ],
       "entities": [],
-      "defenceScore": 41.6,
+      "defenceScore": 38,
       "isLeadStory": false,
       "createdAt": "2026-09-02T07:14:30.000Z",
       "updatedAt": "2026-09-02T07:14:30.000Z",
@@ -511,57 +711,17 @@
       }
     },
     {
-      "id": "cluster-9fa669a9",
-      "synthesizedHeadline": "NTA Invites Applications For Rashtriya Indian Military College Entrance Exam 2026",
+      "id": "cluster-4d15d393",
+      "synthesizedHeadline": "UK confirms transfer of amphibious ship Bulwark to Brazil",
       "primarySource": {
-        "id": "feed-ndtv-defence-9fa669a9",
-        "title": "NTA Invites Applications For Rashtriya Indian Military College Entrance Exam 2026",
-        "url": "https://www.ndtv.com/education/nta-invites-applications-for-rashtriya-indian-military-college-entrance-exam-2026-11990069#publisher=newsstand",
-        "sourceName": "NDTV India (Defence & Border Security)",
-        "sourceDomain": "ndtv.com",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-09-02T03:57:16.000Z",
-        "snippet": "RIMC Entrance Exam 2026: Candidates belonging to the General, Wards of Defence Personnel and Ex-servicemen, and Other Backward Classes (OBC-NCL) categories have to pay an examination fee of Rs 1,000.",
-        "imageUrl": "https://c.ndtvimg.com/2025-03/vptjkscg_rajasthan-8th-board-exam-2025-_625x300_20_March_25.jpg?im=FeatureCrop,algorithm=dnn,width=1280,height=720",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 37.8,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T03:57:16.000Z",
-      "updatedAt": "2026-09-02T03:57:16.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "NDTV India (Defence & Border Security) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-48b65e4f",
-      "synthesizedHeadline": "German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile",
-      "primarySource": {
-        "id": "feed-naval-news-48b65e4f",
-        "title": "German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile",
-        "url": "https://www.navalnews.com/naval-news/2026/09/german-navy-iai-naval-lora-test-firing/",
-        "sourceName": "Naval News (Indo-Pacific & Submarines)",
-        "sourceDomain": "navalnews.com",
+        "id": "feed-armada-international-4d15d393",
+        "title": "UK confirms transfer of amphibious ship Bulwark to Brazil",
+        "url": "https://www.armadainternational.com/2026/09/uk-confirms-transfer-of-amphibious-ship-bulwark-to-brazil-foc/",
+        "sourceName": "Armada International (EW & Land Systems)",
+        "sourceDomain": "armadainternational.com",
         "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T06:50:04.000Z",
-        "snippet": "The German Navy completed a successful live-fire trial of IAI’s Naval LORA ballistic missile as part of its Marine 2035 OPEX initiative. IAI press release The missile was launched from an operational German vessel that comprises a command trailer and a launcher.",
+        "publishedAt": "2026-09-02T08:54:42.000Z",
+        "snippet": "The UK has announced the transfer of the former Royal Navy (RN) amphibious ship HMS Bulwark to the Brazilian Navy. The landing platform dock (LPD) vessels Bulwark and sister ship HMS Albion were in RN service – providing the amphibious assault capacity for the UK Royal Marines...",
         "isPrimary": true
       },
       "relatedCoverage": [],
@@ -570,10 +730,49 @@
         "navy"
       ],
       "entities": [],
-      "defenceScore": 37,
+      "defenceScore": 37.9,
       "isLeadStory": false,
-      "createdAt": "2026-09-02T06:50:04.000Z",
-      "updatedAt": "2026-09-02T06:50:04.000Z",
+      "createdAt": "2026-09-02T08:54:42.000Z",
+      "updatedAt": "2026-09-02T08:54:42.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Armada International (EW & Land Systems) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-b3c0116c",
+      "synthesizedHeadline": "Japan Plans to Adopt ASM-3ER Anti-Ship Missile for Air-to-Air Role",
+      "primarySource": {
+        "id": "feed-naval-news-b3c0116c",
+        "title": "Japan Plans to Adopt ASM-3ER Anti-Ship Missile for Air-to-Air Role",
+        "url": "https://www.navalnews.com/naval-news/2026/09/japan-plans-to-adopt-asm-3er-anti-ship-missile-for-air-to-air-role/",
+        "sourceName": "Naval News (Indo-Pacific & Submarines)",
+        "sourceDomain": "navalnews.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-09-02T08:44:40.000Z",
+        "snippet": "Japan plans to field the supersonic ASM-3ER anti-ship missile in FY2027 with a new dual-role capability to target enemy AWACS and tankers at long range.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "navy"
+      ],
+      "entities": [],
+      "defenceScore": 37.6,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T08:44:40.000Z",
+      "updatedAt": "2026-09-02T08:44:40.000Z",
       "ssbIntel": {
         "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
         "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
@@ -617,7 +816,14 @@
         "AMCA",
         "HAL"
       ],
-      "defenceScore": 35.4,
+      "programTags": [
+        "tejas-mk1a",
+        "tejas-mk2",
+        "amca",
+        "netra-aewc",
+        "astra-bvr"
+      ],
+      "defenceScore": 34.1,
       "isLeadStory": false,
       "createdAt": "2026-09-02T02:31:24.000Z",
       "updatedAt": "2026-09-02T02:31:24.000Z",
@@ -637,33 +843,32 @@
       }
     },
     {
-      "id": "cluster-78eb2a29",
-      "synthesizedHeadline": "After over 200 days at sea, USS Abraham Lincoln arrives in Thailand",
+      "id": "cluster-48b65e4f",
+      "synthesizedHeadline": "German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile",
       "primarySource": {
-        "id": "feed-defense-news-78eb2a29",
-        "title": "After over 200 days at sea, USS Abraham Lincoln arrives in Thailand",
-        "url": "https://www.defensenews.com/news/your-military/2026/09/02/after-over-200-days-at-sea-uss-abraham-lincoln-arrives-in-thailand/",
-        "sourceName": "Defense News (Global Top 100)",
-        "sourceDomain": "defensenews.com",
+        "id": "feed-naval-news-48b65e4f",
+        "title": "German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile",
+        "url": "https://www.navalnews.com/naval-news/2026/09/german-navy-iai-naval-lora-test-firing/",
+        "sourceName": "Naval News (Indo-Pacific & Submarines)",
+        "sourceDomain": "navalnews.com",
         "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T04:16:40.000Z",
-        "snippet": "The USS Abraham Lincoln arrived in Thailand on Wednesday morning after more than 200 days at sea.",
-        "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/IWSGHW7JHNCJNAJB6NOTVZ6BYM.JPG",
+        "publishedAt": "2026-09-02T06:50:04.000Z",
+        "snippet": "The German Navy completed a successful live-fire trial of IAI’s Naval LORA ballistic missile as part of its Marine 2035 OPEX initiative. IAI press release The missile was launched from an operational German vessel that comprises a command trailer and a launcher.",
         "isPrimary": true
       },
       "relatedCoverage": [],
       "discussions": [],
       "categories": [
-        "strategic"
+        "navy"
       ],
       "entities": [],
-      "defenceScore": 34.5,
+      "defenceScore": 33.5,
       "isLeadStory": false,
-      "createdAt": "2026-09-02T04:16:40.000Z",
-      "updatedAt": "2026-09-02T04:16:40.000Z",
+      "createdAt": "2026-09-02T06:50:04.000Z",
+      "updatedAt": "2026-09-02T06:50:04.000Z",
       "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the NAVY domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Strategic Defence Modernization",
           "programTag": "Strategic Defence Modernization",
@@ -672,7 +877,7 @@
             "Multi-domain network-centric warfare integration",
             "High-altitude / extreme-environment operational envelope"
           ],
-          "keySignificance": "Defense News (Global Top 100) report highlights critical milestone in operational deployment."
+          "keySignificance": "Naval News (Indo-Pacific & Submarines) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -709,7 +914,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 33.8,
+      "defenceScore": 33.5,
       "isLeadStory": false,
       "createdAt": "2026-09-01T18:14:33.000Z",
       "updatedAt": "2026-09-01T18:14:33.000Z",
@@ -762,7 +967,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 33.6,
+      "defenceScore": 33.4,
       "isLeadStory": false,
       "createdAt": "2026-09-01T17:03:29.000Z",
       "updatedAt": "2026-09-01T17:03:29.000Z",
@@ -825,7 +1030,7 @@
         "army"
       ],
       "entities": [],
-      "defenceScore": 33.4,
+      "defenceScore": 33.3,
       "isLeadStory": false,
       "createdAt": "2026-09-01T04:41:32.000Z",
       "updatedAt": "2026-09-01T09:32:27.000Z",
@@ -841,6 +1046,85 @@
             "High-altitude / extreme-environment operational envelope"
           ],
           "keySignificance": "Defense One report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-78eb2a29",
+      "synthesizedHeadline": "After over 200 days at sea, USS Abraham Lincoln arrives in Thailand",
+      "primarySource": {
+        "id": "feed-defense-news-78eb2a29",
+        "title": "After over 200 days at sea, USS Abraham Lincoln arrives in Thailand",
+        "url": "https://www.defensenews.com/news/your-military/2026/09/02/after-over-200-days-at-sea-uss-abraham-lincoln-arrives-in-thailand/",
+        "sourceName": "Defense News (Global Top 100)",
+        "sourceDomain": "defensenews.com",
+        "tier": "TIER_3_SPECIALIZED",
+        "publishedAt": "2026-09-02T04:16:40.000Z",
+        "snippet": "The USS Abraham Lincoln arrived in Thailand on Wednesday morning after more than 200 days at sea.",
+        "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/IWSGHW7JHNCJNAJB6NOTVZ6BYM.JPG",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 32.5,
+      "isLeadStory": false,
+      "createdAt": "2026-09-02T04:16:40.000Z",
+      "updatedAt": "2026-09-02T04:16:40.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "Defense News (Global Top 100) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-a669713a",
+      "synthesizedHeadline": "4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury",
+      "primarySource": {
+        "id": "feed-the-print-defence-a669713a",
+        "title": "4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury",
+        "url": "https://theprint.in/defence/4-agniveers-questioned-after-ak-203-assault-rifles-pistols-ammo-stolen-from-madras-regiment-armoury/3030936/",
+        "sourceName": "ThePrint (Defence & Strategic)",
+        "sourceDomain": "theprint.in",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-09-01T12:53:00.000Z",
+        "snippet": "Army informed police that around 1,800 rounds of ammunition and 21 magazines were missing from the high-security compound in Secunderabad.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 31.7,
+      "isLeadStory": false,
+      "createdAt": "2026-09-01T12:53:00.000Z",
+      "updatedAt": "2026-09-01T12:53:00.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "ThePrint (Defence & Strategic) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -869,7 +1153,10 @@
       "entities": [
         "Zorawar"
       ],
-      "defenceScore": 32.9,
+      "programTags": [
+        "zorawar-light-tank"
+      ],
+      "defenceScore": 31.6,
       "isLeadStory": false,
       "createdAt": "2026-09-02T02:32:03.000Z",
       "updatedAt": "2026-09-02T02:32:03.000Z",
@@ -885,6 +1172,45 @@
             "High-altitude / extreme-environment operational envelope"
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
+        }
+      }
+    },
+    {
+      "id": "cluster-381ddf91",
+      "synthesizedHeadline": "Makkah defence pact now in effect—Secretariat in Riyadh, Pakistani will be 1st Secretary General",
+      "primarySource": {
+        "id": "feed-the-print-defence-381ddf91",
+        "title": "Makkah defence pact now in effect—Secretariat in Riyadh, Pakistani will be 1st Secretary General",
+        "url": "https://theprint.in/defence/makkah-defence-pact-now-in-effect-secretariat-in-riyadh-pakistani-will-be-1st-secretary-general/3030056/",
+        "sourceName": "ThePrint (Defence & Strategic)",
+        "sourceDomain": "theprint.in",
+        "tier": "TIER_2_NATIONAL",
+        "publishedAt": "2026-08-31T16:35:19.000Z",
+        "snippet": "Member states held 1st Strategic Political and Defence Committee meeting Monday in Istanbul, marking first formal gathering since they signed Makkah Joint Defence Agreement on 7 August.",
+        "isPrimary": true
+      },
+      "relatedCoverage": [],
+      "discussions": [],
+      "categories": [
+        "strategic"
+      ],
+      "entities": [],
+      "defenceScore": 31.1,
+      "isLeadStory": false,
+      "createdAt": "2026-08-31T16:35:19.000Z",
+      "updatedAt": "2026-08-31T16:35:19.000Z",
+      "ssbIntel": {
+        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
+        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
+        "defenceTechTakeaway": {
+          "platformOrSystem": "Strategic Defence Modernization",
+          "programTag": "Strategic Defence Modernization",
+          "specifications": [
+            "Indigenous design & manufacturing validation",
+            "Multi-domain network-centric warfare integration",
+            "High-altitude / extreme-environment operational envelope"
+          ],
+          "keySignificance": "ThePrint (Defence & Strategic) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -909,7 +1235,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 32.4,
+      "defenceScore": 31.1,
       "isLeadStory": false,
       "createdAt": "2026-09-02T02:32:07.000Z",
       "updatedAt": "2026-09-02T02:32:07.000Z",
@@ -949,7 +1275,7 @@
         "strategic"
       ],
       "entities": [],
-      "defenceScore": 32.4,
+      "defenceScore": 31.1,
       "isLeadStory": false,
       "createdAt": "2026-09-02T02:31:29.000Z",
       "updatedAt": "2026-09-02T02:31:29.000Z",
@@ -965,342 +1291,6 @@
             "High-altitude / extreme-environment operational envelope"
           ],
           "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-ca71a970",
-      "synthesizedHeadline": "GSLV-F17 Moved to Umbilical Tower (UT) for Launch",
-      "primarySource": {
-        "id": "feed-idrw-ca71a970",
-        "title": "GSLV-F17 Moved to Umbilical Tower (UT) for Launch",
-        "url": "https://idrw.org/gslv-f17-moved-to-umbilical-tower-ut-for-launch/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:31:19.000Z",
-        "snippet": "Edited by Raunak Kunde GSLV-F17 carrying EOS-05 was moved from the Vehicle Assembly Building (VAB) to the...",
-        "imageUrl": "https://img.mathrubhumi.com/view/acePublic/alias/contentid/1ti1lvawdenhceujbuf/0/gslv-f16-isro-jpg.webp",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.4,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:31:19.000Z",
-      "updatedAt": "2026-09-02T02:31:19.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-3e3e422f",
-      "synthesizedHeadline": "Mahindra Aerostructures awarded Airbus contract to manufacture A320 family fuselage skins",
-      "primarySource": {
-        "id": "feed-idrw-3e3e422f",
-        "title": "Mahindra Aerostructures awarded Airbus contract to manufacture A320 family fuselage skins",
-        "url": "https://idrw.org/mahindra-aerostructures-awarded-airbus-contract-to-manufacture-a320-family-fuselage-skins/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:31:14.000Z",
-        "snippet": "In a significant boost to its ‘Make in India’ commitment, Mahindra Aerostructures Pvt. Ltd. (MASPL), a part...",
-        "imageUrl": "https://www.airdatanews.com/uploads/aviation/2026/08/executives-from-airbus-and-mahindra-aerostructures-present-the-newly-signed-contract-for-a320neo-family-fuselage-skin-pr-wamazk2.webp",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.4,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:31:14.000Z",
-      "updatedAt": "2026-09-02T02:31:14.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-4cf8d20b",
-      "synthesizedHeadline": "100 airports to be built in India in next 10 yrs: Civil Aviation Min Naidu",
-      "primarySource": {
-        "id": "feed-idrw-4cf8d20b",
-        "title": "100 airports to be built in India in next 10 yrs: Civil Aviation Min Naidu",
-        "url": "https://idrw.org/100-airports-to-be-built-in-india-in-next-10-yrs-civil-aviation-min-naidu/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:30:57.000Z",
-        "snippet": "PTI India will build 100 airports in the next 10 years under the Centre’s regional connectivity scheme...",
-        "imageUrl": "https://bsmedia.business-standard.com/_media/bs/img/article/2026-05/08/full/1778224328-8961.jpg?im=FitAndFill=(826,465)",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.3,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:30:57.000Z",
-      "updatedAt": "2026-09-02T02:30:57.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-10711cd1",
-      "synthesizedHeadline": "SSB should embrace original role of engaging with border population: Home Secretary",
-      "primarySource": {
-        "id": "feed-idrw-10711cd1",
-        "title": "SSB should embrace original role of engaging with border population: Home Secretary",
-        "url": "https://idrw.org/ssb-should-embrace-original-role-of-engaging-with-border-population-home-secretary/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:30:36.000Z",
-        "snippet": "PTI Union Home Secretary Govind Mohan on Tuesday said the Sashastra Seema Bal (SSB) that guards open...",
-        "imageUrl": "https://image.telanganatoday.com/wp-content/uploads/2026/09/SSB_V_jpg--816x480-4g.webp?sw=1920&dsz=816x480&iw=615&p=false&r=1",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.3,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:30:36.000Z",
-      "updatedAt": "2026-09-02T02:30:36.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-1c8462a1",
-      "synthesizedHeadline": "Indian national among 12 killed in latest Russian strikes on Ukraine",
-      "primarySource": {
-        "id": "feed-idrw-1c8462a1",
-        "title": "Indian national among 12 killed in latest Russian strikes on Ukraine",
-        "url": "https://idrw.org/indian-national-among-12-killed-in-latest-russian-strikes-on-ukraine/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:30:30.000Z",
-        "snippet": "PTI An Indian national was among 12 people killed in the latest Russian attacks on Ukraine, President...",
-        "imageUrl": "https://image.telanganatoday.com/wp-content/uploads/2025/07/Ukraine-1_V_jpg--816x480-4g.webp?sw=1920&dsz=816x480&iw=615&p=false&r=1",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 32.3,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:30:30.000Z",
-      "updatedAt": "2026-09-02T02:30:30.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-a669713a",
-      "synthesizedHeadline": "4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury",
-      "primarySource": {
-        "id": "feed-the-print-defence-a669713a",
-        "title": "4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury",
-        "url": "https://theprint.in/defence/4-agniveers-questioned-after-ak-203-assault-rifles-pistols-ammo-stolen-from-madras-regiment-armoury/3030936/",
-        "sourceName": "ThePrint (Defence & Strategic)",
-        "sourceDomain": "theprint.in",
-        "tier": "TIER_2_NATIONAL",
-        "publishedAt": "2026-09-01T12:53:00.000Z",
-        "snippet": "Army informed police that around 1,800 rounds of ammunition and 21 magazines were missing from the high-security compound in Secunderabad.",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "strategic"
-      ],
-      "entities": [],
-      "defenceScore": 31.9,
-      "isLeadStory": false,
-      "createdAt": "2026-09-01T12:53:00.000Z",
-      "updatedAt": "2026-09-01T12:53:00.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the STRATEGIC domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Multi-alignment diplomacy, joint theater command integration, and border posture.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "ThePrint (Defence & Strategic) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-41855a1c",
-      "synthesizedHeadline": "Rafale F5 Export Delay May Shut India Out",
-      "primarySource": {
-        "id": "feed-idrw-41855a1c",
-        "title": "Rafale F5 Export Delay May Shut India Out",
-        "url": "https://idrw.org/rafale-f5-export-delay-may-shut-india-out/",
-        "sourceName": "IDRW (Indian Defence Research Wing)",
-        "sourceDomain": "idrw.org",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-09-02T02:31:56.000Z",
-        "snippet": "Raunak Kunde The inclusion of Dassault Aviation’s stance of developing the Rafale F5 without foreign co-development partners...",
-        "imageUrl": "https://cdn.militaeraktuell-cdn.at/wp-content/uploads/2025/02/03192507/03707_c_Dassault.jpg",
-        "isPrimary": true
-      },
-      "relatedCoverage": [],
-      "discussions": [],
-      "categories": [
-        "airforce",
-        "navy",
-        "procurement",
-        "programs"
-      ],
-      "entities": [
-        "Rafale"
-      ],
-      "defenceScore": 31.9,
-      "isLeadStory": false,
-      "createdAt": "2026-09-02T02:31:56.000Z",
-      "updatedAt": "2026-09-02T02:31:56.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the AIRFORCE domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Critical squadron strength modernization, combat avionics, and standoff air deterrence.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Rafale",
-          "programTag": "Rafale",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) report highlights critical milestone in operational deployment."
-        }
-      }
-    },
-    {
-      "id": "cluster-486875c6",
-      "synthesizedHeadline": "Greece inks $3.4B deal for multi-layered Israeli air defense system",
-      "primarySource": {
-        "id": "feed-breaking-defense-486875c6",
-        "title": "Greece inks $3.4B deal for multi-layered Israeli air defense system",
-        "url": "https://breakingdefense.com/2026/08/greece-inks-3-4b-deal-for-multi-layered-israeli-air-defense-system/",
-        "sourceName": "Breaking Defense (Strategic Tech)",
-        "sourceDomain": "breakingdefense.com",
-        "tier": "TIER_3_SPECIALIZED",
-        "publishedAt": "2026-08-31T17:16:41.000Z",
-        "snippet": "Defense cooperation between the two countries has increased in recent years as Israel sees Greece as a strategic partner in the Eastern Mediterranean.",
-        "isPrimary": true
-      },
-      "relatedCoverage": [
-        {
-          "id": "feed-defense-news-fc893c8f",
-          "title": "Israel signs $3.5 billion air defense deal with Greece",
-          "url": "https://www.defensenews.com/global/europe/2026/08/31/israel-signs-35-billion-air-defense-deal-with-greece/",
-          "sourceName": "Defense News (Global Top 100)",
-          "sourceDomain": "defensenews.com",
-          "tier": "TIER_3_SPECIALIZED",
-          "publishedAt": "2026-08-31T16:50:39.000Z",
-          "snippet": "Israel and Greece signed a €3 billion ($3.5 billion) defense deal on Monday under which Israel will build a multi-layered air defense system for Greece.",
-          "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/UME342MJCFA7XLTHBBPMHMN2TQ.jpg",
-          "isPrimary": false
-        }
-      ],
-      "discussions": [],
-      "categories": [
-        "procurement"
-      ],
-      "entities": [],
-      "defenceScore": 31.9,
-      "isLeadStory": false,
-      "createdAt": "2026-08-31T17:16:41.000Z",
-      "updatedAt": "2026-08-31T17:16:41.000Z",
-      "ssbIntel": {
-        "whyItMatters": "Directly impacts India's operational readiness and strategic deterrence in the PROCUREMENT domain, reflecting contemporary national security doctrine.",
-        "strategicAngle": "Defence Acquisition Procedure (DAP 2020), IDDM category, and capital budget allocation.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Indigenous design & manufacturing validation",
-            "Multi-domain network-centric warfare integration",
-            "High-altitude / extreme-environment operational envelope"
-          ],
-          "keySignificance": "Breaking Defense (Strategic Tech) report highlights critical milestone in operational deployment."
         }
       }
     },
@@ -1403,6 +1393,9 @@
         "DRDO",
         "HAL"
       ],
+      "programTags": [
+        "tejas-mk1a"
+      ],
       "defenceScore": 94.5,
       "isLeadStory": true,
       "createdAt": "2026-08-30T06:30:00Z",
@@ -1486,6 +1479,9 @@
       "entities": [
         "Project 75I",
         "DAC Clearance"
+      ],
+      "programTags": [
+        "project-75i"
       ],
       "defenceScore": 89.2,
       "isLeadStory": false,
@@ -1571,6 +1567,9 @@
         "DRDO",
         "LAC"
       ],
+      "programTags": [
+        "zorawar-light-tank"
+      ],
       "defenceScore": 86.8,
       "isLeadStory": false,
       "createdAt": "2026-08-30T04:15:00Z",
@@ -1637,6 +1636,10 @@
         "Pinaka",
         "MQ-9B SkyGuardian"
       ],
+      "programTags": [
+        "brahmos-supersonic",
+        "mq9b-guardian"
+      ],
       "defenceScore": 84.1,
       "isLeadStory": false,
       "createdAt": "2026-08-29T16:00:00Z",
@@ -1691,6 +1694,9 @@
         "Akash-NG",
         "DRDO"
       ],
+      "programTags": [
+        "akash-ng"
+      ],
       "defenceScore": 78.4,
       "isLeadStory": false,
       "createdAt": "2026-08-29T10:00:00Z",
@@ -1744,6 +1750,9 @@
       "entities": [
         "INS Arighat",
         "CCS Approval"
+      ],
+      "programTags": [
+        "s4-s5-ssbn"
       ],
       "defenceScore": 76.5,
       "isLeadStory": false,
@@ -1811,6 +1820,9 @@
         "DRDO",
         "MoD"
       ],
+      "programTags": [
+        "defspace-satellites"
+      ],
       "defenceScore": 82,
       "isLeadStory": false,
       "createdAt": "2026-08-28T09:00:00Z",
@@ -1858,6 +1870,88 @@
   ],
   "river": [
     {
+      "id": "feed-hindustan-times-9e95821e",
+      "title": "4 AK-203 rifles among 11 weapons stolen from army facility in Telangana",
+      "url": "https://www.hindustantimes.com/india-news/4-ak-203-rifles-among-11-weapons-stolen-from-army-facility-in-telangana-101788338866644.html",
+      "sourceName": "Hindustan Times (India Security)",
+      "sourceDomain": "hindustantimes.com",
+      "tier": "TIER_2_NATIONAL",
+      "publishedAt": "2026-09-02T09:28:57.000Z",
+      "snippet": "The missing weapons include four AK-203 assault rifles, a 5.56mm INSAS rifle, six 9mm auto pistols and a 6.35-bore civilian pistol."
+    },
+    {
+      "id": "feed-armada-international-4d15d393",
+      "title": "UK confirms transfer of amphibious ship Bulwark to Brazil",
+      "url": "https://www.armadainternational.com/2026/09/uk-confirms-transfer-of-amphibious-ship-bulwark-to-brazil-foc/",
+      "sourceName": "Armada International (EW & Land Systems)",
+      "sourceDomain": "armadainternational.com",
+      "tier": "TIER_3_SPECIALIZED",
+      "publishedAt": "2026-09-02T08:54:42.000Z",
+      "snippet": "The UK has announced the transfer of the former Royal Navy (RN) amphibious ship HMS Bulwark to the Brazilian Navy. The landing platform dock (LPD) vessels Bulwark and sister ship HMS Albion were in RN service – providing the amphibious assault capacity for the UK Royal Marines..."
+    },
+    {
+      "id": "feed-the-hindu-national-ea089460",
+      "title": "Why is India acquiring the Javelin anti-tank missile system? | Explained",
+      "url": "https://www.thehindu.com/news/national/why-is-india-acquiring-the-javelin-anti-tank-missile-system-explained/article71418807.ece",
+      "sourceName": "The Hindu (National Security)",
+      "sourceDomain": "thehindu.com",
+      "tier": "TIER_2_NATIONAL",
+      "publishedAt": "2026-09-02T08:51:58.000Z",
+      "snippet": "The Javelin’s induction took nearly 15 years because India and the U.S. could not initially bridge differences over technology transfer and local production"
+    },
+    {
+      "id": "feed-breaking-defense-6c08121d",
+      "title": "Europe’s airpower future is evolving. Here’s what to know.",
+      "url": "https://breakingdefense.com/2026/09/europes-airpower-future-is-evolving-heres-what-to-know/",
+      "sourceName": "Breaking Defense (Strategic Tech)",
+      "sourceDomain": "breakingdefense.com",
+      "tier": "TIER_3_SPECIALIZED",
+      "publishedAt": "2026-09-02T08:45:00.000Z",
+      "snippet": "Breaking Defense kicks off a new video series focused on how Europe is modernizing its manned and unmanned aircraft."
+    },
+    {
+      "id": "feed-naval-news-b3c0116c",
+      "title": "Japan Plans to Adopt ASM-3ER Anti-Ship Missile for Air-to-Air Role",
+      "url": "https://www.navalnews.com/naval-news/2026/09/japan-plans-to-adopt-asm-3er-anti-ship-missile-for-air-to-air-role/",
+      "sourceName": "Naval News (Indo-Pacific & Submarines)",
+      "sourceDomain": "navalnews.com",
+      "tier": "TIER_3_SPECIALIZED",
+      "publishedAt": "2026-09-02T08:44:40.000Z",
+      "snippet": "Japan plans to field the supersonic ASM-3ER anti-ship missile in FY2027 with a new dual-role capability to target enemy AWACS and tankers at long range."
+    },
+    {
+      "id": "feed-asian-military-review-d569f830",
+      "title": "Indian Navy receives multipurpose and diving support vessels",
+      "url": "https://www.asianmilitaryreview.com/2026/09/indian-navy-receives-multipurpose-and-diving-support-vessels-foc/",
+      "sourceName": "Asian Military Review (Indo-Pacific)",
+      "sourceDomain": "asianmilitaryreview.com",
+      "tier": "TIER_3_SPECIALIZED",
+      "publishedAt": "2026-09-02T08:37:43.000Z",
+      "snippet": "The Indian Navy has taken delivery of INS Samarthak (pennant number ‘A10’), the first of two multipurpose vessels designed to support indigenous naval weapons development and a range of operations other than war."
+    },
+    {
+      "id": "feed-defense-news-9aa76366",
+      "title": "German government blames Russia for Leipzig airport drone attack with explosives",
+      "url": "https://www.defensenews.com/global/europe/2026/09/02/german-government-blames-russia-for-leipzig-airport-drone-attack-with-explosives/",
+      "sourceName": "Defense News (Global Top 100)",
+      "sourceDomain": "defensenews.com",
+      "tier": "TIER_3_SPECIALIZED",
+      "publishedAt": "2026-09-02T08:33:53.000Z",
+      "snippet": "Russia was behind the failed explosive drone attack on Germany’s key Leipzig/Halle Airport last month, the authorities in Berlin have concluded.",
+      "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/TA6AZYV36ZEG5ECBT7MWRZDIJM.jpg"
+    },
+    {
+      "id": "feed-ndtv-defence-98969cb4",
+      "title": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
+      "url": "https://www.ndtv.com/india-news/nepal-flash-flood-non-stop-choppers-48-hour-queues-inside-nepals-himalayan-rescue-11990853#publisher=newsstand",
+      "sourceName": "NDTV India (Defence & Border Security)",
+      "sourceDomain": "ndtv.com",
+      "tier": "TIER_2_NATIONAL",
+      "publishedAt": "2026-09-02T08:02:36.000Z",
+      "snippet": "The NDTV team reporting from the Dhunche Army helipad on the rescue operations witnessed long queues of locals and rescued citizens waiting in line for a ride to Kathmandu.",
+      "imageUrl": "https://c.ndtvimg.com/2026-09/s8tjbjhc_nepal_625x300_02_September_26.jpg?im=FitAndFill,algorithm=dnn,width=1280,height=720"
+    },
+    {
       "id": "feed-defense-news-3cc4ef22",
       "title": "How a middling Chinese guided-missile frigate unnerves Japan, Taiwan and the US",
       "url": "https://www.defensenews.com/global/asia-pacific/2026/09/02/how-a-middling-chinese-guided-missile-frigate-unnerves-japan-taiwan-and-the-us/",
@@ -1867,17 +1961,6 @@
       "publishedAt": "2026-09-02T08:00:10.000Z",
       "snippet": "China’s navy has introduced a new guided-missile frigate designed for coastal as well as open-sea attacks.",
       "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/S6NY3FZY4RDYTDC2DIWEJ3X3UE.jpg"
-    },
-    {
-      "id": "feed-ndtv-defence-98969cb4",
-      "title": "Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue",
-      "url": "https://www.ndtv.com/india-news/nepal-flash-flood-non-stop-choppers-48-hour-queues-inside-nepals-himalayan-rescue-11990853#publisher=newsstand",
-      "sourceName": "NDTV India (Defence & Border Security)",
-      "sourceDomain": "ndtv.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-09-02T07:25:28.000Z",
-      "snippet": "The NDTV team reporting from the Dhunche Army helipad on the rescue operations witnessed long queues of locals and rescued citizens waiting in line for a ride to Kathmandu.",
-      "imageUrl": "https://c.ndtvimg.com/2026-09/s8tjbjhc_nepal_625x300_02_September_26.jpg?im=FitAndFill,algorithm=dnn,width=1280,height=720"
     },
     {
       "id": "feed-the-hindu-national-bba8f6da",
@@ -1919,17 +2002,6 @@
       "publishedAt": "2026-09-02T04:16:40.000Z",
       "snippet": "The USS Abraham Lincoln arrived in Thailand on Wednesday morning after more than 200 days at sea.",
       "imageUrl": "https://cloudfront-us-east-1.images.arcpublishing.com/archetype/IWSGHW7JHNCJNAJB6NOTVZ6BYM.JPG"
-    },
-    {
-      "id": "feed-ndtv-defence-9fa669a9",
-      "title": "NTA Invites Applications For Rashtriya Indian Military College Entrance Exam 2026",
-      "url": "https://www.ndtv.com/education/nta-invites-applications-for-rashtriya-indian-military-college-entrance-exam-2026-11990069#publisher=newsstand",
-      "sourceName": "NDTV India (Defence & Border Security)",
-      "sourceDomain": "ndtv.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-09-02T03:57:16.000Z",
-      "snippet": "RIMC Entrance Exam 2026: Candidates belonging to the General, Wards of Defence Personnel and Ex-servicemen, and Other Backward Classes (OBC-NCL) categories have to pay an examination fee of Rs 1,000.",
-      "imageUrl": "https://c.ndtvimg.com/2025-03/vptjkscg_rajasthan-8th-board-exam-2025-_625x300_20_March_25.jpg?im=FeatureCrop,algorithm=dnn,width=1280,height=720"
     },
     {
       "id": "feed-hindustan-times-4e3cac25",
@@ -2221,15 +2293,6 @@
       "publishedAt": "2026-09-01T20:39:04.000Z",
       "snippet": "With 30 days to go before the end of fiscal 2026, Congress passed a continuing resolution Sept. 1 to extend current spending levels through Dec. 11—putting on hold the Pentagon's request for $1.5 trillion in spending authority.",
       "imageUrl": "https://www.airandspaceforces.com/app/uploads/2026/02/2560px-United_States_Capitol_-_west_front_EL-200x200.jpg"
-    },
-    {
-      "id": "feed-times-of-india-682a71f3",
-      "title": "Tribunal alters gay ex-IAF man 'dismissal' to 'routine discharge'",
-      "url": "https://timesofindia.indiatimes.com/india/tribunal-alters-gay-ex-iaf-man-dismissal-to-routine-discharge/articleshow/133691499.cms",
-      "sourceName": "Times of India (Defence News)",
-      "sourceDomain": "timesofindia.indiatimes.com",
-      "tier": "TIER_2_NATIONAL",
-      "publishedAt": "2026-09-01T20:09:40.000Z"
     },
     {
       "id": "feed-air-space-forces-70c7072d",
@@ -2865,61 +2928,11 @@
       "tier": "TIER_4_OSINT",
       "publishedAt": "2026-09-01T10:10:16.000Z",
       "snippet": "Russia on Tuesday condemned upcoming joint military exercises between Japan, Australia and the United States and said it had formally complained to Tokyo about the deployment of U.S."
-    },
-    {
-      "id": "feed-naval-news-181f5a99",
-      "title": "TKMS and Fincantieri Expand Strategic Partnership in Underwater Sector",
-      "url": "https://www.navalnews.com/naval-news/2026/09/tkms-and-fincantieri-expand-strategic-partnership-in-underwater-sector/",
-      "sourceName": "Naval News (Indo-Pacific & Submarines)",
-      "sourceDomain": "navalnews.com",
-      "tier": "TIER_3_SPECIALIZED",
-      "publishedAt": "2026-09-01T10:02:11.000Z",
-      "snippet": "German shipbuilder TKMS and Italy's Fincantieri join forces to strengthen European underwater defense capabilities, targeting a joint framework by year-end."
-    },
-    {
-      "id": "feed-stratnews-global-e69686ae",
-      "title": "US Army Secretary Driscoll Resigns Amid Tensions With Hegseth",
-      "url": "https://stratnewsglobal.com/united-states/us-army-secretary-driscoll-resigns-amid-tensions-with-hegseth/",
-      "sourceName": "StratNews Global (Nitin Gokhale)",
-      "sourceDomain": "stratnewsglobal.com",
-      "tier": "TIER_4_OSINT",
-      "publishedAt": "2026-09-01T09:32:27.000Z",
-      "snippet": "U.S. Army Secretary Dan Driscoll has submitted his resignation to the White House following months of tension with Defense Secretary Pete Hegseth, a source familiar with the matter told Reuters. Driscoll, who officials said is close to U.S."
-    },
-    {
-      "id": "feed-naval-news-f31c7c3b",
-      "title": "Destinus, OMT and CUBEDIN Teaming Up on Containerized C-UAS Module",
-      "url": "https://www.navalnews.com/naval-news/2026/09/destinus-omt-and-cubedin-teaming-up-on-containerized-c-uas-module/",
-      "sourceName": "Naval News (Indo-Pacific & Submarines)",
-      "sourceDomain": "navalnews.com",
-      "tier": "TIER_3_SPECIALIZED",
-      "publishedAt": "2026-09-01T08:56:52.000Z",
-      "snippet": "At DALO Industry Days 2026 in Denmark, Destinus, CUBEDIN, and OMT Group announced a joint effort to develop a modular, containerized naval counter-unmanned aerial system (C-UAS) capability."
-    },
-    {
-      "id": "feed-bharat-shakti-9a3208a0",
-      "title": "Sri Lanka Navy Chief’s First Overseas Visit Signals Deeper Maritime, Defence Ties with India",
-      "url": "https://bharatshakti.in/sri-lanka-navy-chiefs-first-overseas-visit-signals-deeper-maritime-defence-ties-with-india/",
-      "sourceName": "Bharat Shakti (Nitin Gokhale)",
-      "sourceDomain": "bharatshakti.in",
-      "tier": "TIER_3_SPECIALIZED",
-      "publishedAt": "2026-09-01T08:19:30.000Z",
-      "snippet": "Sri Lanka Navy Commander Vice Admiral Damian Fernando’s first overseas visit since assuming the Chief’s post has underscored Colombo’s growing maritime and defence engagement with India, with the two sides discussing maritime security, joint operations, training, capacity..."
-    },
-    {
-      "id": "feed-stratnews-global-5ba29e50",
-      "title": "‘Defence, Energy Key to Kuwait-India Partnership’",
-      "url": "https://stratnewsglobal.com/west-asia/kuwait/defence-energy-key-to-kuwait-india-partnership/",
-      "sourceName": "StratNews Global (Nitin Gokhale)",
-      "sourceDomain": "stratnewsglobal.com",
-      "tier": "TIER_4_OSINT",
-      "publishedAt": "2026-09-01T07:28:44.000Z",
-      "snippet": "Kuwait’s ambassador outlines plans to deepen strategic ties with India across defence, energy, trade, investment and technology."
     }
   ],
-  "totalIngested": 298,
-  "totalFiltered": 160,
+  "totalIngested": 307,
+  "totalFiltered": 163,
   "activeFeedsCount": 76,
-  "durationMs": 42288,
-  "generatedAt": "2026-09-02T08:18:12.129Z"
+  "durationMs": 31627,
+  "generatedAt": "2026-09-02T09:57:15.497Z"
 }
