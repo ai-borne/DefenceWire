@@ -18,24 +18,19 @@ import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
 import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
 import {
-  aggregateEntityCandidates,
-  getPromotedEntityConfigs,
-  syncDiscoveredEntitiesToD1,
-  EntityHarvestCandidate
+  aggregateEntityCandidates, getPromotedEntityConfigs,
+  syncDiscoveredEntitiesToD1, EntityHarvestCandidate
 } from './entityHarvester.js';
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import { aggregateSourceStats, syncSourceReputationToD1 } from './sourceTracker.js';
 
-import { isDefenceRelevant, filterFreshArticles } from './filters.js';
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
   NON_DEFENCE_BLACKLIST_REGEX, DEFENCE_WHOLE_WORD_REGEX
 } from './filters.js';
-
+import { isDefenceRelevant, filterFreshArticles } from './filters.js';
 
 export interface IngestOptions {
-
-
   feeds?: FeedConfig[];
   maxAgeHours?: number;
   maxClusters?: number;
@@ -44,6 +39,7 @@ export interface IngestOptions {
   fetchFn?: typeof fetch;
   existingClusters?: StoryCluster[];
   existingRiver?: StorySourceItem[];
+  includeSeedClusters?: boolean;
 }
 
 export interface IngestResult {
@@ -169,8 +165,19 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const allClusters = clusterArticles(freshArticles);
   const topClusters = allClusters.slice(0, maxClusters);
 
+  // Merge with initial seed clusters in production to guarantee permanent hydration of official/program stories
+  const shouldIncludeSeeds = options.includeSeedClusters ?? !options.feeds;
+  const mergedWithSeeds = [...topClusters];
+  if (shouldIncludeSeeds) {
+    for (const seed of INITIAL_STORY_CLUSTERS) {
+      if (!mergedWithSeeds.some((m) => m.id === seed.id || m.primarySource.url === seed.primarySource.url)) {
+        mergedWithSeeds.push(seed);
+      }
+    }
+  }
+
   // Apply Curator Override Protection Locks
-  const lockedProtectedClusters = preserveCuratorOverrides(topClusters, existingClusters);
+  const lockedProtectedClusters = preserveCuratorOverrides(mergedWithSeeds, existingClusters);
 
   // Enrich all clusters with SSB Intelligence using Dual-Engine Free Cascade
   // (Gemini Flash -> Cloudflare Workers AI -> Heuristic)
@@ -256,7 +263,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     generatedAt
   };
 
-
   // Persist output atomically if specified or default to public/data/news.json
   if (options.outputPath !== null) {
     const defaultDir = path.resolve(process.cwd(), 'public/data');
@@ -274,21 +280,13 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   return result;
 }
 
-// Direct CLI entrypoint execution. vite-node does not add the executed file's path to
-// process.argv, so detection can't rely on argv contents; instead, run unless loaded
-// under Vitest (which always sets process.env.VITEST) importing this module for its exports.
 export function shouldRunAsCli(env: NodeJS.ProcessEnv = process.env): boolean {
   return !env.VITEST;
 }
 
 if (shouldRunAsCli()) {
   console.log('[DEFENCEWIRE CRAWLER] Starting 24/7 ingestion pipeline across 40+ feeds...');
-  try {
-    const res = await runIngestionPipeline();
-    console.log(
-      `[CRAWLER COMPLETE] Ingested: ${res.totalIngested} raw items | Filtered & Fresh: ${res.totalFiltered} | Clusters: ${res.clusters.length} | River: ${res.river.length} | Time: ${res.durationMs}ms`
-    );
-  } catch (err) {
-    console.error('[CRAWLER ERROR]', err);
-  }
+  runIngestionPipeline()
+    .then((res) => console.log(`[CRAWLER COMPLETE] Ingested: ${res.totalIngested} | Filtered: ${res.totalFiltered} | Clusters: ${res.clusters.length} | River: ${res.river.length} | Time: ${res.durationMs}ms`))
+    .catch((err) => console.error('[CRAWLER ERROR]', err));
 }

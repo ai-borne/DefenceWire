@@ -225,13 +225,37 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
     const { entities, categories } = extractMilitaryEntities(allTitles);
     const discussions: DiscussionQuote[] = socialItems.map(convertSocialItemToDiscussionQuote);
 
+    const finalCategories = new Set(categories);
+    if (
+      primary.officialType ||
+      primary.tier === SourceTier.TIER_1_OFFICIAL ||
+      group.some(it => it.officialType || it.tier === SourceTier.TIER_1_OFFICIAL)
+    ) {
+      finalCategories.add('official');
+    }
+    if (
+      primary.officialType === 'tender' ||
+      group.some(it => it.officialType === 'tender' || it.url.includes('defproc') || it.url.includes('tender'))
+    ) {
+      finalCategories.add('tenders');
+    }
+    if (
+      primary.officialType === 'idex' ||
+      group.some(it => it.officialType === 'idex' || it.url.includes('idex.gov.in') || it.url.includes('tdf.drdo.in'))
+    ) {
+      finalCategories.add('idex');
+    }
+    if (entities.length > 0) {
+      finalCategories.add('programs');
+    }
+
     const baseCluster: StoryCluster = {
       id: `cluster-${computeStableHash(primary.url)}`,
       synthesizedHeadline: primary.title,
       primarySource: primary,
       relatedCoverage: related,
       discussions,
-      categories,
+      categories: Array.from(finalCategories),
       entities,
       defenceScore: 0,
       isLeadStory: false,
