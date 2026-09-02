@@ -63,4 +63,24 @@ describe('Cluster Engine: MOAT Category Inheritance', () => {
     expect(clusters[0]?.categories).toContain('official');
     expect(clusters[0]?.categories).toContain('idex');
   });
+
+  it('automatically populates programTags matching strategic programs during clustering', () => {
+    const item: StorySourceItem = {
+      id: 'amca-story',
+      title: 'MoD Allocates Budget for AMCA 5th Gen Fighter Prototypes and Wind Tunnel Trials',
+      url: 'https://pib.gov.in/amca-budget',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-30T09:00:00Z',
+      officialType: 'pib_mod',
+      snippet: 'CCS sanctions ₹15,000 Cr for ADA-led Advanced Medium Combat Aircraft development.'
+    };
+
+    const clusters = clusterArticles([item]);
+    expect(clusters).toHaveLength(1);
+    expect(clusters[0]?.programTags).toBeDefined();
+    expect(clusters[0]?.programTags).toContain('amca');
+    expect(clusters[0]?.categories).toContain('programs');
+  });
 });

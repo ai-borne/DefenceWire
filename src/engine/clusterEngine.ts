@@ -12,7 +12,7 @@ import { computeStableHash } from '../utils/stableId.js';
 
 import { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities, MilitaryEntityConfig } from '../data/militaryEntities.js';
 import { hasSharedActionSignature } from './actionSignatures.js';
-
+import { linkStoryToPrograms } from './programMatcher.js';
 
 export { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities };
 export type { MilitaryEntityConfig };
@@ -245,7 +245,13 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
     ) {
       finalCategories.add('idex');
     }
-    if (entities.length > 0) {
+    const programTags = linkStoryToPrograms({
+      synthesizedHeadline: primary.title,
+      primarySource: primary,
+      entities
+    });
+
+    if (entities.length > 0 || programTags.length > 0) {
       finalCategories.add('programs');
     }
 
@@ -257,6 +263,7 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
       discussions,
       categories: Array.from(finalCategories),
       entities,
+      programTags: programTags.length > 0 ? programTags : undefined,
       defenceScore: 0,
       isLeadStory: false,
       createdAt: primary.publishedAt,

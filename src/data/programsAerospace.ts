@@ -259,7 +259,7 @@ export const AEROSPACE_PROGRAMS: StrategicProgram[] = [
     targetInductionYear: '2026-2032',
     plannedUnits: 84,
     summary: 'Comprehensive indigenous upgrade of 84 frontline Su-30MKI fighters with Virupaksha AESA radar, mission computers, and long-range BVRs.',
-    searchAliases: ['super sukhoi', 'su-30mki upgrade', 'su30 upgrade', 'virupaksha radar'],
+    searchAliases: ['super sukhoi', 'su-30mki', 'su-30', 'su-30mki upgrade', 'su30 upgrade', 'virupaksha radar'],
     keySubsystems: [
       { name: 'Virupaksha AESA Radar', type: 'Radar / Sensor', indigenous: true, supplier: 'LRDE / BEL', status: 'Prototyping' },
       { name: 'High-Power Mission Computer', type: 'Avionics / EW', indigenous: true, supplier: 'DARE / HAL', status: 'Lab Trials' },

@@ -32,6 +32,7 @@ export function computeContentHash(headline: string, url: string): string {
 
 export function clearSummaryMemoryCache(): void {
   SUMMARY_MEMORY_CACHE.clear();
+  resetThrottleState();
 }
 
 export function getSummaryMemorySize(): number {

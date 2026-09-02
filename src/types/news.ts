@@ -88,6 +88,7 @@ export interface StoryCluster {
   ssbIntel?: SSBIntelligence;
   categories: DomainCategory[];
   entities: string[];
+  programTags?: string[];
   defenceScore: number;
   isLeadStory: boolean;
   isEditorPromoted?: boolean;

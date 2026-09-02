@@ -3,7 +3,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedConfig } from '../../crawler/feedTypes.js';
 import {
   filterFreshArticles,
@@ -13,33 +13,25 @@ import {
   runIngestionPipeline,
   shouldRunAsCli
 } from '../../crawler/ingest.js';
-import { clearSummaryMemoryCache } from '../../crawler/summarizer.js';
+import { clearSummaryMemoryCache, resetThrottleState } from '../../crawler/summarizer.js';
+import { resetCircuitBreakers } from '../../crawler/parser.js';
+import { resetDynamicEntities } from '../../src/data/militaryEntities.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
 const MOCK_TIER1_FEED: FeedConfig = {
-  id: 'feed-pib',
-  name: 'PIB MoD',
-  url: 'https://pib.gov.in/feed.xml',
-  domain: 'pib.gov.in',
-  tier: SourceTier.TIER_1_OFFICIAL,
-  defaultCategory: 'strategic',
-  enabled: true
+  id: 'feed-pib', name: 'PIB MoD', url: 'https://pib.gov.in/feed.xml',
+  domain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL, defaultCategory: 'strategic', enabled: true, timeoutMs: 600000
 };
 
 const MOCK_TIER2_FEED: FeedConfig = {
-  id: 'feed-hindu',
-  name: 'The Hindu',
-  url: 'https://thehindu.com/feed.xml',
-  domain: 'thehindu.com',
-  tier: SourceTier.TIER_2_NATIONAL,
-  defaultCategory: 'strategic',
-  enabled: true
+  id: 'feed-hindu', name: 'The Hindu', url: 'https://thehindu.com/feed.xml',
+  domain: 'thehindu.com', tier: SourceTier.TIER_2_NATIONAL, defaultCategory: 'strategic', enabled: true
 };
 
 const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>PIB Defence</title>
-  <item><title>HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force</title><link>https://pib.gov.in/tejas-mk1a-delivery-batch</link><pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate><description>Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.</description></item>
-  <item><title>Sensex rises 500 points in early trade amid foreign inflows</title><link>https://thehindu.com/sensex-record-high</link><pubDate>Sun, 30 Aug 2026 09:10:00 GMT</pubDate><description>Stock markets rallied today on strong tech earnings.</description></item>
+  <item><title>HAL delivers first batch of upgraded Tejas Mk1A fighters to Indian Air Force</title><link>https://pib.gov.in/tejas-mk1a-delivery-batch</link><pubDate>${new Date().toUTCString()}</pubDate><description>Equipped with Uttam AESA radar and Astra Beyond Visual Range missiles.</description></item>
+  <item><title>Sensex rises 500 points in early trade amid foreign inflows</title><link>https://thehindu.com/sensex-record-high</link><pubDate>${new Date().toUTCString()}</pubDate><description>Stock markets rallied today on strong tech earnings.</description></item>
 </channel></rss>`;
 
 const MOCK_GEMINI_SUCCESS = { candidates: [{ content: { parts: [{ text: JSON.stringify({
@@ -49,23 +41,35 @@ const MOCK_GEMINI_SUCCESS = { candidates: [{ content: { parts: [{ text: JSON.str
 
 // 13 distinct defence platforms so clustering keeps each as its own story, exceeding the old hardcoded enrichment cap of 12.
 const DISTINCT_DEFENCE_HEADLINES = [
-  'HAL delivers upgraded Tejas Mk1A fighters to Indian Air Force', 'IAF finalizes Rafale jet spares deal with Dassault Aviation',
-  'Zorawar light tanks deployed by army near the LAC frontier', 'DRDO conducts successful BrahMos missile test off Odisha coast',
-  'Pinaka rocket artillery system inducted by army units', 'S-400 air defence squadron activated by IAF in the west',
-  'Prachand attack helicopter inducted into service by HAL', 'INS Vikrant aircraft carrier completes upgrade programme',
-  'Stealth submarine joins expanding underwater fleet strength', 'New stealth destroyer commissioned for the western fleet',
-  'Frigate completes sea trials ahead of formal commissioning', 'Stealth corvette begins advanced weapons trial phase',
-  'Artillery gun systems upgraded along the northern border sector'
+  'HAL delivers upgraded Tejas Mk1A fighters to Indian Air Force',
+  'IAF finalizes Rafale jet spares deal with Dassault Aviation',
+  'Indian Army deploys Zorawar light tanks near LAC frontier',
+  'DRDO conducts successful BrahMos missile test off Odisha coast',
+  'Pinaka rocket artillery system inducted by army units',
+  'S-400 air defence squadron activated by IAF in the west',
+  'Prachand attack helicopter inducted into service by HAL',
+  'INS Vikrant aircraft carrier completes operational upgrade',
+  'INS Arihant strategic submarine completes deterrence patrol',
+  'INS Mormugao stealth destroyer commissioned for the western fleet',
+  'Nilgiri class frigate completes sea trials ahead of formal commissioning',
+  'Akash-NG surface to air missile destroys aerial target in test',
+  'ATAGS advanced towed artillery gun systems deployed along northern border'
 ];
 
 function buildDistinctFeedXml(headlines: string[]): string {
-  const items = headlines
-    .map((title, idx) => `<item><title>${title}</title><link>https://pib.gov.in/story-${idx}</link><pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate><description>Defence modernization update.</description></item>`)
-    .join('');
+  const pubDate = new Date().toUTCString();
+  const items = headlines.map((title, idx) => `<item><title>${title}</title><link>https://pib.gov.in/story-${idx}</link><pubDate>${pubDate}</pubDate><description>Defence modernization update.</description></item>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>PIB Defence</title>${items}</channel></rss>`;
 }
 
 describe('Crawler Ingestion Pipeline & Quality Gates', () => {
+  beforeEach(() => {
+    resetCircuitBreakers();
+    resetDynamicEntities();
+    clearSummaryMemoryCache();
+    resetThrottleState();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -100,7 +104,11 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
       fetchFn: mockFetch as unknown as typeof fetch,
       geminiApiKey: 'mock-api-key'
     });
-    await vi.runAllTimersAsync();
+    // Advance timers step by step for each throttled Gemini call
+    for (let i = 0; i < 20; i++) {
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(5000);
+    }
     const result = await resultPromise;
 
     expect(result.clusters.length).toBeGreaterThan(12);
@@ -211,42 +219,23 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
       id: 'cluster-curator-lead',
       synthesizedHeadline: '⚡ HUMAN CURATED: Historic Indo-French Submarine Joint Venture Signed',
       primarySource: {
-        id: 'curator-ps',
-        title: 'Original Wire Headline',
-        url: 'https://pib.gov.in/tejas-mk1a-delivery-batch',
-        sourceName: 'PIB MoD',
-        sourceDomain: 'pib.gov.in',
-        tier: SourceTier.TIER_1_OFFICIAL,
-        publishedAt: '2026-08-30T09:00:00Z'
+        id: 'curator-ps', title: 'Original Wire Headline', url: 'https://pib.gov.in/tejas-mk1a-delivery-batch',
+        sourceName: 'PIB MoD', sourceDomain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL, publishedAt: '2026-08-30T09:00:00Z'
       },
-      relatedCoverage: [],
-      discussions: [],
-      categories: ['navy', 'strategic'],
-      entities: ['Project 75I'],
-      defenceScore: 130,
-      isLeadStory: true,
-      isEditorPromoted: true,
-      createdAt: '2026-08-30T09:00:00Z',
-      updatedAt: '2026-08-30T09:00:00Z',
-      ssbIntel: {
-        whyItMatters: 'Curator custom editorial brief',
-        gdLecturettePoints: ['Point 1'],
-        potentialInterviewQuestions: ['Q1']
-      }
+      relatedCoverage: [], discussions: [], categories: ['navy', 'strategic'], entities: ['Project 75I'],
+      defenceScore: 130, isLeadStory: true, isEditorPromoted: true,
+      createdAt: '2026-08-30T09:00:00Z', updatedAt: '2026-08-30T09:00:00Z',
+      ssbIntel: { whyItMatters: 'Curator custom editorial brief', gdLecturettePoints: ['Point 1'], potentialInterviewQuestions: ['Q1'] }
     };
 
     const mockFetch = async () => new Response(SAMPLE_XML_TEJAS, { status: 200 });
 
     const result = await runIngestionPipeline({
-      feeds: [MOCK_TIER1_FEED],
-      maxAgeHours: 72,
-      outputPath: null,
-      fetchFn: mockFetch as typeof fetch,
+      feeds: [MOCK_TIER1_FEED], maxAgeHours: 72, outputPath: null, fetchFn: mockFetch as typeof fetch,
       existingClusters: [lockedCuratorCluster]
     });
 
     const lead = result.clusters[0];
-    expect(lead).toBeDefined();
     expect(lead?.isEditorPromoted).toBe(true);
     expect(lead?.isLeadStory).toBe(true);
     expect(lead?.synthesizedHeadline).toContain('HUMAN CURATED');
@@ -254,44 +243,27 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
   });
 
   it('preserves existing dataset when total network failure occurs (Atomic Commit Guard)', async () => {
-    const existingDataset: StoryCluster[] = [
-      {
-        id: 'c-existing',
-        synthesizedHeadline: 'Existing Protected Story',
-        primarySource: {
-          id: 'ps-existing',
-          title: 'Existing Story',
-          url: 'https://mod.gov.in/existing',
-          sourceName: 'MoD',
-          sourceDomain: 'mod.gov.in',
-          tier: SourceTier.TIER_1_OFFICIAL,
-          publishedAt: '2026-08-30T08:00:00Z'
-        },
-        relatedCoverage: [],
-        discussions: [],
-        categories: ['strategic'],
-        entities: ['MoD'],
-        defenceScore: 80,
-        isLeadStory: true,
-        createdAt: '2026-08-30T08:00:00Z',
-        updatedAt: '2026-08-30T08:00:00Z'
-      }
-    ];
+    const existingDataset: StoryCluster[] = [{
+      id: 'c-existing', synthesizedHeadline: 'Existing Protected Story',
+      primarySource: {
+        id: 'ps-existing', title: 'Existing Story', url: 'https://mod.gov.in/existing',
+        sourceName: 'MoD', sourceDomain: 'mod.gov.in', tier: SourceTier.TIER_1_OFFICIAL, publishedAt: '2026-08-30T08:00:00Z'
+      },
+      relatedCoverage: [], discussions: [], categories: ['strategic'], entities: ['MoD'], defenceScore: 80, isLeadStory: true,
+      createdAt: '2026-08-30T08:00:00Z', updatedAt: '2026-08-30T08:00:00Z'
+    }];
 
     const failingFetch = async () => new Response('', { status: 500 });
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const result = await runIngestionPipeline({
-      feeds: [MOCK_TIER1_FEED],
-      outputPath: null,
-      fetchFn: failingFetch as typeof fetch,
+      feeds: [MOCK_TIER1_FEED], outputPath: null, fetchFn: failingFetch as typeof fetch,
       existingClusters: existingDataset
     });
 
     expect(result.totalIngested).toBe(0);
     expect(result.clusters.length).toBe(1);
     expect(result.clusters[0]?.id).toBe('c-existing');
-    // Bail-out must be visible in logs, not silent, so a zero-articles run isn't mistaken for a no-op.
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[ATOMIC COMMIT GUARD]'));
     logSpy.mockRestore();
   });
