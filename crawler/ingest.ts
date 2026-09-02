@@ -1,10 +1,9 @@
 /**
  * 24/7 Autonomous Defence News Ingestion Pipeline
  * Fetches 40+ RSS/Atom feeds, filters, clusters, scores, and generates SSB intel.
- * Enforces whole-word matching, negative blacklists, curator override locks & atomic commit guards.
+ * Enforces whole-word matching, negative blacklists, curator locks, atomic commit guards.
  * Hard limit: <= 300 LOC.
  */
-
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { clusterArticles } from '../src/engine/clusterEngine.js';
@@ -18,6 +17,7 @@ import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
 import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
 import { pruneStaleTenders } from './tenderPruner.js';
+import { runTenderIngestion } from './tenderIngest.js'; // MOAT3 Phase 4
 import {
   aggregateEntityCandidates, getPromotedEntityConfigs,
   syncDiscoveredEntitiesToD1, EntityHarvestCandidate
@@ -252,7 +252,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
 
-  // Tender lifecycle maintenance (MOAT3) — no-op if D1 env vars are absent, same resilience pattern as the archive sync above.
+  const tenderIngestResult = await runTenderIngestion(d1Config, { fetchFn, geminiApiKey: apiKey });
+  console.log(`[TENDER INGEST] upserted=${tenderIngestResult.upserted} failedSources=${tenderIngestResult.failedSources.join(',') || 'none'}`);
+
   const tenderPruneResult = await pruneStaleTenders(d1Config, { fetchFn });
   console.log(`[TENDER PRUNER] closeOk=${tenderPruneResult.closeOk} deleteOk=${tenderPruneResult.deleteOk} failed=${tenderPruneResult.failed}`);
 
