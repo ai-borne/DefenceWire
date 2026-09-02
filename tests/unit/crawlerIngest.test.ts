@@ -95,6 +95,12 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     };
 
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    // Pin freshness/clustering to the real "now" captured before the fake clock starts
+    // advancing to pace Gemini throttling below — otherwise clusterArticles'/filterFreshArticles'
+    // own `new Date()` default reads the *advancing* fake clock, nondeterministically shrinking
+    // the 48h cluster time-diff window depending on exactly how far the timers have been wound
+    // forward by the time those pure functions run.
+    const fixedNow = new Date();
     vi.useFakeTimers();
     const resultPromise = runIngestionPipeline({
       feeds: [MOCK_TIER1_FEED],
@@ -102,7 +108,8 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
       maxClusters: DISTINCT_DEFENCE_HEADLINES.length,
       outputPath: null,
       fetchFn: mockFetch as unknown as typeof fetch,
-      geminiApiKey: 'mock-api-key'
+      geminiApiKey: 'mock-api-key',
+      now: fixedNow
     });
     // Advance timers step by step for each throttled Gemini call
     for (let i = 0; i < 20; i++) {

@@ -40,6 +40,8 @@ export interface IngestOptions {
   existingClusters?: StoryCluster[];
   existingRiver?: StorySourceItem[];
   includeSeedClusters?: boolean;
+  /** Reference clock for freshness/clustering; tests pin it to dodge fake-timer drift. */
+  now?: Date;
 }
 
 export interface IngestResult {
@@ -90,7 +92,6 @@ function preserveCuratorOverrides(
   return merged;
 }
 
-
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
   const startTime = Date.now();
   const feeds = options.feeds ?? getActiveFeeds();
@@ -98,7 +99,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const maxClusters = options.maxClusters ?? 30;
   const apiKey = options.geminiApiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? '';
   const fetchFn = options.fetchFn ?? globalThis.fetch;
-
+  const now = options.now ?? new Date();
   // Read existing dataset if present for curator protection and atomic guards
   let existingClusters: StoryCluster[] = options.existingClusters || [];
   let existingRiver: StorySourceItem[] = options.existingRiver || [];
@@ -136,7 +137,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
   }
 
-  const freshArticles = filterFreshArticles(rawArticles, maxAgeHours);
+  const freshArticles = filterFreshArticles(rawArticles, maxAgeHours, now);
 
   // Atomic Commit Guard: Preserve existing data on total failure
   if (rawArticles.length === 0 || freshArticles.length === 0) {
@@ -162,7 +163,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   );
 
   // Cluster articles into coherent story groups
-  const allClusters = clusterArticles(freshArticles);
+  const allClusters = clusterArticles(freshArticles, now);
   const topClusters = allClusters.slice(0, maxClusters);
 
   // Merge with initial seed clusters in production to guarantee permanent hydration of official/program stories
@@ -228,7 +229,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
 
   // Closed-loop dynamic entity harvesting
-
   const d1Config = buildD1ConfigFromEnv(process.env);
   const r2Config = buildR2ConfigFromEnv(process.env);
   const aggregatedEntities = aggregateEntityCandidates(entityCandidates);
