@@ -156,4 +156,30 @@ describe('TendersViewModel — selected tender', () => {
     expect(vm.findLoadedTenderById('t1')).toEqual(tender);
     expect(vm.findLoadedTenderById('missing')).toBeNull();
   });
+
+  it('resolves a loaded tender without calling the by-id network fallback', async () => {
+    const tender = makeTender('t1');
+    const searchFn = vi.fn().mockResolvedValue({ tenders: [tender], nextCursor: null });
+    const byIdFn = vi.fn();
+    const vm = new TendersViewModel(searchFn, byIdFn);
+    vm.ensureLoaded();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    await expect(vm.resolveTenderById('t1')).resolves.toEqual(tender);
+    expect(byIdFn).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the by-id network call for a cold deep link not on the loaded page', async () => {
+    const searchFn = vi.fn().mockResolvedValue({ tenders: [], nextCursor: null });
+    const remoteTender = makeTender('t2');
+    const byIdFn = vi.fn().mockResolvedValue(remoteTender);
+    const vm = new TendersViewModel(searchFn, byIdFn);
+    vm.ensureLoaded();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    await expect(vm.resolveTenderById('t2')).resolves.toEqual(remoteTender);
+    expect(byIdFn).toHaveBeenCalledWith('t2');
+  });
 });

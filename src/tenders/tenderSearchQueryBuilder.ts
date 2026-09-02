@@ -87,3 +87,11 @@ export function buildBrowseTendersStatement(
     params
   };
 }
+
+/** Single-row PK lookup for #tender/<id> deep links — no pagination/table-scan concern since `id` is the primary key. */
+export function buildGetTenderByIdStatement(id: string): D1Statement {
+  return {
+    sql: 'SELECT * FROM tenders WHERE id = ? LIMIT 1',
+    params: [id]
+  };
+}

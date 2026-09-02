@@ -13,7 +13,7 @@
  */
 
 import { TenderRow } from '../archive/d1QueryBuilder.js';
-import { buildSearchTendersStatement, buildBrowseTendersStatement } from './tenderSearchQueryBuilder.js';
+import { buildSearchTendersStatement, buildBrowseTendersStatement, buildGetTenderByIdStatement } from './tenderSearchQueryBuilder.js';
 
 export interface TendersSearchDependencies {
   runQuery: (sql: string, params: unknown[]) => Promise<TenderRow[]>;
@@ -99,4 +99,28 @@ export async function handleTendersSearchRequest(
   const nextCursor = hasMore && lastRow ? lastRow.last_seen_at : null;
 
   return { tenders: pageRows, nextCursor };
+}
+
+export interface TenderByIdResult {
+  tender: TenderRow | null;
+  error?: string;
+}
+
+/** Backs GET /api/tenders/:id — resolves cold #tender/<id> deep links that fall outside the currently-loaded search page. */
+export async function handleTenderByIdRequest(
+  rawId: string,
+  deps: TendersSearchDependencies
+): Promise<TenderByIdResult> {
+  const id = rawId.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 100).trim();
+  if (!id) {
+    return { tender: null, error: 'Tender id is required.' };
+  }
+
+  const statement = buildGetTenderByIdStatement(id);
+  try {
+    const rows = await deps.runQuery(statement.sql, statement.params);
+    return { tender: rows[0] ?? null };
+  } catch {
+    return { tender: null, error: 'Tender lookup is temporarily unavailable.' };
+  }
 }

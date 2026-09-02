@@ -19,7 +19,7 @@ const DOMAIN_OPTIONS: readonly { id: string | 'all'; label: string }[] = [
   { id: 'Army', label: STRINGS.nav.army },
   { id: 'Navy', label: STRINGS.nav.navy },
   { id: 'Air Force', label: STRINGS.nav.airforce },
-  { id: 'DRDO', label: 'DRDO' }
+  { id: 'DRDO', label: STRINGS.tenders.domainDrdo }
 ];
 
 const STATUS_TABS: readonly { id: TenderStatus | 'all'; label: string }[] = [

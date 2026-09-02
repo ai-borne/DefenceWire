@@ -131,6 +131,7 @@ export const STRINGS = {
     statusClosed: 'Closed',
     statusCancelled: 'Cancelled',
     domainAllLabel: 'All Domains',
+    domainDrdo: 'DRDO',
     searchPlaceholder: 'Search tenders by title or organisation...',
     noResults: 'No tenders matched your filter criteria.',
     loadMore: 'Load More Tenders',

@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { buildSearchTendersStatement, buildBrowseTendersStatement } from '../../src/tenders/tenderSearchQueryBuilder.js';
+import { buildSearchTendersStatement, buildBrowseTendersStatement, buildGetTenderByIdStatement } from '../../src/tenders/tenderSearchQueryBuilder.js';
 
 describe('buildSearchTendersStatement', () => {
   it('scopes to status and MATCHes the FTS table', () => {
@@ -80,5 +80,14 @@ describe('buildBrowseTendersStatement', () => {
     const stmt = buildBrowseTendersStatement({ status: 'active', sourceScope: 'all' });
     expect(stmt.sql).not.toContain('source IN');
     expect(stmt.sql).not.toContain('source NOT IN');
+  });
+});
+
+describe('buildGetTenderByIdStatement', () => {
+  it('is a single-row PK lookup by id, not a table scan', () => {
+    const stmt = buildGetTenderByIdStatement('2026_IAF_787429_1');
+    expect(stmt.sql).toContain('WHERE id = ?');
+    expect(stmt.sql).toContain('LIMIT 1');
+    expect(stmt.params).toEqual(['2026_IAF_787429_1']);
   });
 });

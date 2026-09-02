@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { TenderRow } from '../../src/archive/d1QueryBuilder.js';
-import { handleTendersSearchRequest } from '../../src/tenders/tendersSearchHandler.js';
+import { handleTendersSearchRequest, handleTenderByIdRequest } from '../../src/tenders/tendersSearchHandler.js';
 
 function makeRow(id: string, lastSeenAt: string, overrides: Partial<TenderRow> = {}): TenderRow {
   return {
@@ -177,5 +177,41 @@ describe('handleTendersSearchRequest — DoS & Input Sanitization Protection', (
     const ftsQuery = params[0] as string;
     const tokens = ftsQuery.split(/\s+/);
     expect(tokens.length).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('handleTenderByIdRequest', () => {
+  it('returns the tender when the PK lookup finds a row', async () => {
+    const row = makeRow('t1', '2026-09-01T00:00:00Z');
+    const runQuery = vi.fn().mockResolvedValue([row]);
+    const result = await handleTenderByIdRequest('t1', { runQuery });
+
+    expect(result.tender?.id).toBe('t1');
+    expect(result.error).toBeUndefined();
+  });
+
+  it('returns a null tender, no error, when the id does not exist (cold/expired link)', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    const result = await handleTenderByIdRequest('missing', { runQuery });
+
+    expect(result.tender).toBeNull();
+    expect(result.error).toBeUndefined();
+  });
+
+  it('rejects a blank id without querying the database', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    const result = await handleTenderByIdRequest('   ', { runQuery });
+
+    expect(result.tender).toBeNull();
+    expect(result.error).toBe('Tender id is required.');
+    expect(runQuery).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a friendly error instead of throwing when the query fails', async () => {
+    const runQuery = vi.fn().mockRejectedValue(new Error('D1 unavailable'));
+    const result = await handleTenderByIdRequest('t1', { runQuery });
+
+    expect(result.tender).toBeNull();
+    expect(result.error).toBe('Tender lookup is temporarily unavailable.');
   });
 });

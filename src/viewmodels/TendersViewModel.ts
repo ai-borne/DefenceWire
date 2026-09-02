@@ -9,10 +9,11 @@
  */
 
 import { Tender, TenderFilters, TenderSourceScope, TenderStatus } from '../types/tenders.js';
-import { searchTenders, TenderSearchOutcome } from '../services/tenderService.js';
+import { searchTenders, fetchTenderById, TenderSearchOutcome } from '../services/tenderService.js';
 
 export type TendersStateListener = () => void;
 export type TendersSearchFn = (filters: TenderFilters, cursor?: string | null) => Promise<TenderSearchOutcome>;
+export type TenderByIdFn = (id: string) => Promise<Tender | null>;
 
 export class TendersViewModel {
   private status: TenderStatus | 'all' = 'active';
@@ -28,9 +29,14 @@ export class TendersViewModel {
   private selectedTender: Tender | null = null;
   private listeners: Set<TendersStateListener> = new Set();
   private readonly searchFn: TendersSearchFn;
+  private readonly byIdFn: TenderByIdFn;
 
-  constructor(searchFn: TendersSearchFn = (filters, cursor) => searchTenders(filters, cursor)) {
+  constructor(
+    searchFn: TendersSearchFn = (filters, cursor) => searchTenders(filters, cursor),
+    byIdFn: TenderByIdFn = (id) => fetchTenderById(id)
+  ) {
     this.searchFn = searchFn;
+    this.byIdFn = byIdFn;
   }
 
   public getStatus(): TenderStatus | 'all' {
@@ -146,9 +152,16 @@ export class TendersViewModel {
     this.notifyListeners();
   }
 
-  /** Best-effort lookup for #tender/<id> deep links: tenders aren't a static catalog like programs, so only currently-loaded pages are searchable without a live-scan endpoint. */
+  /** Fast-path lookup for #tender/<id> deep links: checks the currently-loaded page before falling back to a network call. */
   public findLoadedTenderById(id: string): Tender | null {
     return this.results.find((t) => t.id === id) ?? null;
+  }
+
+  /** Resolves #tender/<id> deep links: currently-loaded page first, then GET /api/tenders/:id for a cold link (e.g. shared externally). */
+  public async resolveTenderById(id: string): Promise<Tender | null> {
+    const loaded = this.findLoadedTenderById(id);
+    if (loaded) return loaded;
+    return this.byIdFn(id);
   }
 
   public subscribe(listener: TendersStateListener): () => void {

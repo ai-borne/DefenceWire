@@ -203,13 +203,13 @@ export function initializeApp(): void {
       const rawId = hash.replace(/^#\/?tender\//, '').trim();
       if (rawId) {
         const decoded = decodeURIComponent(rawId);
-        const tender = tendersVm.findLoadedTenderById(decoded);
-        if (tender) {
+        void tendersVm.resolveTenderById(decoded).then((tender) => {
+          if (!tender) return;
           tendersVm.setSelectedTender(tender);
           openTenderDetailModal(tender, {
             onClose: () => tendersVm.setSelectedTender(null)
           });
-        }
+        });
       }
     }
   };

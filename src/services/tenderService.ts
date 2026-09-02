@@ -49,3 +49,15 @@ export async function searchTenders(
     return { tenders: [], nextCursor: null, error: 'Tender search is temporarily unavailable.' };
   }
 }
+
+/** Backs cold #tender/<id> deep links via GET /api/tenders/:id — falls back to this when the tender isn't in the currently-loaded search page. */
+export async function fetchTenderById(id: string, fetchFn: typeof fetch = fetch): Promise<Tender | null> {
+  try {
+    const response = await fetchFn(`/api/tenders/${encodeURIComponent(id)}`);
+    if (!response.ok) return null;
+    const data = (await response.json()) as { tender?: TenderRow | null };
+    return data.tender ? fromTenderRow(data.tender) : null;
+  } catch {
+    return null;
+  }
+}
