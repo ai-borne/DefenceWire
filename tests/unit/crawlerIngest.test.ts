@@ -118,12 +118,6 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     }
     const result = await resultPromise;
 
-    if (result.clusters.length !== DISTINCT_DEFENCE_HEADLINES.length) {
-      process.stderr.write(`\n[CLUSTER DEBUG] geminiCallCount=${geminiCallCount} clusters=${result.clusters.length}\n`);
-      process.stderr.write(`[CLUSTER DEBUG] headlines=${JSON.stringify(result.clusters.map((c) => c.synthesizedHeadline))}\n`);
-      process.stderr.write(`[CLUSTER DEBUG] relatedCounts=${JSON.stringify(result.clusters.map((c) => c.relatedCoverage.length))}\n`);
-    }
-
     expect(result.clusters.length).toBeGreaterThan(12);
     // Every cluster attempted (and got) a real Gemini summary, not just the first 12/14.
     expect(geminiCallCount).toBe(result.clusters.length);
