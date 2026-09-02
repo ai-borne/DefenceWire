@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { buildR2ConfigFromEnv, putClusterJson } from '../../crawler/r2ArchiveStore.js';
+import { buildR2ConfigFromEnv, putClusterJson, putObject } from '../../crawler/r2ArchiveStore.js';
 
 const config = {
   accountId: 'acct-1',
@@ -65,5 +65,17 @@ describe('putClusterJson', () => {
     const result = await putClusterJson('story-1', '{}', config, fetchFn);
 
     expect(result).toEqual({ ok: false });
+  });
+});
+
+describe('putObject (generalized, e.g. tender PDFs)', () => {
+  it('PUTs an arbitrary key/content-type through the same signed request path', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const result = await putObject('tenders/2026_IAF_787429_1.pdf', '%PDF-1.4 binary-ish', 'application/pdf', config, fetchFn);
+
+    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://acct-1.r2.cloudflarestorage.com/defencewire-archive-blobs/tenders/2026_IAF_787429_1.pdf');
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/pdf');
+    expect(result).toEqual({ ok: true, status: 200 });
   });
 });

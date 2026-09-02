@@ -17,6 +17,7 @@ import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js'
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
 import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
+import { pruneStaleTenders } from './tenderPruner.js';
 import {
   aggregateEntityCandidates, getPromotedEntityConfigs,
   syncDiscoveredEntitiesToD1, EntityHarvestCandidate
@@ -250,6 +251,10 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, r2Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
+
+  // Tender lifecycle maintenance (MOAT3) — no-op if D1 env vars are absent, same resilience pattern as the archive sync above.
+  const tenderPruneResult = await pruneStaleTenders(d1Config, { fetchFn });
+  console.log(`[TENDER PRUNER] closeOk=${tenderPruneResult.closeOk} deleteOk=${tenderPruneResult.deleteOk} failed=${tenderPruneResult.failed}`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;

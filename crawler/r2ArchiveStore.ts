@@ -70,16 +70,22 @@ function signPut(config: R2Config, host: string, objectPath: string, body: strin
   return { authorization, contentSha256 };
 }
 
-export async function putClusterJson(
-  id: string,
-  json: string,
+/**
+ * Generalized R2 object PUT, shared by every blob write in the crawler (the
+ * archived-story cluster_json below, and MOAT3's tender PDF archiving) —
+ * one SigV4 signing path, not a second upload mechanism per blob type.
+ */
+export async function putObject(
+  key: string,
+  body: string,
+  contentType: string,
   config: R2Config,
   fetchFn: typeof fetch = globalThis.fetch
 ): Promise<R2PutResult> {
-  const objectPath = `/${config.bucketName}/${id}.json`;
+  const objectPath = `/${config.bucketName}/${key}`;
   const host = `${config.accountId}.r2.cloudflarestorage.com`;
   const amzDate = amzDateNow();
-  const { authorization, contentSha256 } = signPut(config, host, objectPath, json, amzDate);
+  const { authorization, contentSha256 } = signPut(config, host, objectPath, body, amzDate);
 
   try {
     const response = await fetchFn(`https://${host}${objectPath}`, {
@@ -89,12 +95,21 @@ export async function putClusterJson(
         'x-amz-content-sha256': contentSha256,
         'x-amz-date': amzDate,
         Authorization: authorization,
-        'Content-Type': 'application/json'
+        'Content-Type': contentType
       },
-      body: json
+      body
     });
     return { ok: response.ok, status: response.status };
   } catch {
     return { ok: false };
   }
+}
+
+export async function putClusterJson(
+  id: string,
+  json: string,
+  config: R2Config,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<R2PutResult> {
+  return putObject(`${id}.json`, json, 'application/json', config, fetchFn);
 }

@@ -141,3 +141,110 @@ export function buildDeleteArchivedStoriesStatement(ids: string[]): D1Statement 
     params: [...ids]
   };
 }
+
+// ---------------------------------------------------------------------------
+// Tenders (MOAT3) — same D1 REST write path (crawler/archiveSync.ts's
+// executeD1Query), just a different table. Kept in this file per SSOT: one
+// place for every D1 statement shape used across the crawler and the API.
+// ---------------------------------------------------------------------------
+
+export interface TenderRow {
+  id: string;
+  source: string;
+  title: string;
+  organisation_chain: string;
+  reference_number: string | null;
+  category: string | null;
+  domain: string | null;
+  published_at: string | null;
+  closing_at: string | null;
+  emd_amount: number | null;
+  iddm_percent: number | null;
+  program_ids: string | null;
+  detail_url: string;
+  pdf_r2_key: string | null;
+  status: string;
+  first_seen_at: string;
+  last_seen_at: string;
+}
+
+/** Inserts a newly-seen tender, or refreshes the mutable fields (status/EMD/etc.) on one already tracked. */
+export function buildUpsertTenderStatement(row: TenderRow): D1Statement {
+  return {
+    sql: `INSERT INTO tenders
+      (id, source, title, organisation_chain, reference_number, category, domain, published_at, closing_at, emd_amount, iddm_percent, program_ids, detail_url, pdf_r2_key, status, first_seen_at, last_seen_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        title = excluded.title,
+        organisation_chain = excluded.organisation_chain,
+        category = excluded.category,
+        domain = excluded.domain,
+        closing_at = excluded.closing_at,
+        emd_amount = excluded.emd_amount,
+        iddm_percent = excluded.iddm_percent,
+        program_ids = excluded.program_ids,
+        pdf_r2_key = excluded.pdf_r2_key,
+        status = excluded.status,
+        last_seen_at = excluded.last_seen_at`,
+    params: [
+      row.id, row.source, row.title, row.organisation_chain, row.reference_number,
+      row.category, row.domain, row.published_at, row.closing_at, row.emd_amount,
+      row.iddm_percent, row.program_ids, row.detail_url, row.pdf_r2_key, row.status,
+      row.first_seen_at, row.last_seen_at
+    ]
+  };
+}
+
+/** Flips one tender's status directly (e.g. source-reported cancellation), independent of the bulk lifecycle sweep. */
+export function buildUpdateTenderStatusStatement(id: string, status: 'active' | 'closed' | 'cancelled'): D1Statement {
+  return { sql: `UPDATE tenders SET status = ? WHERE id = ?`, params: [status, id] };
+}
+
+/** Bulk-transitions active tenders whose closing_at has passed the retention window to 'closed' — uses idx_tenders_closing_at. */
+export function buildCloseStaleTendersStatement(cutoffIso: string): D1Statement {
+  return {
+    sql: `UPDATE tenders SET status = 'closed' WHERE status = 'active' AND closing_at IS NOT NULL AND closing_at < ?`,
+    params: [cutoffIso]
+  };
+}
+
+/**
+ * Hard-deletes tenders closed for longer than the retention window, with no
+ * program linkage and no curator override — mirrors the FTS5 delete trigger
+ * (tenders_ad) so the index stays consistent automatically.
+ */
+export function buildDeleteStaleClosedTendersStatement(cutoffIso: string): D1Statement {
+  return {
+    sql: `DELETE FROM tenders WHERE status = 'closed' AND last_seen_at < ?
+      AND (program_ids IS NULL OR program_ids = '[]')
+      AND id NOT IN (SELECT id FROM curator_overrides)`,
+    params: [cutoffIso]
+  };
+}
+
+/** Records a source fetch success, resetting its circuit-breaker failure streak. */
+export function buildUpsertTenderHealthSuccessStatement(source: string, nowIso: string): D1Statement {
+  return {
+    sql: `INSERT INTO tender_source_health (source, last_success_at, consecutive_failures, last_failure_reason, updated_at)
+      VALUES (?, ?, 0, NULL, ?)
+      ON CONFLICT(source) DO UPDATE SET
+        last_success_at = excluded.last_success_at,
+        consecutive_failures = 0,
+        last_failure_reason = NULL,
+        updated_at = excluded.updated_at`,
+    params: [source, nowIso, nowIso]
+  };
+}
+
+/** Records a source fetch failure (e.g. captcha_detected), incrementing its circuit-breaker failure streak. */
+export function buildUpsertTenderHealthFailureStatement(source: string, reason: string, nowIso: string): D1Statement {
+  return {
+    sql: `INSERT INTO tender_source_health (source, last_success_at, consecutive_failures, last_failure_reason, updated_at)
+      VALUES (?, NULL, 1, ?, ?)
+      ON CONFLICT(source) DO UPDATE SET
+        consecutive_failures = tender_source_health.consecutive_failures + 1,
+        last_failure_reason = excluded.last_failure_reason,
+        updated_at = excluded.updated_at`,
+    params: [source, reason, nowIso]
+  };
+}

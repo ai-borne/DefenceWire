@@ -14,7 +14,14 @@ import {
   buildBrowseArchiveStatement,
   buildDeleteArchivedStoriesStatement,
   buildEntityRelatedStoriesStatement,
-  sanitizeFtsQuery
+  buildCloseStaleTendersStatement,
+  buildDeleteStaleClosedTendersStatement,
+  buildUpdateTenderStatusStatement,
+  buildUpsertTenderHealthFailureStatement,
+  buildUpsertTenderHealthSuccessStatement,
+  buildUpsertTenderStatement,
+  sanitizeFtsQuery,
+  TenderRow
 } from '../../src/archive/d1QueryBuilder.js';
 
 const row: ArchivedStoryRow = {
@@ -175,5 +182,82 @@ describe('buildDeleteArchivedStoriesStatement', () => {
   it('never interpolates ids directly into the SQL string', () => {
     const stmt = buildDeleteArchivedStoriesStatement(['cluster-a']);
     expect(stmt.sql).not.toContain('cluster-a');
+  });
+});
+
+const tenderRow: TenderRow = {
+  id: '2026_IAF_787429_1',
+  source: 'defproc',
+  title: 'Procurement of Spare Parts for Su-30MKI Avionics Suite',
+  organisation_chain: 'Ministry Of Defence | Indian Air Force | Air Headquarters',
+  reference_number: 'AF/2026/B/787429',
+  category: 'Goods',
+  domain: 'Air Force',
+  published_at: '2026-08-26',
+  closing_at: '2026-09-15T17:00:00',
+  emd_amount: 50000,
+  iddm_percent: 55,
+  program_ids: '[]',
+  detail_url: 'https://defproc.gov.in/tender/787429',
+  pdf_r2_key: null,
+  status: 'active',
+  first_seen_at: '2026-08-26T00:00:00Z',
+  last_seen_at: '2026-08-26T00:00:00Z'
+};
+
+describe('buildUpsertTenderStatement', () => {
+  it('builds an upsert with 17 positional params matching the row shape', () => {
+    const stmt = buildUpsertTenderStatement(tenderRow);
+    expect(stmt.sql).toMatch(/^INSERT INTO tenders/i);
+    expect(stmt.sql).toContain('ON CONFLICT(id) DO UPDATE SET');
+    expect(stmt.params).toHaveLength(17);
+    expect(stmt.params[0]).toBe(tenderRow.id);
+  });
+
+  it('never interpolates row values directly into the SQL string', () => {
+    const stmt = buildUpsertTenderStatement(tenderRow);
+    expect(stmt.sql).not.toContain(tenderRow.id);
+    expect(stmt.sql).not.toContain(tenderRow.title);
+  });
+});
+
+describe('buildUpdateTenderStatusStatement', () => {
+  it('builds a parameterized status update', () => {
+    const stmt = buildUpdateTenderStatusStatement('2026_IAF_787429_1', 'closed');
+    expect(stmt.sql).toBe('UPDATE tenders SET status = ? WHERE id = ?');
+    expect(stmt.params).toEqual(['closed', '2026_IAF_787429_1']);
+  });
+});
+
+describe('buildCloseStaleTendersStatement', () => {
+  it('bulk-transitions active tenders past the cutoff to closed', () => {
+    const stmt = buildCloseStaleTendersStatement('2026-08-03T00:00:00.000Z');
+    expect(stmt.sql).toContain("SET status = 'closed'");
+    expect(stmt.sql).toContain("WHERE status = 'active'");
+    expect(stmt.params).toEqual(['2026-08-03T00:00:00.000Z']);
+  });
+});
+
+describe('buildDeleteStaleClosedTendersStatement', () => {
+  it('hard-deletes closed, unlinked, non-overridden tenders past the cutoff', () => {
+    const stmt = buildDeleteStaleClosedTendersStatement('2026-03-06T00:00:00.000Z');
+    expect(stmt.sql).toContain("DELETE FROM tenders WHERE status = 'closed'");
+    expect(stmt.sql).toContain("program_ids IS NULL OR program_ids = '[]'");
+    expect(stmt.sql).toContain('NOT IN (SELECT id FROM curator_overrides)');
+    expect(stmt.params).toEqual(['2026-03-06T00:00:00.000Z']);
+  });
+});
+
+describe('tender_source_health upserts', () => {
+  it('builds a success upsert that resets the failure streak', () => {
+    const stmt = buildUpsertTenderHealthSuccessStatement('defproc', '2026-09-02T00:00:00.000Z');
+    expect(stmt.sql).toContain('consecutive_failures = 0');
+    expect(stmt.params).toEqual(['defproc', '2026-09-02T00:00:00.000Z', '2026-09-02T00:00:00.000Z']);
+  });
+
+  it('builds a failure upsert that increments the failure streak', () => {
+    const stmt = buildUpsertTenderHealthFailureStatement('eprocure', 'captcha_detected', '2026-09-02T00:00:00.000Z');
+    expect(stmt.sql).toContain('consecutive_failures = tender_source_health.consecutive_failures + 1');
+    expect(stmt.params).toEqual(['eprocure', 'captcha_detected', '2026-09-02T00:00:00.000Z']);
   });
 });
