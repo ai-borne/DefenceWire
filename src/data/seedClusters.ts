@@ -56,7 +56,7 @@ export const SEED_STRATEGIC_CLUSTERS: StoryCluster[] = [
         'How will the MQ-9B SeaGuardian/SkyGuardian drones enhance India’s border surveillance capabilities?'
       ]
     },
-    categories: ['procurement', 'strategic', 'tech', 'ssb'],
+    categories: ['official', 'tenders', 'procurement', 'strategic', 'tech', 'ssb'],
     entities: ['DAC Clearance', 'BrahMos', 'Pinaka', 'MQ-9B SkyGuardian'],
     defenceScore: 84.1,
     isLeadStory: false,
@@ -76,7 +76,8 @@ export const SEED_STRATEGIC_CLUSTERS: StoryCluster[] = [
       sourceDomain: 'drdo.gov.in',
       tier: SourceTier.TIER_1_OFFICIAL,
       publishedAt: '2026-08-29T10:00:00Z',
-      isPrimary: true
+      isPrimary: true,
+      officialType: 'pib_mod'
     },
     relatedCoverage: [
       {
@@ -101,7 +102,7 @@ export const SEED_STRATEGIC_CLUSTERS: StoryCluster[] = [
         'What is an Integrated Air Defence System (IADS) and why is it vital in modern contested airspace?'
       ]
     },
-    categories: ['airforce', 'army', 'tech', 'ssb'],
+    categories: ['programs', 'official', 'airforce', 'army', 'tech', 'ssb'],
     entities: ['Akash-NG', 'DRDO'],
     defenceScore: 78.4,
     isLeadStory: false,
@@ -121,7 +122,8 @@ export const SEED_STRATEGIC_CLUSTERS: StoryCluster[] = [
       sourceDomain: 'pib.gov.in',
       tier: SourceTier.TIER_1_OFFICIAL,
       publishedAt: '2026-08-28T12:00:00Z',
-      isPrimary: true
+      isPrimary: true,
+      officialType: 'pib_mod'
     },
     relatedCoverage: [
       {
@@ -147,11 +149,69 @@ export const SEED_STRATEGIC_CLUSTERS: StoryCluster[] = [
         'Why is the sea-based leg (SSBN) considered the most survivable component of a nuclear triad?'
       ]
     },
-    categories: ['navy', 'strategic', 'ssb'],
+    categories: ['programs', 'official', 'navy', 'strategic', 'ssb'],
     entities: ['INS Arighat', 'CCS Approval'],
     defenceScore: 76.5,
     isLeadStory: false,
     createdAt: '2026-08-28T12:00:00Z',
     updatedAt: '2026-08-28T13:40:00Z'
+  },
+
+  // 7. Lok Sabha Defence Q&A on iDEX & Defence Startups
+  {
+    id: 'cluster-lok-sabha-idex-procurement-qa',
+    synthesizedHeadline: 'Ministry of Defence Informs Lok Sabha: Over 400 Startups Funded Under iDEX with ₹2,500 Cr Procurement Pipeline',
+    primarySource: {
+      id: 'src-sansad-ls-idex-01',
+      title: 'Lok Sabha Unstarred Question No. 2480: Progress of iDEX Scheme and Indigenisation Grants for Defence Startups',
+      url: 'https://sansad.in/ls/questions/questions-and-answers',
+      sourceName: 'Lok Sabha Secretariat',
+      sourceDomain: 'sansad.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-08-28T09:00:00Z',
+      snippet: 'Raksha Rajya Mantri tables detailed status of Defence India Startup Challenge (DISC) grants and procurement pathways.',
+      isPrimary: true,
+      officialType: 'lok_sabha',
+      parliamentMeta: {
+        house: 'Lok Sabha',
+        questionNumber: 'USQ 2480',
+        questionType: 'Unstarred',
+        answeringDate: '2026-08-28',
+        ministry: 'Ministry of Defence',
+        minister: 'Raksha Rajya Mantri',
+        subject: 'Progress of iDEX Scheme and Indigenisation Grants for Defence Startups',
+        pdfUrl: 'https://sansad.in/getFile/loksabhaquestions/annex/18/AU2480.pdf'
+      }
+    },
+    relatedCoverage: [
+      {
+        id: 'src-pib-idex-02',
+        title: 'iDEX Signs 350th Contract for Advanced Military AI & Counter-Drone Solutions Under DISC-10',
+        url: 'https://pib.gov.in/PressReleasePage.aspx?PRID=2048400',
+        sourceName: 'Press Information Bureau (MoD)',
+        sourceDomain: 'pib.gov.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-28T10:15:00Z'
+      }
+    ],
+    discussions: [],
+    ssbIntel: {
+      whyItMatters: 'Demonstrates fast-tracked procurement pipelines for Indian deep-tech MSMEs and military AI startups.',
+      gdLecturettePoints: [
+        'Innovations for Defence Excellence (iDEX): Bridging academia, startups, and Armed Forces.',
+        'Defence Innovation Organisation (DIO) and DRDO Technology Development Fund (TDF).'
+      ],
+      potentialInterviewQuestions: [
+        'What is the objective of the iDEX initiative and how does it support Make-in-India in defence?',
+        'How are start-ups contributing to niche technologies like loitering munitions and AI?'
+      ]
+    },
+    categories: ['official', 'idex', 'tenders', 'procurement', 'tech', 'ssb'],
+    entities: ['iDEX', 'DRDO', 'MoD'],
+    defenceScore: 82.0,
+    isLeadStory: false,
+    createdAt: '2026-08-28T09:00:00Z',
+    updatedAt: '2026-08-28T10:15:00Z'
   }
 ];
+

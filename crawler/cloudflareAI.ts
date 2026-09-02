@@ -12,7 +12,7 @@ import { isValidSSBIntelligence, sanitizePromptInput } from './summarizer.js';
 export const DEFAULT_CF_AI_MODEL = '@cf/meta/llama-3.2-3b-instruct';
 export const CF_AI_MEMORY_CACHE = new Map<string, string>();
 
-const VALID_CATEGORIES = new Set(['army', 'navy', 'airforce', 'tech', 'procurement', 'strategic', 'ssb']);
+const VALID_CATEGORIES = new Set(['official', 'programs', 'tenders', 'idex', 'tech', 'procurement', 'strategic', 'ssb', 'army', 'navy', 'airforce']);
 const VALID_SIGNIFICANCES = new Set(['critical', 'high', 'medium', 'routine']);
 const VALID_SIGNATURES = new Set(['trial', 'procurement', 'induction', 'general']);
 

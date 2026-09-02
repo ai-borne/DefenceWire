@@ -5,6 +5,20 @@
 
 import { SourceTier } from './source.js';
 
+export interface ParliamentQuestionMeta {
+  house: 'Lok Sabha' | 'Rajya Sabha';
+  questionNumber: string | number;
+  questionType: 'Starred' | 'Unstarred';
+  answeringDate: string; // ISO 8601 or YYYY-MM-DD
+  ministry: string;
+  member?: string;
+  minister?: string;
+  subject?: string;
+  pdfUrl?: string;
+}
+
+export type OfficialSourceType = 'lok_sabha' | 'rajya_sabha' | 'pib_mod' | 'tender' | 'idex';
+
 export interface StorySourceItem {
   id: string;
   title: string;
@@ -17,6 +31,8 @@ export interface StorySourceItem {
   author?: string;
   imageUrl?: string;
   isPrimary?: boolean;
+  parliamentMeta?: ParliamentQuestionMeta;
+  officialType?: OfficialSourceType;
 }
 
 export interface DiscussionQuote {
@@ -46,13 +62,17 @@ export interface SSBIntelligence {
 }
 
 export type DomainCategory =
-  | 'army'
-  | 'navy'
-  | 'airforce'
+  | 'official'
+  | 'programs'
+  | 'tenders'
+  | 'idex'
   | 'tech'
   | 'strategic'
   | 'procurement'
-  | 'ssb';
+  | 'ssb'
+  | 'army'
+  | 'navy'
+  | 'airforce';
 
 export interface StoryCluster {
   id: string;
@@ -70,3 +90,4 @@ export interface StoryCluster {
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
+

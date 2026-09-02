@@ -22,7 +22,8 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
       tier: SourceTier.TIER_1_OFFICIAL,
       publishedAt: '2026-08-30T06:30:00Z',
       snippet: 'Defence Minister reviews delivery timelines of the 83 LCA Tejas Mk1A fighters with HAL and IAF leadership.',
-      isPrimary: true
+      isPrimary: true,
+      officialType: 'pib_mod'
     },
     relatedCoverage: [
       {
@@ -95,7 +96,7 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
       },
       strategicAngle: 'Fortifies Western and Northern air defense sectors while establishing India as a serious aerospace exporter in Southeast Asia and South America.'
     },
-    categories: ['airforce', 'tech', 'procurement', 'ssb'],
+    categories: ['official', 'programs', 'tech', 'procurement', 'airforce', 'ssb'],
     entities: ['Tejas Mk1A', 'DRDO', 'HAL'],
     defenceScore: 94.5,
     isLeadStory: true,
@@ -115,7 +116,8 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
       sourceDomain: 'indiannavy.nic.in',
       tier: SourceTier.TIER_1_OFFICIAL,
       publishedAt: '2026-08-30T05:00:00Z',
-      isPrimary: true
+      isPrimary: true,
+      officialType: 'pib_mod'
     },
     relatedCoverage: [
       {
@@ -170,7 +172,7 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
         keySignificance: 'Provides silent hunter-killer capability against adversary naval task forces in deep and littoral waters.'
       }
     },
-    categories: ['navy', 'tech', 'procurement', 'ssb'],
+    categories: ['programs', 'tenders', 'navy', 'tech', 'procurement', 'ssb'],
     entities: ['Project 75I', 'DAC Clearance'],
     defenceScore: 89.2,
     isLeadStory: false,
@@ -190,7 +192,8 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
       sourceDomain: 'drdo.gov.in',
       tier: SourceTier.TIER_1_OFFICIAL,
       publishedAt: '2026-08-30T04:15:00Z',
-      isPrimary: true
+      isPrimary: true,
+      officialType: 'pib_mod'
     },
     relatedCoverage: [
       {
@@ -245,7 +248,7 @@ export const INITIAL_LEAD_CLUSTERS: StoryCluster[] = [
         keySignificance: 'Enables rapid armored airlift and maneuverability across mountain passes without destroying high-altitude roads and bridges.'
       }
     },
-    categories: ['army', 'tech', 'strategic', 'ssb'],
+    categories: ['programs', 'army', 'tech', 'strategic', 'ssb'],
     entities: ['Zorawar', 'DRDO', 'LAC'],
     defenceScore: 86.8,
     isLeadStory: false,

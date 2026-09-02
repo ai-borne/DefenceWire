@@ -36,7 +36,17 @@ export const COLOR_PALETTE = {
     link: '#0F5499',
     linkVisited: '#6B4086',
     badgeBg: '#ECECE5',
-    badgeText: '#2B2B28'
+    badgeText: '#2B2B28',
+    officialLokSabhaBg: '#E6F4EA',
+    officialLokSabhaText: '#137333',
+    officialRajyaSabhaBg: '#FEF7E0',
+    officialRajyaSabhaText: '#B06000',
+    officialPibBg: '#E8F0FE',
+    officialPibText: '#1A73E8',
+    officialTenderBg: '#F3E8FF',
+    officialTenderText: '#7E22CE',
+    officialIdexBg: '#E0F2FE',
+    officialIdexText: '#0369A1'
   },
   // Dark Theme (Tactical Slate / Military Command)
   dark: {
@@ -53,7 +63,30 @@ export const COLOR_PALETTE = {
     link: '#58A6FF',
     linkVisited: '#BC8CFF',
     badgeBg: '#1D2733',
-    badgeText: '#89D185'
+    badgeText: '#89D185',
+    officialLokSabhaBg: '#0D381E',
+    officialLokSabhaText: '#81C995',
+    officialRajyaSabhaBg: '#3E2723',
+    officialRajyaSabhaText: '#FDD663',
+    officialPibBg: '#174EA6',
+    officialPibText: '#8AB4F8',
+    officialTenderBg: '#3B0764',
+    officialTenderText: '#D8B4FE',
+    officialIdexBg: '#0C4A6E',
+    officialIdexText: '#7DD3FC'
+  },
+  // Official Government & Primary Source Badges
+  officialBadge: {
+    lokSabhaBg: '#064E3B',
+    lokSabhaText: '#ECFDF5',
+    rajyaSabhaBg: '#78350F',
+    rajyaSabhaText: '#FEF3C7',
+    pibBg: '#1E3A8A',
+    pibText: '#DBEAFE',
+    tenderBg: '#701A75',
+    tenderText: '#FDF4FF',
+    idexBg: '#0F766E',
+    idexText: '#CCFBF1'
   },
   // Tier Colors
   tier: {
@@ -80,11 +113,21 @@ export const CSS_VARS = {
   linkVisited: 'var(--dw-link-visited)',
   badgeBg: 'var(--dw-badge-bg)',
   badgeText: 'var(--dw-badge-text)',
+  officialLokSabhaBg: 'var(--dw-official-loksabha-bg)',
+  officialLokSabhaText: 'var(--dw-official-loksabha-text)',
+  officialRajyaSabhaBg: 'var(--dw-official-rajyasabha-bg)',
+  officialRajyaSabhaText: 'var(--dw-official-rajyasabha-text)',
+  officialPibBg: 'var(--dw-official-pib-bg)',
+  officialPibText: 'var(--dw-official-pib-text)',
+  officialTenderBg: 'var(--dw-official-tender-bg)',
+  officialTenderText: 'var(--dw-official-tender-text)',
+  officialIdexBg: 'var(--dw-official-idex-bg)',
+  officialIdexText: 'var(--dw-official-idex-text)',
   statusOfflineBg: 'var(--dw-status-offline-bg)',
   statusOfflineText: 'var(--dw-status-offline-text)',
   statusOnlineBg: 'var(--dw-status-online-bg)',
   statusOnlineText: 'var(--dw-status-online-text)'
 } as const;
 
-
 export type ThemeColors = typeof COLOR_PALETTE.light;
+

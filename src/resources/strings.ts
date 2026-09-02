@@ -18,26 +18,41 @@ export const STRINGS = {
   },
   nav: {
     all: 'Top Stories',
-    army: 'Army',
-    navy: 'Navy',
-    airforce: 'Air Force',
+    official: 'Official & Parliament',
+    programs: 'Programs',
+    tenders: 'Tenders & RFPs',
+    idex: 'iDEX & Startups',
     tech: 'Defence Tech',
     strategic: 'Geopolitics',
     procurement: 'Procurement',
     ssb: 'SSB Intel',
     river: 'River of News',
-    archive: 'Archive'
+    archive: 'Archive',
+    army: 'Army',
+    navy: 'Navy',
+    airforce: 'Air Force'
   },
   categories: {
     all: 'All Domains',
-    army: 'Indian Army',
-    navy: 'Indian Navy',
-    airforce: 'Indian Air Force',
+    official: 'Official Communiques & Parliament Q&A',
+    programs: 'Strategic Defence Programs',
+    tenders: 'Tenders, RFPs & Procurement Pipelines',
+    idex: 'iDEX & Defence Innovation Startups',
     tech: 'Defence Technology & R&D',
     strategic: 'Strategic & Geopolitics',
     procurement: 'Procurement & Capital Acquisition',
     ssb: 'SSB Interview Focus',
-    river: 'Chronological Wire'
+    river: 'Chronological Wire',
+    army: 'Indian Army',
+    navy: 'Indian Navy',
+    airforce: 'Indian Air Force'
+  },
+  badges: {
+    lokSabha: '🏛️ Lok Sabha Q&A',
+    rajyaSabha: '🏛️ Rajya Sabha Q&A',
+    pibMod: '📄 PIB MoD Official',
+    tender: '📑 MoD Tender & RFP',
+    idex: '🚀 iDEX Innovation'
   },
   story: {
     primarySourcePrefix: 'Via',
@@ -60,7 +75,10 @@ export const STRINGS = {
     shareBtnText: 'Share',
     shareBtnCopiedText: 'Copied',
     sourceTierTooltip: 'Institutional Reliability Tier',
-    officialSignalBadge: 'Verified Signal'
+    officialSignalBadge: 'Verified Signal',
+    lokSabhaBadge: '🏛️ Lok Sabha Q&A',
+    rajyaSabhaBadge: '🏛️ Rajya Sabha Q&A',
+    pibModBadge: '📄 PIB MoD Official'
   },
   summary: {
     drawerTitle: 'Summary',

@@ -14,16 +14,37 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.app.institutionalBadge).toBe('🌏 Intelligent Wire');
   });
 
-  it('should have all navigation tab labels defined', () => {
+  it('should have all navigation tab labels defined including MOAT tabs', () => {
     expect(STRINGS.nav.all).toBe('Top Stories');
-    expect(STRINGS.nav.army).toBe('Army');
-    expect(STRINGS.nav.navy).toBe('Navy');
-    expect(STRINGS.nav.airforce).toBe('Air Force');
+    expect(STRINGS.nav.official).toBe('Official & Parliament');
+    expect(STRINGS.nav.programs).toBe('Programs');
+    expect(STRINGS.nav.tenders).toBe('Tenders & RFPs');
+    expect(STRINGS.nav.idex).toBe('iDEX & Startups');
     expect(STRINGS.nav.tech).toBe('Defence Tech');
     expect(STRINGS.nav.strategic).toBe('Geopolitics');
     expect(STRINGS.nav.procurement).toBe('Procurement');
     expect(STRINGS.nav.ssb).toBe('SSB Intel');
     expect(STRINGS.nav.river).toBe('River of News');
+    expect(STRINGS.nav.archive).toBe('Archive');
+  });
+
+  it('should have all category descriptions defined', () => {
+    expect(STRINGS.categories.all).toBe('All Domains');
+    expect(STRINGS.categories.official).toBe('Official Communiques & Parliament Q&A');
+    expect(STRINGS.categories.programs).toBe('Strategic Defence Programs');
+    expect(STRINGS.categories.tenders).toBe('Tenders, RFPs & Procurement Pipelines');
+    expect(STRINGS.categories.idex).toBe('iDEX & Defence Innovation Startups');
+  });
+
+  it('should have official government and primary source badge strings defined', () => {
+    expect(STRINGS.badges.lokSabha).toBe('🏛️ Lok Sabha Q&A');
+    expect(STRINGS.badges.rajyaSabha).toBe('🏛️ Rajya Sabha Q&A');
+    expect(STRINGS.badges.pibMod).toBe('📄 PIB MoD Official');
+    expect(STRINGS.badges.tender).toBe('📑 MoD Tender & RFP');
+    expect(STRINGS.badges.idex).toBe('🚀 iDEX Innovation');
+    expect(STRINGS.story.lokSabhaBadge).toBe('🏛️ Lok Sabha Q&A');
+    expect(STRINGS.story.rajyaSabhaBadge).toBe('🏛️ Rajya Sabha Q&A');
+    expect(STRINGS.story.pibModBadge).toBe('📄 PIB MoD Official');
   });
 
   it('should have all default article summary drawer headings and collapse strings defined', () => {
@@ -138,12 +159,18 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(STRINGS.story.officialSignalBadge).toBe('Verified Signal');
   });
 
-  it('should define valid CSS variable mapping aliases', () => {
+  it('should define valid CSS variable mapping aliases including official badge tokens', () => {
     expect(CSS_VARS.bgCanvas).toBe('var(--dw-bg-canvas)');
     expect(CSS_VARS.textPrimary).toBe('var(--dw-text-primary)');
     expect(CSS_VARS.textAccent).toBe('var(--dw-text-accent)');
     expect(CSS_VARS.statusOfflineBg).toBe('var(--dw-status-offline-bg)');
     expect(CSS_VARS.statusOnlineBg).toBe('var(--dw-status-online-bg)');
+    expect(CSS_VARS.officialLokSabhaBg).toBe('var(--dw-official-loksabha-bg)');
+    expect(CSS_VARS.officialLokSabhaText).toBe('var(--dw-official-loksabha-text)');
+    expect(CSS_VARS.officialRajyaSabhaBg).toBe('var(--dw-official-rajyasabha-bg)');
+    expect(CSS_VARS.officialPibBg).toBe('var(--dw-official-pib-bg)');
+    expect(CSS_VARS.officialTenderBg).toBe('var(--dw-official-tender-bg)');
+    expect(CSS_VARS.officialIdexBg).toBe('var(--dw-official-idex-bg)');
   });
 });
 

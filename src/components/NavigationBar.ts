@@ -15,9 +15,10 @@ interface NavItem {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { id: 'all', label: STRINGS.nav.all },
-  { id: 'army', label: STRINGS.nav.army },
-  { id: 'navy', label: STRINGS.nav.navy },
-  { id: 'airforce', label: STRINGS.nav.airforce },
+  { id: 'official', label: STRINGS.nav.official },
+  { id: 'programs', label: STRINGS.nav.programs },
+  { id: 'tenders', label: STRINGS.nav.tenders },
+  { id: 'idex', label: STRINGS.nav.idex },
   { id: 'tech', label: STRINGS.nav.tech },
   { id: 'strategic', label: STRINGS.nav.strategic },
   { id: 'procurement', label: STRINGS.nav.procurement },

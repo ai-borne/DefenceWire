@@ -43,9 +43,9 @@ describe('Integration: Feed Rendering & UI Components', () => {
     const searchInput = app?.querySelector('input[type="search"]');
     expect(searchInput).not.toBeNull();
 
-    // Verify Navigation Tabs
+    // Verify Navigation Tabs (11 MOAT tabs)
     const navTabs = app?.querySelectorAll('.dw-nav-tab');
-    expect(navTabs?.length).toBe(10);
+    expect(navTabs?.length).toBe(11);
 
     // Verify Story Clusters
     const clusters = app?.querySelectorAll('article.dw-cluster');
@@ -69,23 +69,23 @@ describe('Integration: Feed Rendering & UI Components', () => {
   it('should filter clusters when a category tab is clicked', () => {
     initializeApp();
 
-    const navyTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
-      (el) => el.textContent === STRINGS.nav.navy
+    const officialTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
+      (el) => el.textContent === STRINGS.nav.official
     ) as HTMLButtonElement;
 
-    expect(navyTab).toBeDefined();
-    navyTab.click();
+    expect(officialTab).toBeDefined();
+    officialTab.click();
 
-    const activeNavyTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
-      (el) => el.textContent === STRINGS.nav.navy
+    const activeOfficialTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
+      (el) => el.textContent === STRINGS.nav.official
     ) as HTMLButtonElement;
-    expect(activeNavyTab.classList.contains('active')).toBe(true);
-    expect(activeNavyTab.getAttribute('aria-selected')).toBe('true');
+    expect(activeOfficialTab.classList.contains('active')).toBe(true);
+    expect(activeOfficialTab.getAttribute('aria-selected')).toBe('true');
 
     const headlines = Array.from(document.querySelectorAll('.dw-headline')).map(
       (h) => h.textContent
     );
-    expect(headlines.some((h) => h?.toLowerCase().includes('submarine') || h?.toLowerCase().includes('navy'))).toBe(true);
+    expect(headlines.some((h) => h?.toLowerCase().includes('tejas') || h?.toLowerCase().includes('defence') || h?.toLowerCase().includes('ministry'))).toBe(true);
   });
 
   it('should render River of News view when River tab is clicked', () => {

@@ -59,6 +59,10 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
   const primaryEntity = entities[0] || 'Strategic Defence Modernization';
 
   const categoryNotes: Record<DomainCategory, string> = {
+    official: 'Official government communiques, sworn parliamentary answers, and verified MoD policy directives.',
+    programs: 'Strategic defence acquisition lifecycle, indigenous platform milestones, and trial schedules.',
+    tenders: 'Defence procurement tenders, RFPs, RFIs, and Buy (Indian-IDDM) compliance mandates.',
+    idex: 'Defence innovations for excellence (iDEX), DRDO TDF challenges, and sovereign startup deep-tech grants.',
     army: 'Focus on mechanized combat power, northern border logistics, and indigenous firepower.',
     navy: 'Key maritime domain awareness, Indo-Pacific deterrence, and carrier/submarine doctrine.',
     airforce: 'Critical squadron strength modernization, combat avionics, and standoff air deterrence.',
