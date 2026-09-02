@@ -8,7 +8,7 @@
 
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
-import { formatTimeAgo } from '../utils/dateUtils.js';
+import { formatTimeUntil } from '../utils/dateUtils.js';
 import { Tender, TenderStatus } from '../types/tenders.js';
 import { TendersViewModel } from '../viewmodels/TendersViewModel.js';
 import { openTenderDetailModal } from './TenderDetailModal.js';
@@ -80,7 +80,7 @@ function renderTenderCard(tender: Tender, onSelect: (t: Tender) => void): HTMLEl
   const metaRow = document.createElement('div');
   metaRow.className = 'dw-tender-meta-row';
   const closingText = tender.closingAt
-    ? `${STRINGS.tenders.closingLabel}: ${formatTimeAgo(tender.closingAt)}`
+    ? `${STRINGS.tenders.closingLabel}: ${formatTimeUntil(tender.closingAt)}`
     : `${STRINGS.tenders.closingLabel}: ${STRINGS.tenders.closingNotAvailable}`;
   const metaParts = [closingText, `${STRINGS.tenders.emdLabel}: ${formatEmd(tender.emdAmount)}`];
   if (tender.category) metaParts.push(sanitizePlainText(tender.category));

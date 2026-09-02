@@ -45,6 +45,34 @@ export function formatTimeAgo(isoString: string, now: Date = new Date()): string
 }
 
 /**
+ * Formats time remaining until a future date (e.g., "in 28 days", "Closing today", "Closed").
+ * Counts forward from `now`, unlike formatTimeAgo which counts backward — for
+ * tender/grant closing dates, which are always in the future until they pass.
+ *
+ * @param isoString - ISO 8601 date string
+ * @param now - Optional reference date (useful for deterministic tests)
+ * @returns Relative countdown string
+ */
+export function formatTimeUntil(isoString: string, now: Date = new Date()): string {
+  const targetDate = new Date(isoString);
+  if (!isoString || isNaN(targetDate.getTime())) {
+    return STRINGS.tenders.closingNotAvailable;
+  }
+
+  const diffMs = targetDate.getTime() - now.getTime();
+  if (diffMs <= 0) {
+    return STRINGS.tenders.closingPassed;
+  }
+
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHours < 24) {
+    return STRINGS.tenders.closingToday;
+  }
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return `${STRINGS.tenders.closingInPrefix}${diffDays}${STRINGS.tenders.closingDaysSuffix}`;
+}
+
+/**
  * Formats a Date object into live Indian Standard Time (IST, UTC+5:30) string.
  * Example compact output: "01 Sep 2026, 08:03 IST"
  * Example with seconds: "01 Sep 2026, 08:03:11 IST"

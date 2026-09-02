@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { formatTimeAgo, formatLiveIST } from '../../src/utils/dateUtils.js';
+import { formatTimeAgo, formatTimeUntil, formatLiveIST } from '../../src/utils/dateUtils.js';
 import { STRINGS } from '../../src/resources/strings.js';
 
 describe('Date Utilities: formatTimeAgo', () => {
@@ -36,6 +36,30 @@ describe('Date Utilities: formatTimeAgo', () => {
 
     const futureDate = new Date(baseDate.getTime() + 60 * 1000).toISOString();
     expect(formatTimeAgo(futureDate, baseDate)).toBe(STRINGS.story.justNow);
+  });
+});
+
+describe('Date Utilities: formatTimeUntil', () => {
+  const baseDate = new Date('2026-08-30T12:00:00Z');
+
+  it('counts forward, not backward, for a date in the future (e.g. a tender closing date)', () => {
+    const in28Days = new Date(baseDate.getTime() + 28 * 24 * 60 * 60 * 1000).toISOString();
+    expect(formatTimeUntil(in28Days, baseDate)).toBe(`${STRINGS.tenders.closingInPrefix}28${STRINGS.tenders.closingDaysSuffix}`);
+  });
+
+  it('returns "closing today" for a date under 24 hours away', () => {
+    const in5Hours = new Date(baseDate.getTime() + 5 * 60 * 60 * 1000).toISOString();
+    expect(formatTimeUntil(in5Hours, baseDate)).toBe(STRINGS.tenders.closingToday);
+  });
+
+  it('returns "closed" once the date has passed, unlike formatTimeAgo which would say "just now"', () => {
+    const yesterday = new Date(baseDate.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    expect(formatTimeUntil(yesterday, baseDate)).toBe(STRINGS.tenders.closingPassed);
+  });
+
+  it('handles invalid or missing date strings safely', () => {
+    expect(formatTimeUntil('', baseDate)).toBe(STRINGS.tenders.closingNotAvailable);
+    expect(formatTimeUntil('invalid-date-string', baseDate)).toBe(STRINGS.tenders.closingNotAvailable);
   });
 });
 

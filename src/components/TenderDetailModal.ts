@@ -8,7 +8,7 @@
 import { Tender } from '../types/tenders.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
-import { formatTimeAgo } from '../utils/dateUtils.js';
+import { formatTimeUntil } from '../utils/dateUtils.js';
 import { getProgramById } from '../data/strategicPrograms.js';
 
 export interface TenderDetailModalOptions {
@@ -100,7 +100,7 @@ export function openTenderDetailModal(
 
   const closingBlock = document.createElement('div');
   closingBlock.className = 'dw-program-metric';
-  const closingText = tender.closingAt ? formatTimeAgo(tender.closingAt) : STRINGS.tenders.closingNotAvailable;
+  const closingText = tender.closingAt ? formatTimeUntil(tender.closingAt) : STRINGS.tenders.closingNotAvailable;
   closingBlock.innerHTML = `<span class="dw-program-metric-label">${STRINGS.tenders.closingLabel}</span><span class="dw-program-metric-value">${sanitizePlainText(closingText)}</span>`;
   metricsGrid.appendChild(closingBlock);
 
