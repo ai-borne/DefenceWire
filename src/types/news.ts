@@ -49,6 +49,11 @@ export interface DefenceTechTakeaway {
   specifications: string[];
   indigenousContentPercentage?: number;
   keySignificance: string;
+  budgetCrores?: number;
+  deliveryTimeline?: string;
+  programTag?: string;
+  equipmentType?: string;
+  foreignOem?: string;
 }
 
 export interface SSBIntelligence {

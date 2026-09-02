@@ -6,7 +6,9 @@ import {
   escapeRegex,
   escapeRegExpPattern,
   getPromotedEntityConfigs,
+  harvestMilestonesForKnownEntities,
   isValidEntityName,
+  linkSourceFactsToMilitaryEntities,
   slugifyEntityName,
   syncDiscoveredEntitiesToD1,
   EntityHarvestCandidate,
@@ -17,6 +19,8 @@ import {
   registerDynamicEntities,
   resetDynamicEntities
 } from '../../src/data/militaryEntities.js';
+import { StorySourceItem } from '../../src/types/news.js';
+import { SourceTier } from '../../src/types/source.js';
 
 describe('Closed-Loop Dynamic Entity Harvester', () => {
   beforeEach(() => {
@@ -159,5 +163,55 @@ describe('Closed-Loop Dynamic Entity Harvester', () => {
     expect(result.promotedCount).toBe(1);
     expect(queryCaptured).toContain('INSERT INTO discovered_entities');
     expect(queryCaptured).toContain('rudram-ii');
+  });
+
+  it('links primary source items to KNOWN_MILITARY_ENTITIES directly and extracts milestones', () => {
+    const mockItems: StorySourceItem[] = [
+      {
+        id: 'src-pib-amca-1',
+        title: 'MoD Announces Prototype Development Approval for AMCA 5th Gen Fighter',
+        url: 'https://pib.gov.in/amca',
+        sourceName: 'PIB MoD',
+        sourceDomain: 'pib.gov.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-15T09:00:00Z',
+        snippet: 'CCS sanctions ₹15,000 Cr for AMCA stealth fighter prototypes with first flight targeted by 2028 and 70% indigenous content.',
+        officialType: 'pib_mod'
+      },
+      {
+        id: 'src-sansad-p75i',
+        title: 'Lok Sabha Starred Question No. 45: Status of Project 75I AIP Submarines',
+        url: 'https://sansad.in/ls/p75i',
+        sourceName: 'Lok Sabha Secretariat',
+        sourceDomain: 'sansad.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-18T09:00:00Z',
+        snippet: 'MoD tabled written reply on Project 75I submarines worth ₹43,000 Cr with fuel-cell AIP.',
+        officialType: 'lok_sabha',
+        parliamentMeta: {
+          house: 'Lok Sabha',
+          questionNumber: 'SQ 45',
+          questionType: 'Starred',
+          answeringDate: '2026-08-18',
+          ministry: 'Ministry of Defence'
+        }
+      }
+    ];
+
+    const linked = linkSourceFactsToMilitaryEntities(mockItems);
+    expect(linked.has('amca')).toBe(true);
+    expect(linked.has('project-75i')).toBe(true);
+    expect(linked.get('amca')![0]!.title).toContain('AMCA');
+
+    const harvested = harvestMilestonesForKnownEntities(mockItems);
+    expect(harvested['amca']).toBeDefined();
+    expect(harvested['amca']![0]!.isOfficial).toBe(true);
+    expect(harvested['amca']![0]!.budgetCrores).toBe(15000);
+    expect(harvested['amca']![0]!.deliveryTimeline).toBe('2028');
+    expect(harvested['amca']![0]!.iddmPercentage).toBe(70);
+
+    expect(harvested['project-75i']).toBeDefined();
+    expect(harvested['project-75i']![0]!.budgetCrores).toBe(43000);
+    expect(harvested['project-75i']![0]!.isOfficial).toBe(true);
   });
 });

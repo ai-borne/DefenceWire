@@ -6,10 +6,10 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { DomainCategory } from '../src/types/news.js';
-import { MilitaryEntityConfig } from '../src/data/militaryEntities.js';
+import { DomainCategory, StorySourceItem } from '../src/types/news.js';
+import { MilitaryEntityConfig, getActiveMilitaryEntities } from '../src/data/militaryEntities.js';
 import { D1RestConfig } from './archiveSync.js';
-
+import { EntityMilestone, extractMilestoneFromSourceItem } from './dossierPruner.js';
 
 export interface DiscoveredEntityRecord {
   id: string;
@@ -228,3 +228,49 @@ export async function syncDiscoveredEntitiesToD1(
 
   return { synced, failed, promotedCount };
 }
+
+export function linkSourceFactsToMilitaryEntities(
+  items: StorySourceItem[]
+): Map<string, StorySourceItem[]> {
+  const entityMap = new Map<string, StorySourceItem[]>();
+  const activeEntities = getActiveMilitaryEntities();
+
+  for (const item of items) {
+    const text = `${item.title} ${item.snippet || ''}`;
+    for (const ent of activeEntities) {
+      if (ent.pattern.test(text)) {
+        const slug = slugifyEntityName(ent.name);
+        if (!entityMap.has(slug)) {
+          entityMap.set(slug, []);
+        }
+        entityMap.get(slug)!.push(item);
+      }
+    }
+  }
+
+  return entityMap;
+}
+
+export function harvestMilestonesForKnownEntities(
+  items: StorySourceItem[]
+): Record<string, EntityMilestone[]> {
+  const linked = linkSourceFactsToMilitaryEntities(items);
+  const activeEntities = getActiveMilitaryEntities();
+  const result: Record<string, EntityMilestone[]> = {};
+
+  for (const ent of activeEntities) {
+    const slug = slugifyEntityName(ent.name);
+    const matchedItems = linked.get(slug) || [];
+    const milestones: EntityMilestone[] = [];
+    for (const it of matchedItems) {
+      const ms = extractMilestoneFromSourceItem(it, ent.name);
+      if (ms) milestones.push(ms);
+    }
+    if (milestones.length > 0) {
+      result[slug] = milestones;
+    }
+  }
+
+  return result;
+}
+

@@ -61,6 +61,10 @@ const MOCK_GEMINI_RESPONSE = {
               strategicAngle: 'Countering expanding PLA Navy presence in the Malacca Straits.',
               defenceTechTakeaway: {
                 platformOrSystem: 'Project 75I',
+                programTag: 'Project 75I',
+                budgetCrores: 43000,
+                deliveryTimeline: '2031',
+                indigenousContentPercentage: 60,
                 specifications: ['Fuel-cell AIP module', 'Heavyweight wire-guided torpedoes', 'Land-attack cruise missiles'],
                 keySignificance: 'Enhances sub-surface stealth endurance from days to weeks.'
               }
@@ -163,6 +167,10 @@ describe('Summarizer & Content-Hash Memory', () => {
 
     const intel1 = await summarizeWithGemini(MOCK_CLUSTER, 'mock-api-key', mockFetch as typeof fetch);
     expect(intel1?.whyItMatters).toContain('underwater deterrence');
+    expect(intel1?.defenceTechTakeaway?.programTag).toBe('Project 75I');
+    expect(intel1?.defenceTechTakeaway?.budgetCrores).toBe(43000);
+    expect(intel1?.defenceTechTakeaway?.deliveryTimeline).toBe('2031');
+    expect(intel1?.defenceTechTakeaway?.indigenousContentPercentage).toBe(60);
     expect(callCount).toBe(1);
     expect(getSummaryMemorySize()).toBe(1);
 

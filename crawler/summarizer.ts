@@ -80,6 +80,7 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
     strategicAngle,
     defenceTechTakeaway: {
       platformOrSystem: primaryEntity,
+      programTag: primaryEntity,
       specifications: [
         'Indigenous design & manufacturing validation',
         'Multi-domain network-centric warfare integration',
@@ -139,6 +140,18 @@ export function isValidSSBIntelligence(data: unknown): data is SSBIntelligence {
       return false;
     }
     if (typeof dt.keySignificance !== 'string' || dt.keySignificance.length > 500) {
+      return false;
+    }
+    if (dt.indigenousContentPercentage !== undefined && (typeof dt.indigenousContentPercentage !== 'number' || dt.indigenousContentPercentage < 0 || dt.indigenousContentPercentage > 100)) {
+      return false;
+    }
+    if (dt.budgetCrores !== undefined && (typeof dt.budgetCrores !== 'number' || dt.budgetCrores < 0)) {
+      return false;
+    }
+    if (dt.deliveryTimeline !== undefined && (typeof dt.deliveryTimeline !== 'string' || dt.deliveryTimeline.length > 200)) {
+      return false;
+    }
+    if (dt.programTag !== undefined && (typeof dt.programTag !== 'string' || dt.programTag.length > 100)) {
       return false;
     }
   }
@@ -206,7 +219,11 @@ Return a strict JSON object with these exact keys:
   "defenceTechTakeaway": {
     "platformOrSystem": "Platform or system name",
     "specifications": ["Spec 1", "Spec 2", "Spec 3"],
-    "keySignificance": "Core military significance"
+    "keySignificance": "Core military significance",
+    "programTag": "Program or Project name (e.g. AMCA, Project 75I, Tejas Mk1A)",
+    "budgetCrores": 0,
+    "deliveryTimeline": "e.g. 2026-2029 or null",
+    "indigenousContentPercentage": 65
   }${ssbFields}
 }`;
 
@@ -247,7 +264,19 @@ Return a strict JSON object with these exact keys:
               defenceTechTakeaway: {
                 platformOrSystem: parsed.defenceTechTakeaway.platformOrSystem.trim(),
                 specifications: parsed.defenceTechTakeaway.specifications.map((s) => s.trim()).filter(Boolean),
-                keySignificance: parsed.defenceTechTakeaway.keySignificance.trim()
+                keySignificance: parsed.defenceTechTakeaway.keySignificance.trim(),
+                ...(typeof parsed.defenceTechTakeaway.programTag === 'string' && parsed.defenceTechTakeaway.programTag.trim()
+                  ? { programTag: parsed.defenceTechTakeaway.programTag.trim() }
+                  : {}),
+                ...(typeof parsed.defenceTechTakeaway.budgetCrores === 'number' && parsed.defenceTechTakeaway.budgetCrores > 0
+                  ? { budgetCrores: parsed.defenceTechTakeaway.budgetCrores }
+                  : {}),
+                ...(typeof parsed.defenceTechTakeaway.deliveryTimeline === 'string' && parsed.defenceTechTakeaway.deliveryTimeline.trim()
+                  ? { deliveryTimeline: parsed.defenceTechTakeaway.deliveryTimeline.trim() }
+                  : {}),
+                ...(typeof parsed.defenceTechTakeaway.indigenousContentPercentage === 'number' && parsed.defenceTechTakeaway.indigenousContentPercentage >= 0 && parsed.defenceTechTakeaway.indigenousContentPercentage <= 100
+                  ? { indigenousContentPercentage: parsed.defenceTechTakeaway.indigenousContentPercentage }
+                  : {})
               }
             }
           : {}),
