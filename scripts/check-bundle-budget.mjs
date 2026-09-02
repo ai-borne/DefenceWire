@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * DefenceWire Performance Budget Verification
- * Enforces hard limit: Total gzipped JS bundle in dist/ must be < 40 KB (40,960 bytes).
- * Raised from 35 KB when the D1-backed Archive feature (search, cursor
- * pagination, infinite scroll) needed real client code beyond a search box.
+ * Enforces hard limit: Total gzipped JS bundle in dist/ must be < 55 KB (56,320 bytes).
+ * Raised from 40 KB when MOAT 2 (43 sovereign defence program lifecycle trackers,
+ * subsystem inventories, roadmap milestones, and technical specs) was established.
  *
  * FUTURE OPTIMIZATION STRATEGIES (If bundle exceeds budget):
  * 1. Code-Split / Lazy-Load Rare Features (~12 KB saving):
@@ -20,7 +20,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as zlib from 'node:zlib';
 
-const MAX_BYTES = 40 * 1024; // 40 KB = 40,960 bytes
+const MAX_BYTES = 55 * 1024; // 55 KB = 56,320 bytes
 const distAssetsDir = path.resolve(process.cwd(), 'dist/assets');
 
 if (!fs.existsSync(distAssetsDir)) {

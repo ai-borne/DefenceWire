@@ -9,6 +9,7 @@ import { ThemeViewModel } from './viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
 import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
+import { ProgramsViewModel } from './viewmodels/ProgramsViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
 import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
@@ -20,6 +21,8 @@ import { renderRiverRail } from './components/RiverRailView.js';
 import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
 import { renderEditorDashboard } from './components/EditorDashboard.js';
+import { openProgramDetailModal } from './components/ProgramDetailModal.js';
+import { getProgramById, findProgramByAlias } from './data/strategicPrograms.js';
 import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
 import { initSummaryAutoCollapse } from './services/summaryAutoCollapseService.js';
 
@@ -32,6 +35,7 @@ export function initializeApp(): void {
   const newsVm = new NewsViewModel();
   const editorVm = new EditorViewModel(newsVm);
   const archiveVm = new ArchiveViewModel();
+  const programsVm = new ProgramsViewModel(newsVm);
 
   // Initialize summary auto-collapse listener
   initSummaryAutoCollapse(newsVm);
@@ -154,7 +158,7 @@ export function initializeApp(): void {
 
     // Re-render Main Feed
     mainFeed.innerHTML = '';
-    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm);
+    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm);
 
     // Re-render Sidebar Rail
     sidebar.innerHTML = '';
@@ -170,20 +174,32 @@ export function initializeApp(): void {
     }
   };
 
-  // 8. Stealth Hash Routing & Global Shortcuts for Human Curator
-  const checkCuratorRoute = () => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      const search = window.location.search;
-      if (hash === '#curator' || hash === '#/curator' || search.includes('mode=curator')) {
-        editorVm.setOpen(true);
-        defaultAuthService.checkSession();
+  // 8. Hash Routing & Global Shortcuts
+  const checkHashRoutes = () => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    const search = window.location.search;
+    if (hash === '#curator' || hash === '#/curator' || search.includes('mode=curator')) {
+      editorVm.setOpen(true);
+      defaultAuthService.checkSession();
+      return;
+    }
+    if (hash.startsWith('#program/') || hash.startsWith('#/program/')) {
+      const rawId = hash.replace(/^#\/?program\//, '').trim();
+      if (rawId) {
+        const decoded = decodeURIComponent(rawId);
+        const prog = getProgramById(decoded) ?? findProgramByAlias(decoded);
+        if (prog) {
+          openProgramDetailModal(prog, {
+            relatedClusters: programsVm.getProgramRelatedClusters(prog.id)
+          });
+        }
       }
     }
   };
 
   if (typeof window !== 'undefined') {
-    window.addEventListener('hashchange', checkCuratorRoute);
+    window.addEventListener('hashchange', checkHashRoutes);
     window.addEventListener('keydown', (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
@@ -200,6 +216,10 @@ export function initializeApp(): void {
 
   // Subscriptions
   newsVm.subscribe(() => {
+    updateFeedAndSidebar();
+  });
+
+  programsVm.subscribe(() => {
     updateFeedAndSidebar();
   });
 
@@ -226,7 +246,7 @@ export function initializeApp(): void {
   // Initial renders
   updateFeedAndSidebar();
   updateEditorDesk();
-  checkCuratorRoute();
+  checkHashRoutes();
   deepLinkToStoryFromLocation(newsVm);
 }
 

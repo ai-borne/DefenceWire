@@ -13,8 +13,10 @@ import { cleanStorySnippet } from '../utils/snippetCleaner.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
+import { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
 import { renderArchiveView } from './ArchiveView.js';
+import { renderProgramsExplorerView } from './ProgramsExplorerView.js';
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -121,11 +123,12 @@ export function renderMainFeedContent(
   mainFeed: HTMLElement,
   activeCat: string,
   newsVm: NewsViewModel,
-  archiveVm: ArchiveViewModel
+  archiveVm: ArchiveViewModel,
+  programsVm?: ProgramsViewModel
 ): void {
   const searchQuery = newsVm.getSearchQuery();
 
-  if (searchQuery && activeCat !== 'archive') {
+  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs') {
     renderSearchInfoBanner(mainFeed, searchQuery);
   }
 
@@ -133,6 +136,9 @@ export function renderMainFeedContent(
     renderRiverView(mainFeed, newsVm);
   } else if (activeCat === 'archive') {
     mainFeed.appendChild(renderArchiveView(archiveVm, newsVm));
+  } else if (activeCat === 'programs') {
+    const vm = programsVm ?? new ProgramsViewModel(newsVm);
+    mainFeed.appendChild(renderProgramsExplorerView(vm));
   } else {
     renderStoryClustersView(mainFeed, newsVm, searchQuery);
   }
