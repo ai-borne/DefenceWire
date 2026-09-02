@@ -52,7 +52,11 @@ export const STRINGS = {
     rajyaSabha: '🏛️ Rajya Sabha Q&A',
     pibMod: '📄 PIB MoD Official',
     tender: '📑 MoD Tender & RFP',
-    idex: '🚀 iDEX Innovation'
+    idex: '🚀 iDEX Innovation',
+    pdfLabel: 'Official PDF',
+    pdfAria: 'Download official PDF document',
+    answeredByPrefix: 'Answered by',
+    questionPrefix: 'Q. No.'
   },
   story: {
     primarySourcePrefix: 'Via',

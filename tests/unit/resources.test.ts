@@ -42,6 +42,10 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.badges.pibMod).toBe('📄 PIB MoD Official');
     expect(STRINGS.badges.tender).toBe('📑 MoD Tender & RFP');
     expect(STRINGS.badges.idex).toBe('🚀 iDEX Innovation');
+    expect(STRINGS.badges.pdfLabel).toBe('Official PDF');
+    expect(STRINGS.badges.pdfAria).toBe('Download official PDF document');
+    expect(STRINGS.badges.answeredByPrefix).toBe('Answered by');
+    expect(STRINGS.badges.questionPrefix).toBe('Q. No.');
     expect(STRINGS.story.lokSabhaBadge).toBe('🏛️ Lok Sabha Q&A');
     expect(STRINGS.story.rajyaSabhaBadge).toBe('🏛️ Rajya Sabha Q&A');
     expect(STRINGS.story.pibModBadge).toBe('📄 PIB MoD Official');

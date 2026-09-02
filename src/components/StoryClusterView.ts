@@ -14,6 +14,7 @@ import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { openEntityDossierModal } from './EntityDossierModal.js';
+import { renderOfficialBadge } from './OfficialBadge.js';
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -30,6 +31,12 @@ export function renderStoryCluster(
     leadTag.className = 'dw-lead-tag';
     leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
     article.appendChild(leadTag);
+  }
+
+  // 1b. Official Government / Parliament Q&A / PIB MoD Badge
+  const officialBadgeEl = renderOfficialBadge(cluster.primarySource);
+  if (officialBadgeEl) {
+    article.appendChild(officialBadgeEl);
   }
 
   // 2. Synthesized Headline

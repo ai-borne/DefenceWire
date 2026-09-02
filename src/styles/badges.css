@@ -1,0 +1,133 @@
+/* Badges & Official Citations Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+/* Official Government & Primary Source Badges */
+.dw-official-badge-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+}
+
+.dw-official-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: var(--dw-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.dw-official-badge--lok-sabha {
+  background-color: var(--dw-official-loksabha-bg);
+  color: var(--dw-official-loksabha-text);
+}
+
+.dw-official-badge--rajya-sabha {
+  background-color: var(--dw-official-rajyasabha-bg);
+  color: var(--dw-official-rajyasabha-text);
+}
+
+.dw-official-badge--pib {
+  background-color: var(--dw-official-pib-bg);
+  color: var(--dw-official-pib-text);
+}
+
+.dw-official-badge--tender {
+  background-color: var(--dw-official-tender-bg);
+  color: var(--dw-official-tender-text);
+}
+
+.dw-official-badge--idex {
+  background-color: var(--dw-official-idex-bg);
+  color: var(--dw-official-idex-text);
+}
+
+/* Parliament Q&A Citation Meta Details */
+.dw-parliament-details {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.dw-parliament-tag {
+  font-family: var(--dw-font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: var(--dw-text-primary);
+  background-color: var(--dw-bg-secondary);
+  padding: 1px 5px;
+  border-radius: var(--dw-radius-sm);
+  border: 1px solid var(--dw-border-secondary);
+}
+
+.dw-parliament-date {
+  font-family: var(--dw-font-mono);
+  font-size: 0.7rem;
+  color: var(--dw-text-muted);
+}
+
+.dw-parliament-minister {
+  font-size: 0.72rem;
+  color: var(--dw-text-secondary);
+  font-weight: 500;
+}
+
+.dw-official-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--dw-link);
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  padding: 1px 6px;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dw-official-pdf-link:hover {
+  background-color: var(--dw-bg-hover);
+  border-color: var(--dw-link);
+  text-decoration: underline;
+}
+
+/* Reliability Tier Badges */
+.dw-tier-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--dw-radius-sm);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.dw-tier-1, .dw-tier-TIER_1_OFFICIAL { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
+.dw-tier-TIER_1_SOCIAL { background-color: rgba(2, 132, 199, 0.15); color: #0284C7; }
+.dw-tier-2, .dw-tier-TIER_2_NATIONAL { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
+.dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
+.dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
+
+/* Social & Discussion Verified Badges */
+.dw-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--dw-radius-sm);
+  background-color: rgba(2, 132, 199, 0.15);
+  color: #0284C7;
+  text-transform: uppercase;
+}
