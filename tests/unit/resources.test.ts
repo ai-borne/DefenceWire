@@ -1,5 +1,6 @@
 /**
  * Unit Tests for Centralized Resource Management (Strings & Colors SSOT)
+ * Hard limit: <= 300 LOC.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -49,6 +50,23 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.story.lokSabhaBadge).toBe('🏛️ Lok Sabha Q&A');
     expect(STRINGS.story.rajyaSabhaBadge).toBe('🏛️ Rajya Sabha Q&A');
     expect(STRINGS.story.pibModBadge).toBe('📄 PIB MoD Official');
+  });
+
+  it('should have all strategic programs strings defined', () => {
+    expect(STRINGS.programs.heading).toBe('Strategic Defence Programs');
+    expect(STRINGS.programs.subheading).toBeDefined();
+    expect(STRINGS.programs.domainAll).toContain('43');
+    expect(STRINGS.programs.domainAerospace).toContain('11');
+    expect(STRINGS.programs.domainNaval).toContain('9');
+    expect(STRINGS.programs.domainLand).toContain('8');
+    expect(STRINGS.programs.domainMissiles).toContain('10');
+    expect(STRINGS.programs.domainUnmanned).toContain('5');
+    expect(STRINGS.programs.stageConcept).toBeDefined();
+    expect(STRINGS.programs.stageSanctioned).toBeDefined();
+    expect(STRINGS.programs.stageDevelopment).toBeDefined();
+    expect(STRINGS.programs.stageTrials).toBeDefined();
+    expect(STRINGS.programs.stageProduction).toBeDefined();
+    expect(STRINGS.programs.stageInduction).toBeDefined();
   });
 
   it('should have all default article summary drawer headings and collapse strings defined', () => {
@@ -137,7 +155,6 @@ describe('Resource Management: Colors & Token SSOT', () => {
 
     expect(lightKeys.sort()).toEqual(darkKeys.sort());
 
-    // Verify each color is a valid hex code
     for (const key of lightKeys) {
       const lightVal = (COLOR_PALETTE.light as Record<string, string>)[key];
       const darkVal = (COLOR_PALETTE.dark as Record<string, string>)[key];
@@ -152,6 +169,21 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(COLOR_PALETTE.tier.tier2).toMatch(/^#[0-9A-F]{6}$/i);
     expect(COLOR_PALETTE.tier.tier3).toMatch(/^#[0-9A-F]{6}$/i);
     expect(COLOR_PALETTE.tier.tier4).toMatch(/^#[0-9A-F]{6}$/i);
+  });
+
+  it('should define program stage and domain color palettes', () => {
+    expect(COLOR_PALETTE.programStage.conceptBg).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programStage.sanctionedBg).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programStage.developmentBg).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programStage.trialsBg).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programStage.productionBg).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programStage.inductionBg).toMatch(/^#[0-9A-F]{6}$/i);
+
+    expect(COLOR_PALETTE.programDomain.aerospace).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programDomain.naval).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programDomain.land).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programDomain.missiles).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(COLOR_PALETTE.programDomain.unmanned).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
   it('should define tier labels and story badges in strings SSOT', () => {
@@ -177,4 +209,3 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(CSS_VARS.officialIdexBg).toBe('var(--dw-official-idex-bg)');
   });
 });
-

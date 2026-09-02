@@ -88,6 +88,28 @@ export const COLOR_PALETTE = {
     idexBg: '#0F766E',
     idexText: '#CCFBF1'
   },
+  // Strategic Program Stages & Domains
+  programStage: {
+    conceptBg: '#F3F4F6',
+    conceptText: '#4B5563',
+    sanctionedBg: '#FEF3C7',
+    sanctionedText: '#92400E',
+    developmentBg: '#DBEAFE',
+    developmentText: '#1E40AF',
+    trialsBg: '#FFEDD5',
+    trialsText: '#9A3412',
+    productionBg: '#CCFBF1',
+    productionText: '#115E59',
+    inductionBg: '#DCFCE7',
+    inductionText: '#166534'
+  },
+  programDomain: {
+    aerospace: '#0284C7',
+    naval: '#0F766E',
+    land: '#854D0E',
+    missiles: '#DC2626',
+    unmanned: '#7C3AED'
+  },
   // Tier Colors
   tier: {
     tier1: '#1E7E34', // Sovereign / Official MoD
@@ -123,6 +145,12 @@ export const CSS_VARS = {
   officialTenderText: 'var(--dw-official-tender-text)',
   officialIdexBg: 'var(--dw-official-idex-bg)',
   officialIdexText: 'var(--dw-official-idex-text)',
+  stageConceptBg: 'var(--dw-stage-concept-bg)',
+  stageSanctionedBg: 'var(--dw-stage-sanctioned-bg)',
+  stageDevBg: 'var(--dw-stage-dev-bg)',
+  stageTrialsBg: 'var(--dw-stage-trials-bg)',
+  stageProdBg: 'var(--dw-stage-prod-bg)',
+  stageInductionBg: 'var(--dw-stage-induction-bg)',
   statusOfflineBg: 'var(--dw-status-offline-bg)',
   statusOfflineText: 'var(--dw-status-offline-text)',
   statusOnlineBg: 'var(--dw-status-online-bg)',
@@ -130,4 +158,3 @@ export const CSS_VARS = {
 } as const;
 
 export type ThemeColors = typeof COLOR_PALETTE.light;
-
