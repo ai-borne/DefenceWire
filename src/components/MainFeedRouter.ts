@@ -14,9 +14,11 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
 import { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
+import { TendersViewModel } from '../viewmodels/TendersViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
 import { renderArchiveView } from './ArchiveView.js';
 import { renderProgramsExplorerView } from './ProgramsExplorerView.js';
+import { renderTendersExplorerView } from './TendersExplorerView.js';
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -124,11 +126,12 @@ export function renderMainFeedContent(
   activeCat: string,
   newsVm: NewsViewModel,
   archiveVm: ArchiveViewModel,
-  programsVm?: ProgramsViewModel
+  programsVm?: ProgramsViewModel,
+  tendersVm?: TendersViewModel
 ): void {
   const searchQuery = newsVm.getSearchQuery();
 
-  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs') {
+  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'tenders' && activeCat !== 'idex') {
     renderSearchInfoBanner(mainFeed, searchQuery);
   }
 
@@ -139,6 +142,10 @@ export function renderMainFeedContent(
   } else if (activeCat === 'programs') {
     const vm = programsVm ?? new ProgramsViewModel(newsVm);
     mainFeed.appendChild(renderProgramsExplorerView(vm));
+  } else if (activeCat === 'tenders' || activeCat === 'idex') {
+    const vm = tendersVm ?? new TendersViewModel();
+    vm.setSourceScope(activeCat === 'idex' ? 'idex' : 'mod');
+    mainFeed.appendChild(renderTendersExplorerView(vm));
   } else {
     renderStoryClustersView(mainFeed, newsVm, searchQuery);
   }

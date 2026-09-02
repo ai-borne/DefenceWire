@@ -1,0 +1,117 @@
+/* Tenders/RFP & iDEX-TDF Explorer Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+.dw-tenders-explorer { display: flex; flex-direction: column; gap: 14px; }
+.dw-tenders-header-block { display: flex; flex-direction: column; gap: 4px; }
+
+.dw-tenders-controls-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.dw-tenders-search-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 7px 12px;
+  font-size: 0.85rem;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  color: var(--dw-text-primary);
+}
+.dw-tenders-domain-select {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  color: var(--dw-text-primary);
+  cursor: pointer;
+}
+
+.dw-tenders-status-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.dw-tender-status-tab {
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: var(--dw-radius-sm);
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  color: var(--dw-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dw-tender-status-tab:hover { background-color: var(--dw-bg-hover); color: var(--dw-text-primary); }
+.dw-tender-status-tab.active { background-color: var(--dw-link); color: #FFFFFF; border-color: var(--dw-link); font-weight: 700; }
+
+.dw-tenders-error-banner { color: var(--dw-text-accent); font-weight: 600; }
+
+.dw-tenders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.dw-tender-card {
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 4px solid var(--dw-border-primary);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.dw-tender-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border-color: var(--dw-link); }
+.dw-tender-card--active { border-left-color: var(--dw-status-online-bg); }
+.dw-tender-card--closed { border-left-color: var(--dw-text-muted); }
+.dw-tender-card--cancelled { border-left-color: var(--dw-text-accent); }
+
+.dw-tender-badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.dw-tender-badge, .dw-tender-status-badge {
+  font-family: var(--dw-font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+}
+.dw-tender-badge--mod { background-color: var(--dw-official-tender-bg); color: var(--dw-official-tender-text); }
+.dw-tender-badge--idex { background-color: var(--dw-official-idex-bg); color: var(--dw-official-idex-text); }
+.dw-tender-badge--domain { background-color: var(--dw-bg-secondary); color: var(--dw-text-secondary); }
+.dw-tender-status--active { background-color: rgba(30, 126, 52, 0.15); color: var(--dw-status-online-bg); }
+.dw-tender-status--closed { background-color: var(--dw-bg-secondary); color: var(--dw-text-muted); }
+.dw-tender-status--cancelled { background-color: rgba(179, 25, 25, 0.12); color: var(--dw-text-accent); }
+
+.dw-tender-title { font-size: 1rem; font-weight: 700; line-height: var(--dw-leading-tight); color: var(--dw-text-primary); }
+.dw-tender-org { font-size: 0.78rem; color: var(--dw-text-secondary); font-weight: 500; }
+.dw-tender-meta-row { font-size: 0.72rem; color: var(--dw-text-muted); }
+
+.dw-tenders-load-more-btn {
+  align-self: center;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  color: var(--dw-text-primary);
+  cursor: pointer;
+}
+.dw-tenders-load-more-btn:hover { background-color: var(--dw-bg-hover); }
+.dw-tenders-load-more-btn:disabled { cursor: default; opacity: 0.6; }
+
+.dw-tenders-empty { padding: 20px; text-align: center; }
+
+.dw-tender-modal-title-meta { display: flex; flex-direction: column; gap: 6px; }
+.dw-tender-modal-org-row { font-size: 0.85rem; color: var(--dw-text-secondary); font-weight: 500; }
+.dw-tender-modal-ref-row { font-size: 0.8rem; color: var(--dw-text-muted); }
+.dw-tender-modal-link-row { margin-top: 4px; }
+.dw-tender-official-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--dw-link);
+  color: #FFFFFF;
+  border-radius: var(--dw-radius-sm);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.dw-tender-official-link:hover { text-decoration: none; opacity: 0.9; }

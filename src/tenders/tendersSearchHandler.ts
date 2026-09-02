@@ -25,6 +25,7 @@ export interface TendersSearchOptions {
   closingBefore?: string | null;
   cursor?: string | null;
   limit?: number;
+  sourceScope?: string | null;
 }
 
 export interface TendersSearchResult {
@@ -57,6 +58,10 @@ function sanitizeDomain(raw: string | null | undefined): string | null {
   return raw.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 40).trim() || null;
 }
 
+function sanitizeSourceScope(raw: string | null | undefined): 'mod' | 'idex' | 'all' {
+  return raw === 'idex' || raw === 'mod' ? raw : 'all';
+}
+
 function sanitizeIsoDate(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const clean = raw.replace(/[\x00-\x1F\x7F]/g, '').slice(0, 40).trim();
@@ -73,12 +78,13 @@ export async function handleTendersSearchRequest(
   const status = sanitizeStatus(options.status);
   const domain = sanitizeDomain(options.domain);
   const closingBefore = sanitizeIsoDate(options.closingBefore);
+  const sourceScope = sanitizeSourceScope(options.sourceScope);
   const sanitizedQuery = sanitizeSearchQueryInput(rawQuery);
 
   // Fetch one extra row to detect hasMore without a separate COUNT query.
   const statement = sanitizedQuery
     ? buildSearchTendersStatement(sanitizedQuery, status, limit + 1, cursor)
-    : buildBrowseTendersStatement({ status, domain, closingBefore }, cursor, limit + 1);
+    : buildBrowseTendersStatement({ status, domain, closingBefore, sourceScope }, cursor, limit + 1);
 
   let rows: TenderRow[];
   try {

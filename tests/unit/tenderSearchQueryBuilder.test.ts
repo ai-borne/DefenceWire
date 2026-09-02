@@ -63,4 +63,22 @@ describe('buildBrowseTendersStatement', () => {
     expect(stmt.sql).toContain('ORDER BY last_seen_at DESC');
     expect(stmt.params[stmt.params.length - 1]).toBe(51);
   });
+
+  it('scopes to idex/tdf sources when sourceScope is "idex"', () => {
+    const stmt = buildBrowseTendersStatement({ status: 'active', sourceScope: 'idex' });
+    expect(stmt.sql).toContain('source IN (?,?)');
+    expect(stmt.params).toEqual(['active', 'idex', 'tdf', 20]);
+  });
+
+  it('excludes idex/tdf sources when sourceScope is "mod"', () => {
+    const stmt = buildBrowseTendersStatement({ status: 'active', sourceScope: 'mod' });
+    expect(stmt.sql).toContain('source NOT IN (?,?)');
+    expect(stmt.params).toEqual(['active', 'idex', 'tdf', 20]);
+  });
+
+  it('applies no source clause when sourceScope is "all" or omitted', () => {
+    const stmt = buildBrowseTendersStatement({ status: 'active', sourceScope: 'all' });
+    expect(stmt.sql).not.toContain('source IN');
+    expect(stmt.sql).not.toContain('source NOT IN');
+  });
 });

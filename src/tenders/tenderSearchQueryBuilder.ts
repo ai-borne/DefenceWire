@@ -11,6 +11,9 @@ import { D1Statement, sanitizeFtsQuery } from '../archive/d1QueryBuilder.js';
 
 const DEFAULT_SEARCH_LIMIT = 20;
 
+/** SSOT: which `source` column values back the iDEX/TDF innovation-grant tab vs the MoD tender tab. */
+export const IDEX_TDF_SOURCES: readonly string[] = ['idex', 'tdf'];
+
 /**
  * FTS5 keyword search over tenders, optionally paginated with a keyset
  * cursor (last_seen_at of the last row seen) — same shape as
@@ -45,7 +48,7 @@ export function buildSearchTendersStatement(
  * more than page 1 as the table grows.
  */
 export function buildBrowseTendersStatement(
-  filters: { status: string; domain?: string | null; closingBefore?: string | null },
+  filters: { status: string; domain?: string | null; closingBefore?: string | null; sourceScope?: 'mod' | 'idex' | 'all' },
   cursor: string | null = null,
   limit: number = DEFAULT_SEARCH_LIMIT
 ): D1Statement {
@@ -55,6 +58,13 @@ export function buildBrowseTendersStatement(
   const clauses = ['status = ?'];
   const params: unknown[] = [filters.status];
 
+  if (filters.sourceScope === 'idex') {
+    clauses.push(`source IN (${IDEX_TDF_SOURCES.map(() => '?').join(',')})`);
+    params.push(...IDEX_TDF_SOURCES);
+  } else if (filters.sourceScope === 'mod') {
+    clauses.push(`source NOT IN (${IDEX_TDF_SOURCES.map(() => '?').join(',')})`);
+    params.push(...IDEX_TDF_SOURCES);
+  }
   if (filters.domain) {
     clauses.push('domain = ?');
     params.push(filters.domain);

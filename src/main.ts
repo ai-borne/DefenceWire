@@ -10,6 +10,7 @@ import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
 import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
 import { ProgramsViewModel } from './viewmodels/ProgramsViewModel.js';
+import { TendersViewModel } from './viewmodels/TendersViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
 import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
@@ -22,6 +23,7 @@ import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
 import { renderEditorDashboard } from './components/EditorDashboard.js';
 import { openProgramDetailModal } from './components/ProgramDetailModal.js';
+import { openTenderDetailModal } from './components/TenderDetailModal.js';
 import { getProgramById, findProgramByAlias } from './data/strategicPrograms.js';
 import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
 import { initSummaryAutoCollapse } from './services/summaryAutoCollapseService.js';
@@ -36,6 +38,7 @@ export function initializeApp(): void {
   const editorVm = new EditorViewModel(newsVm);
   const archiveVm = new ArchiveViewModel();
   const programsVm = new ProgramsViewModel(newsVm);
+  const tendersVm = new TendersViewModel();
 
   // Initialize summary auto-collapse listener
   initSummaryAutoCollapse(newsVm);
@@ -158,7 +161,7 @@ export function initializeApp(): void {
 
     // Re-render Main Feed
     mainFeed.innerHTML = '';
-    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm);
+    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm, tendersVm);
 
     // Re-render Sidebar Rail
     sidebar.innerHTML = '';
@@ -196,6 +199,19 @@ export function initializeApp(): void {
         }
       }
     }
+    if (hash.startsWith('#tender/') || hash.startsWith('#/tender/')) {
+      const rawId = hash.replace(/^#\/?tender\//, '').trim();
+      if (rawId) {
+        const decoded = decodeURIComponent(rawId);
+        const tender = tendersVm.findLoadedTenderById(decoded);
+        if (tender) {
+          tendersVm.setSelectedTender(tender);
+          openTenderDetailModal(tender, {
+            onClose: () => tendersVm.setSelectedTender(null)
+          });
+        }
+      }
+    }
   };
 
   if (typeof window !== 'undefined') {
@@ -220,6 +236,10 @@ export function initializeApp(): void {
   });
 
   programsVm.subscribe(() => {
+    updateFeedAndSidebar();
+  });
+
+  tendersVm.subscribe(() => {
     updateFeedAndSidebar();
   });
 

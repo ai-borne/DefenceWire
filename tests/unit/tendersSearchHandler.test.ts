@@ -102,6 +102,24 @@ describe('handleTendersSearchRequest — browse mode (blank query)', () => {
     const [sql] = runQuery.mock.calls[0] as [string, unknown[]];
     expect(sql).not.toContain('closing_at');
   });
+
+  it('scopes to idex/tdf sources when sourceScope is "idex"', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    await handleTendersSearchRequest('', { runQuery }, { sourceScope: 'idex' });
+
+    const [sql, params] = runQuery.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain('source IN');
+    expect(params).toEqual(['active', 'idex', 'tdf', 21]);
+  });
+
+  it('rejects an invalid sourceScope value and falls back to "all" (no source clause)', async () => {
+    const runQuery = vi.fn().mockResolvedValue([]);
+    await handleTendersSearchRequest('', { runQuery }, { sourceScope: "'; DROP TABLE tenders; --" });
+
+    const [sql] = runQuery.mock.calls[0] as [string, unknown[]];
+    expect(sql).not.toContain('source IN');
+    expect(sql).not.toContain('source NOT IN');
+  });
 });
 
 describe('handleTendersSearchRequest — cursor pagination', () => {

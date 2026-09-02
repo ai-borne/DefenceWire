@@ -47,6 +47,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
   const status = url.searchParams.get('status');
   const domain = url.searchParams.get('domain');
   const closingBefore = url.searchParams.get('closingBefore');
+  const sourceScope = url.searchParams.get('sourceScope');
   const db = context.env.DB;
 
   if (!db) {
@@ -64,7 +65,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
         return results;
       }
     },
-    { cursor, status, domain, closingBefore }
+    { cursor, status, domain, closingBefore, sourceScope }
   );
 
   const headers: Record<string, string> = {
