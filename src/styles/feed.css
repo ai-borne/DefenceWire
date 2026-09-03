@@ -72,16 +72,11 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
-.dw-tier-1, .dw-tier-TIER_1_OFFICIAL { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
-.dw-tier-TIER_1_SOCIAL { background-color: rgba(2, 132, 199, 0.15); color: #0284C7; }
-.dw-tier-2, .dw-tier-TIER_2_NATIONAL { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
-.dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
-.dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
-[data-theme="dark"] .dw-tier-1, [data-theme="dark"] .dw-tier-TIER_1_OFFICIAL { color: #86EFAC; background-color: rgba(20, 83, 45, 0.35); }
-[data-theme="dark"] .dw-tier-TIER_1_SOCIAL { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }
-[data-theme="dark"] .dw-tier-2, [data-theme="dark"] .dw-tier-TIER_2_NATIONAL { color: #93C5FD; background-color: rgba(30, 58, 138, 0.35); }
-[data-theme="dark"] .dw-tier-3, [data-theme="dark"] .dw-tier-TIER_3_SPECIALIZED { color: #FDBA74; background-color: rgba(67, 20, 7, 0.35); }
-[data-theme="dark"] .dw-tier-4, [data-theme="dark"] .dw-tier-TIER_4_OSINT { color: #9CA3AF; background-color: rgba(31, 41, 55, 0.35); }
+.dw-tier-1, .dw-tier-TIER_1_OFFICIAL { background-color: var(--dw-tier-1-bg); color: var(--dw-tier-1-text); }
+.dw-tier-TIER_1_SOCIAL { background-color: var(--dw-tier-1-social-bg); color: var(--dw-tier-1-social-text); }
+.dw-tier-2, .dw-tier-TIER_2_NATIONAL { background-color: var(--dw-tier-2-bg); color: var(--dw-tier-2-text); }
+.dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: var(--dw-tier-3-bg); color: var(--dw-tier-3-text); }
+.dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: var(--dw-tier-4-bg); color: var(--dw-tier-4-text); }
 
 .dw-snippet { font-size: 0.84rem; color: var(--dw-text-secondary); margin: 6px 0; line-height: 1.4; }
 .dw-related-box { margin-top: 8px; margin-left: 14px; }
@@ -121,11 +116,10 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: var(--dw-radius-sm);
-  background-color: rgba(2, 132, 199, 0.15);
-  color: #0284C7;
+  background-color: var(--dw-badge-verified-bg);
+  color: var(--dw-badge-verified-text);
   text-transform: uppercase;
 }
-[data-theme="dark"] .dw-verified-badge { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }
 
 .dw-discussion-link { font-size: 0.72rem; color: var(--dw-link); text-decoration: none; }
 .dw-discussion-link:hover { text-decoration: underline; }
@@ -175,7 +169,7 @@
 
 .dw-ssb-toggle-btn { color: var(--dw-text-accent); }
 .dw-ssb-toggle-btn:hover { background-color: var(--dw-bg-hover); border-color: var(--dw-text-accent); }
-.dw-ssb-toggle-btn.is-expanded { background-color: rgba(179, 25, 25, 0.12); border-color: var(--dw-text-accent); }
+.dw-ssb-toggle-btn.is-expanded { background-color: var(--dw-badge-tint-accent); border-color: var(--dw-text-accent); }
 
 /* SSB Intelligence Drawer Smooth Accordion Transitions */
 .dw-ssb-drawer-wrapper {
@@ -206,7 +200,7 @@
 .dw-ssb-list { padding-left: 18px; font-size: 0.82rem; line-height: 1.4; }
 .dw-ssb-tech-box { background-color: var(--dw-bg-secondary); padding: 8px 12px; border-radius: var(--dw-radius-sm); border: 1px solid var(--dw-border-secondary); font-size: 0.8rem; }
 .dw-ssb-cta { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--dw-border-primary); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.dw-ssb-cta-btn { background-color: var(--dw-text-accent); color: #FFFFFF !important; font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: var(--dw-radius-sm); text-decoration: none !important; }
+.dw-ssb-cta-btn { background-color: var(--dw-text-accent); color: var(--dw-text-on-accent) !important; font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: var(--dw-radius-sm); text-decoration: none !important; }
 
 /* Opt-in SSB Insight box, shown only for clusters editorially tagged 'ssb' */
 .dw-ssb-insight-box { margin-top: 12px; padding: 12px; background-color: var(--dw-bg-secondary); border: 1px dashed var(--dw-border-primary); border-radius: var(--dw-radius-sm); }

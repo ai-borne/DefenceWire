@@ -65,7 +65,7 @@ export function openEntityDossierModal(
   backdrop.className = 'dw-modal-backdrop';
   backdrop.setAttribute('role', 'dialog');
   backdrop.setAttribute('aria-modal', 'true');
-  backdrop.setAttribute('aria-label', `Dossier: ${entityName}`);
+  backdrop.setAttribute('aria-label', `${STRINGS.dossier.modalAriaPrefix}${entityName}`);
 
   const modal = document.createElement('div');
   modal.className = 'dw-modal-content';

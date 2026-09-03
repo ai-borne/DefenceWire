@@ -165,7 +165,25 @@ export const CSS_VARS = {
   statusOfflineBg: 'var(--dw-status-offline-bg)',
   statusOfflineText: 'var(--dw-status-offline-text)',
   statusOnlineBg: 'var(--dw-status-online-bg)',
-  statusOnlineText: 'var(--dw-status-online-text)'
+  statusOnlineText: 'var(--dw-status-online-text)',
+  overlayBackdrop: 'var(--dw-overlay-backdrop)',
+  overlayBackdropEditor: 'var(--dw-overlay-backdrop-editor)',
+  shadowModal: 'var(--dw-shadow-modal)',
+  shadowElevationCard: 'var(--dw-shadow-elevation-card)',
+  textOnAccent: 'var(--dw-text-on-accent)',
+  badgeTintAccent: 'var(--dw-badge-tint-accent)',
+  tier1Bg: 'var(--dw-tier-1-bg)',
+  tier1Text: 'var(--dw-tier-1-text)',
+  tier1SocialBg: 'var(--dw-tier-1-social-bg)',
+  tier1SocialText: 'var(--dw-tier-1-social-text)',
+  tier2Bg: 'var(--dw-tier-2-bg)',
+  tier2Text: 'var(--dw-tier-2-text)',
+  tier3Bg: 'var(--dw-tier-3-bg)',
+  tier3Text: 'var(--dw-tier-3-text)',
+  tier4Bg: 'var(--dw-tier-4-bg)',
+  tier4Text: 'var(--dw-tier-4-text)',
+  badgeVerifiedBg: 'var(--dw-badge-verified-bg)',
+  badgeVerifiedText: 'var(--dw-badge-verified-text)'
 } as const;
 
 export type ThemeColors = typeof COLOR_PALETTE.light;

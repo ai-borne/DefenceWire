@@ -23,7 +23,8 @@ export const STRINGS = {
     tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Defence Tech',
     strategic: 'Geopolitics', procurement: 'Procurement', ssb: 'SSB Intel',
     river: 'River of News', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
-    suppliers: supplierStrings.navTab
+    suppliers: supplierStrings.navTab,
+    categoriesAriaLabel: 'Defence Categories'
   },
   categories: {
     all: 'All Domains', official: 'Official Communiques & Parliament Q&A',
@@ -105,6 +106,8 @@ export const STRINGS = {
     plannedUnitsLabel: 'Planned Units',
     subsystemsHeading: 'Key Subsystems & Industrial Partners',
     subsystemsPreview: 'Key Subsystems & Sensors',
+    subsystemIndigenous: '🇮🇳 Indigenous',
+    subsystemSourced: '🌐 Sourced',
     milestonesHeading: 'Program Milestones & Roadmap',
     specificationsHeading: 'Technical Specifications & Parameters',
     foreignOemPrefix: 'Partner / OEM',
@@ -244,7 +247,7 @@ export const STRINGS = {
   suppliers: supplierStrings,
   editorSupplierCandidates: editorSupplierCandidateStrings,
   dossier: {
-    modalTitlePrefix: '🛡️ Sovereign Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
+    modalTitlePrefix: '🛡️ Sovereign Dossier: ', modalAriaPrefix: 'Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
     noRecordsPrefix: 'No historical dossier records found for ', domainLabel: 'DOMAIN', corroborationLabel: 'CORROBORATION',
     wireMentionsLabel: 'WIRE MENTIONS', platformLabel: 'PLATFORM', monitoringLabel: 'MONITORING', statusLabel: 'STATUS',
     defaultCategory: 'Strategic', sourcesSuffix: 'Sources', watch247: '24/7 Watch', liveWire247: '24/7 Live Wire',

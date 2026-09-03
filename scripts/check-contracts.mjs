@@ -57,11 +57,12 @@ function checkHexColors(dirPath) {
   }
 }
 
-// 3. Contract Integrity: Verify Types and Strings SSOT Exist
+// 3. Contract Integrity: Verify Types, Strings, and Theme Tokens SSOT Exist
 function checkContracts() {
   const requiredContracts = [
     'src/resources/strings.ts',
     'src/resources/colors.ts',
+    'src/styles/themes.css',
     'src/types/news.ts',
     'src/types/source.ts',
     'src/types/ranking.ts',
@@ -78,6 +79,50 @@ function checkContracts() {
   }
 }
 
+// 4. Property-Targeted CSS Token Linter (Phase 3.2 Refinement 3)
+// Enforces that themes.css is the sole provider of raw colors,
+// and guarded stylesheets use var(--dw-*) for color-bearing properties.
+function checkCssTokenPurity() {
+  const guardedFiles = [
+    'src/styles/dossier.css',
+    'src/styles/feed.css',
+    'src/styles/editor.css',
+    'src/styles/badges.css',
+    'src/styles/archive.css'
+  ];
+  const TARGET_PROPS = new Set(['color', 'background', 'background-color', 'border-color', 'box-shadow']);
+  const ALLOWED_KEYWORDS = new Set(['transparent', 'none', 'inherit', 'initial', 'unset', 'currentcolor']);
+
+  for (const relPath of guardedFiles) {
+    const fullPath = path.resolve(process.cwd(), relPath);
+    if (!fs.existsSync(fullPath)) continue;
+
+    const rawContent = fs.readFileSync(fullPath, 'utf-8');
+    // Strip comments
+    const cleanContent = rawContent.replace(/\/\*[\s\S]*?\*\//g, '');
+    const ruleRegex = /\{([^}]+)\}/g;
+    let match;
+
+    while ((match = ruleRegex.exec(cleanContent)) !== null) {
+      const decls = match[1].split(';');
+      for (const decl of decls) {
+        const parts = decl.split(':');
+        if (parts.length >= 2) {
+          const prop = parts[0].trim().toLowerCase();
+          const val = parts.slice(1).join(':').trim();
+          if (TARGET_PROPS.has(prop)) {
+            const normalized = val.toLowerCase().replace(/!important/g, '').trim();
+            if (!val.includes('var(--dw-') && !ALLOWED_KEYWORDS.has(normalized)) {
+              console.error(`❌ [TOKEN PURITY VIOLATION] ${relPath} property '${prop}: ${val}' must use 'var(--dw-*)' token.`);
+              failed = true;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 console.log('🔍 [CONTRACTS & ARCHITECTURE] Checking LOC limits, resource purity, and SSOT contracts...');
 
 for (const dir of DIRS_TO_CHECK) {
@@ -86,10 +131,11 @@ for (const dir of DIRS_TO_CHECK) {
 
 checkHexColors(path.resolve(process.cwd(), 'src/components'));
 checkContracts();
+checkCssTokenPurity();
 
 if (failed) {
   console.error('\n🚨 Architecture and Contract checks failed! Please resolve violations above.');
   process.exit(1);
 } else {
-  console.log(`✅ [CONTRACTS PASSED] Verified ${totalFilesChecked} files: 0 LOC violations, 0 hardcoded colors, all contracts intact.`);
+  console.log(`✅ [CONTRACTS PASSED] Verified ${totalFilesChecked} files: 0 LOC violations, 100% token purity in guarded styles, all contracts intact.`);
 }

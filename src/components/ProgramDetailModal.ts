@@ -72,7 +72,7 @@ function renderOverviewPanel(program: StrategicProgram, options: ProgramDetailMo
     program.keySubsystems.forEach((sub) => {
       const card = document.createElement('div');
       card.className = 'dw-program-sub-card';
-      const indBadge = sub.indigenous ? '🇮🇳 Indigenous' : '🌐 Sourced';
+      const indBadge = sub.indigenous ? STRINGS.programs.subsystemIndigenous : STRINGS.programs.subsystemSourced;
       card.innerHTML = `<div class="dw-sub-head"><strong>${sanitizePlainText(sub.name)}</strong> <span class="dw-sub-type">${sanitizePlainText(sub.type)}</span></div><div class="dw-sub-body"></div>`;
       const subBody = card.querySelector('.dw-sub-body') as HTMLElement;
 

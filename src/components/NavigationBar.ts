@@ -29,7 +29,7 @@ const NAV_ITEMS: readonly NavItem[] = [
 export function renderNavigationBar(newsVm: NewsViewModel): HTMLElement {
   const nav = document.createElement('nav');
   nav.className = 'dw-nav';
-  nav.setAttribute('aria-label', 'Defence Categories');
+  nav.setAttribute('aria-label', STRINGS.nav.categoriesAriaLabel);
 
   const inner = document.createElement('div');
   inner.className = 'dw-nav-inner';

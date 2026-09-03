@@ -195,7 +195,7 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(STRINGS.story.officialSignalBadge).toBe('Verified Signal');
   });
 
-  it('should define valid CSS variable mapping aliases including official badge tokens', () => {
+  it('should define valid CSS variable mapping aliases including official badge and Phase 3.2 tokens', () => {
     expect(CSS_VARS.bgCanvas).toBe('var(--dw-bg-canvas)');
     expect(CSS_VARS.textPrimary).toBe('var(--dw-text-primary)');
     expect(CSS_VARS.textAccent).toBe('var(--dw-text-accent)');
@@ -207,5 +207,22 @@ describe('Resource Management: Colors & Token SSOT', () => {
     expect(CSS_VARS.officialPibBg).toBe('var(--dw-official-pib-bg)');
     expect(CSS_VARS.officialTenderBg).toBe('var(--dw-official-tender-bg)');
     expect(CSS_VARS.officialIdexBg).toBe('var(--dw-official-idex-bg)');
+    // Phase 3.2 Design Tokens
+    expect(CSS_VARS.overlayBackdrop).toBe('var(--dw-overlay-backdrop)');
+    expect(CSS_VARS.overlayBackdropEditor).toBe('var(--dw-overlay-backdrop-editor)');
+    expect(CSS_VARS.shadowModal).toBe('var(--dw-shadow-modal)');
+    expect(CSS_VARS.shadowElevationCard).toBe('var(--dw-shadow-elevation-card)');
+    expect(CSS_VARS.textOnAccent).toBe('var(--dw-text-on-accent)');
+    expect(CSS_VARS.tier1Bg).toBe('var(--dw-tier-1-bg)');
+    expect(CSS_VARS.tier1Text).toBe('var(--dw-tier-1-text)');
+    expect(CSS_VARS.badgeVerifiedBg).toBe('var(--dw-badge-verified-bg)');
+    expect(CSS_VARS.badgeVerifiedText).toBe('var(--dw-badge-verified-text)');
+  });
+
+  it('should define Phase 3.2 modal ARIA and subsystem badge strings', () => {
+    expect(STRINGS.nav.categoriesAriaLabel).toBe('Defence Categories');
+    expect(STRINGS.dossier.modalAriaPrefix).toBe('Dossier: ');
+    expect(STRINGS.programs.subsystemIndigenous).toBe('🇮🇳 Indigenous');
+    expect(STRINGS.programs.subsystemSourced).toBe('🌐 Sourced');
   });
 });
