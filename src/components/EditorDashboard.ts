@@ -1,16 +1,20 @@
 /**
  * Editorial Curator Dashboard Component for DefenceWire.in
- * Human-in-the-loop candidate cluster manager with 1-click promote, demote, headline, SSB curation, and Git publishing.
+ * Modular 5-Tab Workstation coordinating Wire Curation, Intelligence Review, Ecosystem Pipeline,
+ * Crawler Health, and Source Scorecard.
  * Hard limit: <= 300 LOC.
  */
 
-import { EditorViewModel, EditorFilterMode } from '../viewmodels/EditorViewModel.js';
+import { EditorViewModel, EditorDeskPanel } from '../viewmodels/EditorViewModel.js';
 import { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCandidatesPanelViewModel.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
 import { renderEditorAuthModal } from './EditorAuthModal.js';
-import { renderCandidateCard } from './EditorCandidateCard.js';
+import { renderWireCurationView } from './editor/WireCurationView.js';
+import { renderIntelReviewView } from './editor/IntelReviewView.js';
 import { renderSupplierCandidatesPanelView } from './SupplierCandidatesPanelView.js';
+import { renderCrawlerHealthView } from './editor/CrawlerHealthView.js';
+import { renderSourceScorecardView } from './editor/SourceScorecardView.js';
 
 export function renderEditorDashboard(
   editorVm: EditorViewModel,
@@ -153,84 +157,46 @@ export function renderEditorDashboard(
     panel.appendChild(banner);
   }
 
-  // 3. Desk Panel Tabs (Stories vs. Ecosystem Candidates)
+  // 3. 5-Tab Workstation Navigation
   const deskTabs = document.createElement('div');
   deskTabs.className = 'dw-editor-filters';
-  const activePanel = editorVm.getActiveDeskPanel();
-  const panelTabs: Array<{ id: 'stories' | 'supplierCandidates'; label: string }> = [
-    { id: 'stories', label: STRINGS.editorSupplierCandidates.storiesTabLabel },
-    { id: 'supplierCandidates', label: STRINGS.editorSupplierCandidates.panelTabLabel }
+  deskTabs.style.padding = '8px 18px';
+  deskTabs.style.background = 'var(--dw-bg-secondary)';
+  deskTabs.style.borderBottom = '1px solid var(--dw-border-secondary)';
+  deskTabs.style.overflowX = 'auto';
+
+  const panelTabs: Array<{ id: EditorDeskPanel; label: string }> = [
+    { id: 'stories', label: STRINGS.curatorDesk.tabWire },
+    { id: 'intel', label: STRINGS.curatorDesk.tabIntel },
+    { id: 'supplierCandidates', label: STRINGS.editorSupplierCandidates.panelTabLabel },
+    { id: 'crawler', label: STRINGS.curatorDesk.tabCrawler },
+    { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard }
   ];
+
   for (const tab of panelTabs) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `dw-editor-desk-tab ${activePanel === tab.id ? 'active' : ''}`;
+    const isSelected = editorVm.isPanelActive(tab.id);
+    btn.className = `dw-editor-desk-tab ${isSelected ? 'active' : ''}`;
     btn.textContent = tab.label;
     btn.onclick = () => editorVm.setActiveDeskPanel(tab.id);
     deskTabs.appendChild(btn);
   }
   panel.appendChild(deskTabs);
 
-  if (activePanel === 'supplierCandidates') {
+  // 4. Render Active Workstation View
+  if (editorVm.isPanelActive('supplierCandidates')) {
     panel.appendChild(renderSupplierCandidatesPanelView(supplierCandidatesVm));
-    overlay.appendChild(panel);
-    return overlay;
-  }
-
-  // 4. Toolbar (Filters & Search)
-  const toolbar = document.createElement('div');
-  toolbar.className = 'dw-editor-toolbar';
-
-  const filters = document.createElement('div');
-  filters.className = 'dw-editor-filters';
-
-  const currentMode = editorVm.getFilterMode();
-  const filterTabs: Array<{ mode: EditorFilterMode; label: string }> = [
-    { mode: 'all', label: STRINGS.editor.filterAll },
-    { mode: 'active', label: STRINGS.editor.filterActive },
-    { mode: 'ignored', label: STRINGS.editor.filterIgnored }
-  ];
-
-  for (const tab of filterTabs) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `dw-editor-filter-tab ${currentMode === tab.mode ? 'active' : ''}`;
-    btn.textContent = tab.label;
-    btn.onclick = () => editorVm.setFilterMode(tab.mode);
-    filters.appendChild(btn);
-  }
-
-  const searchInput = document.createElement('input');
-  searchInput.type = 'search';
-  searchInput.className = 'dw-editor-search';
-  searchInput.placeholder = STRINGS.editor.headlinePlaceholder;
-  searchInput.value = editorVm.getSearchQuery();
-  searchInput.oninput = (e) => {
-    editorVm.setSearchQuery((e.target as HTMLInputElement).value);
-  };
-
-  toolbar.appendChild(filters);
-  toolbar.appendChild(searchInput);
-  panel.appendChild(toolbar);
-
-  // 5. Candidate Cluster List
-  const list = document.createElement('div');
-  list.className = 'dw-editor-cluster-list';
-
-  const candidates = editorVm.getCandidateClusters();
-  if (candidates.length === 0) {
-    const empty = document.createElement('p');
-    empty.style.color = 'var(--dw-text-muted)';
-    empty.style.fontSize = '0.85rem';
-    empty.textContent = STRINGS.editor.noClustersFound;
-    list.appendChild(empty);
+  } else if (editorVm.isPanelActive('intel')) {
+    panel.appendChild(renderIntelReviewView(editorVm));
+  } else if (editorVm.isPanelActive('crawler')) {
+    panel.appendChild(renderCrawlerHealthView(editorVm));
+  } else if (editorVm.isPanelActive('scorecard')) {
+    panel.appendChild(renderSourceScorecardView(editorVm));
   } else {
-    for (const cluster of candidates) {
-      list.appendChild(renderCandidateCard(cluster, editorVm));
-    }
+    panel.appendChild(renderWireCurationView(editorVm));
   }
 
-  panel.appendChild(list);
   overlay.appendChild(panel);
   return overlay;
 }

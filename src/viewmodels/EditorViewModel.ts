@@ -11,7 +11,14 @@ import { CuratorSyncService, defaultCuratorSyncService, CuratorSyncResult } from
 import { STRINGS } from '../resources/strings.js';
 
 export type EditorFilterMode = 'all' | 'active' | 'ignored';
-export type EditorDeskPanel = 'stories' | 'supplierCandidates';
+export type EditorDeskPanel =
+  | 'stories'
+  | 'supplierCandidates'
+  | 'wire'
+  | 'intel'
+  | 'ecosystem'
+  | 'crawler'
+  | 'scorecard';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {
@@ -95,6 +102,13 @@ export class EditorViewModel {
     if (this.activeDeskPanel === panel) return;
     this.activeDeskPanel = panel;
     this.notifyListeners();
+  }
+
+  public isPanelActive(panel: EditorDeskPanel): boolean {
+    if (this.activeDeskPanel === panel) return true;
+    if ((panel === 'wire' || panel === 'stories') && (this.activeDeskPanel === 'wire' || this.activeDeskPanel === 'stories')) return true;
+    if ((panel === 'ecosystem' || panel === 'supplierCandidates') && (this.activeDeskPanel === 'ecosystem' || this.activeDeskPanel === 'supplierCandidates')) return true;
+    return false;
   }
 
   public getFilterMode(): EditorFilterMode {

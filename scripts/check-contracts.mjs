@@ -88,7 +88,8 @@ function checkCssTokenPurity() {
     'src/styles/feed.css',
     'src/styles/editor.css',
     'src/styles/badges.css',
-    'src/styles/archive.css'
+    'src/styles/archive.css',
+    'src/styles/curatorDesk.css'
   ];
   const TARGET_PROPS = new Set(['color', 'background', 'background-color', 'border-color', 'box-shadow']);
   const ALLOWED_KEYWORDS = new Set(['transparent', 'none', 'inherit', 'initial', 'unset', 'currentcolor']);

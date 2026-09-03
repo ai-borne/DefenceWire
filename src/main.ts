@@ -22,7 +22,6 @@ import { renderMainFeedContent } from './components/MainFeedRouter.js';
 import { renderRiverRail } from './components/RiverRailView.js';
 import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
-import { renderEditorDashboard } from './components/EditorDashboard.js';
 import { openProgramDetailModal } from './components/ProgramDetailModal.js';
 import { openSupplierDetailModal } from './components/suppliers/SupplierDetailModal.js';
 import { getProgramById, findProgramByAlias } from './data/strategicPrograms.js';
@@ -163,7 +162,7 @@ export function initializeApp(): void {
 
     // Re-render Main Feed
     mainFeed.innerHTML = '';
-    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm, suppliersVm);
+    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm, suppliersVm, editorVm, supplierCandidatesVm);
 
     // Re-render Sidebar Rail
     sidebar.innerHTML = '';
@@ -171,11 +170,20 @@ export function initializeApp(): void {
     sidebar.appendChild(renderRiverRail(newsVm, 10));
   };
 
-  // 7. Dynamic Editor Desk Renderer
+  // 7. Dynamic Editor Desk Renderer (Preserving 82 KB Budget)
   const updateEditorDesk = () => {
     editorContainer.innerHTML = '';
     if (editorVm.isOpen()) {
-      editorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm));
+      import('./components/EditorDashboard.js')
+        .then(({ renderEditorDashboard }) => {
+          if (editorVm.isOpen()) {
+            editorContainer.innerHTML = '';
+            editorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm));
+          }
+        })
+        .catch(() => {
+          // Graceful fallback
+        });
     }
   };
 
@@ -184,7 +192,7 @@ export function initializeApp(): void {
     if (typeof window === 'undefined') return;
     const hash = window.location.hash;
     const search = window.location.search;
-    if (hash === '#curator' || hash === '#/curator' || search.includes('mode=curator')) {
+    if (hash === '#curator' || hash === '#/curator' || hash === '#editor' || hash === '#/editor' || search.includes('mode=curator')) {
       editorVm.setOpen(true);
       defaultAuthService.checkSession();
       return;

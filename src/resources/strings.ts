@@ -6,6 +6,7 @@
 
 import supplierStrings from './supplierStrings.js';
 import editorSupplierCandidateStrings from './editorSupplierCandidateStrings.js';
+import curatorDeskStrings from './curatorDeskStrings.js';
 
 export const STRINGS = {
   app: {
@@ -246,6 +247,7 @@ export const STRINGS = {
   },
   suppliers: supplierStrings,
   editorSupplierCandidates: editorSupplierCandidateStrings,
+  curatorDesk: curatorDeskStrings,
   dossier: {
     modalTitlePrefix: '🛡️ Sovereign Dossier: ', modalAriaPrefix: 'Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
     noRecordsPrefix: 'No historical dossier records found for ', domainLabel: 'DOMAIN', corroborationLabel: 'CORROBORATION',

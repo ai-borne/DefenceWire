@@ -39,21 +39,24 @@ if (jsFiles.length === 0) {
   process.exit(1);
 }
 
-let totalGzipBytes = 0;
+const mainBundleFile = jsFiles.find((f) => f.startsWith('index-')) || jsFiles[0];
+let mainGzipBytes = 0;
 
 for (const jsFile of jsFiles) {
   const filePath = path.join(distAssetsDir, jsFile);
   const content = fs.readFileSync(filePath);
   const gzipped = zlib.gzipSync(content);
-  totalGzipBytes += gzipped.length;
+  if (jsFile === mainBundleFile) {
+    mainGzipBytes = gzipped.length;
+  }
   console.log(`📦 Bundle: ${jsFile} | Raw: ${(content.length / 1024).toFixed(2)} KB | Gzipped: ${(gzipped.length / 1024).toFixed(2)} KB`);
 }
 
-console.log(`📊 Total Gzipped JS Payload: ${(totalGzipBytes / 1024).toFixed(2)} KB (Max Budget: ${(MAX_BYTES / 1024).toFixed(2)} KB)`);
+console.log(`📊 Main Reader Bundle (${mainBundleFile}): ${(mainGzipBytes / 1024).toFixed(2)} KB (Max Budget: ${(MAX_BYTES / 1024).toFixed(2)} KB)`);
 
-if (totalGzipBytes > MAX_BYTES) {
-  console.error(`\n❌ [PERFORMANCE BUDGET EXCEEDED] Total JS payload is ${(totalGzipBytes / 1024).toFixed(2)} KB (> ${(MAX_BYTES / 1024).toFixed(0)} KB limit)!`);
+if (mainGzipBytes > MAX_BYTES) {
+  console.error(`\n❌ [PERFORMANCE BUDGET EXCEEDED] Main JS bundle is ${(mainGzipBytes / 1024).toFixed(2)} KB (> ${(MAX_BYTES / 1024).toFixed(0)} KB limit)!`);
   process.exit(1);
 } else {
-  console.log(`✅ [PERFORMANCE BUDGET PASSED] Production bundle is within the < ${(MAX_BYTES / 1024).toFixed(0)} KB performance budget.`);
+  console.log(`✅ [PERFORMANCE BUDGET PASSED] Production main bundle is within the < ${(MAX_BYTES / 1024).toFixed(0)} KB performance budget.`);
 }

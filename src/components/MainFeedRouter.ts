@@ -19,6 +19,8 @@ import { renderStoryCluster } from './StoryClusterView.js';
 import { renderArchiveView } from './ArchiveView.js';
 import { renderProgramsExplorerView } from './ProgramsExplorerView.js';
 import { renderSuppliersExplorerView } from './suppliers/SuppliersExplorerView.js';
+import type { EditorViewModel } from '../viewmodels/EditorViewModel.js';
+import type { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCandidatesPanelViewModel.js';
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -127,11 +129,13 @@ export function renderMainFeedContent(
   newsVm: NewsViewModel,
   archiveVm: ArchiveViewModel,
   programsVm?: ProgramsViewModel,
-  suppliersVm?: SuppliersViewModel
+  suppliersVm?: SuppliersViewModel,
+  editorVm?: EditorViewModel,
+  supplierCandidatesVm?: SupplierCandidatesPanelViewModel
 ): void {
   const searchQuery = newsVm.getSearchQuery();
 
-  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'suppliers') {
+  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'suppliers' && activeCat !== 'curator' && activeCat !== 'editor') {
     renderSearchInfoBanner(mainFeed, searchQuery);
   }
 
@@ -145,6 +149,21 @@ export function renderMainFeedContent(
   } else if (activeCat === 'suppliers') {
     const vm = suppliersVm ?? new SuppliersViewModel();
     mainFeed.appendChild(renderSuppliersExplorerView(vm));
+  } else if (activeCat === 'curator' || activeCat === 'editor') {
+    const curatorContainer = document.createElement('div');
+    curatorContainer.className = 'dw-curator-route-container';
+    curatorContainer.textContent = STRINGS.editorSupplierCandidates.loading;
+    mainFeed.appendChild(curatorContainer);
+    import('./EditorDashboard.js')
+      .then(({ renderEditorDashboard }) => {
+        curatorContainer.innerHTML = '';
+        if (editorVm && supplierCandidatesVm) {
+          curatorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm));
+        }
+      })
+      .catch(() => {
+        curatorContainer.textContent = STRINGS.errors.feedLoadFailed;
+      });
   } else {
     renderStoryClustersView(mainFeed, newsVm, searchQuery);
   }

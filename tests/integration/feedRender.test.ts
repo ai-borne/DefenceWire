@@ -3,7 +3,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { initializeApp } from '../../src/main.js';
 import { STRINGS } from '../../src/resources/strings.js';
 
@@ -156,7 +156,7 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(ctaLink.href).toContain('ssbmax.ai');
   });
 
-  it('should open Curator Desk upon 5 rapid stealth clicks on institutional badge', () => {
+  it('should open Curator Desk upon 5 rapid stealth clicks on institutional badge', async () => {
     initializeApp();
 
     const badge = document.querySelector('.dw-inst-badge') as HTMLElement | null;
@@ -167,12 +167,14 @@ describe('Integration: Feed Rendering & UI Components', () => {
       badge?.click();
     }
 
-    const overlay = document.querySelector('.dw-editor-modal-overlay');
-    expect(overlay).not.toBeNull();
-    expect(overlay?.textContent).toContain(STRINGS.editor.authTitle);
+    await vi.waitFor(() => {
+      const overlay = document.querySelector('.dw-editor-modal-overlay');
+      expect(overlay).not.toBeNull();
+      expect(overlay?.textContent).toContain(STRINGS.editor.authTitle);
+    });
   });
 
-  it('should toggle Curator Desk via keyboard shortcut Ctrl+Shift+C', () => {
+  it('should toggle Curator Desk via keyboard shortcut Ctrl+Shift+C', async () => {
     initializeApp();
 
     window.dispatchEvent(
@@ -184,8 +186,10 @@ describe('Integration: Feed Rendering & UI Components', () => {
       })
     );
 
-    const overlay = document.querySelector('.dw-editor-modal-overlay');
-    expect(overlay).not.toBeNull();
+    await vi.waitFor(() => {
+      const overlay = document.querySelector('.dw-editor-modal-overlay');
+      expect(overlay).not.toBeNull();
+    });
 
     // Close via Escape key
     window.dispatchEvent(
@@ -195,6 +199,8 @@ describe('Integration: Feed Rendering & UI Components', () => {
       })
     );
 
-    expect(document.querySelector('.dw-editor-modal-overlay')).toBeNull();
+    await vi.waitFor(() => {
+      expect(document.querySelector('.dw-editor-modal-overlay')).toBeNull();
+    });
   });
 });
