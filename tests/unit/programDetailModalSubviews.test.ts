@@ -23,10 +23,10 @@ describe('Unit: ProgramDetailModal Tabs & Keyboard Navigation', () => {
     tejas = prog!;
   });
 
-  it('should render 4 tabs with Overview initially selected', () => {
+  it('should render 5 tabs with Overview initially selected', () => {
     const modal = openProgramDetailModal(tejas);
     const tabs = modal.querySelectorAll<HTMLButtonElement>('.dw-program-tab-btn');
-    expect(tabs.length).toBe(4);
+    expect(tabs.length).toBe(5);
 
     expect(tabs[0]?.getAttribute('aria-selected')).toBe('true');
     expect(tabs[0]?.tabIndex).toBe(0);
@@ -38,8 +38,10 @@ describe('Unit: ProgramDetailModal Tabs & Keyboard Navigation', () => {
 
     const overviewPanel = modal.querySelector('#dw-tabpanel-overview') as HTMLElement;
     const specsPanel = modal.querySelector('#dw-tabpanel-specs') as HTMLElement;
+    const orbatPanel = modal.querySelector('#dw-tabpanel-orbat') as HTMLElement;
     expect(overviewPanel.hidden).toBe(false);
     expect(specsPanel.hidden).toBe(true);
+    expect(orbatPanel.hidden).toBe(true);
   });
 
   it('should switch tabs and update panels on button click', () => {
@@ -73,9 +75,13 @@ describe('Unit: ProgramDetailModal Tabs & Keyboard Navigation', () => {
     tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     expect(tabs[2]?.getAttribute('aria-selected')).toBe('true');
 
+    // ArrowRight: OrderBook -> ORBAT
+    tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(tabs[3]?.getAttribute('aria-selected')).toBe('true');
+
     // End: jump to last tab (iDEX)
     tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
-    expect(tabs[3]?.getAttribute('aria-selected')).toBe('true');
+    expect(tabs[4]?.getAttribute('aria-selected')).toBe('true');
 
     // ArrowRight: wraps around to Overview
     tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
@@ -83,7 +89,7 @@ describe('Unit: ProgramDetailModal Tabs & Keyboard Navigation', () => {
 
     // ArrowLeft: wraps around to last tab (iDEX)
     tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
-    expect(tabs[3]?.getAttribute('aria-selected')).toBe('true');
+    expect(tabs[4]?.getAttribute('aria-selected')).toBe('true');
 
     // Home: jump to first tab (Overview)
     tabList.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }));

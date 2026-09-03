@@ -195,6 +195,7 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
     { id: 'overview', label: STRINGS.programs.tabOverview },
     { id: 'specs', label: STRINGS.programs.tabSpecifications },
     { id: 'orderbook', label: STRINGS.programs.tabOrderBook },
+    { id: 'orbat', label: STRINGS.programs.tabOrbat },
     { id: 'idex', label: idexCount > 0 ? `${STRINGS.programs.tabIdex} (${idexCount})` : STRINGS.programs.tabIdex }
   ];
 
@@ -204,10 +205,18 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
   const body = document.createElement('div');
   body.className = 'dw-modal-body dw-program-modal-body';
 
+  const orbatPanel = document.createElement('div');
+  import('./programs/ProgramOrbatView.js')
+    .then(({ renderProgramOrbatView }) => {
+      orbatPanel.appendChild(renderProgramOrbatView(program));
+    })
+    .catch((err) => console.error('[ORBAT VIEW LOAD ERROR]', err));
+
   const panels: Record<string, HTMLElement> = {
     overview: renderOverviewPanel(program, options),
     specs: renderProgramSpecsView(program),
     orderbook: renderProgramOrderBookView(program),
+    orbat: orbatPanel,
     idex: renderProgramIdexView(program)
   };
   Object.entries(panels).forEach(([id, panel]) => {
@@ -226,8 +235,15 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
   modal.appendChild(body);
   backdrop.appendChild(modal);
 
+  import('../seo/schemaOrg.js')
+    .then(({ injectProgramJsonLd }) => injectProgramJsonLd(program))
+    .catch(() => {});
+
   openModal(backdrop, {
     onClose: () => {
+      if (typeof document !== 'undefined') {
+        document.getElementById('dw-program-jsonld')?.remove();
+      }
       if (typeof window !== 'undefined' && window.location.hash.startsWith('#program/')) {
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }

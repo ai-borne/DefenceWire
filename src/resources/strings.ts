@@ -173,7 +173,25 @@ export const STRINGS = {
     idexDownloadPdfAria: 'Download official iDEX problem statement PDF',
     idexStatusOpen: 'Challenge Open',
     idexStatusAwarded: 'Grant Awarded',
-    idexEmpty: 'No iDEX/ADITI challenge statements currently mapped to this platform.'
+    idexEmpty: 'No iDEX/ADITI challenge statements currently mapped to this platform.',
+    // Order of Battle (ORBAT) & Unit Deployment Strings
+    tabOrbat: 'Deployments & Squadrons',
+    orbatHeading: 'Operational Deployments & Order of Battle (ORBAT)',
+    orbatSubheading: 'Frontline squadrons, combat fleets, and regiments with parliamentary citations',
+    orbatUnitCol: 'Unit / Formation',
+    orbatBaseCol: 'Base / Command',
+    orbatStatusCol: 'Status',
+    orbatUnitsCol: 'Units / Allocation',
+    orbatCitationCol: 'Official Citation',
+    orbatNoUnits: 'Operational units and basing details are currently under classification or slated for future induction.',
+    orbatLoading: 'Loading sovereign deployment and ORBAT intelligence...',
+    orbatCitationPrefix: 'Citation:',
+    orbatOperationalRoleLabel: 'Operational Role:',
+    orbatStatusOperational: 'Operational',
+    orbatStatusForming: 'Forming',
+    orbatStatusSlated: 'Slated',
+    orbatStatusUpgrading: 'Upgrading',
+    orbatStatusEvaluating: 'Evaluating'
   },
   editor: {
     dashboardTitle: 'Editorial Curation Control', openDashboard: 'Curator Desk', closeDashboard: 'Close Desk',

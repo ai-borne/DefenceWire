@@ -67,7 +67,8 @@ function checkContracts() {
     'src/types/source.ts',
     'src/types/ranking.ts',
     'src/types/viewState.ts',
-    'src/types/programs.ts'
+    'src/types/programs.ts',
+    'src/types/orbat.ts'
   ];
 
   for (const relPath of requiredContracts) {
@@ -89,7 +90,8 @@ function checkCssTokenPurity() {
     'src/styles/editor.css',
     'src/styles/badges.css',
     'src/styles/archive.css',
-    'src/styles/curatorDesk.css'
+    'src/styles/curatorDesk.css',
+    'src/styles/orbat.css'
   ];
   const TARGET_PROPS = new Set(['color', 'background', 'background-color', 'border-color', 'box-shadow']);
   const ALLOWED_KEYWORDS = new Set(['transparent', 'none', 'inherit', 'initial', 'unset', 'currentcolor']);

@@ -1,0 +1,189 @@
+/* ORBAT & Military Deployment Styling for DefenceWire.in */
+/* Hard limit: <= 300 LOC. Target: < 200 LOC. */
+
+.dw-orbat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 16px;
+}
+
+.dw-orbat-header {
+  margin-bottom: 8px;
+}
+
+.dw-orbat-heading {
+  margin: 0 0 4px;
+  font-family: var(--dw-font-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.dw-orbat-subheading {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--dw-text-secondary);
+  line-height: var(--dw-leading-normal);
+}
+
+.dw-orbat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dw-orbat-card {
+  background: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--dw-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dw-orbat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dw-orbat-unit-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dw-orbat-unit-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+}
+
+.dw-orbat-nickname {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--dw-text-secondary);
+}
+
+.dw-orbat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dw-orbat-badge--operational {
+  background: var(--dw-stage-induction-bg);
+  color: var(--dw-stage-induction-text);
+}
+
+.dw-orbat-badge--forming {
+  background: var(--dw-stage-dev-bg);
+  color: var(--dw-stage-dev-text);
+}
+
+.dw-orbat-badge--slated {
+  background: var(--dw-stage-sanctioned-bg);
+  color: var(--dw-stage-sanctioned-text);
+}
+
+.dw-orbat-badge--upgrading {
+  background: var(--dw-official-tender-bg);
+  color: var(--dw-official-tender-text);
+}
+
+.dw-orbat-badge--evaluating {
+  background: var(--dw-stage-trials-bg);
+  color: var(--dw-stage-trials-text);
+}
+
+.dw-orbat-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  background: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.dw-orbat-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dw-orbat-meta-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--dw-text-muted);
+}
+
+.dw-orbat-meta-val {
+  font-weight: 600;
+  color: var(--dw-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.dw-orbat-role {
+  font-size: 0.82rem;
+  color: var(--dw-text-secondary);
+  line-height: var(--dw-leading-normal);
+}
+
+.dw-orbat-citation-box {
+  background: var(--dw-bg-canvas);
+  border-left: 3px solid var(--dw-text-accent);
+  border-radius: 0 var(--dw-radius-sm) var(--dw-radius-sm) 0;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dw-orbat-citation-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--dw-text-primary);
+}
+
+.dw-orbat-citation-title {
+  font-weight: 600;
+  color: var(--dw-text-primary);
+}
+
+.dw-orbat-citation-excerpt {
+  font-style: italic;
+  color: var(--dw-text-muted);
+  line-height: var(--dw-leading-normal);
+}
+
+.dw-orbat-empty,
+.dw-orbat-loading {
+  padding: 24px 16px;
+  text-align: center;
+  background: var(--dw-bg-secondary);
+  border: 1px dashed var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  color: var(--dw-text-secondary);
+  font-size: 0.88rem;
+}
