@@ -105,6 +105,54 @@ const STARTUP_SUPPLIERS: SupplierProfile[] = [
     linkedPrograms: [
       { programId: 'tapas-archer-uav', subsystemName: 'Tactical SATCOM & Radio Systems', supplierId: 'lekha-wireless', tier: 'tier2_msme', indigenisationStatus: 'in_house' }
     ]
+  },
+  {
+    id: 'tonbo-imaging',
+    slug: 'tonbo-imaging',
+    name: 'Tonbo Imaging',
+    tier: 'deep_tech_startup',
+    hqCity: 'Bengaluru',
+    hqState: 'Karnataka',
+    corridor: 'Bengaluru',
+    description: 'Stabilized electro-optic and infrared imaging systems manufacturer supplying gimbal-mounted reconnaissance payloads for unmanned platforms.',
+    idexWinner: false,
+    isListed: false,
+    capabilities: [{ supplierId: 'tonbo-imaging', capabilityDomain: 'Seeker Optics & EO/IR', certifications: [] }],
+    linkedPrograms: [
+      { programId: 'tapas-archer-uav', subsystemName: 'EO/IR Reconnaissance Payload', supplierId: 'tonbo-imaging', tier: 'deep_tech_startup', indigenisationStatus: 'in_house' }
+    ]
+  },
+  {
+    id: 'dhruva-space',
+    slug: 'dhruva-space',
+    name: 'Dhruva Space',
+    tier: 'deep_tech_startup',
+    hqCity: 'Hyderabad',
+    hqState: 'Telangana',
+    corridor: 'Hyderabad',
+    description: 'Full-stack space engineering startup building modular satellite bus platforms and ground station infrastructure.',
+    idexWinner: false,
+    isListed: false,
+    capabilities: [{ supplierId: 'dhruva-space', capabilityDomain: 'Radar & RF', certifications: [] }],
+    linkedPrograms: [
+      { programId: 'defspace-satellites', subsystemName: 'Modular Satellite Bus Platform', supplierId: 'dhruva-space', tier: 'deep_tech_startup', indigenisationStatus: 'in_house' }
+    ]
+  },
+  {
+    id: 'optimized-electrotech',
+    slug: 'optimized-electrotech',
+    name: 'Optimized Electrotech',
+    tier: 'tier2_msme',
+    hqCity: 'Pune',
+    hqState: 'Maharashtra',
+    corridor: 'Pune',
+    description: 'Electronic warfare manufacturer building RF jamming and drone-neutralization systems for counter-UAS defence.',
+    idexWinner: false,
+    isListed: false,
+    capabilities: [{ supplierId: 'optimized-electrotech', capabilityDomain: 'Counter-UAS', certifications: [] }],
+    linkedPrograms: [
+      { programId: 'd4-anti-drone', subsystemName: 'RF Jamming & Neutralization Systems', supplierId: 'optimized-electrotech', tier: 'tier2_msme', indigenisationStatus: 'in_house' }
+    ]
   }
 ];
 
