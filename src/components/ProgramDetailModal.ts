@@ -15,7 +15,7 @@ import { renderProgramSpecsView } from './programs/ProgramSpecsView.js';
 import { renderProgramOrderBookView } from './programs/ProgramOrderBookView.js';
 import { renderProgramIdexView } from './programs/ProgramIdexView.js';
 import { getChallengesByProgramId } from '../data/idexProgramMapper.js';
-import { getSuppliersForProgram } from '../data/suppliers/programSupplierMapper.js';
+import { getLinksForProgram, getSupplierBySlug } from '../data/suppliers/programSupplierMapper.js';
 import { openSupplierDetailModal } from './suppliers/SupplierDetailModal.js';
 import { buildDossierTabs } from './DossierTabController.js';
 
@@ -66,7 +66,7 @@ function renderOverviewPanel(program: StrategicProgram, options: ProgramDetailMo
 
     const subsList = document.createElement('div');
     subsList.className = 'dw-program-subs-list';
-    const linkedSuppliers = getSuppliersForProgram(program.id);
+    const subsystemLinks = getLinksForProgram(program.id);
     program.keySubsystems.forEach((sub) => {
       const card = document.createElement('div');
       card.className = 'dw-program-sub-card';
@@ -74,9 +74,10 @@ function renderOverviewPanel(program: StrategicProgram, options: ProgramDetailMo
       card.innerHTML = `<div class="dw-sub-head"><strong>${sanitizePlainText(sub.name)}</strong> <span class="dw-sub-type">${sanitizePlainText(sub.type)}</span></div><div class="dw-sub-body"></div>`;
       const subBody = card.querySelector('.dw-sub-body') as HTMLElement;
 
-      const matchedSupplier = linkedSuppliers.find(
-        (s) => s.name.toLowerCase() === sub.supplier.toLowerCase()
+      const matchedLink = subsystemLinks.find(
+        (l) => l.subsystemName.toLowerCase() === sub.name.toLowerCase()
       );
+      const matchedSupplier = matchedLink ? getSupplierBySlug(matchedLink.supplierId) : undefined;
       if (matchedSupplier) {
         const chip = document.createElement('button');
         chip.type = 'button';

@@ -91,6 +91,37 @@ describe('Unit: ProgramDetailModal Tabs & Keyboard Navigation', () => {
   });
 });
 
+describe('Unit: ProgramDetailModal Subsystem Supplier Chips', () => {
+  it('should render a clickable supplier chip for a subsystem with a verified program_suppliers link, keyed by subsystem name not the free-text manufacturer field', () => {
+    // tejas-mk1a's "Uttam AESA Radar" subsystem carries supplier text "LRDE / BEL" (see
+    // strategicPrograms data), while the verified link in seedSuppliersDpsu.ts joins on the
+    // subsystem NAME to supplier id "bel" (Bharat Electronics Limited) — these two supplier
+    // strings never match, so the chip must be resolved via the subsystemName link, not by
+    // comparing supplier.name to the free-text manufacturer field.
+    const tejas = getProgramById('tejas-mk1a')!;
+    const modal = openProgramDetailModal(tejas);
+
+    const chip = modal.querySelector<HTMLButtonElement>('.dw-sub-supplier-chip');
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toBe('Bharat Electronics Limited');
+  });
+
+  it('should open the Supplier Dossier Modal when a subsystem supplier chip is clicked', () => {
+    const tejas = getProgramById('tejas-mk1a')!;
+    const modal = openProgramDetailModal(tejas);
+
+    const chip = modal.querySelector<HTMLButtonElement>('.dw-sub-supplier-chip');
+    expect(chip).not.toBeNull();
+    chip!.click();
+
+    const dialogs = document.querySelectorAll('[role="dialog"]');
+    const supplierDossier = Array.from(dialogs).find(
+      (d) => d.textContent?.includes('Bharat Electronics Limited') && d.textContent?.includes('Linked Strategic Programs')
+    );
+    expect(supplierDossier).toBeDefined();
+  });
+});
+
 describe('Unit: ProgramSpecsView Component', () => {
   it('should render categorized Jane specs for Tejas Mk1A', () => {
     const tejas = getProgramById('tejas-mk1a')!;
