@@ -7,7 +7,8 @@
 import { StrategicProgram } from '../../types/programs.js';
 import { OrbatDeploymentStatus, OrbatUnit } from '../../types/orbat.js';
 import { STRINGS } from '../../resources/strings.js';
-import { sanitizePlainText } from '../../utils/security.js';
+import { sanitizePlainText, getSafeLinkAttributes } from '../../utils/security.js';
+import { resolveCitationLink } from '../../utils/citationResolver.js';
 
 function getStatusBadgeLabel(status: OrbatDeploymentStatus): string {
   switch (status) {
@@ -82,14 +83,19 @@ function renderOrbatCard(unit: OrbatUnit): HTMLElement {
   }
 
   // Citation Box
+  const citeLink = resolveCitationLink(unit.citation);
+  const safe = getSafeLinkAttributes(citeLink.url);
+
   const citeBox = document.createElement('div');
   citeBox.className = 'dw-orbat-citation-box';
   citeBox.innerHTML = `
     <div class="dw-orbat-citation-header">
       <span>📜 ${STRINGS.programs.orbatCitationPrefix}</span>
-      <span class="dw-orbat-citation-title">${sanitizePlainText(unit.citation.sourceTitle)}</span>
+      <a href="${safe.href}" target="${safe.target}" rel="${safe.rel}" class="dw-orbat-citation-title dw-orbat-citation-link" aria-label="${sanitizePlainText(unit.citation.sourceTitle)}">
+        ${sanitizePlainText(unit.citation.sourceTitle)} ↗
+      </a>
     </div>
-    ${unit.citation.documentNumber ? `<div>${sanitizePlainText(unit.citation.documentNumber)} • ${sanitizePlainText(unit.citation.date)}</div>` : `<div>${sanitizePlainText(unit.citation.date)}</div>`}
+    ${unit.citation.documentNumber ? `<div>${sanitizePlainText(unit.citation.documentNumber)} • ${sanitizePlainText(unit.citation.date)} <span class="dw-orbat-source-label">(${sanitizePlainText(citeLink.sourceLabel)})</span></div>` : `<div>${sanitizePlainText(unit.citation.date)} <span class="dw-orbat-source-label">(${sanitizePlainText(citeLink.sourceLabel)})</span></div>`}
     ${unit.citation.relevantExcerpt ? `<div class="dw-orbat-citation-excerpt">“${sanitizePlainText(unit.citation.relevantExcerpt)}”</div>` : ''}
   `;
   card.appendChild(citeBox);

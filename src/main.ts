@@ -197,17 +197,16 @@ export function initializeApp(): void {
       defaultAuthService.checkSession();
       return;
     }
-    if (hash.startsWith('#program/') || hash.startsWith('#/program/')) {
-      const rawId = hash.replace(/^#\/?program\//, '').trim();
-      if (rawId) {
-        const decoded = decodeURIComponent(rawId);
-        const prog = getProgramById(decoded) ?? findProgramByAlias(decoded);
-        if (prog) {
-          openProgramDetailModal(prog, {
-            relatedClusters: programsVm.getProgramRelatedClusters(prog.id),
-            getSupplierRelatedClusters: (id) => suppliersVm.getSupplierRelatedClusters(id)
-          });
-        }
+    const path = window.location.pathname;
+    const progMatch = hash.match(/^#\/?program\/([^/?#]+)/) || path.match(/^\/program\/([^/?#]+)/);
+    if (progMatch?.[1]) {
+      const decoded = decodeURIComponent(progMatch[1]);
+      const prog = getProgramById(decoded) ?? findProgramByAlias(decoded);
+      if (prog) {
+        openProgramDetailModal(prog, {
+          relatedClusters: programsVm.getProgramRelatedClusters(prog.id),
+          getSupplierRelatedClusters: (id) => suppliersVm.getSupplierRelatedClusters(id)
+        });
       }
       return;
     }

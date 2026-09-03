@@ -171,6 +171,21 @@
   color: var(--dw-text-primary);
 }
 
+.dw-orbat-citation-link {
+  color: var(--dw-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dw-orbat-citation-link:hover {
+  color: var(--dw-text-accent);
+}
+
+.dw-orbat-source-label {
+  font-size: 0.72rem;
+  color: var(--dw-text-muted);
+}
+
 .dw-orbat-citation-excerpt {
   font-style: italic;
   color: var(--dw-text-muted);
