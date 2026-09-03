@@ -13,6 +13,7 @@
     "d1:migrate:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql",
     "d1:size": "vite-node --script crawler/d1SizeCheck.ts",
     "backfill:cluster-json": "vite-node --script crawler/scripts/backfillClusterJsonToR2.ts",
+    "suppliers:review": "node scripts/review-supplier-candidates.mjs",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",
     "check:crawler": "vite-node scripts/check-crawler.mjs",

@@ -253,3 +253,35 @@ CREATE TRIGGER IF NOT EXISTS suppliers_au AFTER UPDATE ON suppliers BEGIN
   INSERT INTO suppliers_fts(rowid, id, name, description)
   VALUES (new.rowid, new.id, new.name, new.description);
 END;
+
+-- ============================================================================
+-- Phase 2.6: Autonomous Growth Pipeline — Supplier Candidate Review Queue
+-- ============================================================================
+
+-- Draft candidates extracted from wire stories by crawler/supplierCandidateExtractor.ts.
+-- Never written to directly by the extractor into suppliers/program_suppliers/
+-- supplier_capabilities (Root CLAUDE.md Rule 5: LLM/extraction output requires
+-- human promotion before it becomes a "verified" claim). A human reviewer
+-- (scripts/review-supplier-candidates.mjs) approves or rejects each row;
+-- only 'approved' rows are promoted into the live tables.
+CREATE TABLE IF NOT EXISTS supplier_candidates (
+  id TEXT PRIMARY KEY,             -- deterministic: <candidate_type>:<supplier_id>:<program_id>[:<subsystem_slug>]
+  candidate_type TEXT NOT NULL,    -- 'new_link' (only type extracted as of Phase 2.6 — see extractor header)
+  supplier_id TEXT NOT NULL,       -- matches suppliers.id (no FK: candidate may reference a supplier not yet promoted)
+  supplier_name TEXT NOT NULL,     -- display name at extraction time, for reviewer legibility
+  program_id TEXT NOT NULL,        -- matches StrategicProgram.id (no D1 FK, same pattern as program_suppliers)
+  subsystem_name TEXT NOT NULL,
+  payload_json TEXT NOT NULL,      -- full draft ProgramSupplierLink fields for promotion
+  source_story_id TEXT,            -- one representative story id for reviewer citation
+  source_domains TEXT NOT NULL,    -- JSON array of distinct publisher domains that mentioned the pair
+  mention_count INTEGER NOT NULL DEFAULT 1,
+  source_count INTEGER NOT NULL DEFAULT 1,
+  confidence REAL NOT NULL,        -- 0.0 - 1.0, deterministic score (mention + source corroboration)
+  status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected'
+  first_seen_at TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL,
+  reviewed_at TEXT,
+  reviewed_by TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_candidates_status ON supplier_candidates (status, confidence DESC);

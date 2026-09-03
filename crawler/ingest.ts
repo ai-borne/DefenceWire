@@ -21,6 +21,7 @@ import {
   aggregateEntityCandidates, getPromotedEntityConfigs,
   syncDiscoveredEntitiesToD1, EntityHarvestCandidate
 } from './entityHarvester.js';
+import { runSupplierCandidateExtraction } from './supplierCandidateExtractor.js';
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import { aggregateSourceStats, syncSourceReputationToD1 } from './sourceTracker.js';
 
@@ -239,6 +240,11 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   }
   const entitySyncResult = await syncDiscoveredEntitiesToD1(aggregatedEntities, d1Config, { fetchFn });
   console.log(`[D1 ENTITY SYNC] ${entitySyncResult.synced} synced, ${entitySyncResult.promotedCount} promoted`);
+
+  // Autonomous supplier growth pipeline (Phase 2.6): draft new_link candidates
+  // from supplier x program co-mentions — never writes to suppliers/program_suppliers.
+  const supplierCandidateResult = await runSupplierCandidateExtraction(riverItems, d1Config, { fetchFn });
+  console.log(`[D1 SUPPLIER CANDIDATE SYNC] ${supplierCandidateResult.synced} synced, ${supplierCandidateResult.drafted} drafted`);
 
   // Closed-loop dynamic source reputation & scoop tracking
   const sourceStatsMap = aggregateSourceStats(rawArticles, freshArticles, lockedProtectedClusters);
