@@ -210,16 +210,14 @@ export function initializeApp(): void {
       }
       return;
     }
-    if (hash.startsWith('#supplier/') || hash.startsWith('#/supplier/')) {
-      const rawSlug = hash.replace(/^#\/?supplier\//, '').trim();
-      if (rawSlug) {
-        const decoded = decodeURIComponent(rawSlug);
-        const supplier = suppliersVm.getCachedSupplier(decoded);
-        if (supplier) {
-          openSupplierDetailModal(supplier, {
-            relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
-          });
-        }
+    const supMatch = hash.match(/^#\/?supplier\/([^/?#]+)/) || path.match(/^\/supplier\/([^/?#]+)/);
+    if (supMatch?.[1]) {
+      const decoded = decodeURIComponent(supMatch[1]);
+      const supplier = suppliersVm.getCachedSupplier(decoded);
+      if (supplier) {
+        openSupplierDetailModal(supplier, {
+          relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
+        });
       }
     }
   };
