@@ -89,10 +89,10 @@ async function approve(id, reviewer, config) {
 
   const now = new Date().toISOString();
   await runD1Query(
-    `INSERT INTO program_suppliers (program_id, subsystem_name, supplier_id, tier, indigenisation_status)
-     VALUES (?, ?, ?, ?, 'in_house')
+    `INSERT INTO program_suppliers (program_id, subsystem_name, supplier_id, tier, indigenisation_status, promoted_at)
+     VALUES (?, ?, ?, ?, 'in_house', ?)
      ON CONFLICT(program_id, subsystem_name, supplier_id) DO NOTHING;`,
-    [candidate.program_id, candidate.subsystem_name, candidate.supplier_id, supplierRow[0].tier],
+    [candidate.program_id, candidate.subsystem_name, candidate.supplier_id, supplierRow[0].tier, now],
     config
   );
   await runD1Query(

@@ -8,6 +8,7 @@
 import { STRINGS } from '../../resources/strings.js';
 import { sanitizePlainText } from '../../utils/security.js';
 import { SupplierProfile } from '../../types/suppliers.js';
+import { StoryCluster } from '../../types/news.js';
 import { getLinkedProgramCount } from '../../data/suppliers/programSupplierMapper.js';
 import { buildDossierTabs } from '../DossierTabController.js';
 import { renderSupplierOverviewView } from './SupplierOverviewView.js';
@@ -17,6 +18,7 @@ import { renderSupplierIndigenisationView } from './SupplierIndigenisationView.j
 import { renderSupplierWireMentionsView } from './SupplierWireMentionsView.js';
 
 export interface SupplierDetailModalOptions {
+  relatedClusters?: StoryCluster[];
   onClose?: () => void;
 }
 
@@ -92,7 +94,7 @@ export function openSupplierDetailModal(
     capabilities: renderSupplierCapabilitiesView(supplier),
     linked: renderSupplierLinkedProgramsView(supplier),
     indigenisation: renderSupplierIndigenisationView(supplier),
-    wire: renderSupplierWireMentionsView(supplier)
+    wire: renderSupplierWireMentionsView(supplier, options.relatedClusters ?? [])
   };
   Object.entries(panels).forEach(([id, panel]) => {
     panel.id = `dw-supplier-tabpanel-${id}`;

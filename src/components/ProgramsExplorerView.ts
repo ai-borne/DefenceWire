@@ -8,6 +8,7 @@ import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
 import { LifecycleStage, ProgramDomain } from '../types/programs.js';
 import { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
+import { SuppliersViewModel } from '../viewmodels/SuppliersViewModel.js';
 import { renderProgramLifecycleCard } from './ProgramLifecycleCard.js';
 import { openProgramDetailModal } from './ProgramDetailModal.js';
 
@@ -35,7 +36,7 @@ const STAGE_OPTIONS: readonly { id: LifecycleStage | 'all'; label: string }[] = 
   { id: 'induction', label: STRINGS.programs.stageInduction }
 ] as const;
 
-export function renderProgramsExplorerView(programsVm: ProgramsViewModel): HTMLElement {
+export function renderProgramsExplorerView(programsVm: ProgramsViewModel, suppliersVm?: SuppliersViewModel): HTMLElement {
   const container = document.createElement('div');
   container.className = 'dw-programs-explorer';
 
@@ -164,7 +165,8 @@ export function renderProgramsExplorerView(programsVm: ProgramsViewModel): HTMLE
             window.location.hash = `#program/${encodeURIComponent(p.id)}`;
           }
           openProgramDetailModal(p, {
-            relatedClusters: programsVm.getProgramRelatedClusters(p.id)
+            relatedClusters: programsVm.getProgramRelatedClusters(p.id),
+            getSupplierRelatedClusters: suppliersVm ? (id) => suppliersVm.getSupplierRelatedClusters(id) : undefined
           });
         }
       });

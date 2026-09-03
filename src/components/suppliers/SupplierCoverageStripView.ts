@@ -13,6 +13,7 @@ import {
   getProgramCoverageStats,
   getCapabilityDomainStats
 } from '../../data/suppliers/programSupplierMapper.js';
+import { fetchSupplierGrowth } from '../../services/supplierGrowthService.js';
 
 export function renderSupplierCoverageStripView(): HTMLElement {
   const strip = document.createElement('div');
@@ -44,6 +45,18 @@ export function renderSupplierCoverageStripView(): HTMLElement {
   freshness.className = 'dw-supplier-coverage-freshness';
   freshness.textContent = `${STRINGS.suppliers.lastVerifiedPrefix}: ${STRINGS.suppliers.lastVerifiedDate}`;
   strip.appendChild(freshness);
+
+  // Fire-and-forget: patches in only once (and if) a human has approved at
+  // least one growth-pipeline candidate — nothing to show before that.
+  if (typeof window !== 'undefined') {
+    fetchSupplierGrowth().then((growth) => {
+      if (!growth || growth.newLinksCount <= 0) return;
+      const signal = document.createElement('div');
+      signal.className = 'dw-supplier-coverage-growth-signal';
+      signal.textContent = `🌱 ${growth.newLinksCount} ${STRINGS.suppliers.growthSignalSuffix}`;
+      strip.appendChild(signal);
+    });
+  }
 
   return strip;
 }

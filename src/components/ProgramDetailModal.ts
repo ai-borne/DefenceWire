@@ -21,6 +21,7 @@ import { buildDossierTabs } from './DossierTabController.js';
 
 export interface ProgramDetailModalOptions {
   relatedClusters?: StoryCluster[];
+  getSupplierRelatedClusters?: (supplierId: string) => StoryCluster[];
   onClose?: () => void;
 }
 
@@ -84,7 +85,11 @@ function renderOverviewPanel(program: StrategicProgram, options: ProgramDetailMo
         chip.className = 'dw-sub-supplier-chip';
         chip.textContent = sanitizePlainText(matchedSupplier.name);
         chip.setAttribute('aria-label', `${STRINGS.suppliers.cardAriaLabel} ${matchedSupplier.name}`);
-        chip.addEventListener('click', () => openSupplierDetailModal(matchedSupplier));
+        chip.addEventListener('click', () =>
+          openSupplierDetailModal(matchedSupplier, {
+            relatedClusters: options.getSupplierRelatedClusters?.(matchedSupplier.id)
+          })
+        );
         subBody.appendChild(chip);
       } else {
         const supplierText = document.createElement('span');

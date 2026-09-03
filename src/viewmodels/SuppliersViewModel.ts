@@ -16,7 +16,10 @@ import {
 } from '../types/suppliers.js';
 import { ALL_SUPPLIERS, getSupplierBySlug } from '../data/suppliers/seedSuppliers.js';
 import { getLinkedProgramCount, getSuppliersForProgram } from '../data/suppliers/programSupplierMapper.js';
+import { getRelatedStoriesForSupplier } from '../engine/supplierMatcher.js';
 import { SearchDebouncer } from './supplierSearchDebouncer.js';
+import { NewsViewModel } from './NewsViewModel.js';
+import { StoryCluster } from '../types/news.js';
 
 export type SuppliersStateListener = () => void;
 export type SupplierSortMode = 'linked_desc' | 'alphabetical';
@@ -33,6 +36,33 @@ export class SuppliersViewModel {
   private listeners: Set<SuppliersStateListener> = new Set();
   private readonly searchDebouncer: SearchDebouncer = new SearchDebouncer();
   private readonly profileCache: Map<string, SupplierProfile> = new Map();
+  private newsVm: NewsViewModel | null = null;
+  private newsVmUnsubscribe: (() => void) | null = null;
+
+  constructor(newsVm?: NewsViewModel) {
+    if (newsVm) {
+      this.setNewsViewModel(newsVm);
+    }
+  }
+
+  public setNewsViewModel(newsVm: NewsViewModel): void {
+    if (this.newsVmUnsubscribe) {
+      this.newsVmUnsubscribe();
+      this.newsVmUnsubscribe = null;
+    }
+    this.newsVm = newsVm;
+    this.newsVmUnsubscribe = this.newsVm.subscribe(() => {
+      this.notifyListeners();
+    });
+    this.notifyListeners();
+  }
+
+  /** Live feed clusters mentioning this supplier by name or a known alias — powers the Wire Mentions dossier tab. */
+  public getSupplierRelatedClusters(supplierId: string): StoryCluster[] {
+    if (!this.newsVm) return [];
+    const clusters = this.newsVm.getAllClusters(false);
+    return getRelatedStoriesForSupplier(supplierId, clusters);
+  }
 
   public getActiveTier(): SupplierTier | 'all' {
     return this.activeTier;
@@ -210,5 +240,9 @@ export class SuppliersViewModel {
     this.searchDebouncer.cancel();
     this.listeners.clear();
     this.profileCache.clear();
+    if (this.newsVmUnsubscribe) {
+      this.newsVmUnsubscribe();
+      this.newsVmUnsubscribe = null;
+    }
   }
 }

@@ -60,6 +60,7 @@ const supplierStrings = {
   overviewFacilitiesEmpty: 'No public facility data currently mapped to this supplier.',
   capabilitiesCertificationsLabel: 'Certifications',
   capabilitiesNoCerts: 'No certifications on record.',
+  growthSignalSuffix: 'new verified links promoted in the last 30 days',
   /**
    * Curated featured cross-links — Phase 2.6's automated growth pipeline
    * hasn't shipped yet, so this editorial pick is a static list of verified,

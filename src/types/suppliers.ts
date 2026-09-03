@@ -44,6 +44,8 @@ export interface SupplierProfile {
   id: string;
   slug: string;
   name: string;
+  /** Well-known public short names/abbreviations (e.g. 'BEL', 'HAL') this supplier also goes by in wire coverage — used for wire-mention matching, not fabricated. */
+  aliases?: string[];
   tier: SupplierTier;
   hqCity: string;
   hqState: string;

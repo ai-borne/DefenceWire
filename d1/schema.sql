@@ -215,12 +215,20 @@ CREATE INDEX IF NOT EXISTS idx_supplier_capabilities_domain ON supplier_capabili
 -- is a plain string column matching StrategicProgram.id with no D1 FK --
 -- the same pattern idexProgramMapper.ts already uses for iDEX challenges.
 -- Validated instead via tests/unit/supplierContracts.test.ts.
+-- promoted_at is NULL for the original 31-supplier seed batch and set to the
+-- approval timestamp only for rows scripts/review-supplier-candidates.mjs
+-- promotes from supplier_candidates — this is what the Phase 2.7 coverage
+-- strip's "N new links this month" growth signal counts. If this table
+-- already exists on a previously-provisioned remote D1 database (re-running
+-- this file is a no-op for existing tables), add the column once manually:
+--   ALTER TABLE program_suppliers ADD COLUMN promoted_at TEXT;
 CREATE TABLE IF NOT EXISTS program_suppliers (
   program_id TEXT NOT NULL,       -- matches StrategicProgram.id (no D1 FK)
   subsystem_name TEXT NOT NULL,
   supplier_id TEXT NOT NULL,
   tier TEXT NOT NULL,
   indigenisation_status TEXT NOT NULL,
+  promoted_at TEXT,               -- ISO 8601; set only when promoted via the candidate review pipeline
   PRIMARY KEY (program_id, subsystem_name, supplier_id),
   FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );

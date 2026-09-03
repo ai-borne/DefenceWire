@@ -141,7 +141,7 @@ export function renderMainFeedContent(
     mainFeed.appendChild(renderArchiveView(archiveVm, newsVm));
   } else if (activeCat === 'programs') {
     const vm = programsVm ?? new ProgramsViewModel(newsVm);
-    mainFeed.appendChild(renderProgramsExplorerView(vm));
+    mainFeed.appendChild(renderProgramsExplorerView(vm, suppliersVm));
   } else if (activeCat === 'suppliers') {
     const vm = suppliersVm ?? new SuppliersViewModel();
     mainFeed.appendChild(renderSuppliersExplorerView(vm));

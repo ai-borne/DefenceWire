@@ -38,7 +38,7 @@ export function initializeApp(): void {
   const editorVm = new EditorViewModel(newsVm);
   const archiveVm = new ArchiveViewModel();
   const programsVm = new ProgramsViewModel(newsVm);
-  const suppliersVm = new SuppliersViewModel();
+  const suppliersVm = new SuppliersViewModel(newsVm);
 
   // Initialize summary auto-collapse listener
   initSummaryAutoCollapse(newsVm);
@@ -194,7 +194,8 @@ export function initializeApp(): void {
         const prog = getProgramById(decoded) ?? findProgramByAlias(decoded);
         if (prog) {
           openProgramDetailModal(prog, {
-            relatedClusters: programsVm.getProgramRelatedClusters(prog.id)
+            relatedClusters: programsVm.getProgramRelatedClusters(prog.id),
+            getSupplierRelatedClusters: (id) => suppliersVm.getSupplierRelatedClusters(id)
           });
         }
       }
@@ -206,7 +207,9 @@ export function initializeApp(): void {
         const decoded = decodeURIComponent(rawSlug);
         const supplier = suppliersVm.getCachedSupplier(decoded);
         if (supplier) {
-          openSupplierDetailModal(supplier);
+          openSupplierDetailModal(supplier, {
+            relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
+          });
         }
       }
     }

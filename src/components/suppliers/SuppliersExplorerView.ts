@@ -36,7 +36,9 @@ export function renderSuppliersExplorerView(suppliersVm: SuppliersViewModel): HT
     if (typeof window !== 'undefined') {
       window.location.hash = `#supplier/${encodeURIComponent(supplier.slug)}`;
     }
-    openSupplierDetailModal(supplier);
+    openSupplierDetailModal(supplier, {
+      relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
+    });
   };
 
   // 2. Featured Link (FIRST — above coverage strip)
