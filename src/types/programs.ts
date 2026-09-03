@@ -60,6 +60,101 @@ export interface StrategicProgram {
   specifications?: Record<string, string>;
   foreignOem?: string;
   officialDesignation?: string;
+  specs?: ProgramTechnicalSpecs;
+  orderBook?: ProgramOrderBook;
+  idexChallenges?: IdexChallenge[];
+}
+
+export interface ProgramDimensions {
+  length?: string;
+  wingspan?: string;
+  beam?: string;
+  height?: string;
+  diameter?: string;
+  displacementTons?: number | string;
+  emptyWeightKg?: number | string;
+  mtowKg?: number | string;
+}
+
+export interface ProgramPerformance {
+  maxSpeed?: string;
+  combatRadiusKm?: number | string;
+  ferryRangeKm?: number | string;
+  serviceCeilingMeters?: number | string;
+  rcsEstimate?: string;
+  enduranceHours?: number | string;
+}
+
+export interface ProgramPropulsion {
+  engineModel?: string;
+  engineType?: string;
+  dryThrustKn?: number | string;
+  wetThrustKn?: number | string;
+  powerOutput?: string;
+}
+
+export interface ProgramAvionics {
+  radarSuite?: string;
+  ewSuite?: string;
+  datalink?: string;
+  targetTrackingCapacity?: string;
+}
+
+export interface ProgramArmament {
+  hardpointsCount?: number | string;
+  payloadCapacityKg?: number | string;
+  internalBays?: string | boolean;
+  compatibleWeapons?: string[];
+  gunSystem?: string;
+}
+
+export interface ProgramTechnicalSpecs {
+  programId: string;
+  dimensions?: ProgramDimensions;
+  performance?: ProgramPerformance;
+  propulsion?: ProgramPropulsion;
+  avionics?: ProgramAvionics;
+  armament?: ProgramArmament;
+}
+
+export type OrderBatchStatus = 'delivered' | 'in_production' | 'pending' | 'sanctioned';
+
+export interface OrderBatch {
+  batchName: string;
+  orderDate?: string;
+  units: number;
+  contractValueCrores?: number;
+  manufacturingFacility?: string;
+  deliverySchedule?: string;
+  recipientBasesOrSquadrons?: string[];
+  status?: OrderBatchStatus;
+}
+
+export interface ProgramOrderBook {
+  programId: string;
+  sanctionedUnits: number;
+  contractedUnits: number;
+  deliveredUnits: number;
+  pendingUnits: number;
+  batches: OrderBatch[];
+  latestDeliveryMilestone?: string;
+}
+
+export type IdexEdition = 'DISC' | 'ADITI' | 'Open Challenge' | 'SPARK' | string;
+export type IdexChallengeStatus = 'open' | 'evaluating' | 'awarded' | 'prototype_fielded' | 'completed';
+
+export interface IdexChallenge {
+  id: string;
+  edition: string;
+  psNumber: string;
+  title: string;
+  nodalAgency: string;
+  grantAmount: string;
+  problemDescription: string;
+  targetCapability: string;
+  mappedProgramId: string;
+  status: IdexChallengeStatus | string;
+  officialPdfUrl?: string;
 }
 
 export interface ProgramFilterOptions {
@@ -82,3 +177,4 @@ export interface ProgramDomainStats {
   inDevelopment: number;
   inConceptOrSanctioned: number;
 }
+
