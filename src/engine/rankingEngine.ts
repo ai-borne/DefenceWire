@@ -16,7 +16,8 @@ export const DEFAULT_RANKING_PARAMS: RankingParams = {
   officialSocialConfirmationBonus: 15,
   dacClearanceBonus: 15,
   borderStrategicBonus: 15,
-  duplicatePenalty: 20
+  duplicatePenalty: 20,
+  breakingVelocityBonus: 15
 };
 
 const STRATEGIC_KEYWORDS = [
@@ -99,18 +100,27 @@ function calculateStrategicScore(cluster: StoryCluster): number {
 }
 
 /**
- * Computes Velocity score (0 - 100).
+ * Computes Velocity score (0 - 100) using tier-weighted formula: sum(TierWeight_i / delta_t).
  */
-function calculateVelocityScore(primary: StorySourceItem, related: StorySourceItem[], now: Date): number {
+export function calculateVelocityScore(primary: StorySourceItem, related: StorySourceItem[], now: Date): number {
   const allItems = [primary, ...(related || [])];
   const nowDate = now.getTime();
-  const recentCount = allItems.filter(item => {
+  const recentItems = allItems.filter(item => {
     const ageHours = (nowDate - new Date(item.publishedAt).getTime()) / (1000 * 60 * 60);
     return ageHours >= 0 && ageHours <= 6;
-  }).length;
-  if (recentCount >= 4) return 100;
-  if (recentCount === 3) return 75;
-  if (recentCount === 2) return 50;
+  });
+
+  if (recentItems.length === 0) return 20;
+
+  const weightedVelocitySum = recentItems.reduce((acc, item) => {
+    const ageHours = Math.max(0.5, (nowDate - new Date(item.publishedAt).getTime()) / (1000 * 60 * 60));
+    const tierWeight = getTierAuthorityWeight(item.tier);
+    return acc + (tierWeight / ageHours);
+  }, 0);
+
+  if (weightedVelocitySum >= 4.5) return 100;
+  if (weightedVelocitySum >= 3.0) return 75;
+  if (weightedVelocitySum >= 1.5) return 50;
   return 20;
 }
 
@@ -127,7 +137,7 @@ function calculateDiscussionScore(cluster: StoryCluster): number {
 /**
  * Evaluates bonus and penalty factors for a cluster.
  */
-function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFactor[] {
+function evaluateBonuses(cluster: StoryCluster, params: RankingParams, velocityScore: number = 0): BonusFactor[] {
   const bonuses: BonusFactor[] = [];
   const isOfficial = cluster.primarySource.tier === SourceTier.TIER_1_OFFICIAL;
   bonuses.push({
@@ -166,6 +176,24 @@ function evaluateBonuses(cluster: StoryCluster, params: RankingParams): BonusFac
     reason: isBorder ? 'Direct LAC/LoC or operational deterrence significance' : 'No border alert'
   });
 
+  // Anti-Rumor Gate: Breaking velocity requires >= 1 Tier-1 source OR >= 2 Tier-2 sources
+  const allSources = [cluster.primarySource, ...(cluster.relatedCoverage || [])];
+  const tier1Count = allSources.filter(s => s.tier === SourceTier.TIER_1_OFFICIAL || s.tier === SourceTier.TIER_1_SOCIAL).length;
+  const tier2Count = allSources.filter(s => s.tier === SourceTier.TIER_2_NATIONAL).length;
+  const passesAntiRumorGate = tier1Count >= 1 || tier2Count >= 2;
+  const isBreakingVelocity = velocityScore >= 50 && passesAntiRumorGate;
+
+  bonuses.push({
+    name: 'Tier-Weighted Breaking Velocity Surge',
+    points: params.breakingVelocityBonus ?? 15,
+    applied: isBreakingVelocity,
+    reason: isBreakingVelocity
+      ? 'High velocity coverage verified by Tier-1 or multi-Tier-2 sources'
+      : passesAntiRumorGate
+      ? 'Velocity below breaking surge threshold'
+      : 'Unverified velocity surge: requires >= 1 Tier-1 or >= 2 Tier-2 sources'
+  });
+
   if (cluster.isEditorPromoted) {
     bonuses.push({ name: 'Editorial Lead Promotion', points: 25, applied: true, reason: 'Promoted by editor to lead' });
   }
@@ -198,7 +226,7 @@ export function calculateScoreBreakdown(
   const velocityScore = calculateVelocityScore(primary, related, now);
   const discussionScore = calculateDiscussionScore(cluster);
 
-  const bonuses = evaluateBonuses(cluster, params);
+  const bonuses = evaluateBonuses(cluster, params, velocityScore);
   const bonusesTotal = bonuses.filter(b => b.applied).reduce((acc, b) => acc + b.points, 0);
 
   const rawBaseScore =

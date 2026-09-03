@@ -3,10 +3,24 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, expect, it } from 'vitest';
-import { aggregateSourceStats, syncSourceReputationToD1 } from '../../crawler/sourceTracker.js';
+import { describe, expect, it, beforeEach } from 'vitest';
+import {
+  aggregateSourceStats,
+  syncSourceReputationToD1,
+  getFowlerCircuitStatus,
+  recordFowlerFailure,
+  recordFowlerSuccess,
+  fetchFeedWithFowlerBreaker,
+  getConditionalScrapeHeaders,
+  getQuarantinedFeedRecords,
+  resetFowlerCircuitBreakers,
+  FOWLER_FAILURE_THRESHOLD,
+  FOWLER_COOLDOWN_MS
+} from '../../crawler/sourceTracker.js';
+import { getSourceCircuitState, getQuarantinedSources } from '../../src/engine/sourceReputation.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
+import { FeedConfig } from '../../crawler/feedTypes.js';
 
 const MOCK_RAW_ITEMS: StorySourceItem[] = [
   {
@@ -66,7 +80,21 @@ const MOCK_CLUSTERS: StoryCluster[] = [
   }
 ];
 
+const TEST_FEED: FeedConfig = {
+  id: 'test-pib',
+  name: 'PIB Test Feed',
+  url: 'https://pib.gov.in/rss.xml',
+  domain: 'pib.gov.in',
+  tier: SourceTier.TIER_1_OFFICIAL,
+  defaultCategory: 'official',
+  enabled: true
+};
+
 describe('Crawler Source Tracker', () => {
+  beforeEach(() => {
+    resetFowlerCircuitBreakers();
+  });
+
   it('aggregates ingestion, acceptance, and scoop originator credits accurately', () => {
     const statsMap = aggregateSourceStats(MOCK_RAW_ITEMS, MOCK_FILTERED_ITEMS, MOCK_CLUSTERS);
 
@@ -108,3 +136,104 @@ describe('Crawler Source Tracker', () => {
     expect(res.multipliers['livefistdefence.com']).toBeGreaterThan(1.0);
   });
 });
+
+describe('Fowler Half-Open Circuit Breaker & Conditional Scraping', () => {
+  beforeEach(() => {
+    resetFowlerCircuitBreakers();
+  });
+
+  it('transitions from CLOSED to OPEN after 5 consecutive failures', () => {
+    expect(FOWLER_FAILURE_THRESHOLD).toBe(5);
+    const initial = getFowlerCircuitStatus(TEST_FEED.id, { domain: TEST_FEED.domain });
+    expect(initial.state).toBe('CLOSED');
+    expect(initial.consecutiveFailures).toBe(0);
+
+    for (let i = 1; i <= 4; i++) {
+      recordFowlerFailure(TEST_FEED.id, { domain: TEST_FEED.domain });
+      expect(getFowlerCircuitStatus(TEST_FEED.id).state).toBe('CLOSED');
+      expect(getFowlerCircuitStatus(TEST_FEED.id).consecutiveFailures).toBe(i);
+    }
+
+    recordFowlerFailure(TEST_FEED.id, { domain: TEST_FEED.domain });
+    const tripped = getFowlerCircuitStatus(TEST_FEED.id);
+    expect(tripped.state).toBe('OPEN');
+    expect(tripped.consecutiveFailures).toBe(5);
+
+    // Surfaced to shared reputation and quarantine list
+    expect(getQuarantinedFeedRecords().length).toBe(1);
+    expect(getQuarantinedSources().length).toBe(1);
+    expect(getSourceCircuitState(TEST_FEED.domain)?.state).toBe('OPEN');
+  });
+
+  it('transitions from OPEN to HALF-OPEN after 24h cooldown has elapsed', () => {
+    const t0 = 1000000;
+    for (let i = 0; i < 5; i++) {
+      recordFowlerFailure(TEST_FEED.id, { now: t0, domain: TEST_FEED.domain });
+    }
+    expect(getFowlerCircuitStatus(TEST_FEED.id, { now: t0 }).state).toBe('OPEN');
+
+    // 12 hours later -> still OPEN
+    const t12h = t0 + 12 * 60 * 60 * 1000;
+    expect(getFowlerCircuitStatus(TEST_FEED.id, { now: t12h }).state).toBe('OPEN');
+
+    // 24.1 hours later -> automatically transitions to HALF-OPEN for trial probe
+    const t25h = t0 + FOWLER_COOLDOWN_MS + 3600000;
+    const probed = getFowlerCircuitStatus(TEST_FEED.id, { now: t25h });
+    expect(probed.state).toBe('HALF-OPEN');
+    expect(getSourceCircuitState(TEST_FEED.domain)?.state).toBe('HALF-OPEN');
+  });
+
+  it('recovers from HALF-OPEN to CLOSED upon receiving HTTP 200', async () => {
+    const t0 = 1000000;
+    for (let i = 0; i < 5; i++) {
+      recordFowlerFailure(TEST_FEED.id, { now: t0, domain: TEST_FEED.domain });
+    }
+    const t25h = t0 + FOWLER_COOLDOWN_MS + 3600000;
+    expect(getFowlerCircuitStatus(TEST_FEED.id, { now: t25h }).state).toBe('HALF-OPEN');
+
+    const sampleXml = `<rss version="2.0"><channel><title>PIB</title><item><title>Test Item</title><link>https://pib.gov.in/test1</link><pubDate>2026-08-30T10:00:00Z</pubDate></item></channel></rss>`;
+    const mockFetch = async () => new Response(sampleXml, {
+      status: 200,
+      headers: { etag: '"etag-123"', 'last-modified': 'Sun, 30 Aug 2026 10:00:00 GMT' }
+    });
+
+    const items = await fetchFeedWithFowlerBreaker(TEST_FEED, {
+      fetchFn: mockFetch as unknown as typeof fetch,
+      now: t25h
+    });
+
+    expect(items.length).toBe(1);
+    const recovered = getFowlerCircuitStatus(TEST_FEED.id);
+    expect(recovered.state).toBe('CLOSED');
+    expect(recovered.consecutiveFailures).toBe(0);
+    expect(recovered.etag).toBe('"etag-123"');
+    expect(getConditionalScrapeHeaders(TEST_FEED.id)['If-None-Match']).toBe('"etag-123"');
+  });
+
+  it('handles early exit on HTTP 304 Not Modified and recovers circuit safely', async () => {
+    recordFowlerSuccess(TEST_FEED.id, { etag: '"etag-abc"' });
+    expect(getConditionalScrapeHeaders(TEST_FEED.id)['If-None-Match']).toBe('"etag-abc"');
+
+    const mock304Fetch = async () => new Response(null, { status: 304 });
+    const items = await fetchFeedWithFowlerBreaker(TEST_FEED, {
+      fetchFn: mock304Fetch as unknown as typeof fetch
+    });
+
+    expect(items).toEqual([]);
+    expect(getFowlerCircuitStatus(TEST_FEED.id).state).toBe('CLOSED');
+  });
+
+  it('falls back to OPEN when probe fails in HALF-OPEN state', () => {
+    const t0 = 1000000;
+    for (let i = 0; i < 5; i++) {
+      recordFowlerFailure(TEST_FEED.id, { now: t0 });
+    }
+    const t25h = t0 + FOWLER_COOLDOWN_MS + 3600000;
+    expect(getFowlerCircuitStatus(TEST_FEED.id, { now: t25h }).state).toBe('HALF-OPEN');
+
+    // Trial probe failure
+    recordFowlerFailure(TEST_FEED.id, { now: t25h });
+    expect(getFowlerCircuitStatus(TEST_FEED.id, { now: t25h }).state).toBe('OPEN');
+  });
+});
+

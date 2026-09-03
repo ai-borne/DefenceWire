@@ -152,3 +152,24 @@ export async function syncSourceReputationToD1(
 
   return { statsMap, multipliers, syncedToD1: syncedCount };
 }
+
+// Fowler Half-Open Circuit Breaker & Conditional Scraping Re-exports
+export type {
+  FowlerCircuitState,
+  FeedCircuitRecord
+} from './fowlerCircuitBreaker.js';
+
+export {
+  FOWLER_FAILURE_THRESHOLD,
+  FOWLER_COOLDOWN_MS,
+  getFowlerCircuitStatus,
+  recordFowlerSuccess,
+  recordFowlerFailure,
+  getConditionalScrapeHeaders,
+  getQuarantinedFeedRecords,
+  resetFowlerCircuitBreakers,
+  fetchFeedWithFowlerBreaker
+} from './fowlerCircuitBreaker.js';
+
+
+

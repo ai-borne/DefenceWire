@@ -235,4 +235,52 @@ describe('Ranking Engine & DefenceScore Calculation', () => {
     const dacBonusDac = breakdownDac.bonuses.find(b => b.name === 'DAC Procurement Clearance');
     expect(dacBonusDac?.applied).toBe(true);
   });
+
+  it('verifies 5 Tier-3 blog posts do not trigger a breaking velocity bonus, while 1 Tier-1 source does', () => {
+    const now = new Date('2026-08-30T10:30:00Z');
+    const publishedRecent = '2026-08-30T10:15:00Z'; // 15 mins ago
+
+    const blogPrimary: StorySourceItem = {
+      id: 'blog-1',
+      title: 'Rumor: New Fighter Spotted',
+      url: 'https://idrw.org/rumor1',
+      sourceName: 'IDRW',
+      sourceDomain: 'idrw.org',
+      tier: SourceTier.TIER_3_SPECIALIZED,
+      publishedAt: publishedRecent
+    };
+
+    const blogRelated: StorySourceItem[] = [
+      { id: 'b-2', title: 'R2', url: 'https://livefistdefence.com/r2', sourceName: 'Livefist', sourceDomain: 'livefistdefence.com', tier: SourceTier.TIER_3_SPECIALIZED, publishedAt: publishedRecent },
+      { id: 'b-3', title: 'R3', url: 'https://forceindia.net/r3', sourceName: 'Force', sourceDomain: 'forceindia.net', tier: SourceTier.TIER_3_SPECIALIZED, publishedAt: publishedRecent },
+      { id: 'b-4', title: 'R4', url: 'https://bharatshakti.in/r4', sourceName: 'Bharat Shakti', sourceDomain: 'bharatshakti.in', tier: SourceTier.TIER_3_SPECIALIZED, publishedAt: publishedRecent },
+      { id: 'b-5', title: 'R5', url: 'https://navalnews.com/r5', sourceName: 'Naval News', sourceDomain: 'navalnews.com', tier: SourceTier.TIER_3_SPECIALIZED, publishedAt: publishedRecent }
+    ];
+
+    const blogCluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      id: 'cluster-blogs',
+      synthesizedHeadline: 'Unverified Rumor of Secret Drone Project',
+      primarySource: blogPrimary,
+      relatedCoverage: blogRelated
+    };
+
+    const breakdownBlogs = calculateScoreBreakdown(blogCluster, now);
+    const breakingBonusBlogs = breakdownBlogs.bonuses.find(b => b.name.includes('Breaking Velocity Surge'));
+    expect(breakingBonusBlogs?.applied).toBe(false);
+    expect(breakingBonusBlogs?.reason).toContain('Unverified velocity surge');
+
+    const tier1Cluster: StoryCluster = {
+      ...MOCK_CLUSTER,
+      id: 'cluster-t1',
+      primarySource: { ...MOCK_PRIMARY_T1, publishedAt: publishedRecent },
+      relatedCoverage: []
+    };
+
+    const breakdownT1 = calculateScoreBreakdown(tier1Cluster, now);
+    const breakingBonusT1 = breakdownT1.bonuses.find(b => b.name.includes('Breaking Velocity Surge'));
+    expect(breakingBonusT1?.applied).toBe(true);
+    expect(breakingBonusT1?.points).toBe(15);
+  });
 });
+

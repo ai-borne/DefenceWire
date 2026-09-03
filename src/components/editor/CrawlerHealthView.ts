@@ -11,6 +11,7 @@ import { SOURCE_REGISTRY } from '../../data/sources.js';
 import { SourceTier } from '../../types/source.js';
 import { defaultFeedSyncService } from '../../services/feedSyncService.js';
 import { formatTimeAgo } from '../../utils/dateUtils.js';
+import { getSourceCircuitState } from '../../engine/sourceReputation.js';
 
 export type CircuitBreakerState = 'CLOSED' | 'HALF-OPEN' | 'OPEN';
 
@@ -32,20 +33,12 @@ export function renderCrawlerHealthView(editorVm: EditorViewModel): HTMLElement 
   const contentArea = document.createElement('div');
   contentArea.className = 'dw-curator-tab-content';
 
-  // Compute feed health list from registered sources
+  // Compute feed health list from registered sources and live Fowler circuit registry
   const feedItems: FeedHealthItem[] = SOURCE_REGISTRY.map((src) => {
-    // Determine circuit state from failure records or mock operational states
-    const failures = 0;
-    let state: CircuitBreakerState = 'CLOSED';
-    let statusText = 'Online';
-
-    if (failures >= 5) {
-      state = 'OPEN';
-      statusText = 'Quarantined';
-    } else if (failures > 0) {
-      state = 'HALF-OPEN';
-      statusText = 'Probing';
-    }
+    const circuitInfo = getSourceCircuitState(src.domain) || getSourceCircuitState(src.id);
+    const failures = circuitInfo?.consecutiveFailures ?? 0;
+    const state: CircuitBreakerState = (circuitInfo?.state as CircuitBreakerState) ?? (failures >= 5 ? 'OPEN' : failures > 0 ? 'HALF-OPEN' : 'CLOSED');
+    const statusText = state === 'OPEN' ? 'Quarantined' : state === 'HALF-OPEN' ? 'Probing' : 'Online';
 
     return {
       id: src.id,

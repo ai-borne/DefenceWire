@@ -12,7 +12,6 @@ import { INITIAL_STORY_CLUSTERS } from '../src/data/initialNews.js';
 import { INITIAL_RIVER_ITEMS } from '../src/data/riverNews.js';
 import { StoryCluster, StorySourceItem } from '../src/types/news.js';
 import { FeedConfig, getActiveFeeds } from './feeds.js';
-import { fetchFeedWithCircuitBreaker } from './parser.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
@@ -23,7 +22,7 @@ import {
 } from './entityHarvester.js';
 import { runSupplierCandidateExtraction } from './supplierCandidateExtractor.js';
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
-import { aggregateSourceStats, syncSourceReputationToD1 } from './sourceTracker.js';
+import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBreaker } from './sourceTracker.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -125,7 +124,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     const batch = feeds.slice(i, i + batchSize);
     const results = await Promise.allSettled(
       batch.map((feed) =>
-        fetchFeedWithCircuitBreaker(feed, { fetchFn }).then((items) => {
+        fetchFeedWithFowlerBreaker(feed, { fetchFn, now: now.getTime() }).then((items) => {
           return items.filter((it) => isDefenceRelevant(it, feed));
         })
       )

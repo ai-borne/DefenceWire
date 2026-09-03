@@ -109,3 +109,68 @@ export function getSourceMultiplier(domain: string): number {
 export function resetSourceMultipliers(): void {
   activeMultipliers.clear();
 }
+
+export type SourceCircuitHealthState = 'CLOSED' | 'HALF-OPEN' | 'OPEN';
+
+export interface SourceCircuitInfo {
+  domain: string;
+  feedId?: string;
+  state: SourceCircuitHealthState;
+  consecutiveFailures: number;
+  lastFailureAt?: string;
+  lastSuccessAt?: string;
+}
+
+const sourceCircuitRegistry: Map<string, SourceCircuitInfo> = new Map();
+
+/**
+ * Registers a source circuit status in the shared reputation engine.
+ */
+export function registerSourceCircuitState(info: SourceCircuitInfo): void {
+  if (info && info.domain) {
+    sourceCircuitRegistry.set(info.domain.toLowerCase(), info);
+    if (info.feedId) {
+      sourceCircuitRegistry.set(info.feedId.toLowerCase(), info);
+    }
+  }
+}
+
+/**
+ * Registers multiple source circuit statuses.
+ */
+export function registerMultipleSourceCircuitStates(states: SourceCircuitInfo[]): void {
+  for (const s of states) {
+    registerSourceCircuitState(s);
+  }
+}
+
+/**
+ * Retrieves the circuit state for a domain or feed ID.
+ */
+export function getSourceCircuitState(domainOrId: string): SourceCircuitInfo | undefined {
+  if (!domainOrId) return undefined;
+  return sourceCircuitRegistry.get(domainOrId.toLowerCase());
+}
+
+/**
+ * Retrieves all currently quarantined (OPEN) source circuits.
+ */
+export function getQuarantinedSources(): SourceCircuitInfo[] {
+  const seen = new Set<string>();
+  const quarantined: SourceCircuitInfo[] = [];
+  for (const info of sourceCircuitRegistry.values()) {
+    if (info.state === 'OPEN' && !seen.has(info.domain)) {
+      seen.add(info.domain);
+      quarantined.push(info);
+    }
+  }
+  return quarantined;
+}
+
+/**
+ * Clears the source circuit registry (useful for tests).
+ */
+export function resetSourceCircuitRegistry(): void {
+  sourceCircuitRegistry.clear();
+}
+

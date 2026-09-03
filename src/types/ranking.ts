@@ -30,4 +30,5 @@ export interface RankingParams {
   dacClearanceBonus: number;   // Points added for DAC procurement (+15)
   borderStrategicBonus: number;// Points added for LAC/LoC operational (+15)
   duplicatePenalty: number;    // Penalty for redundant wire spam (-20)
+  breakingVelocityBonus?: number; // Points added for verified breaking velocity surge (+15)
 }
