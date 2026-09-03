@@ -14,56 +14,62 @@
 ## Actionable Execution Backlog (Ranked: Highest MOAT $\rightarrow$ Least Friction)
 
 ### 1. Primary Source Ingestion: PIB Defence + Lok Sabha Q&A
-* **MOAT Impact:** Very High | **Friction:** Lowest
-* **Action 1:** Write Python crawler for PIB MoD feed (`pib.gov.in`, Ministry of Defence filter). Ingest official press releases hourly.
-* **Action 2:** Write scheduled scraper for Lok Sabha / Rajya Sabha defence unstarred/starred questions and written answers.
-* **Action 3:** Run Flash LLM prompt to extract structured tags (`program`, `budget_crores`, `delays`, `equipment_type`, `foreign_oem`).
-* **Action 4:** Render official badges and primary-source citations in DefenceWire news cards.
+* **Status:** ✅ **COMPLETED & LIVE IN PRODUCTION**
+* **Delivered:** Crawler for PIB MoD feed + Lok Sabha / Rajya Sabha parliamentary Q&A, structured Flash extraction, official government badges, and primary-source citations.
 
 ---
 
 ### 2. Strategic Defence Program Lifecycle Trackers
+* **Status:** ✅ **COMPLETED & LIVE IN PRODUCTION**
+* **Delivered:** 43 strategic programs categorized across Aerospace, Land, Naval, Missiles, and Unmanned systems. Milestone timeline, budget progress, stage visualization, deep-dive modal, and live news auto-linking engine.
+
+---
+
+### 3. Defence Procurement & Tenders (Audit & Feasibility Outcome)
+* **Audit Finding:** Live network probing confirmed central procurement portals (`defproc.gov.in`, `eprocure.gov.in`) are permanently gated behind GePNIC image CAPTCHAs, and over 90% of listings are civil construction/maintenance (MES barracks, painting, sewage). Capital weapons acquisitions proceed via closed empanelment under DAP 2020 or Class-3 DSC hardware dongles.
+* **Architecture Decision:** Automated zero-cost scraping dropped to avoid fragile bot breakage and empty views. Complete prototype code, test suites, and session clients safely preserved in `archive/moat3-tenders-spike` branch. Standalone "Tenders" tab removed from production navigation.
+
+---
+
+## Evolving the DefenceWiki & Intelligence Database (Active Roadmap)
+
+### Pillar A: Deepen the 43 Strategic Programs Wiki (Programs MOAT Evolution)
 * **MOAT Impact:** Very High | **Friction:** Low
-* **Action 1:** Create structured schema for key programs (`AMCA`, `Tejas Mk1A/Mk2`, `Project 75I`, `Zorawar`, `MQ-9B`, `S-400/Kusha`, `TEDBF`).
-* **Action 2:** Auto-link every ingested article, PIB release, and parliamentary answer to corresponding program IDs via keyword/semantic tagging.
-* **Action 3:** Build frontend dedicated Program Pages showing milestone timeline, budget spent vs allocated, engine/radar trial status, and related news.
+* **Action 1 (Technical Encyclopedia):** Expand each program dossier with Jane's-grade technical specifications (operational range, combat radius, radar cross-section, weapon hardpoints, engine thrust, and sensor suites like Uttam AESA, Virupaksha, Varuna).
+* **Action 2 (Order Book & Delivery Tracker):** Track sanctioned procurement numbers vs units delivered vs pending, contract values, and delivery milestones (e.g. 83 Tejas Mk1A delivery schedule across Sulur and Nal air bases).
+* **Action 3 (Fold in iDEX Problem Statements):** Rather than an empty standalone tab, map the ~500 historical and active iDEX/ADITI challenge statements directly to relevant strategic programs (e.g. swarm drone jamming $\rightarrow$ CATS Warrior; fuel cell AIP $\rightarrow$ Project 75I; radar T/R modules $\rightarrow$ AMCA).
 
 ---
 
-### 3. Defence RFI / RFP & Tender Pipeline Tracker
-* **MOAT Impact:** Extreme | **Friction:** Medium
-* **Action 1:** Scrape public procurement portals (`mod.gov.in/dod/tenders`, `defproc.gov.in`, `eprocure.gov.in`).
-* **Action 2:** Parse RFI/RFP PDFs locally (`pypdf`/`pdfplumber`) and pass summary text to Flash LLM.
-* **Action 3:** Extract metadata: Target Domain (Army/Navy/Air Force), Submission Deadline, Make-in-India / IDDM % requirement, Eligibility.
-* **Action 4:** Build filterable `/tenders` page with instant email/webhook alerts for MSMEs and defence contractors.
-
----
-
-### 4. iDEX, DRDO TDF & Startup Innovation Feed
-* **MOAT Impact:** High | **Friction:** Low
-* **Action 1:** Crawl `idex.gov.in` and `tdf.drdo.in` challenge updates, problem statements, grant announcements, and winner lists.
-* **Action 2:** Extract specific technologies sought (e.g., AI target recognition, quantum key distribution, loitering munitions).
-* **Action 3:** Create dedicated `/startups-idex` tracker categorizing open innovation grants for Indian defence founders.
-
----
-
-### 5. Verified Indian Defence MSME & Supplier Directory
+### Pillar B: Verified Indian Defence MSME & Supplier Directory (Database MOAT Evolution)
 * **MOAT Impact:** High | **Friction:** Medium
-* **Action 1:** Seed vendor database by parsing public exhibitor lists (Aero India, DefExpo) and iDEX/TDF winner archives.
-* **Action 2:** Structure vendor profiles by capability (e.g., precision machining, carbon composites, EW avionics, AS9100/CEMILAC certified).
-* **Action 3:** Add "Claim Listing / Submit Capability" self-service portal for Indian MSMEs to maintain their directory profile for free.
+* **Action 1 (Vendor Database):** Seed and structure profiles for Indian defence primes (Tata Advanced Systems, L&T Defence, Bharat Forge/Kalyani Strategic, Solar Industries), DPSUs (HAL, BEL, BDL, MDL), and deep-tech startups (Zen Technologies, Tonbo Imaging, ideaForge, SSS Defence).
+* **Action 2 (Capability & Certification Taxonomy):** Categorize suppliers by capability (precision machining, composite airframes, seeker optics, energetic materials, counter-UAS) and certifications (AS9100, CEMILAC, ISO/IEC 17025).
+* **Action 3 (Program Supply-Chain Cross-Linking):** Link vendors directly to the sub-systems they manufacture within the 43 Strategic Programs (e.g. Godrej Aerospace $\rightarrow$ BrahMos liquid ramjet engines; Dynamatic Technologies $\rightarrow$ Tejas front fuselage; Solar Industries $\rightarrow$ Pinaka rocket warheads).
 
 ---
 
-### 6. Geoint & Open-Source Conflict Tracker (OSINT)
+### Pillar C: Order of Battle (ORBAT) & Squadron Deployment Wiki (Operational MOAT)
+* **MOAT Impact:** High | **Friction:** Medium
+* **Action 1 (IAF Fighter Squadrons):** Catalog operational IAF fighter squadrons (squadron number, crest, nickname, home airbase, active aircraft type, and re-equipment timeline).
+* **Action 2 (Indian Navy Fleet & Warship Registry):** Structure major commissioned surface combatants and submarines (pennant numbers, class, home port: Karwar, Vizag, Mumbai, Kochi, and weapon loadouts).
+* **Action 3 (Army Formations & Modernization):** Document armoured regiments, artillery brigades, and air defence units operating indigenous platforms (K9 Vajra regiments, Pinaka batteries, Akash-NG units).
+
+---
+
+## Future Distribution & OSINT Backlog
+
+### Geoint & Open-Source Conflict Tracker (OSINT)
 * **MOAT Impact:** High | **Friction:** Medium-High
-* **Action 1:** Ingest open NOTAM (Notice to Airmen) alerts to detect missile tests off Wheeler Island / ITR Chandipur.
+* **Action 1:** Ingest open NOTAM (Notice to Airmen) alerts to detect and plot missile test launch danger corridors off Wheeler Island (APJ Abdul Kalam Island) and ITR Chandipur.
 * **Action 2:** Aggregate verified OSINT feeds/channels covering LAC, LoC, and Indian Ocean naval deployments.
 * **Action 3:** Map geocoded events onto an interactive map widget using Leaflet / MapLibre (free, open-source tile sets).
 
 ---
 
-### 7. Automated Daily 60-Second SITREP Briefing
-* **MOAT Impact:** Medium | **Friction:** Very Low
+### Automated Daily 60-Second SITREP Briefing
+* **MOAT Impact:** Medium | **Friction:** Very Low (Deferred)
+* **Status:** Deferred until DefenceWiki & Database foundation evolves.
 * **Action 1:** Generate automated daily 200-word executive summary of top 5 Indian defence movements every day at 08:00 IST.
-* **Action 2:** Distribute via automated Telegram channel, WhatsApp channel, and free Substack/newsletter hook.
+* **Action 2:** Distribute via automated Telegram channel, WhatsApp channel, and newsletter hook.
+
