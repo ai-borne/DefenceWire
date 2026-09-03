@@ -15,6 +15,9 @@ import { renderProgramSpecsView } from './programs/ProgramSpecsView.js';
 import { renderProgramOrderBookView } from './programs/ProgramOrderBookView.js';
 import { renderProgramIdexView } from './programs/ProgramIdexView.js';
 import { getChallengesByProgramId } from '../data/idexProgramMapper.js';
+import { getSuppliersForProgram } from '../data/suppliers/programSupplierMapper.js';
+import { openSupplierDetailModal } from './suppliers/SupplierDetailModal.js';
+import { buildDossierTabs } from './DossierTabController.js';
 
 export interface ProgramDetailModalOptions {
   relatedClusters?: StoryCluster[];
@@ -63,11 +66,35 @@ function renderOverviewPanel(program: StrategicProgram, options: ProgramDetailMo
 
     const subsList = document.createElement('div');
     subsList.className = 'dw-program-subs-list';
+    const linkedSuppliers = getSuppliersForProgram(program.id);
     program.keySubsystems.forEach((sub) => {
       const card = document.createElement('div');
       card.className = 'dw-program-sub-card';
       const indBadge = sub.indigenous ? '🇮🇳 Indigenous' : '🌐 Sourced';
-      card.innerHTML = `<div class="dw-sub-head"><strong>${sanitizePlainText(sub.name)}</strong> <span class="dw-sub-type">${sanitizePlainText(sub.type)}</span></div><div class="dw-sub-body">${sanitizePlainText(sub.supplier)} • <span class="dw-sub-status">${sanitizePlainText(sub.status)}</span> <span class="dw-sub-badge">${indBadge}</span></div>`;
+      card.innerHTML = `<div class="dw-sub-head"><strong>${sanitizePlainText(sub.name)}</strong> <span class="dw-sub-type">${sanitizePlainText(sub.type)}</span></div><div class="dw-sub-body"></div>`;
+      const subBody = card.querySelector('.dw-sub-body') as HTMLElement;
+
+      const matchedSupplier = linkedSuppliers.find(
+        (s) => s.name.toLowerCase() === sub.supplier.toLowerCase()
+      );
+      if (matchedSupplier) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'dw-sub-supplier-chip';
+        chip.textContent = sanitizePlainText(matchedSupplier.name);
+        chip.setAttribute('aria-label', `${STRINGS.suppliers.cardAriaLabel} ${matchedSupplier.name}`);
+        chip.addEventListener('click', () => openSupplierDetailModal(matchedSupplier));
+        subBody.appendChild(chip);
+      } else {
+        const supplierText = document.createElement('span');
+        supplierText.textContent = sanitizePlainText(sub.supplier);
+        subBody.appendChild(supplierText);
+      }
+
+      const rest = document.createElement('span');
+      rest.innerHTML = ` • <span class="dw-sub-status">${sanitizePlainText(sub.status)}</span> <span class="dw-sub-badge">${indBadge}</span>`;
+      subBody.appendChild(rest);
+
       subsList.appendChild(card);
     });
     panel.appendChild(subsList);
@@ -180,8 +207,6 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
 
   const tabList = document.createElement('div');
   tabList.className = 'dw-program-modal-tabs';
-  tabList.setAttribute('role', 'tablist');
-  tabList.setAttribute('aria-label', STRINGS.programs.tabAriaLabel);
 
   const body = document.createElement('div');
   body.className = 'dw-modal-body dw-program-modal-body';
@@ -192,64 +217,16 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
     orderbook: renderProgramOrderBookView(program),
     idex: renderProgramIdexView(program)
   };
-
   Object.entries(panels).forEach(([id, panel]) => {
     panel.id = `dw-tabpanel-${id}`;
     panel.className = `dw-program-tabpanel ${id === 'overview' ? 'active' : ''}`;
-    panel.setAttribute('role', 'tabpanel');
-    panel.setAttribute('aria-labelledby', `dw-tab-${id}`);
-    if (id !== 'overview') panel.hidden = true;
-    body.appendChild(panel);
   });
 
-  const tabButtons: HTMLButtonElement[] = [];
-  const switchTab = (activeId: string) => {
-    tabButtons.forEach((btn) => {
-      const isActive = btn.dataset.tabId === activeId;
-      btn.setAttribute('aria-selected', String(isActive));
-      btn.tabIndex = isActive ? 0 : -1;
-      btn.classList.toggle('active', isActive);
-    });
-    Object.entries(panels).forEach(([id, p]) => {
-      const isActive = id === activeId;
-      p.hidden = !isActive;
-      p.classList.toggle('active', isActive);
-    });
-  };
-
-  tabDefs.forEach((t, idx) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.role = 'tab';
-    btn.id = `dw-tab-${t.id}`;
-    btn.dataset.tabId = t.id;
-    btn.setAttribute('aria-controls', `dw-tabpanel-${t.id}`);
-    btn.setAttribute('aria-selected', String(idx === 0));
-    btn.tabIndex = idx === 0 ? 0 : -1;
-    btn.className = `dw-program-tab-btn ${idx === 0 ? 'active' : ''}`;
-    btn.textContent = t.label;
-    btn.addEventListener('click', () => switchTab(t.id));
-    tabButtons.push(btn);
-    tabList.appendChild(btn);
-  });
-
-  tabList.addEventListener('keydown', (e: KeyboardEvent) => {
-    const currIdx = tabButtons.findIndex((b) => b.getAttribute('aria-selected') === 'true');
-    if (currIdx === -1) return;
-    let nextIdx = -1;
-    if (e.key === 'ArrowRight') nextIdx = (currIdx + 1) % tabButtons.length;
-    else if (e.key === 'ArrowLeft') nextIdx = (currIdx - 1 + tabButtons.length) % tabButtons.length;
-    else if (e.key === 'Home') nextIdx = 0;
-    else if (e.key === 'End') nextIdx = tabButtons.length - 1;
-
-    if (nextIdx !== -1) {
-      e.preventDefault();
-      const targetBtn = tabButtons[nextIdx];
-      if (targetBtn && targetBtn.dataset.tabId) {
-        switchTab(targetBtn.dataset.tabId);
-        targetBtn.focus();
-      }
-    }
+  buildDossierTabs(tabList, body, tabDefs, panels, {
+    tabIdPrefix: 'dw-tab',
+    tabBtnClass: 'dw-program-tab-btn',
+    ariaLabel: STRINGS.programs.tabAriaLabel,
+    defaultId: 'overview'
   });
 
   modal.appendChild(tabList);

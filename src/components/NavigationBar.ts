@@ -22,7 +22,8 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'procurement', label: STRINGS.nav.procurement },
   { id: 'ssb', label: STRINGS.nav.ssb },
   { id: 'river', label: STRINGS.nav.river },
-  { id: 'archive', label: STRINGS.nav.archive }
+  { id: 'archive', label: STRINGS.nav.archive },
+  { id: 'suppliers', label: STRINGS.nav.suppliers }
 ] as const;
 
 export function renderNavigationBar(newsVm: NewsViewModel): HTMLElement {

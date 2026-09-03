@@ -21,7 +21,8 @@ export const STRINGS = {
     all: 'Top Stories', official: 'Official & Parliament', programs: 'Programs',
     tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Defence Tech',
     strategic: 'Geopolitics', procurement: 'Procurement', ssb: 'SSB Intel',
-    river: 'River of News', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force'
+    river: 'River of News', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
+    suppliers: supplierStrings.navTab
   },
   categories: {
     all: 'All Domains', official: 'Official Communiques & Parliament Q&A',

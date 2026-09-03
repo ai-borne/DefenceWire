@@ -24,12 +24,12 @@ describe('NavigationBar Component', () => {
     expect(tablist?.getAttribute('role')).toBe('tablist');
   });
 
-  it('should render all 9 navigation tabs in expected order', () => {
+  it('should render all 10 navigation tabs in expected order', () => {
     const newsVm = new NewsViewModel();
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-    expect(tabs.length).toBe(9);
+    expect(tabs.length).toBe(10);
 
     const expectedLabels = [
       STRINGS.nav.all,
@@ -40,7 +40,8 @@ describe('NavigationBar Component', () => {
       STRINGS.nav.procurement,
       STRINGS.nav.ssb,
       STRINGS.nav.river,
-      STRINGS.nav.archive
+      STRINGS.nav.archive,
+      STRINGS.nav.suppliers
     ];
 
     tabs.forEach((tab, index) => {

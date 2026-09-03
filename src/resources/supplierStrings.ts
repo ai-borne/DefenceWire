@@ -47,7 +47,31 @@ const supplierStrings = {
   indigenisationIdexBadge: 'iDEX Winner',
   indigenisationEmpty: 'No SRIJAN or iDEX records currently mapped to this supplier.',
   wireMentionsEmpty: 'No recent wire coverage mentioning this supplier.',
-  capabilitiesEmpty: 'No capability domains currently mapped to this supplier.'
+  capabilitiesEmpty: 'No capability domains currently mapped to this supplier.',
+  coverageStripHeading: 'Supply-Chain Coverage',
+  capabilityStripSuppliersSuffix: 'suppliers',
+  capabilityStripProgramsSuffix: 'programs',
+  lastVerifiedDate: '3 September 2026',
+  tierFilterAriaLabel: 'Filter suppliers by tier',
+  capabilityFilterAriaLabel: 'Filter suppliers by capability domain',
+  corridorFilterAriaLabel: 'Filter suppliers by defence industrial corridor',
+  sortSelectAriaLabel: 'Sort supplier cards',
+  overviewFacilitiesHeading: 'Manufacturing Facilities',
+  overviewFacilitiesEmpty: 'No public facility data currently mapped to this supplier.',
+  capabilitiesCertificationsLabel: 'Certifications',
+  capabilitiesNoCerts: 'No certifications on record.',
+  /**
+   * Curated featured cross-links — Phase 2.6's automated growth pipeline
+   * hasn't shipped yet, so this editorial pick is a static list of verified,
+   * real seeded supplier<->program relationships rather than a runtime query.
+   */
+  featuredLinks: [
+    {
+      supplierSlug: 'mtar-technologies',
+      calloutText:
+        'MTAR Technologies precision-engineers the BrahMos missile suite’s airframe & assembly sections.'
+    }
+  ]
 } as const;
 
 export default supplierStrings;

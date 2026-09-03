@@ -1,0 +1,165 @@
+/* Verified Indian Defence Ecosystem (Supplier Directory) Stylesheet for DefenceWire.in */
+/* Hard limit: <= 300 LOC */
+
+.dw-suppliers-explorer { display: flex; flex-direction: column; gap: 14px; }
+.dw-suppliers-header-block { display: flex; flex-direction: column; gap: 4px; }
+
+/* Featured Link Callout */
+.dw-supplier-featured-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  background-color: rgba(2, 132, 199, 0.08);
+  border: 1px solid var(--dw-link);
+  border-radius: var(--dw-radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.dw-supplier-featured-link:hover { background-color: rgba(2, 132, 199, 0.14); }
+.dw-supplier-featured-prefix { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--dw-link); }
+.dw-supplier-featured-text { font-size: 0.86rem; color: var(--dw-text-primary); font-weight: 600; }
+[data-theme="dark"] .dw-supplier-featured-link { background-color: rgba(2, 132, 199, 0.16); }
+
+/* Coverage Strip */
+.dw-supplier-coverage-strip {
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dw-supplier-coverage-summary { font-size: 0.86rem; color: var(--dw-text-primary); }
+.dw-supplier-coverage-domains { display: flex; flex-wrap: wrap; gap: 6px; }
+.dw-supplier-coverage-domain-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  color: var(--dw-text-secondary);
+  padding: 2px 8px;
+  border-radius: var(--dw-radius-sm);
+}
+.dw-supplier-coverage-freshness { font-size: 0.66rem; color: var(--dw-text-muted); font-family: var(--dw-font-mono); }
+
+/* Controls Bar */
+.dw-supplier-controls-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.dw-supplier-search-wrap { flex: 1; min-width: 220px; }
+.dw-supplier-search-input,
+.dw-supplier-filter-select,
+.dw-supplier-sort-select {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm);
+  color: var(--dw-text-primary);
+}
+.dw-supplier-search-input { width: 100%; }
+.dw-supplier-filter-select, .dw-supplier-sort-select { cursor: pointer; }
+
+/* Card Grid */
+.dw-supplier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+.dw-supplier-card {
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dw-supplier-card-linked {
+  font-family: var(--dw-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--dw-link);
+}
+.dw-supplier-card-title { font-size: 1rem; font-weight: 700; color: var(--dw-text-primary); margin: 0; }
+.dw-supplier-card-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.dw-supplier-tier-badge, .dw-supplier-location-badge, .dw-supplier-capability-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--dw-radius-sm);
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  color: var(--dw-text-secondary);
+}
+.dw-supplier-tier--dpsu { color: var(--dw-domain-naval); }
+.dw-supplier-tier--private_prime { color: var(--dw-link); }
+.dw-supplier-tier--tier2_msme { color: var(--dw-domain-land); }
+.dw-supplier-tier--deep_tech_startup { color: var(--dw-domain-unmanned); }
+.dw-supplier-card-cta {
+  align-self: flex-start;
+  margin-top: auto;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--dw-link);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  text-align: left;
+}
+.dw-supplier-card-cta:hover { text-decoration: underline; }
+.dw-supplier-empty { grid-column: 1 / -1; }
+
+/* Detail Modal */
+.dw-supplier-modal-content { max-width: 640px; }
+.dw-supplier-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dw-supplier-modal-title-meta { display: flex; flex-direction: column; gap: 4px; }
+.dw-supplier-modal-title { font-size: 1.1rem; font-weight: 800; color: var(--dw-text-primary); margin: 0; }
+.dw-supplier-modal-linked-count { font-family: var(--dw-font-mono); font-size: 0.72rem; font-weight: 700; color: var(--dw-link); }
+
+.dw-supplier-modal-tabs { display: flex; gap: 4px; background-color: var(--dw-bg-secondary); border-bottom: 1px solid var(--dw-border-primary); padding: 0 16px; margin-bottom: 14px; overflow-x: auto; flex-shrink: 0; }
+.dw-supplier-tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; padding: 10px 14px; font-size: 0.78rem; font-weight: 600; color: var(--dw-text-secondary); cursor: pointer; white-space: nowrap; transition: color 0.15s ease, border-color 0.15s ease; }
+.dw-supplier-tab-btn:hover { color: var(--dw-text-primary); }
+.dw-supplier-tab-btn.active { color: var(--dw-link); border-bottom-color: var(--dw-link); font-weight: 700; }
+.dw-supplier-tabpanel { display: none; }
+.dw-supplier-tabpanel.active { display: block; }
+
+.dw-supplier-meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; background-color: var(--dw-bg-secondary); border: 1px solid var(--dw-border-secondary); border-radius: var(--dw-radius-sm); padding: 8px; margin-bottom: 12px; }
+.dw-supplier-meta-item { display: flex; flex-direction: column; gap: 1px; font-size: 0.76rem; }
+.dw-supplier-meta-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--dw-text-muted); }
+.dw-supplier-meta-value { font-weight: 600; color: var(--dw-text-primary); }
+.dw-supplier-modal-summary { font-size: 0.82rem; line-height: 1.5; color: var(--dw-text-primary); margin-bottom: 12px; }
+.dw-supplier-website-link { font-size: 0.78rem; font-weight: 700; color: var(--dw-link); text-decoration: none; }
+.dw-supplier-website-link:hover { text-decoration: underline; }
+
+.dw-supplier-capabilities-list, .dw-supplier-linked-list { display: flex; flex-direction: column; gap: 8px; }
+.dw-supplier-capability-card, .dw-supplier-linked-card { background-color: var(--dw-bg-card); border: 1px solid var(--dw-border-secondary); border-radius: var(--dw-radius-sm); padding: 8px 10px; }
+.dw-supplier-capability-domain, .dw-supplier-linked-program-name { font-size: 0.84rem; font-weight: 700; color: var(--dw-text-primary); }
+.dw-supplier-cert-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--dw-text-muted); margin-top: 4px; }
+.dw-supplier-cert-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.dw-supplier-cert-badge { font-size: 0.65rem; font-weight: 600; padding: 1px 6px; border-radius: var(--dw-radius-sm); background-color: rgba(2, 132, 199, 0.12); color: var(--dw-link); }
+.dw-supplier-cert-empty { font-size: 0.72rem; color: var(--dw-text-muted); }
+.dw-supplier-linked-subsystem { font-size: 0.74rem; color: var(--dw-text-secondary); margin-top: 2px; }
+.dw-supplier-links-empty { color: var(--dw-text-accent); font-weight: 600; }
+
+.dw-supplier-indigenisation-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.dw-supplier-indigenisation-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: var(--dw-radius-sm); }
+.dw-supplier-srijan-badge { background-color: rgba(124, 58, 237, 0.12); color: #7C3AED; }
+.dw-supplier-idex-badge { background-color: rgba(30, 126, 52, 0.12); color: #1E7E34; }
+[data-theme="dark"] .dw-supplier-idex-badge { color: #86EFAC; background-color: rgba(20, 83, 45, 0.35); }
+.dw-supplier-indigenisation-item { font-size: 0.78rem; color: var(--dw-text-secondary); padding: 4px 0; border-bottom: 1px solid var(--dw-border-secondary); }
+
+/* Program-modal subsystem->supplier chips (Phase 2.4 cross-link) */
+.dw-sub-supplier-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--dw-link);
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid var(--dw-link);
+  border-radius: var(--dw-radius-sm);
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.dw-sub-supplier-chip:hover { background: var(--dw-link); color: #FFFFFF; }

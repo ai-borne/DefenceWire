@@ -14,9 +14,11 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
 import { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
+import { SuppliersViewModel } from '../viewmodels/SuppliersViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
 import { renderArchiveView } from './ArchiveView.js';
 import { renderProgramsExplorerView } from './ProgramsExplorerView.js';
+import { renderSuppliersExplorerView } from './suppliers/SuppliersExplorerView.js';
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -124,11 +126,12 @@ export function renderMainFeedContent(
   activeCat: string,
   newsVm: NewsViewModel,
   archiveVm: ArchiveViewModel,
-  programsVm?: ProgramsViewModel
+  programsVm?: ProgramsViewModel,
+  suppliersVm?: SuppliersViewModel
 ): void {
   const searchQuery = newsVm.getSearchQuery();
 
-  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs') {
+  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'suppliers') {
     renderSearchInfoBanner(mainFeed, searchQuery);
   }
 
@@ -139,6 +142,9 @@ export function renderMainFeedContent(
   } else if (activeCat === 'programs') {
     const vm = programsVm ?? new ProgramsViewModel(newsVm);
     mainFeed.appendChild(renderProgramsExplorerView(vm));
+  } else if (activeCat === 'suppliers') {
+    const vm = suppliersVm ?? new SuppliersViewModel();
+    mainFeed.appendChild(renderSuppliersExplorerView(vm));
   } else {
     renderStoryClustersView(mainFeed, newsVm, searchQuery);
   }

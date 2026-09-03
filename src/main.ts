@@ -10,6 +10,7 @@ import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
 import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
 import { ProgramsViewModel } from './viewmodels/ProgramsViewModel.js';
+import { SuppliersViewModel } from './viewmodels/SuppliersViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
 import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
@@ -22,6 +23,7 @@ import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
 import { renderEditorDashboard } from './components/EditorDashboard.js';
 import { openProgramDetailModal } from './components/ProgramDetailModal.js';
+import { openSupplierDetailModal } from './components/suppliers/SupplierDetailModal.js';
 import { getProgramById, findProgramByAlias } from './data/strategicPrograms.js';
 import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
 import { initSummaryAutoCollapse } from './services/summaryAutoCollapseService.js';
@@ -36,6 +38,7 @@ export function initializeApp(): void {
   const editorVm = new EditorViewModel(newsVm);
   const archiveVm = new ArchiveViewModel();
   const programsVm = new ProgramsViewModel(newsVm);
+  const suppliersVm = new SuppliersViewModel();
 
   // Initialize summary auto-collapse listener
   initSummaryAutoCollapse(newsVm);
@@ -158,7 +161,7 @@ export function initializeApp(): void {
 
     // Re-render Main Feed
     mainFeed.innerHTML = '';
-    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm);
+    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm, suppliersVm);
 
     // Re-render Sidebar Rail
     sidebar.innerHTML = '';
@@ -195,6 +198,17 @@ export function initializeApp(): void {
           });
         }
       }
+      return;
+    }
+    if (hash.startsWith('#supplier/') || hash.startsWith('#/supplier/')) {
+      const rawSlug = hash.replace(/^#\/?supplier\//, '').trim();
+      if (rawSlug) {
+        const decoded = decodeURIComponent(rawSlug);
+        const supplier = suppliersVm.getCachedSupplier(decoded);
+        if (supplier) {
+          openSupplierDetailModal(supplier);
+        }
+      }
     }
   };
 
@@ -220,6 +234,10 @@ export function initializeApp(): void {
   });
 
   programsVm.subscribe(() => {
+    updateFeedAndSidebar();
+  });
+
+  suppliersVm.subscribe(() => {
     updateFeedAndSidebar();
   });
 
