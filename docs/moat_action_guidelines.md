@@ -38,26 +38,27 @@
   * **iDEX Crawler Verification:** `idex.gov.in/challenges` probed live. 34+ challenge editions (DISC 1–14, ADITI 1–4, DRISHTI) are hosted completely open with zero CAPTCHA or tokens. Sample crawl of DISC 14 (`1774433728_800a3a04323d011d9303.pdf`) yielded 82 verified problem statements across Army (26), Navy (24), Air Force (25), and Coast Guard (7) with full operational specifications and grant ceilings (₹1.5 Cr to ₹25 Cr).
   * **Technical Specs Verification:** DRDO product catalog (`drdo.gov.in/drdo/en/offerings/products`) and Wikimedia REST API (`en.wikipedia.org/api/rest_v1/page/html/{title}`) verified (<300ms response, zero auth, rate-limit friendly) for Jane's-grade specifications across all 43 programs.
   * **Order Book & Delivery Verification:** Official Lok Sabha / Rajya Sabha parliamentary Q&A feeds (`sansad.in`) already live in production; Standing Committee on Defence reports provide sanctioned procurement numbers and delivery milestones.
-* **Status:** ✅ **COMPLETED & VERIFIED (Phases 1.1, 1.2, 1.3 & 1.4 Completed)**
-  * Phase 1.1: Core data contracts (`ProgramTechnicalSpecs`, `ProgramOrderBook`, `IdexChallenge`) & strings SSOT.
-  * Phase 1.2: Jane's-grade specifications for all 43 programs across 5 domains, authoritative order books with mathematical consistency (`sanctioned == delivered + pending`), and folded-in DISC/ADITI challenge statement stores with O(1) query engines.
-  * Phase 1.3: Modular UI components (`ProgramSpecsView`, `ProgramOrderBookView`, `ProgramIdexView`), accessible tab navigation with keyboard support, and dark-mode styling.
-  * Phase 1.4: Full verification suite passed (81/81 test files, 690/690 tests, 0 LOC violations across 203 files, production build & budget < 75 KB passed).
-  * *Pillar B/C Handoff Note (Rule 12 — Fail Loud):* All 43 programs have technical specifications; active serial procurement programs have mathematical order book trackers; iDEX challenges (DISC 14 & ADITI) are linked. Sub-system supplier linkage to MSME directory and company profiles is handed off to Pillar B (Phase 2), where suppliers will be directly linked to program sub-systems and iDEX challenge awardees.
-* **Action 1 (Technical Encyclopedia):** Expand each program dossier with Jane's-grade technical specifications (dimensions, payload, powerplant, radar cross-section, weapon hardpoints, engine thrust, and sensor suites like Uttam AESA, Virupaksha, Varuna).
-* **Action 2 (Order Book & Delivery Tracker):** Track sanctioned procurement numbers vs units delivered vs pending, contract values (₹ Cr), and delivery milestones (e.g. 83 Tejas Mk1A delivery schedule across Sulur and Nal air bases).
-* **Action 3 (Folded-in iDEX Challenges):** Map parsed iDEX/ADITI challenge statements directly to relevant strategic programs (e.g. autonomous UAS targeting & heavy swarm logistics $\rightarrow$ CATS Warrior / Tapas-BH; microbolometer FPAs & Dewar coolers $\rightarrow$ Zorawar / BMP-2 upgrade; AIP fuel cells $\rightarrow$ Project 75I; T/R radar modules $\rightarrow$ AMCA).
+* **Status:** ✅ **COMPLETED (Phase 1 — Shipped & Live)**
+  * Phase 1.1: Data contracts (`ProgramTechnicalSpecs`, `ProgramOrderBook`, `IdexChallenge`) & strings SSOT.
+  * Phase 1.2: Technical specs (43/43 programs), serial order books, DISC 14/ADITI iDEX challenge stores.
+  * Phase 1.3: Modular UI views (`ProgramSpecsView`, `ProgramOrderBookView`, `ProgramIdexView`) & accessible tabs.
+  * Phase 1.4: Verification suite (81 test files, 690 tests, 0 LOC violations, 69.75 KB bundle) & light/dark theme contrast audit.
+* **Delivered:**
+  * ✅ **Action 1 (Technical Specs):** Complete specifications across all 43 programs (Aerospace, Naval, Land, Missiles, Unmanned).
+  * ✅ **Action 2 (Order Book Tracker):** Contracted vs delivered vs pending units, ₹ Cr values, and base deployment schedules.
+  * ✅ **Action 3 (Folded-in iDEX):** DISC 14 and ADITI problem statements mapped to platforms with grant ceilings and official PDFs.
 
 ---
 
 ### Pillar B: Verified Indian Defence MSME & Supplier Directory (Database MOAT Evolution)
 * **Audit & Feasibility Outcome:** ✅ **CONFIRMED & 95% FEASIBLE (Zero-Cost Architecture)**
-  * **Vendor Discovery:** `idex.gov.in` natively exposes an active roster of 40+ verified deep-tech startups and MSMEs (Tonbo Imaging, Big Bang Boom, QNu Labs, Zeus Numerix, NewSpace Research, Zen Technologies, Optimized Electrotech, EyeROV, Skyroot, Lekha Wireless).
-  * **Sub-system Indigenisation:** DDP SRIJAN portal (`ddpmod.gov.in/en/offerings/srijan-defence-products`) verified live (`HTTP 200 OK`), directly mapping platforms, DPSUs, and subsystems (e.g., T-90 Tank Gunner Sight Visors, Prisms, and Drives).
-  * **Prime & Tier-2 Supply Chain Mapping:** Listed Indian defence primes and DPSUs (TASL, L&T Defence, Bharat Forge/Kalyani, Solar Industries, Astra Microwave, Data Patterns, MTAR, Dynamatic, Paras Defence) publicly document subsystem supply chains in regulatory filings and annual reports.
-* **Action 1 (Vendor Database):** Seed and structure profiles for Indian defence primes, DPSUs, and deep-tech startups in Cloudflare D1 with zero recurring hosting costs.
-* **Action 2 (Capability & Certification Taxonomy):** Categorize suppliers by capability (precision machining, composite airframes, seeker optics, energetic materials, counter-UAS) and certifications (AS9100, CEMILAC, ISO/IEC 17025).
-* **Action 3 (Program Supply-Chain Cross-Linking):** Link vendors directly to the sub-systems they manufacture within the 43 Strategic Programs (e.g. Godrej Aerospace $\rightarrow$ BrahMos liquid ramjet engines; Dynamatic Technologies $\rightarrow$ Tejas front fuselage; Solar Industries $\rightarrow$ Pinaka rocket warheads; Astra Microwave $\rightarrow$ Uttam AESA T/R modules; L&T $\rightarrow$ Arihant hull & Pinaka launchers).
+  * **Vendor Discovery:** `idex.gov.in` roster of 40+ verified deep-tech startups/MSMEs.
+  * **Sub-system Indigenisation:** DDP SRIJAN portal verified live (`HTTP 200 OK`) mapping platforms, DPSUs, and subsystems.
+  * **Prime & Tier-2 Supply Chains:** Listed primes/DPSUs public supply chain data from filings and annual reports.
+* **Status:** 🟡 **NEXT UP (Phase 2)**
+* **Action 1 (Vendor Database):** Seed profiles for primes, DPSUs, and deep-tech startups in Cloudflare D1.
+* **Action 2 (Capability Taxonomy):** Categorize suppliers by capability and certifications (AS9100, CEMILAC, ISO/IEC 17025).
+* **Action 3 (Supply-Chain Linking):** Map vendors to 43 strategic program subsystems and iDEX challenge awardees.
 
 ---
 
