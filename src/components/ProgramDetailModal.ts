@@ -18,6 +18,7 @@ import { getChallengesByProgramId } from '../data/idexProgramMapper.js';
 import { getLinksForProgram, getSupplierBySlug } from '../data/suppliers/programSupplierMapper.js';
 import { openSupplierDetailModal } from './suppliers/SupplierDetailModal.js';
 import { buildDossierTabs } from './DossierTabController.js';
+import { openModal, closeModal as dismissModal } from '../utils/modalManager.js';
 
 export interface ProgramDetailModalOptions {
   relatedClusters?: StoryCluster[];
@@ -165,21 +166,7 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
   const modal = document.createElement('div');
   modal.className = 'dw-modal-content dw-program-modal-content';
 
-  let handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
-  const closeModal = () => {
-    if (typeof window !== 'undefined' && handleKeyDown) {
-      window.removeEventListener('keydown', handleKeyDown);
-      handleKeyDown = null;
-    }
-    backdrop.classList.add('dw-modal-closing');
-    setTimeout(() => {
-      backdrop.remove();
-      if (typeof window !== 'undefined' && window.location.hash.startsWith('#program/')) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-      options.onClose?.();
-    }, 150);
-  };
+  const closeModal = () => dismissModal(backdrop);
 
   // Header
   const header = document.createElement('div');
@@ -239,15 +226,14 @@ export function openProgramDetailModal(program: StrategicProgram, options: Progr
   modal.appendChild(body);
   backdrop.appendChild(modal);
 
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeModal();
+  openModal(backdrop, {
+    onClose: () => {
+      if (typeof window !== 'undefined' && window.location.hash.startsWith('#program/')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      options.onClose?.();
+    }
   });
 
-  handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeModal();
-  };
-  if (typeof window !== 'undefined') window.addEventListener('keydown', handleKeyDown);
-
-  document.body.appendChild(backdrop);
   return backdrop;
 }

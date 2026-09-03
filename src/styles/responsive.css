@@ -70,37 +70,8 @@
   }
 
   /* Thumb-Friendly Compact Icon Action Tiles on Mobile (44x44px) */
-  .dw-search-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0;
-  }
-
-  .dw-sync-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0;
-  }
-
-  .dw-sync-label {
-    display: none !important;
-  }
-
-  .dw-sync-icon {
-    font-size: 1.05rem;
-    line-height: 1;
-  }
-
+  .dw-search-toggle-btn,
+  .dw-sync-btn,
   .dw-theme-btn {
     display: inline-flex;
     align-items: center;
@@ -112,10 +83,12 @@
     padding: 0;
   }
 
+  .dw-sync-label,
   .dw-theme-label {
     display: none !important;
   }
 
+  .dw-sync-icon,
   .dw-theme-icon {
     font-size: 1.05rem;
     line-height: 1;
@@ -135,6 +108,7 @@
     z-index: 20;
     align-items: center;
     padding: 0;
+    padding-bottom: env(safe-area-inset-bottom);
     box-sizing: border-box;
   }
 
@@ -198,13 +172,15 @@
     font-size: 1.12rem;
   }
 
-  .dw-headline {
-    font-size: 0.98rem;
+  .dw-headline,
+  .dw-headline--lead {
+    overflow-wrap: anywhere;
   }
 
   .dw-nav-tab {
     padding: 10px 12px;
     min-height: 44px;
+    min-width: 44px;
     font-size: 0.8rem;
   }
 

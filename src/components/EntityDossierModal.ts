@@ -9,6 +9,7 @@ import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { STRINGS } from '../resources/strings.js';
 import { StoryCluster } from '../types/news.js';
+import { openModal, closeModal as dismissModal } from '../utils/modalManager.js';
 
 export interface EntityDossierData {
   entity: {
@@ -75,23 +76,8 @@ export function openEntityDossierModal(
   closeBtn.textContent = '×';
   closeBtn.setAttribute('aria-label', STRINGS.dossier.closeAriaLabel);
 
-  const closeModal = () => {
-    backdrop.classList.add('dw-modal-closing');
-    setTimeout(() => backdrop.remove(), 150);
-  };
-
+  const closeModal = () => dismissModal(backdrop);
   closeBtn.addEventListener('click', closeModal);
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeModal();
-  });
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      closeModal();
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-  };
-  document.addEventListener('keydown', handleKeyDown);
 
   const header = document.createElement('div');
   header.className = 'dw-modal-header';
@@ -114,7 +100,7 @@ export function openEntityDossierModal(
 
   modal.appendChild(body);
   backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
+  openModal(backdrop);
 
   const slug = slugify(entityName);
 

@@ -6,6 +6,7 @@
 
 import { EditorViewModel } from '../viewmodels/EditorViewModel.js';
 import { STRINGS } from '../resources/strings.js';
+import { openModal, closeModal as dismissModal } from '../utils/modalManager.js';
 
 export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   const overlay = document.createElement('div');
@@ -30,7 +31,7 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   closeBtn.className = 'dw-editor-close';
   closeBtn.setAttribute('aria-label', STRINGS.editor.closeDashboard);
   closeBtn.textContent = '✕';
-  closeBtn.onclick = () => editorVm.setOpen(false);
+  closeBtn.onclick = () => dismissModal(overlay);
 
   header.appendChild(title);
   header.appendChild(closeBtn);
@@ -69,6 +70,10 @@ export function renderEditorAuthModal(editorVm: EditorViewModel): HTMLElement {
   body.appendChild(zeroTrustBtn);
   panel.appendChild(body);
   overlay.appendChild(panel);
+
+  openModal(overlay, {
+    onClose: () => editorVm.setOpen(false)
+  });
 
   return overlay;
 }

@@ -11,6 +11,7 @@ import { SupplierProfile } from '../../types/suppliers.js';
 import { StoryCluster } from '../../types/news.js';
 import { getLinkedProgramCount } from '../../data/suppliers/programSupplierMapper.js';
 import { buildDossierTabs } from '../DossierTabController.js';
+import { openModal, closeModal as dismissModal } from '../../utils/modalManager.js';
 import { renderSupplierOverviewView } from './SupplierOverviewView.js';
 import { renderSupplierCapabilitiesView } from './SupplierCapabilitiesView.js';
 import { renderSupplierLinkedProgramsView } from './SupplierLinkedProgramsView.js';
@@ -39,21 +40,7 @@ export function openSupplierDetailModal(
   const modal = document.createElement('div');
   modal.className = 'dw-modal-content dw-supplier-modal-content';
 
-  let handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
-  const closeModal = () => {
-    if (typeof window !== 'undefined' && handleKeyDown) {
-      window.removeEventListener('keydown', handleKeyDown);
-      handleKeyDown = null;
-    }
-    backdrop.classList.add('dw-modal-closing');
-    setTimeout(() => {
-      backdrop.remove();
-      if (typeof window !== 'undefined' && window.location.hash.startsWith('#supplier/')) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-      options.onClose?.();
-    }, 150);
-  };
+  const closeModal = () => dismissModal(backdrop);
 
   const header = document.createElement('div');
   header.className = 'dw-modal-header dw-supplier-modal-header';
@@ -112,15 +99,14 @@ export function openSupplierDetailModal(
   modal.appendChild(body);
   backdrop.appendChild(modal);
 
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeModal();
+  openModal(backdrop, {
+    onClose: () => {
+      if (typeof window !== 'undefined' && window.location.hash.startsWith('#supplier/')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      options.onClose?.();
+    }
   });
 
-  handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeModal();
-  };
-  if (typeof window !== 'undefined') window.addEventListener('keydown', handleKeyDown);
-
-  document.body.appendChild(backdrop);
   return backdrop;
 }

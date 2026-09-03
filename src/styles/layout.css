@@ -14,7 +14,8 @@
   gap: 24px;
   align-items: start;
 }
-.dw-main-feed { min-width: 0; }
+.dw-main-feed, .dw-brand-row > *, .dw-utility-row > *, .dw-modal-header > *, .dw-cluster-footer > * { min-width: 0; }
+.dw-acronym, .dw-inst-badge, .dw-program-domain-badge, .dw-supplier-tier-badge, .dw-entity-chip, .dw-program-designation { overflow-wrap: anywhere; }
 .dw-sidebar-rail {
   min-width: 0;
   display: flex;
@@ -207,22 +208,11 @@
   right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  background-color: transparent;
-  border: none;
-  border-radius: var(--dw-radius-sm);
-  color: var(--dw-text-secondary);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  line-height: 1;
-  touch-action: manipulation;
+  width: 36px; height: 36px; min-width: 36px; min-height: 36px;
+  background-color: transparent; border: none; border-radius: var(--dw-radius-sm);
+  color: var(--dw-text-secondary); font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; align-items: center; justify-content: center;
+  padding: 0; line-height: 1; touch-action: manipulation;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .dw-search-box.is-open .dw-search-close-btn:hover { background-color: var(--dw-bg-hover); color: var(--dw-text-accent); }
@@ -246,6 +236,7 @@
 .dw-nav-tab {
   padding: 10px 14px;
   min-height: 44px;
+  min-width: 44px;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -273,6 +264,7 @@
   border-top: 1px solid var(--dw-border-primary);
   background-color: var(--dw-bg-secondary);
   padding: 24px 16px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
   margin-top: 36px;
 }
 .dw-footer-inner {
