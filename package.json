@@ -10,6 +10,7 @@
     "crawl": "vite-node --script crawler/ingest.ts",
     "sitemap": "vite-node --script scripts/generate-sitemap.mjs",
     "llms": "vite-node --script scripts/generate-llms.mjs",
+    "cache:purge": "vite-node --script scripts/purge-cache.mjs",
     "d1:migrate:local": "wrangler d1 execute defencewire-archive --local --file=d1/schema.sql",
     "d1:migrate:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql",
     "d1:size": "vite-node --script crawler/d1SizeCheck.ts",

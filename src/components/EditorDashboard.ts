@@ -98,6 +98,17 @@ export function renderEditorDashboard(
   };
   actionGroup.appendChild(publishBtn);
 
+  // Purge Edge Cache Button
+  const purgeBtn = document.createElement('button');
+  purgeBtn.type = 'button';
+  purgeBtn.className = 'dw-editor-btn dw-editor-btn--purge';
+  purgeBtn.textContent = editorVm.getIsPurgingCache() ? `⏳ ${STRINGS.editor.purgingCache}` : `⚡ ${STRINGS.editor.purgeCache}`;
+  purgeBtn.disabled = editorVm.getIsPurgingCache();
+  purgeBtn.onclick = async () => {
+    await editorVm.purgeEdgeCache();
+  };
+  actionGroup.appendChild(purgeBtn);
+
   // Export JSON Button
   const exportBtn = document.createElement('button');
   exportBtn.type = 'button';

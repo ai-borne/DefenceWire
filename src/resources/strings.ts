@@ -210,6 +210,8 @@ export const STRINGS = {
     invalidPasscode: 'Invalid passcode. Access denied.', lockDesk: 'Lock Desk', rememberSession: 'Remember session',
     publishToProduction: 'Sync to Cloudflare D1', publishing: 'Syncing to Cloudflare D1...',
     publishSuccess: 'Synced to Cloudflare D1 successfully!', publishError: 'Failed to sync with Cloudflare D1.',
+    purgeCache: 'Purge Edge Cache', purgingCache: 'Purging Edge Cache...',
+    purgeCacheSuccess: 'Edge Cache purged successfully!', purgeCacheError: 'Failed to purge Edge Cache.',
     exportJson: 'Export JSON', copyJson: 'Copy JSON', copiedToClipboard: 'Curated intelligence JSON copied to clipboard!',
     stealthHint: 'Curator Desk unlocked via institutional shortcut.', zeroTrustBadge: 'Zero Trust Verified',
     sessionBadge: 'Institutional Session'

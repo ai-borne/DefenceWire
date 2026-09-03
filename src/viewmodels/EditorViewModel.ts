@@ -31,6 +31,7 @@ export class EditorViewModel {
   private activeDeskPanel: EditorDeskPanel = 'stories';
   private activeEditingClusterId: string | null = null;
   private isPublishing: boolean = false;
+  private isPurgingCache: boolean = false;
   private publishStatusMessage: string | null = null;
   private listeners: Set<EditorStateListener> = new Set();
 
@@ -244,6 +245,38 @@ export class EditorViewModel {
       this.publishStatusMessage = `${STRINGS.editor.publishError} ${message}`;
       this.notifyListeners();
       return { success: false, error: message };
+    }
+  }
+
+  public getIsPurgingCache(): boolean {
+    return this.isPurgingCache;
+  }
+
+  public async purgeEdgeCache(tags?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
+    this.isPurgingCache = true;
+    this.publishStatusMessage = STRINGS.editor.purgingCache;
+    this.notifyListeners();
+
+    try {
+      const res = await fetchFn('/api/curator/purge-cache', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: tags ? JSON.stringify({ tags }) : undefined
+      });
+
+      const data = (await res.json()) as { success: boolean; message?: string; error?: string };
+      this.isPurgingCache = false;
+      this.publishStatusMessage = data.success
+        ? (data.message || STRINGS.editor.purgeCacheSuccess)
+        : `${STRINGS.editor.purgeCacheError} ${data.error || ''}`;
+      this.notifyListeners();
+      return data.success;
+    } catch (err) {
+      this.isPurgingCache = false;
+      const message = err instanceof Error ? err.message : String(err);
+      this.publishStatusMessage = `${STRINGS.editor.purgeCacheError} ${message}`;
+      this.notifyListeners();
+      return false;
     }
   }
 
