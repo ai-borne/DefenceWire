@@ -17,8 +17,6 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'all', label: STRINGS.nav.all },
   { id: 'official', label: STRINGS.nav.official },
   { id: 'programs', label: STRINGS.nav.programs },
-  { id: 'tenders', label: STRINGS.nav.tenders },
-  { id: 'idex', label: STRINGS.nav.idex },
   { id: 'tech', label: STRINGS.nav.tech },
   { id: 'strategic', label: STRINGS.nav.strategic },
   { id: 'procurement', label: STRINGS.nav.procurement },

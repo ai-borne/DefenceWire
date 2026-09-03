@@ -24,19 +24,17 @@ describe('NavigationBar Component', () => {
     expect(tablist?.getAttribute('role')).toBe('tablist');
   });
 
-  it('should render all 11 MOAT navigation tabs in expected order', () => {
+  it('should render all 9 navigation tabs in expected order', () => {
     const newsVm = new NewsViewModel();
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-    expect(tabs.length).toBe(11);
+    expect(tabs.length).toBe(9);
 
     const expectedLabels = [
       STRINGS.nav.all,
       STRINGS.nav.official,
       STRINGS.nav.programs,
-      STRINGS.nav.tenders,
-      STRINGS.nav.idex,
       STRINGS.nav.tech,
       STRINGS.nav.strategic,
       STRINGS.nav.procurement,
@@ -72,8 +70,6 @@ describe('NavigationBar Component', () => {
     const categoriesToTest: FilterCategory[] = [
       'official',
       'programs',
-      'tenders',
-      'idex',
       'tech',
       'strategic',
       'procurement',
@@ -114,18 +110,6 @@ describe('NavigationBar Component', () => {
     expect(programsTab).toBeDefined();
     programsTab!.click();
     expect(newsVm.getActiveCategory()).toBe('programs');
-
-    // Click Tenders & RFPs tab
-    const tendersTab = tabs.find((t) => t.textContent === STRINGS.nav.tenders);
-    expect(tendersTab).toBeDefined();
-    tendersTab!.click();
-    expect(newsVm.getActiveCategory()).toBe('tenders');
-
-    // Click iDEX & Startups tab
-    const idexTab = tabs.find((t) => t.textContent === STRINGS.nav.idex);
-    expect(idexTab).toBeDefined();
-    idexTab!.click();
-    expect(newsVm.getActiveCategory()).toBe('idex');
 
     // Click River tab
     const riverTab = tabs.find((t) => t.textContent === STRINGS.nav.river);
