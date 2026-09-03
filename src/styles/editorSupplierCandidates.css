@@ -1,0 +1,61 @@
+/**
+ * Curator Desk — Supplier Candidates Panel Styles (Phase 2.7)
+ * Sibling stylesheet since editor.css is already near its 300-LOC limit.
+ * Hard limit: <= 300 LOC.
+ */
+
+.dw-supplier-candidates-panel {
+  padding: 12px 18px;
+}
+
+.dw-supplier-candidates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.dw-supplier-candidates-subheading {
+  color: var(--dw-text-muted);
+  font-size: 0.8rem;
+  margin: 4px 0 12px;
+}
+
+.dw-supplier-candidates-error {
+  color: var(--dw-text-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.dw-supplier-candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dw-supplier-candidate-row {
+  padding: 10px 12px;
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: 4px;
+  background: var(--dw-bg-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dw-supplier-candidate-main {
+  font-size: 0.85rem;
+}
+
+.dw-supplier-candidate-meta {
+  font-size: 0.72rem;
+  color: var(--dw-text-muted);
+  margin-top: 2px;
+}
+
+.dw-supplier-candidate-actions {
+  display: flex;
+  gap: 6px;
+}

@@ -11,6 +11,7 @@ import { CuratorSyncService, defaultCuratorSyncService, CuratorSyncResult } from
 import { STRINGS } from '../resources/strings.js';
 
 export type EditorFilterMode = 'all' | 'active' | 'ignored';
+export type EditorDeskPanel = 'stories' | 'supplierCandidates';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {
@@ -20,6 +21,7 @@ export class EditorViewModel {
   private filterMode: EditorFilterMode = 'all';
   private searchQuery: string = '';
   private isDashboardOpen: boolean = false;
+  private activeDeskPanel: EditorDeskPanel = 'stories';
   private activeEditingClusterId: string | null = null;
   private isPublishing: boolean = false;
   private publishStatusMessage: string | null = null;
@@ -82,6 +84,16 @@ export class EditorViewModel {
 
   public toggleOpen(): void {
     this.isDashboardOpen = !this.isDashboardOpen;
+    this.notifyListeners();
+  }
+
+  public getActiveDeskPanel(): EditorDeskPanel {
+    return this.activeDeskPanel;
+  }
+
+  public setActiveDeskPanel(panel: EditorDeskPanel): void {
+    if (this.activeDeskPanel === panel) return;
+    this.activeDeskPanel = panel;
     this.notifyListeners();
   }
 

@@ -5,12 +5,17 @@
  */
 
 import { EditorViewModel, EditorFilterMode } from '../viewmodels/EditorViewModel.js';
+import { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCandidatesPanelViewModel.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from '../utils/security.js';
 import { renderEditorAuthModal } from './EditorAuthModal.js';
 import { renderCandidateCard } from './EditorCandidateCard.js';
+import { renderSupplierCandidatesPanelView } from './SupplierCandidatesPanelView.js';
 
-export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
+export function renderEditorDashboard(
+  editorVm: EditorViewModel,
+  supplierCandidatesVm: SupplierCandidatesPanelViewModel
+): HTMLElement {
   if (!editorVm.isAuthenticated()) {
     return renderEditorAuthModal(editorVm);
   }
@@ -148,7 +153,31 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
     panel.appendChild(banner);
   }
 
-  // 3. Toolbar (Filters & Search)
+  // 3. Desk Panel Tabs (Stories vs. Ecosystem Candidates)
+  const deskTabs = document.createElement('div');
+  deskTabs.className = 'dw-editor-filters';
+  const activePanel = editorVm.getActiveDeskPanel();
+  const panelTabs: Array<{ id: 'stories' | 'supplierCandidates'; label: string }> = [
+    { id: 'stories', label: STRINGS.editorSupplierCandidates.storiesTabLabel },
+    { id: 'supplierCandidates', label: STRINGS.editorSupplierCandidates.panelTabLabel }
+  ];
+  for (const tab of panelTabs) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `dw-editor-desk-tab ${activePanel === tab.id ? 'active' : ''}`;
+    btn.textContent = tab.label;
+    btn.onclick = () => editorVm.setActiveDeskPanel(tab.id);
+    deskTabs.appendChild(btn);
+  }
+  panel.appendChild(deskTabs);
+
+  if (activePanel === 'supplierCandidates') {
+    panel.appendChild(renderSupplierCandidatesPanelView(supplierCandidatesVm));
+    overlay.appendChild(panel);
+    return overlay;
+  }
+
+  // 4. Toolbar (Filters & Search)
   const toolbar = document.createElement('div');
   toolbar.className = 'dw-editor-toolbar';
 
@@ -184,7 +213,7 @@ export function renderEditorDashboard(editorVm: EditorViewModel): HTMLElement {
   toolbar.appendChild(searchInput);
   panel.appendChild(toolbar);
 
-  // 4. Candidate Cluster List
+  // 5. Candidate Cluster List
   const list = document.createElement('div');
   list.className = 'dw-editor-cluster-list';
 

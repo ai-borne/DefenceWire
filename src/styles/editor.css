@@ -87,7 +87,8 @@
   gap: 6px;
 }
 
-.dw-editor-filter-tab {
+.dw-editor-filter-tab,
+.dw-editor-desk-tab {
   padding: 5px 12px;
   font-size: 0.78rem;
   font-weight: 600;
@@ -98,7 +99,8 @@
   cursor: pointer;
 }
 
-.dw-editor-filter-tab.active {
+.dw-editor-filter-tab.active,
+.dw-editor-desk-tab.active {
   background: var(--dw-text-accent);
   color: #ffffff;
   border-color: var(--dw-text-accent);

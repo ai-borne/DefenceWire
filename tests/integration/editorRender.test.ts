@@ -12,12 +12,15 @@ import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { AuthService } from '../../src/services/authService.js';
 import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
+import { SupplierCandidatesPanelViewModel } from '../../src/viewmodels/SupplierCandidatesPanelViewModel.js';
+import { CuratorSupplierCandidateSyncService } from '../../src/services/curatorSupplierCandidateSyncService.js';
 
 describe('EditorDashboard Component Integration', () => {
   let newsVm: NewsViewModel;
   let authService: AuthService;
   let syncService: CuratorSyncService;
   let editorVm: EditorViewModel;
+  let supplierCandidatesVm: SupplierCandidatesPanelViewModel;
 
   const mockCluster: StoryCluster = {
     id: 'cluster-mod-1',
@@ -60,10 +63,12 @@ describe('EditorDashboard Component Integration', () => {
     syncService = new CuratorSyncService();
     editorVm = new EditorViewModel(newsVm, authService, syncService);
     editorVm.setOpen(true);
+    const noopFetch = (async () => ({ ok: true, json: async () => ({ success: true, data: [] }) })) as unknown as typeof fetch;
+    supplierCandidatesVm = new SupplierCandidatesPanelViewModel(new CuratorSupplierCandidateSyncService(noopFetch));
   });
 
   it('renders Zero Trust access gate modal when unauthenticated', () => {
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     expect(el.textContent).toContain(STRINGS.editor.authTitle);
     expect(el.textContent).toContain(STRINGS.editor.zeroTrustLoginBtn);
 
@@ -74,7 +79,7 @@ describe('EditorDashboard Component Integration', () => {
   it('renders full curator desk and action bar after authentication', async () => {
     authService.setAuthenticated(true);
 
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     expect(el.textContent).toContain(STRINGS.editor.dashboardTitle);
     expect(el.textContent).toContain(STRINGS.editor.publishToProduction);
     expect(el.textContent).toContain(STRINGS.editor.exportJson);
@@ -87,7 +92,7 @@ describe('EditorDashboard Component Integration', () => {
   it('handles promote button click and updates lead status when authenticated', async () => {
     authService.setAuthenticated(true);
 
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const promoteBtn = el.querySelector('.dw-editor-btn--promote') as HTMLButtonElement | null;
     expect(promoteBtn).not.toBeNull();
 
@@ -98,7 +103,7 @@ describe('EditorDashboard Component Integration', () => {
   it('handles ignore button click and toggles ignored status', async () => {
     authService.setAuthenticated(true);
 
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const ignoreBtn = el.querySelector('.dw-editor-btn--ignore') as HTMLButtonElement | null;
     expect(ignoreBtn).not.toBeNull();
 
@@ -109,7 +114,7 @@ describe('EditorDashboard Component Integration', () => {
   it('switches filter mode tabs when clicked in authenticated view', async () => {
     authService.setAuthenticated(true);
 
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const filterTabs = el.querySelectorAll('.dw-editor-filter-tab');
     expect(filterTabs.length).toBe(3);
 
@@ -124,7 +129,7 @@ describe('EditorDashboard Component Integration', () => {
     authService.setAuthenticated(true);
     expect(editorVm.isAuthenticated()).toBe(true);
 
-    const el = renderEditorDashboard(editorVm);
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const lockBtn = Array.from(el.querySelectorAll('button')).find((b) =>
       b.textContent?.includes(STRINGS.editor.lockDesk)
     );

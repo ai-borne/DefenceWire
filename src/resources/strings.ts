@@ -5,6 +5,7 @@
  */
 
 import supplierStrings from './supplierStrings.js';
+import editorSupplierCandidateStrings from './editorSupplierCandidateStrings.js';
 
 export const STRINGS = {
   app: {
@@ -241,6 +242,7 @@ export const STRINGS = {
     liveStatus: 'Live Feed Connected'
   },
   suppliers: supplierStrings,
+  editorSupplierCandidates: editorSupplierCandidateStrings,
   dossier: {
     modalTitlePrefix: '🛡️ Sovereign Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
     noRecordsPrefix: 'No historical dossier records found for ', domainLabel: 'DOMAIN', corroborationLabel: 'CORROBORATION',

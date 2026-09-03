@@ -8,6 +8,7 @@ import { STRINGS } from './resources/strings.js';
 import { ThemeViewModel } from './viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
+import { SupplierCandidatesPanelViewModel } from './viewmodels/SupplierCandidatesPanelViewModel.js';
 import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
 import { ProgramsViewModel } from './viewmodels/ProgramsViewModel.js';
 import { SuppliersViewModel } from './viewmodels/SuppliersViewModel.js';
@@ -36,6 +37,7 @@ export function initializeApp(): void {
   const themeVm = new ThemeViewModel();
   const newsVm = new NewsViewModel();
   const editorVm = new EditorViewModel(newsVm);
+  const supplierCandidatesVm = new SupplierCandidatesPanelViewModel();
   const archiveVm = new ArchiveViewModel();
   const programsVm = new ProgramsViewModel(newsVm);
   const suppliersVm = new SuppliersViewModel(newsVm);
@@ -173,7 +175,7 @@ export function initializeApp(): void {
   const updateEditorDesk = () => {
     editorContainer.innerHTML = '';
     if (editorVm.isOpen()) {
-      editorContainer.appendChild(renderEditorDashboard(editorVm));
+      editorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm));
     }
   };
 
@@ -245,6 +247,10 @@ export function initializeApp(): void {
   });
 
   editorVm.subscribe(() => {
+    updateEditorDesk();
+  });
+
+  supplierCandidatesVm.subscribe(() => {
     updateEditorDesk();
   });
 
