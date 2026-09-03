@@ -52,13 +52,15 @@
 
 ### Pillar B: Verified Indian Defence MSME & Supplier Directory (Database MOAT Evolution)
 * **Audit & Feasibility Outcome:** ✅ **CONFIRMED & 95% FEASIBLE (Zero-Cost Architecture)**
-  * **Vendor Discovery:** `idex.gov.in` roster of 40+ verified deep-tech startups/MSMEs.
-  * **Sub-system Indigenisation:** DDP SRIJAN portal verified live (`HTTP 200 OK`) mapping platforms, DPSUs, and subsystems.
-  * **Prime & Tier-2 Supply Chains:** Listed primes/DPSUs public supply chain data from filings and annual reports.
-* **Status:** 🟡 **NEXT UP (Phase 2)**
-* **Action 1 (Vendor Database):** Seed profiles for primes, DPSUs, and deep-tech startups in Cloudflare D1.
-* **Action 2 (Capability Taxonomy):** Categorize suppliers by capability and certifications (AS9100, CEMILAC, ISO/IEC 17025).
-* **Action 3 (Supply-Chain Linking):** Map vendors to 43 strategic program subsystems and iDEX challenge awardees.
+  * **Vendor Discovery:** `idex.gov.in` natively exposes an active roster of 40+ verified deep-tech startups and MSMEs (Tonbo Imaging, Big Bang Boom, QNu Labs, Zeus Numerix, NewSpace Research, Zen Technologies, Optimized Electrotech, EyeROV, Skyroot, Lekha Wireless).
+  * **Sub-system Indigenisation:** DDP SRIJAN portal (`ddpmod.gov.in/en/offerings/srijan-defence-products`) verified live (`HTTP 200 OK`), directly mapping platforms, DPSUs, and subsystems (e.g., T-90 Tank Gunner Sight Visors, Prisms, and Drives).
+  * **Prime & Tier-2 Supply Chain Mapping:** Listed Indian defence primes and DPSUs (TASL, L&T Defence, Bharat Forge/Kalyani, Solar Industries, Astra Microwave, Data Patterns, MTAR, Dynamatic, Paras Defence) publicly document subsystem supply chains in regulatory filings and annual reports.
+* **Status:** 🟡 **IN PROGRESS (Phase 2 — Phase 2.1 & 2.2 Shipped)**
+  * Phase 2.1: Data contracts (`src/types/suppliers.ts`), D1 schema (`suppliers`, `supplier_capabilities`, `program_suppliers`, `suppliers_fts`), strings SSOT (`supplierStrings.ts`).
+  * Phase 2.2: Seed dataset & edge APIs — **28 of the ~45-target verified suppliers shipped** (`src/data/suppliers/`, `d1/seeds/suppliers.sql`, `functions/api/suppliers/*`), each gated by a CI-enforced contract test requiring >=1 real `program_suppliers` link. 17 named companies from the original candidate list (Dynamatic, Tonbo Imaging, SSS Defence, and others) were held out for lack of a link to an existing `keySubsystems` entry or other independently verifiable public fact — **closing this gap is carried forward into Phase 2.6's growth pipeline** rather than filled with fabricated links, per the inclusion-gate rule.
+* **Action 1 (Vendor Database):** Seed and structure profiles for Indian defence primes, DPSUs, and deep-tech startups in Cloudflare D1 with zero recurring hosting costs.
+* **Action 2 (Capability & Certification Taxonomy):** Categorize suppliers by capability (precision machining, composite airframes, seeker optics, energetic materials, counter-UAS) and certifications (AS9100, CEMILAC, ISO/IEC 17025).
+* **Action 3 (Program Supply-Chain Cross-Linking):** Link vendors directly to the sub-systems they manufacture within the 43 Strategic Programs (e.g. Godrej Aerospace $\rightarrow$ BrahMos liquid ramjet engines; Astra Microwave $\rightarrow$ Uttam AESA T/R modules; MTAR Technologies $\rightarrow$ BrahMos assemblies & submarine fuel-cell AIP; L&T $\rightarrow$ Arihant reactor & Pinaka launchers).
 
 ---
 

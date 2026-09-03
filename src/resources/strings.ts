@@ -4,6 +4,8 @@
  * Hard limit: <= 300 LOC.
  */
 
+import supplierStrings from './supplierStrings.js';
+
 export const STRINGS = {
   app: {
     name: 'DefenceWire.in',
@@ -237,6 +239,7 @@ export const STRINGS = {
     errorTooltip: 'Unable to sync feed. Showing cached intelligence.', ariaSyncNow: 'Revalidate and synchronize live defence intelligence feed',
     liveStatus: 'Live Feed Connected'
   },
+  suppliers: supplierStrings,
   dossier: {
     modalTitlePrefix: '🛡️ Sovereign Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
     noRecordsPrefix: 'No historical dossier records found for ', domainLabel: 'DOMAIN', corroborationLabel: 'CORROBORATION',

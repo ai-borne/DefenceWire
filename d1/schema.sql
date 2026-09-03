@@ -171,3 +171,85 @@ CREATE INDEX IF NOT EXISTS idx_source_reputation_multiplier ON source_reputation
 -- END;
 --
 -- PRAGMA foreign_keys=ON;
+
+-- ============================================================================
+-- Pillar B: Verified Indian Defence MSME & Supplier Directory
+-- ============================================================================
+
+-- Verified supplier / vendor profiles (DPSUs, private primes, Tier-2 MSMEs,
+-- deep-tech iDEX/SRIJAN startups).
+CREATE TABLE IF NOT EXISTS suppliers (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  tier TEXT NOT NULL,             -- 'dpsu' | 'private_prime' | 'tier2_msme' | 'deep_tech_startup'
+  hq_city TEXT NOT NULL,
+  hq_state TEXT NOT NULL,
+  corridor TEXT,                  -- DefenceCorridor, nullable
+  website TEXT,
+  description TEXT NOT NULL,
+  srijan_id TEXT,
+  idex_winner INTEGER DEFAULT 0,
+  is_listed INTEGER DEFAULT 0,
+  stock_symbol TEXT,
+  created_at TEXT NOT NULL        -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_tier ON suppliers (tier);
+CREATE INDEX IF NOT EXISTS idx_suppliers_corridor ON suppliers (corridor);
+
+-- Capability-domain and certification tags per supplier (one row per domain).
+CREATE TABLE IF NOT EXISTS supplier_capabilities (
+  supplier_id TEXT NOT NULL,
+  capability_domain TEXT NOT NULL,
+  certifications TEXT NOT NULL,   -- JSON array of DefenceCertification
+  PRIMARY KEY (supplier_id, capability_domain),
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_capabilities_domain ON supplier_capabilities (capability_domain);
+
+-- Bidirectional program <-> subsystem <-> supplier cross-linking.
+-- Note: the 43 Strategic Programs are static TypeScript data, not a D1 table
+-- (see src/data/strategicPrograms.ts / src/types/programs.ts), so program_id
+-- is a plain string column matching StrategicProgram.id with no D1 FK --
+-- the same pattern idexProgramMapper.ts already uses for iDEX challenges.
+-- Validated instead via tests/unit/supplierContracts.test.ts.
+CREATE TABLE IF NOT EXISTS program_suppliers (
+  program_id TEXT NOT NULL,       -- matches StrategicProgram.id (no D1 FK)
+  subsystem_name TEXT NOT NULL,
+  supplier_id TEXT NOT NULL,
+  tier TEXT NOT NULL,
+  indigenisation_status TEXT NOT NULL,
+  PRIMARY KEY (program_id, subsystem_name, supplier_id),
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_program_suppliers_supplier ON program_suppliers (supplier_id);
+CREATE INDEX IF NOT EXISTS idx_program_suppliers_program ON program_suppliers (program_id);
+
+-- Full-text search over supplier name, description, capabilities, products.
+CREATE VIRTUAL TABLE IF NOT EXISTS suppliers_fts USING fts5(
+  id UNINDEXED,
+  name,
+  description,
+  content='suppliers',
+  content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS suppliers_ai AFTER INSERT ON suppliers BEGIN
+  INSERT INTO suppliers_fts(rowid, id, name, description)
+  VALUES (new.rowid, new.id, new.name, new.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS suppliers_ad AFTER DELETE ON suppliers BEGIN
+  INSERT INTO suppliers_fts(suppliers_fts, rowid, id, name, description)
+  VALUES('delete', old.rowid, old.id, old.name, old.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS suppliers_au AFTER UPDATE ON suppliers BEGIN
+  INSERT INTO suppliers_fts(suppliers_fts, rowid, id, name, description)
+  VALUES('delete', old.rowid, old.id, old.name, old.description);
+  INSERT INTO suppliers_fts(rowid, id, name, description)
+  VALUES (new.rowid, new.id, new.name, new.description);
+END;
