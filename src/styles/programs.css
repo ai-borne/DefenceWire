@@ -223,3 +223,51 @@
 .dw-mile-meta { font-size: 0.68rem; color: var(--dw-text-muted); display: flex; gap: 8px; font-family: var(--dw-font-mono); }
 .dw-mile-title { margin-top: 2px; color: var(--dw-text-primary); }
 .dw-mile-desc { font-size: 0.72rem; color: var(--dw-text-secondary); margin-top: 2px; }
+
+/* Modal Tabs */
+.dw-program-modal-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--dw-border-primary); margin-bottom: 14px; overflow-x: auto; }
+.dw-program-tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; color: var(--dw-text-secondary); cursor: pointer; white-space: nowrap; }
+.dw-program-tab-btn:hover { color: var(--dw-text-primary); }
+.dw-program-tab-btn.active { color: var(--dw-link); border-bottom-color: var(--dw-link); font-weight: 700; }
+.dw-program-tabpanel { display: none; }
+.dw-program-tabpanel.active { display: block; }
+
+/* Specs View */
+.dw-specs-category { margin-bottom: 12px; }
+.dw-specs-category-title { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--dw-text-secondary); margin: 0 0 6px 0; }
+.dw-specs-empty, .dw-orderbook-empty, .dw-idex-empty { font-size: 0.8rem; color: var(--dw-text-muted); padding: 14px; background-color: var(--dw-bg-secondary); border-radius: var(--dw-radius-sm); }
+
+/* Order Book & Delivery Tracker */
+.dw-metric--green { color: #1E7E34 !important; }
+.dw-metric--orange { color: #B06000 !important; }
+.dw-orderbook-progress-wrap { background-color: var(--dw-bg-secondary); border: 1px solid var(--dw-border-secondary); border-radius: var(--dw-radius-sm); padding: 10px; margin: 12px 0; }
+.dw-orderbook-progress-header { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 600; margin-bottom: 6px; }
+.dw-orderbook-progress-track { height: 8px; background-color: var(--dw-bg-canvas); border-radius: 4px; overflow: hidden; }
+.dw-orderbook-progress-fill { height: 100%; background-color: #1E7E34; border-radius: 4px; transition: width 0.3s ease; }
+.dw-orderbook-milestone-box { font-size: 0.78rem; background-color: rgba(2, 132, 199, 0.08); border-left: 3px solid var(--dw-link); padding: 8px 10px; border-radius: var(--dw-radius-sm); margin-bottom: 12px; }
+.dw-orderbook-batch-list, .dw-idex-cards-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.dw-orderbook-batch-card, .dw-idex-card { background-color: var(--dw-bg-card); border: 1px solid var(--dw-border-secondary); border-radius: var(--dw-radius-sm); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.dw-orderbook-batch-head, .dw-idex-card-header, .dw-idex-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.dw-orderbook-batch-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: var(--dw-radius-sm); }
+.dw-batch-badge--delivered { background-color: rgba(30, 126, 52, 0.15); color: #1E7E34; }
+.dw-batch-badge--production { background-color: rgba(2, 132, 199, 0.15); color: var(--dw-link); }
+.dw-batch-badge--sanctioned { background-color: rgba(124, 58, 237, 0.15); color: #7C3AED; }
+.dw-batch-badge--pending { background-color: rgba(176, 96, 0, 0.15); color: #B06000; }
+.dw-orderbook-batch-meta, .dw-idex-desc, .dw-idex-cap { font-size: 0.74rem; color: var(--dw-text-secondary); }
+.dw-orderbook-recipients { font-size: 0.72rem; color: var(--dw-text-primary); }
+
+/* iDEX & ADITI Challenges */
+.dw-idex-subheading { font-size: 0.76rem; color: var(--dw-text-secondary); margin: 0 0 10px 0; }
+.dw-idex-meta-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.dw-idex-badge { font-size: 0.65rem; font-weight: 600; padding: 2px 6px; border-radius: var(--dw-radius-sm); background-color: var(--dw-bg-secondary); }
+.dw-idex-edition { color: var(--dw-link); border: 1px solid var(--dw-border-secondary); }
+.dw-idex-grant { color: #1E7E34; font-weight: 700; background-color: rgba(30, 126, 52, 0.1); }
+.dw-idex-title { font-size: 0.85rem; font-weight: 700; color: var(--dw-text-primary); margin: 0; }
+.dw-idex-block { font-size: 0.74rem; line-height: 1.4; }
+.dw-idex-label { font-weight: 700; color: var(--dw-text-muted); }
+.dw-idex-status { font-size: 0.68rem; font-weight: 700; }
+.dw-idex-status--open { color: #1E7E34; }
+.dw-idex-status--awarded { color: var(--dw-link); }
+.dw-idex-pdf-btn { font-size: 0.72rem; font-weight: 700; color: var(--dw-link); text-decoration: none; padding: 2px 6px; border: 1px solid var(--dw-link); border-radius: var(--dw-radius-sm); }
+.dw-idex-pdf-btn:hover { background-color: var(--dw-link); color: #fff; }
+

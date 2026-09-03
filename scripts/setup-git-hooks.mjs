@@ -39,7 +39,7 @@ npm run check:crawler || { echo "❌ Crawler dry-run failed. Commit aborted."; e
 echo "📦 [5/7] Production Vite Build..."
 npm run build || { echo "❌ Production build failed. Commit aborted."; exit 1; }
 
-echo "📊 [6/7] Performance Budget (< 40 KB Gzipped JS)..."
+echo "📊 [6/7] Performance Budget (< 75 KB Gzipped JS)..."
 npm run check:budget || { echo "❌ Performance budget exceeded. Commit aborted."; exit 1; }
 
 echo "🔒 [7/7] Security Vulnerability Audit..."
