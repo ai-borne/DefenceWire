@@ -5,6 +5,7 @@
   /* Default: Light Newsprint Theme */
   --dw-bg-canvas: #FBFBF9;
   --dw-bg-card: #FFFFFF;
+  --dw-bg-primary: #FFFFFF;
   --dw-bg-secondary: #F2F2EE;
   --dw-bg-hover: #EBEBE6;
   --dw-border-primary: #D8D8CE;
@@ -69,6 +70,7 @@
   /* Tactical Slate / Military Command Dark Theme */
   --dw-bg-canvas: #0C0F12;
   --dw-bg-card: #13181E;
+  --dw-bg-primary: #13181E;
   --dw-bg-secondary: #192028;
   --dw-bg-hover: #202A35;
   --dw-border-primary: #2B3542;
@@ -120,6 +122,7 @@
   :root:not([data-theme="light"]) {
     --dw-bg-canvas: #0C0F12;
     --dw-bg-card: #13181E;
+    --dw-bg-primary: #13181E;
     --dw-bg-secondary: #192028;
     --dw-bg-hover: #202A35;
     --dw-border-primary: #2B3542;

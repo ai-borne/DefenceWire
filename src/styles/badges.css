@@ -119,6 +119,12 @@
 .dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
 .dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
 
+[data-theme="dark"] .dw-tier-1, [data-theme="dark"] .dw-tier-TIER_1_OFFICIAL { color: #86EFAC; background-color: rgba(20, 83, 45, 0.35); }
+[data-theme="dark"] .dw-tier-TIER_1_SOCIAL { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }
+[data-theme="dark"] .dw-tier-2, [data-theme="dark"] .dw-tier-TIER_2_NATIONAL { color: #93C5FD; background-color: rgba(30, 58, 138, 0.35); }
+[data-theme="dark"] .dw-tier-3, [data-theme="dark"] .dw-tier-TIER_3_SPECIALIZED { color: #FDBA74; background-color: rgba(67, 20, 7, 0.35); }
+[data-theme="dark"] .dw-tier-4, [data-theme="dark"] .dw-tier-TIER_4_OSINT { color: #9CA3AF; background-color: rgba(31, 41, 55, 0.35); }
+
 /* Social & Discussion Verified Badges */
 .dw-verified-badge {
   display: inline-flex;
@@ -131,3 +137,4 @@
   color: #0284C7;
   text-transform: uppercase;
 }
+[data-theme="dark"] .dw-verified-badge { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }

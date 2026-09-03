@@ -77,6 +77,11 @@
 .dw-tier-2, .dw-tier-TIER_2_NATIONAL { background-color: rgba(13, 110, 253, 0.15); color: #0D6EFD; }
 .dw-tier-3, .dw-tier-TIER_3_SPECIALIZED { background-color: rgba(217, 119, 6, 0.15); color: #D97706; }
 .dw-tier-4, .dw-tier-TIER_4_OSINT { background-color: rgba(108, 117, 125, 0.15); color: #6C757D; }
+[data-theme="dark"] .dw-tier-1, [data-theme="dark"] .dw-tier-TIER_1_OFFICIAL { color: #86EFAC; background-color: rgba(20, 83, 45, 0.35); }
+[data-theme="dark"] .dw-tier-TIER_1_SOCIAL { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }
+[data-theme="dark"] .dw-tier-2, [data-theme="dark"] .dw-tier-TIER_2_NATIONAL { color: #93C5FD; background-color: rgba(30, 58, 138, 0.35); }
+[data-theme="dark"] .dw-tier-3, [data-theme="dark"] .dw-tier-TIER_3_SPECIALIZED { color: #FDBA74; background-color: rgba(67, 20, 7, 0.35); }
+[data-theme="dark"] .dw-tier-4, [data-theme="dark"] .dw-tier-TIER_4_OSINT { color: #9CA3AF; background-color: rgba(31, 41, 55, 0.35); }
 
 .dw-snippet { font-size: 0.84rem; color: var(--dw-text-secondary); margin: 6px 0; line-height: 1.4; }
 .dw-related-box { margin-top: 8px; margin-left: 14px; }
@@ -120,6 +125,7 @@
   color: #0284C7;
   text-transform: uppercase;
 }
+[data-theme="dark"] .dw-verified-badge { color: #7DD3FC; background-color: rgba(12, 74, 110, 0.35); }
 
 .dw-discussion-link { font-size: 0.72rem; color: var(--dw-link); text-decoration: none; }
 .dw-discussion-link:hover { text-decoration: underline; }
