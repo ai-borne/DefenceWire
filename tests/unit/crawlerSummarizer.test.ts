@@ -13,6 +13,11 @@ import {
   sanitizePromptInput,
   summarizeWithGemini
 } from '../../crawler/summarizer.js';
+import {
+  BANNED_GENERIC_PHRASES,
+  buildGeminiPrompt,
+  containsBannedPhrases
+} from '../../crawler/summarizerPrompt.js';
 
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
@@ -40,40 +45,24 @@ const MOCK_CLUSTER: StoryCluster = {
 };
 
 const MOCK_GEMINI_RESPONSE = {
-  candidates: [
-    {
-      content: {
-        parts: [
-          {
-            text: JSON.stringify({
-              isDefenceRelevant: true,
-              whyItMatters: 'Critical strategic leap for Indian Navy underwater deterrence in IOR.',
-              gdLecturettePoints: [
-                'AIP Technology vs Nuclear Submarine Fleet',
-                'Indigenisation milestones under Strategic Partnership Model',
-                'Maritime Balance in the Indian Ocean Region'
-              ],
-              potentialInterviewQuestions: [
-                'What is Air Independent Propulsion (AIP)?',
-                'Why is Project 75I critical for Indian Navy submarine doctrine?',
-                'How does AIP compare to SSN capabilities?'
-              ],
-              strategicAngle: 'Countering expanding PLA Navy presence in the Malacca Straits.',
-              defenceTechTakeaway: {
-                platformOrSystem: 'Project 75I',
-                programTag: 'Project 75I',
-                budgetCrores: 43000,
-                deliveryTimeline: '2031',
-                indigenousContentPercentage: 60,
-                specifications: ['Fuel-cell AIP module', 'Heavyweight wire-guided torpedoes', 'Land-attack cruise missiles'],
-                keySignificance: 'Enhances sub-surface stealth endurance from days to weeks.'
-              }
-            })
+  candidates: [{
+    content: {
+      parts: [{
+        text: JSON.stringify({
+          isDefenceRelevant: true,
+          whyItMatters: 'Critical strategic leap for Indian Navy underwater deterrence in IOR.',
+          gdLecturettePoints: ['AIP Technology vs Nuclear Submarine Fleet', 'Strategic Partnership Model', 'Maritime Balance'],
+          potentialInterviewQuestions: ['What is Air Independent Propulsion (AIP)?', 'Why is Project 75I critical?', 'AIP vs SSN?'],
+          strategicAngle: 'Countering expanding PLA Navy presence in the Malacca Straits.',
+          defenceTechTakeaway: {
+            platformOrSystem: 'Project 75I', programTag: 'Project 75I', budgetCrores: 43000, deliveryTimeline: '2031',
+            indigenousContentPercentage: 60, specifications: ['Fuel-cell AIP module', 'Heavyweight wire-guided torpedoes', 'Land-attack cruise missiles'],
+            keySignificance: 'Enhances sub-surface stealth endurance from days to weeks.'
           }
-        ]
-      }
+        })
+      }]
     }
-  ]
+  }]
 };
 
 describe('Summarizer & Content-Hash Memory', () => {
@@ -248,4 +237,53 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('[GEMINI ERROR]'), expect.stringContaining('400'));
     errorSpy.mockRestore();
   });
+
+  it('buildGeminiPrompt embeds strict negative constraints and 3-point brief structure', () => {
+    const prompt = buildGeminiPrompt(MOCK_CLUSTER);
+    expect(prompt).toContain('STRICT NEGATIVE CONSTRAINTS');
+    expect(prompt).toContain('MANDATORY BRIEF STRUCTURE FOR "whyItMatters"');
+    expect(prompt).toContain('Platform/Contract Scope');
+    expect(prompt).toContain('Operational Impact');
+    expect(prompt).toContain('Strategic Significance');
+  });
+
+  it('guarantees zero occurrences of banned generic phrases in sanitized Gemini output', async () => {
+    const contaminatedText = 'In a significant development, MoD clears indigenous engines. This article examines tactical deployment.';
+    expect(containsBannedPhrases(contaminatedText)).toBe(true);
+
+    const contaminatedFetch = async () => new Response(JSON.stringify({
+      candidates: [{
+        content: {
+          parts: [{
+            text: JSON.stringify({
+              whyItMatters: 'In a significant development, MoD clears indigenous jet engines.',
+              strategicAngle: 'This article examines high-altitude combat.',
+              defenceTechTakeaway: {
+                platformOrSystem: 'Kaveri Engine',
+                specifications: ['Dry thrust 46kN'],
+                keySignificance: 'A crucial step forward in engine sovereignty.'
+              }
+            })
+          }]
+        }
+      }]
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', contaminatedFetch as typeof fetch);
+    expect(result).not.toBeNull();
+    for (const phrase of BANNED_GENERIC_PHRASES) {
+      expect(result?.whyItMatters.toLowerCase()).not.toContain(phrase);
+      expect(result?.strategicAngle?.toLowerCase()).not.toContain(phrase);
+      expect(result?.defenceTechTakeaway?.keySignificance.toLowerCase()).not.toContain(phrase);
+    }
+  });
+
+  it('seamlessly routes to extractiveMiner fallback when fallbackToMiner is true and API fails', async () => {
+    const failingFetch = async () => new Response('Server Error', { status: 500 });
+    const fallbackIntel = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', failingFetch as typeof fetch, undefined, true);
+    expect(fallbackIntel).not.toBeNull();
+    expect(fallbackIntel?.whyItMatters).toBeTruthy();
+    expect(fallbackIntel?.defenceTechTakeaway?.platformOrSystem).toBe('Project 75I');
+  });
 });
+
