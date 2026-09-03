@@ -1,22 +1,14 @@
 #!/usr/bin/env node
 /**
  * DefenceWire Sitemap Generator
- * Builds public/sitemap.xml from the latest crawled news feed so search engines
- * can discover the homepage and every story permalink.
+ * Builds public/sitemap.xml from SSOT sitemap generator (homepage, 43 strategic
+ * programs, verified suppliers, and live story clusters).
+ * Hard limit: <= 300 LOC.
  */
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-
-const SITE_ORIGIN = 'https://www.defencewire.in';
-
-function escapeXml(value) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function urlEntry(loc, lastmod, changefreq, priority) {
-  return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
-}
+import { generateSitemapXml } from '../src/seo/sitemapGenerator.js';
 
 async function generateSitemap() {
   const newsPath = path.resolve(process.cwd(), 'public/data/news.json');
@@ -28,22 +20,13 @@ async function generateSitemap() {
     const data = JSON.parse(raw);
     clusters = Array.isArray(data.clusters) ? data.clusters : [];
   } catch {
-    // No feed yet; sitemap will just contain the homepage.
+    // No feed yet; sitemap will just contain the static programs & suppliers.
   }
 
-  const now = new Date().toISOString();
-  const entries = [urlEntry(`${SITE_ORIGIN}/`, now, 'always', '1.0')];
-
-  for (const cluster of clusters) {
-    if (!cluster || !cluster.id) continue;
-    const lastmod = cluster.updatedAt || cluster.createdAt || now;
-    entries.push(urlEntry(`${SITE_ORIGIN}/story/${cluster.id}`, lastmod, 'hourly', '0.7'));
-  }
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`;
+  const xml = generateSitemapXml(clusters);
 
   await fs.writeFile(outputPath, xml, 'utf-8');
-  console.log(`[SITEMAP] Wrote ${clusters.length + 1} URLs to ${outputPath}`);
+  console.log(`[SITEMAP] Wrote updated sitemap to ${outputPath} (${xml.length} bytes)`);
 }
 
 generateSitemap().catch((err) => {

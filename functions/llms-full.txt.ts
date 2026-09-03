@@ -1,11 +1,10 @@
 /**
- * Cloudflare Pages Function: Dynamic XML Sitemap Endpoint (/sitemap.xml)
- * Returns a search-engine compliant XML sitemap covering all programs,
- * verified suppliers, and live stories with edge cache headers.
- * Hard limit: <= 300 LOC. Target: < 50 LOC.
+ * Cloudflare Pages Function: /llms-full.txt Extended Machine-Readable Spec Endpoint
+ * Generates full platform specification with Edge Cache-Tag & 304 revalidation.
+ * Hard limit: <= 300 LOC. Target: < 60 LOC.
  */
 
-import { generateSitemapXml } from '../src/seo/sitemapGenerator.js';
+import { generateLlmsFullTxt } from '../src/seo/llmsGenerator.js';
 import {
   buildEdgeCacheHeaders,
   computeEtag,
@@ -34,22 +33,22 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
     // Graceful fallback to static programs & suppliers without live clusters
   }
 
-  const xml = generateSitemapXml(stories);
-  const etag = computeEtag(xml);
+  const content = generateLlmsFullTxt({ stories });
+  const etag = computeEtag(content);
 
   const ifNoneMatch = context.request.headers.get('if-none-match');
   const headers = buildEdgeCacheHeaders({
-    cacheTags: [EDGE_CACHE_TAGS.SITEMAP, 'seo'],
+    cacheTags: [EDGE_CACHE_TAGS.LLMS_FULL, EDGE_CACHE_TAGS.AI_GROUNDING],
     etag,
-    contentType: 'application/xml; charset=utf-8',
+    contentType: 'text/plain; charset=utf-8',
     maxAgeSeconds: 3600,
-    sMaxAgeSeconds: 3600
+    sMaxAgeSeconds: 86400,
+    staleWhileRevalidateSeconds: 3600
   });
 
   if (isEtagMatch(ifNoneMatch, etag)) {
     return new Response(null, { status: 304, headers });
   }
 
-  return new Response(xml, { status: 200, headers });
+  return new Response(content, { status: 200, headers });
 }
-

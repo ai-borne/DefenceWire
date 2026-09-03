@@ -4,59 +4,1024 @@
 - **Entity**: DefenceWire.in
 - **Type**: Institutional Defence News Aggregator & Intelligence Feed
 - **Target Geographic Focus**: India & Indo-Pacific Security
-- **Update Cadence**: Continuous / Near Real-Time
+- **Update Cadence**: Continuous / Hourly Autonomous Ingestion
 - **Canonical URL**: https://www.defencewire.in
 - **Live Feed Endpoint**: https://www.defencewire.in/data/news.json
 - **Sitemap**: https://www.defencewire.in/sitemap.xml
+- **LLMs Spec**: https://www.defencewire.in/llms.txt
 
-## Feed Architecture & Schema
-The primary data endpoint is `https://www.defencewire.in/data/news.json`, returning a structured JSON payload:
+## Feed Architecture & JSON Schemas
+DefenceWire endpoints return strongly typed, structured JSON payloads. Below are the official schemas:
 
+### StoryCluster JSON Schema
 ```json
 {
-  "generatedAt": "ISO-8601 UTC Timestamp",
-  "clusters": [
-    {
-      "id": "Unique cluster ID (e.g., cluster-8d1a1f96)",
-      "category": "army | navy | airforce | tech | strategic | procurement | ssb",
-      "synthesizedHeadline": "Clear, informative headline synthesizing all reporting sources",
-      "timestamp": "ISO-8601 UTC Timestamp",
-      "primarySource": {
-        "title": "Article headline from primary publisher",
-        "url": "Canonical source URL",
-        "source": "Publisher name",
-        "tier": "official | tier1 | tier2 | social",
-        "snippet": "Editorial summary / key findings of the report"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StoryCluster",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique story cluster identifier (e.g. cluster-8d1a1f96)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "army",
+        "navy",
+        "airforce",
+        "tech",
+        "strategic",
+        "procurement",
+        "ssb"
+      ]
+    },
+    "synthesizedHeadline": {
+      "type": "string",
+      "description": "Fact-grounded headline synthesizing all reports"
+    },
+    "defenceScore": {
+      "type": "number",
+      "description": "Domain relevance score (0-100+)"
+    },
+    "isLeadStory": {
+      "type": "boolean",
+      "description": "Lead banner story status"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
       },
-      "relatedSources": [
-        {
-          "title": "Related reporting headline",
-          "url": "Related source URL",
-          "source": "Publisher name",
-          "tier": "Publisher tier"
+      "description": "Tagged military entities & platforms"
+    },
+    "primarySource": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sourceName": {
+          "type": "string"
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "official",
+            "tier1",
+            "tier2",
+            "social"
+          ]
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time"
         }
-      ],
-      "entities": ["DRDO", "Indian Air Force", "AMCA", "Tejas", "DAC"]
+      },
+      "required": [
+        "title",
+        "url",
+        "sourceName",
+        "tier"
+      ]
+    },
+    "relatedCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ssbIntel": {
+      "type": "object",
+      "properties": {
+        "gist": {
+          "type": "string",
+          "description": "Key strategic takeaway for military interviews"
+        },
+        "counterView": {
+          "type": "string",
+          "description": "Alternative strategic perspective"
+        },
+        "gtoDiscussionPoint": {
+          "type": "string",
+          "description": "Structured debate point for GTO rounds"
+        }
+      }
     }
-  ],
-  "river": [
-    {
-      "title": "Chronological raw source item",
-      "url": "Direct link",
-      "source": "Source name",
-      "publishedAt": "ISO-8601 Timestamp"
-    }
+  },
+  "required": [
+    "id",
+    "category",
+    "synthesizedHeadline",
+    "primarySource"
   ]
 }
 ```
 
-## Story Permalinks
-Individual story clusters are addressable via permalinks:
-- Format: `https://www.defencewire.in/story/[cluster-id]`
-- Crawler Support: Returns fully prerendered semantic HTML (`<article>`) and Schema.org `NewsArticle` JSON-LD for AI search crawlers.
+### StrategicProgram JSON Schema
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StrategicProgram",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Program identifier slug (e.g. tejas-mk1a)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Official programmatic designation"
+    },
+    "shortName": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "Aerospace",
+        "Land Systems",
+        "Naval Systems",
+        "Missiles",
+        "Unmanned & AI"
+      ]
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Concept",
+        "R&D",
+        "Testing",
+        "Production",
+        "Operational",
+        "Upgraded"
+      ]
+    },
+    "leadAgency": {
+      "type": "string",
+      "description": "Primary developer / agency (e.g. ADA / DRDO, HAL, MDL)"
+    },
+    "serviceBranch": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Army",
+          "Navy",
+          "Air Force",
+          "Tri-Services"
+        ]
+      }
+    },
+    "sanctionedBudgetCrores": {
+      "type": "number",
+      "description": "Sanctioned capital expenditure in INR Crores"
+    },
+    "indigenousPercentage": {
+      "type": "number",
+      "description": "Indigenisation percentage by value (0-100)"
+    },
+    "targetInductionYear": {
+      "type": [
+        "number",
+        "string"
+      ]
+    },
+    "plannedUnits": {
+      "type": [
+        "number",
+        "string"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "canonicalUrl": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "domain",
+    "stage",
+    "leadAgency",
+    "canonicalUrl"
+  ]
+}
+```
 
-## Institutional Source Reliability Tiers
-1. **Tier Official**: Ministry of Defence (MoD), Press Information Bureau (PIB), DRDO, Indian Army/Navy/IAF official communications.
-2. **Tier 1 (Institutional)**: The Hindu, Indian Express, ANI, PTI, Livefist, Force Magazine, Janes, USNI News.
-3. **Tier 2 (General Media)**: Hindustan Times, Times of India, Business Standard, The Print, NDTV.
-4. **Tier Social**: Verified OSINT analysts and institutional defence correspondents.
+### SupplierProfile JSON Schema
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SupplierProfile",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Official corporate name"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "dpsu",
+        "private_prime",
+        "tier2_msme",
+        "deep_tech_startup"
+      ]
+    },
+    "hqCity": {
+      "type": "string"
+    },
+    "hqState": {
+      "type": "string"
+    },
+    "corridor": {
+      "type": "string",
+      "enum": [
+        "Tamil Nadu",
+        "Uttar Pradesh",
+        "Bengaluru",
+        "Hyderabad",
+        "Pune"
+      ]
+    },
+    "website": {
+      "type": "string",
+      "format": "uri"
+    },
+    "srijanId": {
+      "type": "string"
+    },
+    "idexWinner": {
+      "type": "boolean"
+    },
+    "isListed": {
+      "type": "boolean"
+    },
+    "stockSymbol": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "capabilityDomain": {
+            "type": "string"
+          },
+          "certifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "linkedPrograms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "programId": {
+            "type": "string"
+          },
+          "subsystemName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "indigenisationStatus": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "canonicalUrl": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "id",
+    "slug",
+    "name",
+    "tier",
+    "hqCity",
+    "canonicalUrl"
+  ]
+}
+```
+
+### OrbatUnit JSON Schema
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrbatUnit",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "unitName": {
+      "type": "string",
+      "description": "Squadron, Regiment, or Warship formation name"
+    },
+    "serviceBranch": {
+      "type": "string",
+      "enum": [
+        "iaf",
+        "indian_navy",
+        "indian_army"
+      ]
+    },
+    "baseLocation": {
+      "type": "string",
+      "description": "Air Station, Home Port, or Cantonment base"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "operational",
+        "slated_induction",
+        "raising"
+      ]
+    },
+    "programId": {
+      "type": "string",
+      "description": "Associated strategic platform ID"
+    },
+    "modernizationNote": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "unitName",
+    "serviceBranch",
+    "baseLocation",
+    "status",
+    "programId"
+  ]
+}
+```
+
+## Public Edge API Endpoints
+| Endpoint | Method | Cache-Tag | Content-Type | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `/data/news.json` | GET | `dw-news-feed` | `application/json` | Live story clusters & chronological river |
+| `/sitemap.xml` | GET | `dw-sitemap` | `application/xml` | Complete XML sitemap index |
+| `/llms.txt` | GET | `dw-llms-txt` | `text/plain` | Standard LLM summary & grounding directives |
+| `/llms-full.txt` | GET | `dw-llms-full` | `text/plain` | Extended schemas & full platform spec |
+| `/api/suppliers` | GET | `dw-suppliers` | `application/json` | Full directory of verified defence suppliers |
+| `/api/suppliers/:slug` | GET | `dw-suppliers` | `application/json` | Individual supplier dossier by slug |
+| `/api/suppliers/growth` | GET | `dw-suppliers` | `application/json` | Trailing 30-day verified link promotions |
+| `/story/:id` | GET | - | `text/html` | Prerendered HTML + Schema.org NewsArticle |
+| `/program/:id` | GET | - | `text/html` | Prerendered HTML + Program Dossier specs |
+| `/supplier/:id` | GET | - | `text/html` | Prerendered HTML + Supplier Dossier specs |
+
+## Complete Strategic Programs Catalogue (43 Platforms)
+### LCA Tejas Mk1A (4.5 Gen Fighter) (`tejas-mk1a`)
+- **Domain**: aerospace | **Stage**: production | **Branches**: Indian Air Force
+- **Lead Developer**: ADA / HAL | **Indigenisation**: 65%
+- **Sanctioned Budget**: ₹115000 Cr | **Target Induction**: 2024-2029
+- **Planned Units**: 180
+- **Canonical URL**: https://www.defencewire.in/program/tejas-mk1a
+- **Summary**: Single-engine 4.5-generation multirole supersonic fighter featuring AESA radar, BVR missiles, and advanced electronic warfare suite.
+
+### LCA Tejas Mk2 / MWF (Medium Weight Fighter) (`tejas-mk2`)
+- **Domain**: aerospace | **Stage**: development | **Branches**: Indian Air Force
+- **Lead Developer**: ADA / DRDO / HAL | **Indigenisation**: 70%
+- **Sanctioned Budget**: ₹9000 Cr | **Target Induction**: 2028-2030
+- **Planned Units**: 120
+- **Canonical URL**: https://www.defencewire.in/program/tejas-mk2
+- **Summary**: 17.5-tonne medium weight fighter with close-coupled canards, increased internal fuel capacity, and GE F414-INS6 98kN engine.
+
+### AMCA (5th Gen Stealth Multi-Role Fighter) (`amca`)
+- **Domain**: aerospace | **Stage**: development | **Branches**: Indian Air Force, Indian Navy
+- **Lead Developer**: ADA / DRDO / IAF | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹15000 Cr | **Target Induction**: 2032-2035
+- **Planned Units**: 140
+- **Canonical URL**: https://www.defencewire.in/program/amca
+- **Summary**: Twin-engine 5th-generation stealth multirole fighter with internal weapons bays, supercruise, and sensor fusion.
+
+### TEDBF (Twin Engine Deck Based Fighter) (`tedbf`)
+- **Domain**: aerospace | **Stage**: development | **Branches**: Indian Navy
+- **Lead Developer**: ADA / Indian Navy | **Indigenisation**: 70%
+- **Sanctioned Budget**: ₹14000 Cr | **Target Induction**: 2031-2034
+- **Planned Units**: 45
+- **Canonical URL**: https://www.defencewire.in/program/tedbf
+- **Summary**: Twin-engine carrier-borne omni-role fighter designed for ski-jump STOBAR operations on INS Vikrant and future carriers.
+
+### Ghatak / SWiFT (Autonomous Stealth Flying-Wing UCAV) (`ghatak-ucav`)
+- **Domain**: aerospace | **Stage**: development | **Branches**: Indian Air Force, Indian Navy
+- **Lead Developer**: DRDO (ADE / GTRE) | **Indigenisation**: 80%
+- **Sanctioned Budget**: Undisclosed / Classified | **Target Induction**: 2027-2029
+- **Planned Units**: N/A
+- **Canonical URL**: https://www.defencewire.in/program/ghatak-ucav
+- **Summary**: Autonomous flying-wing stealth combat drone powered by dry Kaveri engine for deep penetrating precision strike.
+
+### Netra AEW&C (Mk1 / Mk1A / Mk2 Airborne Early Warning) (`netra-aewc`)
+- **Domain**: aerospace | **Stage**: production | **Branches**: Indian Air Force
+- **Lead Developer**: DRDO (CABS) / IAF | **Indigenisation**: 80%
+- **Sanctioned Budget**: ₹20000 Cr | **Target Induction**: 2026-2030
+- **Planned Units**: 12
+- **Canonical URL**: https://www.defencewire.in/program/netra-aewc
+- **Summary**: Airborne surveillance and battle management system mounted on Airbus A321 (Mk2) and Embraer ERJ-145 (Mk1A).
+
+### Prachand LCH (Dedicated Light Combat Helicopter) (`prachand-lch`)
+- **Domain**: aerospace | **Stage**: production | **Branches**: Indian Air Force, Indian Army
+- **Lead Developer**: HAL | **Indigenisation**: 55%
+- **Sanctioned Budget**: ₹45000 Cr | **Target Induction**: 2024-2028
+- **Planned Units**: 156
+- **Canonical URL**: https://www.defencewire.in/program/prachand-lch
+- **Summary**: High-altitude 5.8-tonne attack helicopter capable of operating at 5,000m elevation in Siachen and eastern Ladakh.
+
+### LUH (Light Utility Helicopter - 3 Tonne Class) (`luh`)
+- **Domain**: aerospace | **Stage**: production | **Branches**: Indian Army, Indian Air Force
+- **Lead Developer**: HAL | **Indigenisation**: 60%
+- **Sanctioned Budget**: ₹6000 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 187
+- **Canonical URL**: https://www.defencewire.in/program/luh
+- **Summary**: Single-engine utility helicopter replacing Cheetah and Chetak fleets with high-altitude Siachen payload capability.
+
+### IMRH / DBMRH (Indian Multi-Role Helicopter - 13 Tonne) (`imrh`)
+- **Domain**: aerospace | **Stage**: development | **Branches**: Indian Army, Indian Air Force, Indian Navy
+- **Lead Developer**: HAL / Safran | **Indigenisation**: 65%
+- **Sanctioned Budget**: ₹12000 Cr | **Target Induction**: 2029-2032
+- **Planned Units**: 250
+- **Canonical URL**: https://www.defencewire.in/program/imrh
+- **Summary**: Heavy multirole helicopter to replace Russian Mi-17 and naval Sea King helicopters with indigenous high-capacity platform.
+
+### C-295 Tactical Transport (Make-in-India) (`c295-transport`)
+- **Domain**: aerospace | **Stage**: production | **Branches**: Indian Air Force, Indian Navy
+- **Lead Developer**: TASL / Airbus Defence | **Indigenisation**: 48%
+- **Sanctioned Budget**: ₹21935 Cr | **Target Induction**: 2023-2031
+- **Planned Units**: 71
+- **Canonical URL**: https://www.defencewire.in/program/c295-transport
+- **Summary**: Tactical transport aircraft replacing vintage HS-748 Avro fleet, with 40 units manufactured at TASL Vadodara Final Assembly Line.
+
+### Su-30MKI "Super Sukhoi" Modernization (`su30mki-super-sukhoi`)
+- **Domain**: aerospace | **Stage**: sanctioned | **Branches**: Indian Air Force
+- **Lead Developer**: IAF / HAL / DRDO | **Indigenisation**: 78%
+- **Sanctioned Budget**: ₹65000 Cr | **Target Induction**: 2026-2032
+- **Planned Units**: 84
+- **Canonical URL**: https://www.defencewire.in/program/su30mki-super-sukhoi
+- **Summary**: Comprehensive indigenous upgrade of 84 frontline Su-30MKI fighters with Virupaksha AESA radar, mission computers, and long-range BVRs.
+
+### Project 75(I) AIP Submarines (`project-75i`)
+- **Domain**: naval | **Stage**: trials | **Branches**: Indian Navy
+- **Lead Developer**: Indian Navy / MDL / L&T | **Indigenisation**: 60%
+- **Sanctioned Budget**: ₹43000 Cr | **Target Induction**: 2030-2036
+- **Planned Units**: 6
+- **Canonical URL**: https://www.defencewire.in/program/project-75i
+- **Summary**: Procurement of 6 advanced diesel-electric attack submarines featuring fuel-cell Air Independent Propulsion (AIP) and land-attack cruise missiles.
+
+### Project 75 (Kalvari / Scorpene Follow-on) (`project-75-kalvari`)
+- **Domain**: naval | **Stage**: production | **Branches**: Indian Navy
+- **Lead Developer**: MDL / Naval Group | **Indigenisation**: 65%
+- **Sanctioned Budget**: ₹20000 Cr | **Target Induction**: 2028-2031
+- **Planned Units**: 3
+- **Canonical URL**: https://www.defencewire.in/program/project-75-kalvari
+- **Summary**: Construction of 3 additional Kalvari-class diesel-electric submarines at Mazagon Dock Shipbuilders with DRDO AIP retrofit capability.
+
+### Project 76 (Indigenous Conventional SSK) (`project-76`)
+- **Domain**: naval | **Stage**: concept | **Branches**: Indian Navy
+- **Lead Developer**: Submarine Design Group (SDG) / DRDO | **Indigenisation**: 80%
+- **Sanctioned Budget**: Undisclosed / Classified | **Target Induction**: 2033-2038
+- **Planned Units**: 6
+- **Canonical URL**: https://www.defencewire.in/program/project-76
+- **Summary**: First 100% indigenously designed conventional diesel-electric attack submarine class incorporating DRDO AIP and lithium-ion battery banks.
+
+### Project 17B (Next-Gen Guided Missile Stealth Frigates) (`project-17b`)
+- **Domain**: naval | **Stage**: sanctioned | **Branches**: Indian Navy
+- **Lead Developer**: Indian Navy / MDL / GRSE | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹70000 Cr | **Target Induction**: 2028-2035
+- **Planned Units**: 8
+- **Canonical URL**: https://www.defencewire.in/program/project-17b
+- **Summary**: Follow-on class to Project 17A Nilgiri frigates, featuring enhanced stealth topside design, long-range SAMs, and BrahMos supersonic anti-ship missiles.
+
+### Project 18 (Next-Gen Guided Missile Destroyer) (`project-18`)
+- **Domain**: naval | **Stage**: concept | **Branches**: Indian Navy
+- **Lead Developer**: Warship Design Bureau (WDB) / MDL | **Indigenisation**: 75%
+- **Sanctioned Budget**: Undisclosed / Classified | **Target Induction**: 2030-2038
+- **Planned Units**: 8
+- **Canonical URL**: https://www.defencewire.in/program/project-18
+- **Summary**: 10,000+ tonne next-generation destroyer equipped with Integrated Electric Propulsion (IEP), directed energy weapons, and hypersonic anti-ship missiles.
+
+### Project 75 Alpha (Nuclear Attack Submarines - SSN) (`project-75-alpha-ssn`)
+- **Domain**: naval | **Stage**: sanctioned | **Branches**: Indian Navy
+- **Lead Developer**: Indian Navy / BARC / DRDO / MDL / SBC | **Indigenisation**: 90%
+- **Sanctioned Budget**: ₹40000 Cr | **Target Induction**: 2032-2037
+- **Planned Units**: 6
+- **Canonical URL**: https://www.defencewire.in/program/project-75-alpha-ssn
+- **Summary**: Indigenous nuclear-powered attack submarines powered by BARC 190MW reactor, designed for unlimited underwater endurance and Indo-Pacific dominance.
+
+### S4 & S5 Strategic SSBN (Ballistic Missile Submarines) (`s4-s5-ssbn`)
+- **Domain**: naval | **Stage**: production | **Branches**: Indian Navy
+- **Lead Developer**: ATV Project / Indian Navy / DRDO / BARC | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹50000 Cr | **Target Induction**: 2025-2032
+- **Planned Units**: 4
+- **Canonical URL**: https://www.defencewire.in/program/s4-s5-ssbn
+- **Summary**: Second-strike nuclear triad deterrent submarines capable of launching K-4 (3500 km) and K-5 (5000 km) submarine-launched ballistic missiles.
+
+### IAC-2 / INS Vishal (65,000-Tonne Aircraft Carrier) (`iac-2-vishal`)
+- **Domain**: naval | **Stage**: sanctioned | **Branches**: Indian Navy
+- **Lead Developer**: Indian Navy / CSL (Cochin Shipyard) | **Indigenisation**: 80%
+- **Sanctioned Budget**: ₹40000 Cr | **Target Induction**: 2032-2036
+- **Planned Units**: 1
+- **Canonical URL**: https://www.defencewire.in/program/iac-2-vishal
+- **Summary**: Repeat 45,000-tonne indigenous aircraft carrier (IAC-2) with modifications to maintain 3-carrier operational readiness across both seaboards.
+
+### NGC & NGMV (Next Gen Corvettes & Missile Vessels) (`ngc-ngmv`)
+- **Domain**: naval | **Stage**: production | **Branches**: Indian Navy
+- **Lead Developer**: Indian Navy / GRSE / CSL / Goa Shipyard | **Indigenisation**: 70%
+- **Sanctioned Budget**: ₹36000 Cr | **Target Induction**: 2026-2032
+- **Planned Units**: 14
+- **Canonical URL**: https://www.defencewire.in/program/ngc-ngmv
+- **Summary**: High-speed stealth littoral combat vessels and next-generation corvettes armed with BrahMos anti-ship missiles and SR-SAM air defense.
+
+### Zorawar 25-Tonne Light Tank (High Altitude Combat) (`zorawar-light-tank`)
+- **Domain**: land | **Stage**: trials | **Branches**: Indian Army
+- **Lead Developer**: DRDO (CVRDE) / L&T | **Indigenisation**: 70%
+- **Sanctioned Budget**: ₹16000 Cr | **Target Induction**: 2025-2027
+- **Planned Units**: 354
+- **Canonical URL**: https://www.defencewire.in/program/zorawar-light-tank
+- **Summary**: 25-tonne light tank designed in record time for high-altitude deployment in Ladakh and Sikkim with amphibious capability and loitering munitions.
+
+### Arjun Mk-1A Main Battle Tank (Hunter-Killer) (`arjun-mk1a`)
+- **Domain**: land | **Stage**: production | **Branches**: Indian Army
+- **Lead Developer**: DRDO (CVRDE) / AVNL (HVF Avadi) | **Indigenisation**: 68%
+- **Sanctioned Budget**: ₹7523 Cr | **Target Induction**: 2024-2028
+- **Planned Units**: 118
+- **Canonical URL**: https://www.defencewire.in/program/arjun-mk1a
+- **Summary**: 68-tonne main battle tank featuring 89 major upgrades including commander panoramic sight with thermal imaging, ALWCS, and containerized ammunition.
+
+### FRCV (Future Ready Combat Vehicle - 55-Tonne MBT) (`frcv`)
+- **Domain**: land | **Stage**: sanctioned | **Branches**: Indian Army
+- **Lead Developer**: Indian Army / DRDO / Private Consortia | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹57000 Cr | **Target Induction**: 2030-2036
+- **Planned Units**: 1770
+- **Canonical URL**: https://www.defencewire.in/program/frcv
+- **Summary**: Next-generation 55-tonne main battle tank program to replace aging T-72 fleet with AI-enabled fire control, hard-kill APS, and drone integration.
+
+### FICV (Futuristic Infantry Combat Vehicle) (`ficv`)
+- **Domain**: land | **Stage**: sanctioned | **Branches**: Indian Army
+- **Lead Developer**: Indian Army / AVNL / Private Industry | **Indigenisation**: 70%
+- **Sanctioned Budget**: ₹50000 Cr | **Target Induction**: 2028-2034
+- **Planned Units**: 1750
+- **Canonical URL**: https://www.defencewire.in/program/ficv
+- **Summary**: Tracked amphibious mechanized combat platform with 30mm auto-cannon and 5th-gen fire-and-forget ATGMs to replace BMP-2 Sarath vehicles.
+
+### WhAP / Kestrel (8x8 Wheeled Armoured Platform) (`whap-kestrel`)
+- **Domain**: land | **Stage**: production | **Branches**: Indian Army, Paramilitary
+- **Lead Developer**: DRDO (VRDE) / TASL / Mahindra | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹3500 Cr | **Target Induction**: 2024-2028
+- **Planned Units**: 400
+- **Canonical URL**: https://www.defencewire.in/program/whap-kestrel
+- **Summary**: 8x8 modular wheeled amphibious combat vehicle with blast protection against IEDs, operational in high-altitude Ladakh and UN missions.
+
+### ATAGS (Advanced Towed Artillery Gun System - 155mm/52 Cal) (`atags`)
+- **Domain**: land | **Stage**: production | **Branches**: Indian Army
+- **Lead Developer**: DRDO (ARDE) / Bharat Forge / TASL | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹6500 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 307
+- **Canonical URL**: https://www.defencewire.in/program/atags
+- **Summary**: World-leading 155mm/52-calibre towed howitzer with 25-litre chamber volume achieving unmatched 48 km range and rapid 3-round burst.
+
+### Mounted Gun System (MGS 155mm/52 Cal 8x8 Howitzer) (`mgs-155`)
+- **Domain**: land | **Stage**: trials | **Branches**: Indian Army
+- **Lead Developer**: DRDO / Bharat Forge / TASL / BEML | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹8500 Cr | **Target Induction**: 2026-2029
+- **Planned Units**: 300
+- **Canonical URL**: https://www.defencewire.in/program/mgs-155
+- **Summary**: Truck-mounted 155mm/52-calibre artillery system on high-mobility 8x8 chassis providing rapid shoot-and-scoot for desert and mountain borders.
+
+### K9 Vajra-T (155mm/52 Cal Tracked Howitzer Batch 2) (`k9-vajra-t`)
+- **Domain**: land | **Stage**: production | **Branches**: Indian Army
+- **Lead Developer**: L&T Defence / Hanwha Aerospace | **Indigenisation**: 65%
+- **Sanctioned Budget**: ₹7000 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 100
+- **Canonical URL**: https://www.defencewire.in/program/k9-vajra-t
+- **Summary**: Tracked self-propelled 155mm howitzer equipped with indigenous winterization kits and high-altitude kits for deployment across Ladakh.
+
+### Project Kusha / ERADS (Indigenous Long-Range SAM) (`project-kusha`)
+- **Domain**: missiles | **Stage**: development | **Branches**: Indian Air Force, Indian Army
+- **Lead Developer**: DRDO (DRDL / RCI) / IAF | **Indigenisation**: 80%
+- **Sanctioned Budget**: ₹21700 Cr | **Target Induction**: 2028-2030
+- **Planned Units**: 5
+- **Canonical URL**: https://www.defencewire.in/program/project-kusha
+- **Summary**: India’s sovereign long-range surface-to-air missile system with 3 interceptors (150 km, 250 km, 350 km) against stealth jets, cruise missiles, and ballistic targets.
+
+### S-400 Triumf (Long-Range Air Defence Regiments) (`s400-triumf`)
+- **Domain**: missiles | **Stage**: induction | **Branches**: Indian Air Force
+- **Lead Developer**: IAF / Almaz-Antey (Imported + Local Support) | **Indigenisation**: 20%
+- **Sanctioned Budget**: ₹39000 Cr | **Target Induction**: 2021-2026
+- **Planned Units**: 5
+- **Canonical URL**: https://www.defencewire.in/program/s400-triumf
+- **Summary**: Tier-1 strategic multi-layered air defense shield operational across northern and eastern sectors with 400 km interception envelope.
+
+### Akash-NG (New Generation Surface-to-Air Missile) (`akash-ng`)
+- **Domain**: missiles | **Stage**: trials | **Branches**: Indian Air Force, Indian Army
+- **Lead Developer**: DRDO (DRDL) / BDL / BEL | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹10000 Cr | **Target Induction**: 2025-2027
+- **Planned Units**: 20
+- **Canonical URL**: https://www.defencewire.in/program/akash-ng
+- **Summary**: Canisterized quick-reaction SAM with dual-pulse motor and active RF seeker intercepting agile high-speed threats at 70-80 km.
+
+### QRSAM (Quick Reaction Surface-to-Air Missile) (`qrsam`)
+- **Domain**: missiles | **Stage**: trials | **Branches**: Indian Army
+- **Lead Developer**: DRDO / BEL / BDL | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹12000 Cr | **Target Induction**: 2025-2027
+- **Planned Units**: 15
+- **Canonical URL**: https://www.defencewire.in/program/qrsam
+- **Summary**: Armoured mobile all-weather air defense system capable of searching and tracking on the move to protect tank columns.
+
+### VSHORADS (Very Short Range Air Defense System) (`vshorads`)
+- **Domain**: missiles | **Stage**: production | **Branches**: Indian Army, Indian Navy, Indian Air Force
+- **Lead Developer**: DRDO (RCI) / Adani Defence / ICOMM | **Indigenisation**: 90%
+- **Sanctioned Budget**: ₹4800 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 4800
+- **Canonical URL**: https://www.defencewire.in/program/vshorads
+- **Summary**: 4th-generation man-portable air defense missile equipped with uncooled dual-band IIR seeker and Reaction Control System (RCS).
+
+### Astra BVR (Beyond Visual Range Air-to-Air: Mk1 / Mk2 / Mk3) (`astra-bvr`)
+- **Domain**: missiles | **Stage**: production | **Branches**: Indian Air Force, Indian Navy
+- **Lead Developer**: DRDO (DRDL / RCI) / BDL / IAF | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹7000 Cr | **Target Induction**: 2024-2028
+- **Planned Units**: 1000
+- **Canonical URL**: https://www.defencewire.in/program/astra-bvr
+- **Summary**: All-weather air-to-air missile family: Mk1 (110 km inducted), Mk2 (160 km dual-pulse trials), and Mk3 (340 km SFDR ramjet).
+
+### BrahMos Supersonic Cruise Missile Suite (ER / NG / II) (`brahmos-supersonic`)
+- **Domain**: missiles | **Stage**: production | **Branches**: Indian Army, Indian Navy, Indian Air Force
+- **Lead Developer**: BrahMos Aerospace (DRDO / NPOM Joint Venture) | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹35000 Cr | **Target Induction**: Active Production
+- **Planned Units**: 2000
+- **Canonical URL**: https://www.defencewire.in/program/brahmos-supersonic
+- **Summary**: World’s fastest supersonic operational cruise missile (Mach 3) with extended 450-800 km range and upcoming miniaturized BrahMos-NG for fighters.
+
+### Rudram NGARM (Next-Gen Anti-Radiation Missiles: I / II / III) (`rudram-anti-radiation`)
+- **Domain**: missiles | **Stage**: trials | **Branches**: Indian Air Force
+- **Lead Developer**: DRDO (DRDL / RCI) / IAF | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹3000 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 400
+- **Canonical URL**: https://www.defencewire.in/program/rudram-anti-radiation
+- **Summary**: Air-launched supersonic anti-radiation missile to neutralize enemy radar installations, SAM batteries, and air defense command posts.
+
+### Pralay (Quasi-Ballistic Tactical Surface-to-Surface Missile) (`pralay-missile`)
+- **Domain**: missiles | **Stage**: production | **Branches**: Indian Army, Indian Air Force
+- **Lead Developer**: DRDO / BDL | **Indigenisation**: 90%
+- **Sanctioned Budget**: ₹4000 Cr | **Target Induction**: 2024-2027
+- **Planned Units**: 250
+- **Canonical URL**: https://www.defencewire.in/program/pralay-missile
+- **Summary**: Solid-fuel quasi-ballistic missile with 150-500 km range capable of high-speed terminal maneuvers to defeat anti-ballistic interceptors along LAC/LoC.
+
+### Phase-II BMD (Ballistic Missile Defence: AD-1 & AD-2) (`phase-2-bmd`)
+- **Domain**: missiles | **Stage**: trials | **Branches**: Tri-Services
+- **Lead Developer**: DRDO (RCI / DRDL) / Strategic Forces Command | **Indigenisation**: 88%
+- **Sanctioned Budget**: ₹18000 Cr | **Target Induction**: 2026-2030
+- **Planned Units**: 10
+- **Canonical URL**: https://www.defencewire.in/program/phase-2-bmd
+- **Summary**: Two-stage long-range interceptor missile system capable of neutralizing 5,000 km class intermediate-range ballistic missiles in endo/exo-atmospheric regimes.
+
+### Tapas-BH-201 & Archer-NG (MALE Armed Reconnaissance UAV) (`tapas-archer-uav`)
+- **Domain**: unmanned | **Stage**: trials | **Branches**: Indian Air Force, Indian Army, Indian Navy
+- **Lead Developer**: DRDO (ADE) / HAL / BEL / Private Consortium | **Indigenisation**: 75%
+- **Sanctioned Budget**: ₹1500 Cr | **Target Induction**: 2025-2028
+- **Planned Units**: 50
+- **Canonical URL**: https://www.defencewire.in/program/tapas-archer-uav
+- **Summary**: Medium Altitude Long Endurance (MALE) surveillance and weaponized drone capable of 28,000 ft operations with SATCOM datalink and anti-tank missiles.
+
+### MQ-9B SkyGuardian & SeaGuardian (Tri-Service HALE Drones) (`mq9b-guardian`)
+- **Domain**: unmanned | **Stage**: sanctioned | **Branches**: Indian Navy, Indian Air Force, Indian Army
+- **Lead Developer**: Ministry of Defence / General Atomics | **Indigenisation**: 20%
+- **Sanctioned Budget**: ₹32000 Cr | **Target Induction**: 2026-2029
+- **Planned Units**: 31
+- **Canonical URL**: https://www.defencewire.in/program/mq9b-guardian
+- **Summary**: High Altitude Long Endurance (HALE) drones with 40+ hour endurance, anti-submarine warfare suite, and Hellfire precision strike missiles.
+
+### ALFA-S & Autonomous Swarm Drone Systems (`alfa-s-swarms`)
+- **Domain**: unmanned | **Stage**: trials | **Branches**: Indian Air Force, Indian Army
+- **Lead Developer**: DRDO / NewSpace Research & Tech / HAL / IAF | **Indigenisation**: 80%
+- **Sanctioned Budget**: ₹1200 Cr | **Target Induction**: 2025-2027
+- **Planned Units**: 1000
+- **Canonical URL**: https://www.defencewire.in/program/alfa-s-swarms
+- **Summary**: Air-Launched Flexible Asset (ALFA-S) swarm drones deployed in swarms of 50+ from mother aircraft or ground canisters with AI mesh networking.
+
+### D-4 Anti-Drone System (Drone Detect, Deter & Destroy) (`d4-anti-drone`)
+- **Domain**: unmanned | **Stage**: production | **Branches**: Indian Army, Indian Navy, Indian Air Force
+- **Lead Developer**: DRDO (DLRL / LASTEC) / BEL / Zen Tech | **Indigenisation**: 85%
+- **Sanctioned Budget**: ₹2500 Cr | **Target Induction**: 2024-2027
+- **Planned Units**: 200
+- **Canonical URL**: https://www.defencewire.in/program/d4-anti-drone
+- **Summary**: Comprehensive counter-UAS system featuring 360° radar detection, RF jamming, GNSS spoofing (soft-kill), and 10kW laser weapon (hard-kill).
+
+### DefSpace & SSA (Dedicated Military Satellite Constellation) (`defspace-satellites`)
+- **Domain**: unmanned | **Stage**: development | **Branches**: Tri-Services
+- **Lead Developer**: Defence Space Agency (DSA) / ISRO / DRDO / Startups | **Indigenisation**: 80%
+- **Sanctioned Budget**: ₹25000 Cr | **Target Induction**: 2025-2030
+- **Planned Units**: 52
+- **Canonical URL**: https://www.defencewire.in/program/defspace-satellites
+- **Summary**: Constellation of 52 dedicated military satellites (optical, SAR, ELINT) providing 24/7 high-cadence revisit over Indian Ocean and disputed borders.
+
+## Complete Verified Suppliers Catalogue (31 Entities)
+### Bharat Electronics Limited (BEL) (`bel`)
+- **Tier**: DPSU | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Yes (BEL) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/bel
+- **Linked Programs**: tejas-mk1a (Uttam AESA Radar); tejas-mk2 (Uttam Mk2 AESA); amca (Uttam Gallium Nitride AESA); netra-aewc (Indigenous IFF Mk XII); c295-transport (Indigenous EW Suite); su30mki-super-sukhoi (Virupaksha AESA Radar); project-75i (Submarine Combat Management System); project-17b (MF-STAR / Indigenous Multi-Function Radar); iac-2-vishal (Indigenous Combat Management System (CMS)); project-kusha (Multi-Function Active Phased Array Radar (MFAR)); qrsam (Active Array Battery Surveillance Radar (BSR)); phase-2-bmd (Long Range Tracking Radar (Phase-II LRTR / Swordfish)); tapas-archer-uav (Indigenous SATCOM Datalink); d4-anti-drone (Multi-Band RF Detector & Smart Jammer); arjun-mk1a (Advanced Laser Warning & Countermeasure System (ALWCS)); frcv (Hard-Kill Active Protection System (APS)); whap-kestrel (30mm Remote Controlled Weapon Station (RCWS)); k9-vajra-t (Digital Fire Control System & Automatic Sighting); mgs-155 (Automated Gun Laying & Inertial Navigation System)
+- **Overview**: India's premier defence electronics DPSU, building radars, EW suites, communications and combat management systems for the armed forces.
+
+### Bharat Dynamics Limited (BDL) (`bdl`)
+- **Tier**: DPSU | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/bdl
+- **Linked Programs**: tejas-mk1a (Astra Mk1 BVR); tejas-mk2 (Astra Mk2 & Scalp / Crystal Maze); prachand-lch (Helina / Dhruvastra ATGM); project-75-kalvari (Varunastra Heavyweight Torpedoes); project-17b (32-cell Vertical Launch MRSAM System); s4-s5-ssbn (K-4 / K-5 SLBM VLS Tubes); ngc-ngmv (VL-SRSAM Vertical Launch Air Defense); astra-bvr (Indigenous Ku-Band Active Radar Seeker); akash-ng (Active RF Seeker); ficv (30mm Auto-Cannon & Fire-and-Forget ATGM Pod); su30mki-super-sukhoi (BrahMos & Astra Integration)
+- **Overview**: India's guided-missile DPSU, manufacturing air-to-air, surface-to-air and anti-tank missile systems and torpedoes.
+
+### Hindustan Aeronautics Limited (HAL) (`hal`)
+- **Tier**: DPSU | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Yes (HAL) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/hal
+- **Linked Programs**: tedbf (Arrested Recovery Gear Hook); prachand-lch (Twin Shakti Engines); luh (Ardiden 1U Engine); luh (Smart Glass Cockpit); imrh (Safran-HAL Joint Turboshaft Engine); alfa-s-swarms (Mother Pod Dispenser for Su-30MKI / C-130J)
+- **Overview**: India's largest aerospace DPSU, designing and building fighter jets, helicopters and engines under license and indigenously.
+
+### Mazagon Dock Shipbuilders Limited (MDL, Mazagon Dock) (`mdl`)
+- **Tier**: DPSU | **HQ**: Mumbai, Maharashtra
+- **Listed**: Yes (MAZDOCK) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/mdl
+- **Linked Programs**: project-75i (Submarine Combat Management System)
+- **Overview**: India's leading warship and submarine building yard, constructing frontline submarines and destroyers for the Indian Navy.
+
+### BEML Limited (`beml`)
+- **Tier**: DPSU | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Yes (BEML) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/beml
+- **Linked Programs**: frcv (1500 HP Indigenous Powerpack); mgs-155 (High Mobility 8x8 Heavy Truck Chassis)
+- **Overview**: Heavy engineering DPSU manufacturing tracked powerpacks, high-mobility chassis and specialist vehicles for the Indian Army.
+
+### Armoured Vehicles Nigam Limited (AVNL) (`avnl`)
+- **Tier**: DPSU | **HQ**: New Delhi, Delhi
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/avnl
+- **Linked Programs**: ficv (Amphibious Hydro-Jet Thrusters)
+- **Overview**: DPSU spun off from the erstwhile Ordnance Factory Board, responsible for armoured and infantry combat vehicle production.
+
+### Mishra Dhatu Nigam Limited (MIDHANI) (`midhani`)
+- **Tier**: DPSU | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Yes (MIDHANI) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/midhani
+- **Linked Programs**: iac-2-vishal (DMR 249A Special Steel Hull)
+- **Overview**: Special metals and alloys DPSU, supplying high-grade armour and shipbuilding steel to Indian defence platforms.
+
+### Garden Reach Shipbuilders & Engineers (GRSE) (`grse`)
+- **Tier**: DPSU | **HQ**: Kolkata, West Bengal
+- **Listed**: Yes (GRSE) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/grse
+- **Linked Programs**: project-17b (Hull & Superstructure Construction)
+- **Overview**: India's principal frigate and corvette building yard, delivering stealth frigates and next-generation missile vessels to the Indian Navy.
+
+### Tata Advanced Systems Limited (Tata Advanced Systems) (`tasl`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/tasl
+- **Linked Programs**: mq9b-guardian (Indigenous MRO & Subsystem Assembly Hub); whap-kestrel (30mm Remote Controlled Weapon Station (RCWS))
+- **Overview**: Tata Group's defence and aerospace manufacturing arm, building airframes, weapon stations and MRO capability for Indian and global platforms.
+
+### L&T Defence (L&T) (`lt-defence`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Mumbai, Maharashtra
+- **Listed**: Yes (LT) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/lt-defence
+- **Linked Programs**: project-75-kalvari (DRDO Phosphoric Acid Fuel Cell AIP); project-75-alpha-ssn (190 MW Compact Light Water Reactor); s4-s5-ssbn (Compact Nuclear Propulsion Plant); k9-vajra-t (High-Altitude Winterization Kit (-20°C)); k9-vajra-t (Digital Fire Control System & Automatic Sighting); brahmos-supersonic (Universal Vertical Launcher Module (UVLM))
+- **Overview**: Larsen & Toubro's defence division, building submarine propulsion systems, reactors, missile launchers and armoured artillery.
+
+### Bharat Forge / Kalyani Strategic Systems (Bharat Forge, Kalyani Strategic Systems) (`bharat-forge`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Pune, Maharashtra | Pune Corridor
+- **Listed**: Yes (BHARATFORG) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/bharat-forge
+- **Linked Programs**: atags (All-Electric Drive and Auto-Loader); atags (Shoot-and-Scoot Auxiliary Power Unit)
+- **Overview**: Kalyani Group's forging and defence systems arm, co-developing indigenous towed artillery guns with DRDO's ARDE.
+
+### Zen Technologies (`zen-technologies`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Yes (ZENTEC) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/zen-technologies
+- **Linked Programs**: zorawar-light-tank (Active Protection System & Drone Pod); d4-anti-drone (Multi-Band RF Detector & Smart Jammer)
+- **Overview**: Anti-drone and combat training systems manufacturer, supplying counter-UAS and active protection systems to the Indian Army.
+
+### Godrej Aerospace (`godrej-aerospace`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Mumbai, Maharashtra
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/godrej-aerospace
+- **Linked Programs**: brahmos-supersonic (Universal Vertical Launcher Module (UVLM))
+- **Overview**: Godrej & Boyce's precision aerospace manufacturing division, building missile launcher structures and satellite subsystems.
+
+### Tata Motors Defence (`tata-motors-defence`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Pune, Maharashtra | Pune Corridor
+- **Listed**: Yes (TATAMOTORS) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/tata-motors-defence
+- **Linked Programs**: whap-kestrel (Blast-Resistant V-Shaped Hull (STANAG 4569))
+- **Overview**: Tata Motors' defence mobility division, producing blast-resistant armoured wheeled platforms for the Indian Army.
+
+### BrahMos Aerospace (BrahMos Aerospace Pvt Ltd) (`brahmos-aerospace`)
+- **Tier**: PRIVATE_PRIME | **HQ**: New Delhi, Delhi
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/brahmos-aerospace
+- **Linked Programs**: brahmos-supersonic (Indigenous Ramjet Propulsion & Seeker); ngc-ngmv (BrahMos Anti-Ship VLS Cells)
+- **Overview**: India-Russia joint venture developing and manufacturing the BrahMos family of supersonic cruise missiles.
+
+### Astra Microwave Products (Astra Microwave) (`astra-microwave`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Yes (ASTRAMICRO) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/astra-microwave
+- **Linked Programs**: tejas-mk1a (Uttam AESA T/R Modules); akash-ng (RF Seeker Subsystems)
+- **Overview**: RF/microwave subsystems and T/R-module manufacturer supplying DRDO's AESA radar and missile-seeker programs.
+
+### MTAR Technologies (`mtar-technologies`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Yes (MTARTECH) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/mtar-technologies
+- **Linked Programs**: brahmos-supersonic (Missile Airframe & Assembly Sections); project-75-kalvari (Fuel Cell AIP Components)
+- **Overview**: Precision-engineered missile assemblies and submarine fuel-cell AIP components manufacturer.
+
+### Data Patterns (India) (Data Patterns) (`data-patterns`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Chennai, Tamil Nadu | Tamil Nadu Corridor
+- **Listed**: Yes (DATAPATTNS) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/data-patterns
+- **Linked Programs**: tejas-mk1a (Avionics Test & Health Monitoring Systems); akash-ng (RF Test & Calibration Systems)
+- **Overview**: Defence electronics and avionics test-and-health-monitoring systems manufacturer for airborne and missile platforms.
+
+### Paras Defence and Space Technologies (Paras Defence) (`paras-defence`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Ambernath, Maharashtra
+- **Listed**: Yes (PARAS) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/paras-defence
+- **Linked Programs**: project-75-kalvari (Search & Attack Periscope / Optronics Mast)
+- **Overview**: Submarine periscopes and optronics-mast manufacturer for the Indian Navy.
+
+### Centum Electronics (`centum-electronics`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Yes (CENTUM) | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/centum-electronics
+- **Linked Programs**: defspace-satellites (Space-Grade RF & Payload Electronics); brahmos-supersonic (Guidance Electronics Assemblies)
+- **Overview**: Space-grade and defence electronics EMS provider supplying RF modules and satellite/missile guidance electronics.
+
+### Alpha Design Technologies (Alpha Design) (`alpha-design-technologies`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/alpha-design-technologies
+- **Linked Programs**: project-17b (32-cell Vertical Launch MRSAM System)
+- **Overview**: Defence electronics manufacturer and IAI joint-venture partner for MRSAM missile-system production in India.
+
+### Ananth Technologies (`ananth-technologies`)
+- **Tier**: PRIVATE_PRIME | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/ananth-technologies
+- **Linked Programs**: defspace-satellites (Satellite Subsystem Integration & AIT)
+- **Overview**: Satellite subsystem integrator for ISRO and defence space payloads.
+
+### NewSpace Research & Technologies (`newspace-research`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: Yes
+- **Canonical URL**: https://www.defencewire.in/supplier/newspace-research
+- **Linked Programs**: alfa-s-swarms (Autonomous Distributed Mesh AI Brain)
+- **Overview**: Bengaluru-based deep-tech startup building autonomous swarm-drone mesh networking and AI mission-control software for the Indian Army.
+
+### QNu Labs (`qnu-labs`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/qnu-labs
+- **Linked Programs**: defspace-satellites (Quantum Key Distribution (QKD) Satellite Terminal)
+- **Overview**: India's first quantum-safe cybersecurity company, developing quantum key distribution terminals for secure satellite communications.
+
+### GalaxEye Space (`galaxeye`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Chennai, Tamil Nadu | Tamil Nadu Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/galaxeye
+- **Linked Programs**: defspace-satellites (Sub-Metre Synthetic Aperture Radar (SAR) Space Payload)
+- **Overview**: IIT Madras-incubated space-tech startup building multi-sensor (SAR + optical) Earth observation satellites for defence and dual-use surveillance.
+
+### PierSight Space (`piersight-space`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Ahmedabad, Gujarat
+- **Listed**: Private/Unlisted | **iDEX Winner**: Yes
+- **Canonical URL**: https://www.defencewire.in/supplier/piersight-space
+- **Linked Programs**: defspace-satellites (SAR Maritime Domain Awareness Payload)
+- **Overview**: iDEX/ADITI-backed startup building SAR satellite constellations for maritime domain awareness.
+
+### Big Bang Boom Solutions (`big-bang-boom-solutions`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Pune, Maharashtra | Pune Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: Yes
+- **Canonical URL**: https://www.defencewire.in/supplier/big-bang-boom-solutions
+- **Linked Programs**: d4-anti-drone (EOD & Counter-Drone Robotics Systems)
+- **Overview**: Counter-drone and explosive-ordnance-disposal robotics startup.
+
+### Lekha Wireless Solutions (`lekha-wireless`)
+- **Tier**: TIER2_MSME | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/lekha-wireless
+- **Linked Programs**: tapas-archer-uav (Tactical SATCOM & Radio Systems)
+- **Overview**: Defence tactical communications and SATCOM systems manufacturer.
+
+### Tonbo Imaging (`tonbo-imaging`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Bengaluru, Karnataka | Bengaluru Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/tonbo-imaging
+- **Linked Programs**: tapas-archer-uav (EO/IR Reconnaissance Payload)
+- **Overview**: Stabilized electro-optic and infrared imaging systems manufacturer supplying gimbal-mounted reconnaissance payloads for unmanned platforms.
+
+### Dhruva Space (`dhruva-space`)
+- **Tier**: DEEP_TECH_STARTUP | **HQ**: Hyderabad, Telangana | Hyderabad Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/dhruva-space
+- **Linked Programs**: defspace-satellites (Modular Satellite Bus Platform)
+- **Overview**: Full-stack space engineering startup building modular satellite bus platforms and ground station infrastructure.
+
+### Optimized Electrotech (`optimized-electrotech`)
+- **Tier**: TIER2_MSME | **HQ**: Pune, Maharashtra | Pune Corridor
+- **Listed**: Private/Unlisted | **iDEX Winner**: No
+- **Canonical URL**: https://www.defencewire.in/supplier/optimized-electrotech
+- **Linked Programs**: d4-anti-drone (RF Jamming & Neutralization Systems)
+- **Overview**: Electronic warfare manufacturer building RF jamming and drone-neutralization systems for counter-UAS defence.
+
+## Current Live Clusters Snapshot (38 Stories)
+- **Air Vice Marshal Shakti Sharma scripts history with AVM-rank appointment** (`cluster-943740d2`): https://www.thehindu.com/news/national/air-vice-marshal-shakti-sharma-scripts-history-with-avm-rank-appointment/article71418378.ece
+- **American Rheinmetall delivers its first prototype to replace Bradley Fighting Vehicle** (`cluster-6e0b02f9`): https://www.defensenews.com/news/your-military/2026/09/01/american-rheinmetall-delivers-its-first-prototype-to-replace-bradley-fighting-vehicle/
+- **Why is India acquiring the Javelin anti-tank missile system? | Explained** (`cluster-ea089460`): https://www.thehindu.com/news/national/why-is-india-acquiring-the-javelin-anti-tank-missile-system-explained/article71418807.ece
+- **Lockheed Martin, General Dynamics get framework deals to surge Patriot, THAAD production** (`cluster-8d1a1f96`): https://www.defensenews.com/industry/techwatch/2026/08/31/lockheed-martin-general-dynamics-get-framework-deals-to-surge-patriot-thaad-production/
+- **India’s Battle for Public Trust Begins in the Cybercrime Marketplace** (`cluster-e79341ae`): https://frontierindia.com/indias-battle-for-public-trust-begins-in-the-cybercrime-marketplace/
+- **Poland Receiving Latest K2 Black Panther Tank Order** (`cluster-1ba8b26d`): https://www.armadainternational.com/2026/08/poland-receiving-latest-k2-black-panther-tank-order-foc/
+- **Javelin Glitched in Ladakh, But India Is Still Buying American Anti-Tank Missile ?** (`cluster-ed3665bf`): https://idrw.org/javelin-glitched-in-ladakh-but-india-is-still-buying-american-anti-tank-missile/
+- **OSINT Tracker Maps Chinese HQ-16 SAM Battalion Facing Ladakh** (`cluster-0523b030`): https://idrw.org/osint-tracker-maps-chinese-hq-16-sam-battalion-facing-ladakh/
+- **4 AK-203 rifles among 11 weapons stolen from army facility in Telangana** (`cluster-9e95821e`): https://www.hindustantimes.com/india-news/4-ak-203-rifles-among-11-weapons-stolen-from-army-facility-in-telangana-101788338866644.html
+- **Competing Bradley Fighting Vehicle Replacement Prototypes Delivered To The U.S. Army (Updated)** (`cluster-ad30748c`): https://www.twz.com/land/competing-bradley-fighting-vehicle-replacement-prototypes-delivered-to-the-u-s-army
+- **Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue** (`cluster-98969cb4`): https://www.ndtv.com/india-news/nepal-flash-flood-non-stop-choppers-48-hour-queues-inside-nepals-himalayan-rescue-11990853#publisher=newsstand
+- **Defence Procurement : The Military Doesn’t Buy Technology. It Buys Operational Effectiveness** (`cluster-380d27b4`): https://bharatshakti.in/defence-procurement-military-doesnt-buy-technology/
+- **Europe’s airpower future is evolving. Here’s what to know.** (`cluster-6c08121d`): https://breakingdefense.com/2026/09/europes-airpower-future-is-evolving-heres-what-to-know/
+- **German government blames Russia for Leipzig airport drone attack with explosives** (`cluster-9aa76366`): https://www.defensenews.com/global/europe/2026/09/02/german-government-blames-russia-for-leipzig-airport-drone-attack-with-explosives/
+- **Indian Navy receives multipurpose and diving support vessels** (`cluster-d569f830`): https://www.asianmilitaryreview.com/2026/09/indian-navy-receives-multipurpose-and-diving-support-vessels-foc/
+- **How a middling Chinese guided-missile frigate unnerves Japan, Taiwan and the US** (`cluster-3cc4ef22`): https://www.defensenews.com/global/asia-pacific/2026/09/02/how-a-middling-chinese-guided-missile-frigate-unnerves-japan-taiwan-and-the-us/
+- **Military Intelligence joins Army weapons theft probe** (`cluster-bba8f6da`): https://www.thehindu.com/news/national/telangana/military-intelligence-joins-probe-into-army-weapons-theft-case-involvement-of-agniveers-ruled-out/article71418449.ece
+- **UK confirms transfer of amphibious ship Bulwark to Brazil** (`cluster-4d15d393`): https://www.armadainternational.com/2026/09/uk-confirms-transfer-of-amphibious-ship-bulwark-to-brazil-foc/
+- **Japan Plans to Adopt ASM-3ER Anti-Ship Missile for Air-to-Air Role** (`cluster-b3c0116c`): https://www.navalnews.com/naval-news/2026/09/japan-plans-to-adopt-asm-3er-anti-ship-missile-for-air-to-air-role/
+- **Should HAL Build A Stealth Tejas Mk2 As An AMCA Stopgap ?** (`cluster-aa720256`): https://idrw.org/should-hal-build-a-stealth-tejas-mk2-as-an-amca-stopgap/
+- **German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile** (`cluster-48b65e4f`): https://www.navalnews.com/naval-news/2026/09/german-navy-iai-naval-lora-test-firing/
+- **US approves possible $800 million military helicopter sale to Iraq** (`cluster-96a2f4c1`): https://www.defensenews.com/news/your-military/2026/09/01/us-approves-possible-800-million-military-helicopter-sale-to-iraq/
+- **Tekever acquires Flowcopter following AR6 reveal** (`cluster-f9a4de1b`): https://www.naval-technology.com/news/tekever-acquires-flowcopter-following-ar6-reveal/
+- **‘Change agent’ Army secretary resigns** (`cluster-30a97a9c`): https://www.defenseone.com/policy/2026/09/change-agent-army-secretary-resigns/415747/
+- **After over 200 days at sea, USS Abraham Lincoln arrives in Thailand** (`cluster-78eb2a29`): https://www.defensenews.com/news/your-military/2026/09/02/after-over-200-days-at-sea-uss-abraham-lincoln-arrives-in-thailand/
+- **4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury** (`cluster-a669713a`): https://theprint.in/defence/4-agniveers-questioned-after-ak-203-assault-rifles-pistols-ammo-stolen-from-madras-regiment-armoury/3030936/
+- **Zorawar Light Tank waits Armour upgrades before Start of User Trials with Indian Army** (`cluster-339da730`): https://idrw.org/zorawar-light-tank-waits-armour-upgrades-before-start-of-user-trials-with-indian-army/
+- **Makkah defence pact now in effect—Secretariat in Riyadh, Pakistani will be 1st Secretary General** (`cluster-381ddf91`): https://theprint.in/defence/makkah-defence-pact-now-in-effect-secretariat-in-riyadh-pakistani-will-be-1st-secretary-general/3030056/
+- **S-500 for India? Russia Revives Offer After recent Flip-Flops** (`cluster-bea7189f`): https://idrw.org/s-500-for-india-russia-revives-offer-after-recent-flip-flops/
+- **Kepler Aerospace Raises $8M to Build Six Autonomous Swarm Satellites for Indian Defence** (`cluster-cc7a1af5`): https://idrw.org/kepler-aerospace-raises-8m-to-build-six-autonomous-swarm-satellites-for-indian-defence/
+- **IAF Prepares to Induct First Tejas Mk1A Squadron as GE Begins F404 Engine Shipments** (`cluster-tejas-mk1a-delivery-2026`): https://pib.gov.in/PressReleasePage.aspx?PRID=2048912
+- **Indian Navy Shortlists TKMS & Navantia for ₹43,000 Cr Project-75I Submarine Deal After Field AIP Trials** (`cluster-project-75i-submarine-trials`): https://indiannavy.nic.in/press-release/project-75i-evaluation-trials
+- **Indian Army & DRDO Begin High-Altitude Winter Deployment Trials for Zorawar Light Tank in Eastern Ladakh** (`cluster-zorawar-light-tank-lac`): https://drdo.gov.in/drdo/press-release/zorawar-light-tank-trials
+- **Defence Acquisition Council (DAC) Clears ₹70,000 Cr Procurement: BrahMos Extended Range, MQ-9B Drones & Pinaka Regiments** (`cluster-dac-mega-procurement-clearance`): https://pib.gov.in/PressReleasePage.aspx?PRID=2048876
+- **DRDO Successfully Completes Developmental Flight Tests of Akash-NG Surface-to-Air Missile at ITR Chandipur** (`cluster-drdo-akash-ng-trials`): https://drdo.gov.in/drdo/press-release/akash-ng-flight-test
+- **India Commissions Second Nuclear Ballistic Missile Submarine INS Arighat at Visakhapatnam** (`cluster-ins-arighat-ssbn-commissioned`): https://pib.gov.in/PressReleasePage.aspx?PRID=2048500
+- **Ministry of Defence Informs Lok Sabha: Over 400 Startups Funded Under iDEX with ₹2,500 Cr Procurement Pipeline** (`cluster-lok-sabha-idex-procurement-qa`): https://sansad.in/ls/questions/questions-and-answers
+- **Ankit Balyan murder case: Two suspects killed in encounter with Shamli Police** (`cluster-0abc0cad`): https://www.thehindu.com/news/national/uttar-pradesh/ankit-balyan-murder-case-two-suspects-killed-in-encounter-with-shamli-police/article71409580.ece
+
+## Source Scoring & Corroboration Engine
+DefenceWire employs an automated Fowler Half-Open circuit breaker and multi-tier scoring model:
+- Tier Official (Weight: 1.0): Government/military statements, press releases, parliamentary Q&A.
+- Tier 1 (Weight: 0.85): Specialized defence publications and institutional news wire services.
+- Tier 2 (Weight: 0.60): General national and international print/broadcast media.
+- Tier Social (Weight: 0.35): Verified OSINT intelligence handles and accredited journalists.
+Stories corroborated by multiple tiers receive logarithmic confidence boosts.

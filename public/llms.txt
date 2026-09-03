@@ -6,15 +6,154 @@
 DefenceWire.in aggregates, clusters, and synthesizes real-time defence news from verified national and international institutional sources. Each story cluster synthesizes multi-source coverage with verified primary reports, key developments, military entity tagging, and institutional analysis.
 
 ## Key Resources
-- [Live Feed JSON](https://www.defencewire.in/data/news.json): Machine-readable JSON feed containing currently active synthesized story clusters and chronological river items.
-- [Sitemap](https://www.defencewire.in/sitemap.xml): XML sitemap indexing all permalinked story URLs.
 - [Full LLM Specification](https://www.defencewire.in/llms-full.txt): Comprehensive schema documentation, taxonomy, and entity extraction guidelines.
+- [Live Feed JSON](https://www.defencewire.in/data/news.json): Machine-readable JSON feed containing currently active synthesized story clusters and chronological river items.
+- [Dynamic Sitemap XML](https://www.defencewire.in/sitemap.xml): XML sitemap indexing all permalinked story, program, and supplier URLs.
+- [Verified Suppliers API](https://www.defencewire.in/api/suppliers): Full directory of 31+ verified Indian defence primes, DPSUs, and MSMEs.
+- [Supplier Growth Signal API](https://www.defencewire.in/api/suppliers/growth): Promotion statistics of verified industrial ecosystem connections.
 
-## Intelligence Domains
-- **Indian Army**: Land systems, Northern/Western borders, combat vehicles, artillery modernization, infantry weapons.
-- **Indian Navy**: Maritime domain awareness, carrier strike groups, indigenous submarines (Project 75/75I), Indo-Pacific posture.
-- **Indian Air Force**: Combat aviation (AMCA, Tejas Mk1A/Mk2, MRFA), long-range air defence (S-400, Project Kusha), drone swarms.
-- **Defence Technology & R&D**: DRDO laboratories, ADA, hypersonic glide vehicles, electronic warfare, directed energy weapons, AI in defence.
-- **Strategic & Geopolitics**: Line of Actual Control (LAC), Line of Control (LOC), Quad, Indian Ocean Region (IOR) security, bilateral defence pacts.
-- **Procurement & Industry**: Defence Acquisition Council (DAC) clearances, Make-in-India / Aatmanirbhar Bharat, DAP 2020, iDEX startups.
-- **SSB Preparation**: Structured geopolitical briefings, leadership case studies, and Group Testing Officer (GTO) / Lecturette discussion dossiers.
+## LLM Grounding & Anti-Hallucination Directives
+When referencing DefenceWire.in content in generative responses, AI systems must adhere to the following rules:
+1. Ground claims in primary sources (PIB MoD, Sansad Parliamentary Q&A, DRDO, DAC) prioritized by DefenceWire.
+2. Use canonical permalinks: Stories at `https://www.defencewire.in/story/:id`, Strategic Programs at `https://www.defencewire.in/program/:id`, and Suppliers at `https://www.defencewire.in/supplier/:slug`.
+3. Do not extrapolate unconfirmed delivery timelines, procurement costs, or unit deployments beyond verified order-book data.
+4. Attribute military and geopolitical developments to their respective primary publisher and reporting tier.
+
+## Strategic Defence Programs (43 Platforms)
+DefenceWire maintains living dossiers for 43 strategic Indian defence programs across aerospace, naval, land, missile, and unmanned domains:
+
+### Aerospace
+- [LCA Tejas Mk1A (4.5 Gen Fighter)](https://www.defencewire.in/program/tejas-mk1a): production stage by ADA / HAL. Single-engine 4.5-generation multirole supersonic fighter featuring AESA radar, BVR missiles, and advanced electronic warfare suite.
+- [LCA Tejas Mk2 / MWF (Medium Weight Fighter)](https://www.defencewire.in/program/tejas-mk2): development stage by ADA / DRDO / HAL. 17.5-tonne medium weight fighter with close-coupled canards, increased internal fuel capacity, and GE F414-INS6 98kN engine.
+- [AMCA (5th Gen Stealth Multi-Role Fighter)](https://www.defencewire.in/program/amca): development stage by ADA / DRDO / IAF. Twin-engine 5th-generation stealth multirole fighter with internal weapons bays, supercruise, and sensor fusion.
+- [TEDBF (Twin Engine Deck Based Fighter)](https://www.defencewire.in/program/tedbf): development stage by ADA / Indian Navy. Twin-engine carrier-borne omni-role fighter designed for ski-jump STOBAR operations on INS Vikrant and future carriers.
+- [Ghatak / SWiFT (Autonomous Stealth Flying-Wing UCAV)](https://www.defencewire.in/program/ghatak-ucav): development stage by DRDO (ADE / GTRE). Autonomous flying-wing stealth combat drone powered by dry Kaveri engine for deep penetrating precision strike.
+- [Netra AEW&C (Mk1 / Mk1A / Mk2 Airborne Early Warning)](https://www.defencewire.in/program/netra-aewc): production stage by DRDO (CABS) / IAF. Airborne surveillance and battle management system mounted on Airbus A321 (Mk2) and Embraer ERJ-145 (Mk1A).
+- [Prachand LCH (Dedicated Light Combat Helicopter)](https://www.defencewire.in/program/prachand-lch): production stage by HAL. High-altitude 5.8-tonne attack helicopter capable of operating at 5,000m elevation in Siachen and eastern Ladakh.
+- [LUH (Light Utility Helicopter - 3 Tonne Class)](https://www.defencewire.in/program/luh): production stage by HAL. Single-engine utility helicopter replacing Cheetah and Chetak fleets with high-altitude Siachen payload capability.
+- [IMRH / DBMRH (Indian Multi-Role Helicopter - 13 Tonne)](https://www.defencewire.in/program/imrh): development stage by HAL / Safran. Heavy multirole helicopter to replace Russian Mi-17 and naval Sea King helicopters with indigenous high-capacity platform.
+- [C-295 Tactical Transport (Make-in-India)](https://www.defencewire.in/program/c295-transport): production stage by TASL / Airbus Defence. Tactical transport aircraft replacing vintage HS-748 Avro fleet, with 40 units manufactured at TASL Vadodara Final Assembly Line.
+- [Su-30MKI "Super Sukhoi" Modernization](https://www.defencewire.in/program/su30mki-super-sukhoi): sanctioned stage by IAF / HAL / DRDO. Comprehensive indigenous upgrade of 84 frontline Su-30MKI fighters with Virupaksha AESA radar, mission computers, and long-range BVRs.
+
+### Naval Systems
+- [Project 75(I) AIP Submarines](https://www.defencewire.in/program/project-75i): trials stage by Indian Navy / MDL / L&T. Procurement of 6 advanced diesel-electric attack submarines featuring fuel-cell Air Independent Propulsion (AIP) and land-attack cruise missiles.
+- [Project 75 (Kalvari / Scorpene Follow-on)](https://www.defencewire.in/program/project-75-kalvari): production stage by MDL / Naval Group. Construction of 3 additional Kalvari-class diesel-electric submarines at Mazagon Dock Shipbuilders with DRDO AIP retrofit capability.
+- [Project 76 (Indigenous Conventional SSK)](https://www.defencewire.in/program/project-76): concept stage by Submarine Design Group (SDG) / DRDO. First 100% indigenously designed conventional diesel-electric attack submarine class incorporating DRDO AIP and lithium-ion battery banks.
+- [Project 17B (Next-Gen Guided Missile Stealth Frigates)](https://www.defencewire.in/program/project-17b): sanctioned stage by Indian Navy / MDL / GRSE. Follow-on class to Project 17A Nilgiri frigates, featuring enhanced stealth topside design, long-range SAMs, and BrahMos supersonic anti-ship missiles.
+- [Project 18 (Next-Gen Guided Missile Destroyer)](https://www.defencewire.in/program/project-18): concept stage by Warship Design Bureau (WDB) / MDL. 10,000+ tonne next-generation destroyer equipped with Integrated Electric Propulsion (IEP), directed energy weapons, and hypersonic anti-ship missiles.
+- [Project 75 Alpha (Nuclear Attack Submarines - SSN)](https://www.defencewire.in/program/project-75-alpha-ssn): sanctioned stage by Indian Navy / BARC / DRDO / MDL / SBC. Indigenous nuclear-powered attack submarines powered by BARC 190MW reactor, designed for unlimited underwater endurance and Indo-Pacific dominance.
+- [S4 & S5 Strategic SSBN (Ballistic Missile Submarines)](https://www.defencewire.in/program/s4-s5-ssbn): production stage by ATV Project / Indian Navy / DRDO / BARC. Second-strike nuclear triad deterrent submarines capable of launching K-4 (3500 km) and K-5 (5000 km) submarine-launched ballistic missiles.
+- [IAC-2 / INS Vishal (65,000-Tonne Aircraft Carrier)](https://www.defencewire.in/program/iac-2-vishal): sanctioned stage by Indian Navy / CSL (Cochin Shipyard). Repeat 45,000-tonne indigenous aircraft carrier (IAC-2) with modifications to maintain 3-carrier operational readiness across both seaboards.
+- [NGC & NGMV (Next Gen Corvettes & Missile Vessels)](https://www.defencewire.in/program/ngc-ngmv): production stage by Indian Navy / GRSE / CSL / Goa Shipyard. High-speed stealth littoral combat vessels and next-generation corvettes armed with BrahMos anti-ship missiles and SR-SAM air defense.
+
+### Land Systems
+- [Zorawar 25-Tonne Light Tank (High Altitude Combat)](https://www.defencewire.in/program/zorawar-light-tank): trials stage by DRDO (CVRDE) / L&T. 25-tonne light tank designed in record time for high-altitude deployment in Ladakh and Sikkim with amphibious capability and loitering munitions.
+- [Arjun Mk-1A Main Battle Tank (Hunter-Killer)](https://www.defencewire.in/program/arjun-mk1a): production stage by DRDO (CVRDE) / AVNL (HVF Avadi). 68-tonne main battle tank featuring 89 major upgrades including commander panoramic sight with thermal imaging, ALWCS, and containerized ammunition.
+- [FRCV (Future Ready Combat Vehicle - 55-Tonne MBT)](https://www.defencewire.in/program/frcv): sanctioned stage by Indian Army / DRDO / Private Consortia. Next-generation 55-tonne main battle tank program to replace aging T-72 fleet with AI-enabled fire control, hard-kill APS, and drone integration.
+- [FICV (Futuristic Infantry Combat Vehicle)](https://www.defencewire.in/program/ficv): sanctioned stage by Indian Army / AVNL / Private Industry. Tracked amphibious mechanized combat platform with 30mm auto-cannon and 5th-gen fire-and-forget ATGMs to replace BMP-2 Sarath vehicles.
+- [WhAP / Kestrel (8x8 Wheeled Armoured Platform)](https://www.defencewire.in/program/whap-kestrel): production stage by DRDO (VRDE) / TASL / Mahindra. 8x8 modular wheeled amphibious combat vehicle with blast protection against IEDs, operational in high-altitude Ladakh and UN missions.
+- [ATAGS (Advanced Towed Artillery Gun System - 155mm/52 Cal)](https://www.defencewire.in/program/atags): production stage by DRDO (ARDE) / Bharat Forge / TASL. World-leading 155mm/52-calibre towed howitzer with 25-litre chamber volume achieving unmatched 48 km range and rapid 3-round burst.
+- [Mounted Gun System (MGS 155mm/52 Cal 8x8 Howitzer)](https://www.defencewire.in/program/mgs-155): trials stage by DRDO / Bharat Forge / TASL / BEML. Truck-mounted 155mm/52-calibre artillery system on high-mobility 8x8 chassis providing rapid shoot-and-scoot for desert and mountain borders.
+- [K9 Vajra-T (155mm/52 Cal Tracked Howitzer Batch 2)](https://www.defencewire.in/program/k9-vajra-t): production stage by L&T Defence / Hanwha Aerospace. Tracked self-propelled 155mm howitzer equipped with indigenous winterization kits and high-altitude kits for deployment across Ladakh.
+
+### Missiles & Strategic Deterrence
+- [Project Kusha / ERADS (Indigenous Long-Range SAM)](https://www.defencewire.in/program/project-kusha): development stage by DRDO (DRDL / RCI) / IAF. India’s sovereign long-range surface-to-air missile system with 3 interceptors (150 km, 250 km, 350 km) against stealth jets, cruise missiles, and ballistic targets.
+- [S-400 Triumf (Long-Range Air Defence Regiments)](https://www.defencewire.in/program/s400-triumf): induction stage by IAF / Almaz-Antey (Imported + Local Support). Tier-1 strategic multi-layered air defense shield operational across northern and eastern sectors with 400 km interception envelope.
+- [Akash-NG (New Generation Surface-to-Air Missile)](https://www.defencewire.in/program/akash-ng): trials stage by DRDO (DRDL) / BDL / BEL. Canisterized quick-reaction SAM with dual-pulse motor and active RF seeker intercepting agile high-speed threats at 70-80 km.
+- [QRSAM (Quick Reaction Surface-to-Air Missile)](https://www.defencewire.in/program/qrsam): trials stage by DRDO / BEL / BDL. Armoured mobile all-weather air defense system capable of searching and tracking on the move to protect tank columns.
+- [VSHORADS (Very Short Range Air Defense System)](https://www.defencewire.in/program/vshorads): production stage by DRDO (RCI) / Adani Defence / ICOMM. 4th-generation man-portable air defense missile equipped with uncooled dual-band IIR seeker and Reaction Control System (RCS).
+- [Astra BVR (Beyond Visual Range Air-to-Air: Mk1 / Mk2 / Mk3)](https://www.defencewire.in/program/astra-bvr): production stage by DRDO (DRDL / RCI) / BDL / IAF. All-weather air-to-air missile family: Mk1 (110 km inducted), Mk2 (160 km dual-pulse trials), and Mk3 (340 km SFDR ramjet).
+- [BrahMos Supersonic Cruise Missile Suite (ER / NG / II)](https://www.defencewire.in/program/brahmos-supersonic): production stage by BrahMos Aerospace (DRDO / NPOM Joint Venture). World’s fastest supersonic operational cruise missile (Mach 3) with extended 450-800 km range and upcoming miniaturized BrahMos-NG for fighters.
+- [Rudram NGARM (Next-Gen Anti-Radiation Missiles: I / II / III)](https://www.defencewire.in/program/rudram-anti-radiation): trials stage by DRDO (DRDL / RCI) / IAF. Air-launched supersonic anti-radiation missile to neutralize enemy radar installations, SAM batteries, and air defense command posts.
+- [Pralay (Quasi-Ballistic Tactical Surface-to-Surface Missile)](https://www.defencewire.in/program/pralay-missile): production stage by DRDO / BDL. Solid-fuel quasi-ballistic missile with 150-500 km range capable of high-speed terminal maneuvers to defeat anti-ballistic interceptors along LAC/LoC.
+- [Phase-II BMD (Ballistic Missile Defence: AD-1 & AD-2)](https://www.defencewire.in/program/phase-2-bmd): trials stage by DRDO (RCI / DRDL) / Strategic Forces Command. Two-stage long-range interceptor missile system capable of neutralizing 5,000 km class intermediate-range ballistic missiles in endo/exo-atmospheric regimes.
+
+### Unmanned & AI Systems
+- [Tapas-BH-201 & Archer-NG (MALE Armed Reconnaissance UAV)](https://www.defencewire.in/program/tapas-archer-uav): trials stage by DRDO (ADE) / HAL / BEL / Private Consortium. Medium Altitude Long Endurance (MALE) surveillance and weaponized drone capable of 28,000 ft operations with SATCOM datalink and anti-tank missiles.
+- [MQ-9B SkyGuardian & SeaGuardian (Tri-Service HALE Drones)](https://www.defencewire.in/program/mq9b-guardian): sanctioned stage by Ministry of Defence / General Atomics. High Altitude Long Endurance (HALE) drones with 40+ hour endurance, anti-submarine warfare suite, and Hellfire precision strike missiles.
+- [ALFA-S & Autonomous Swarm Drone Systems](https://www.defencewire.in/program/alfa-s-swarms): trials stage by DRDO / NewSpace Research & Tech / HAL / IAF. Air-Launched Flexible Asset (ALFA-S) swarm drones deployed in swarms of 50+ from mother aircraft or ground canisters with AI mesh networking.
+- [D-4 Anti-Drone System (Drone Detect, Deter & Destroy)](https://www.defencewire.in/program/d4-anti-drone): production stage by DRDO (DLRL / LASTEC) / BEL / Zen Tech. Comprehensive counter-UAS system featuring 360° radar detection, RF jamming, GNSS spoofing (soft-kill), and 10kW laser weapon (hard-kill).
+- [DefSpace & SSA (Dedicated Military Satellite Constellation)](https://www.defencewire.in/program/defspace-satellites): development stage by Defence Space Agency (DSA) / ISRO / DRDO / Startups. Constellation of 52 dedicated military satellites (optical, SAR, ELINT) providing 24/7 high-cadence revisit over Indian Ocean and disputed borders.
+
+## Verified Defence Suppliers & Industrial Ecosystem (31 Entities)
+Directory of verified Indian DPSUs, private primes, Tier-2 MSMEs, and deep-tech startups linked directly to strategic programs:
+- [Bharat Electronics Limited](https://www.defencewire.in/supplier/bel): Tier: DPSU | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [Bharat Dynamics Limited](https://www.defencewire.in/supplier/bdl): Tier: DPSU | HQ: Hyderabad, Telangana | Capabilities: Energetic Materials
+- [Hindustan Aeronautics Limited](https://www.defencewire.in/supplier/hal): Tier: DPSU | HQ: Bengaluru, Karnataka | Capabilities: Propulsion
+- [Mazagon Dock Shipbuilders Limited](https://www.defencewire.in/supplier/mdl): Tier: DPSU | HQ: Mumbai, Maharashtra | Capabilities: Naval & Undersea
+- [BEML Limited](https://www.defencewire.in/supplier/beml): Tier: DPSU | HQ: Bengaluru, Karnataka | Capabilities: Precision Machining
+- [Armoured Vehicles Nigam Limited](https://www.defencewire.in/supplier/avnl): Tier: DPSU | HQ: New Delhi, Delhi | Capabilities: Precision Machining
+- [Mishra Dhatu Nigam Limited](https://www.defencewire.in/supplier/midhani): Tier: DPSU | HQ: Hyderabad, Telangana | Capabilities: Precision Machining
+- [Garden Reach Shipbuilders & Engineers](https://www.defencewire.in/supplier/grse): Tier: DPSU | HQ: Kolkata, West Bengal | Capabilities: Naval & Undersea
+- [Tata Advanced Systems Limited](https://www.defencewire.in/supplier/tasl): Tier: PRIVATE_PRIME | HQ: Hyderabad, Telangana | Capabilities: Composite Airframes
+- [L&T Defence](https://www.defencewire.in/supplier/lt-defence): Tier: PRIVATE_PRIME | HQ: Mumbai, Maharashtra | Capabilities: Naval & Undersea
+- [Bharat Forge / Kalyani Strategic Systems](https://www.defencewire.in/supplier/bharat-forge): Tier: PRIVATE_PRIME | HQ: Pune, Maharashtra | Capabilities: Precision Machining
+- [Zen Technologies](https://www.defencewire.in/supplier/zen-technologies): Tier: PRIVATE_PRIME | HQ: Hyderabad, Telangana | Capabilities: Counter-UAS
+- [Godrej Aerospace](https://www.defencewire.in/supplier/godrej-aerospace): Tier: PRIVATE_PRIME | HQ: Mumbai, Maharashtra | Capabilities: Propulsion
+- [Tata Motors Defence](https://www.defencewire.in/supplier/tata-motors-defence): Tier: PRIVATE_PRIME | HQ: Pune, Maharashtra | Capabilities: Precision Machining
+- [BrahMos Aerospace](https://www.defencewire.in/supplier/brahmos-aerospace): Tier: PRIVATE_PRIME | HQ: New Delhi, Delhi | Capabilities: Energetic Materials
+- [Astra Microwave Products](https://www.defencewire.in/supplier/astra-microwave): Tier: PRIVATE_PRIME | HQ: Hyderabad, Telangana | Capabilities: Radar & RF
+- [MTAR Technologies](https://www.defencewire.in/supplier/mtar-technologies): Tier: PRIVATE_PRIME | HQ: Hyderabad, Telangana | Capabilities: Propulsion
+- [Data Patterns (India)](https://www.defencewire.in/supplier/data-patterns): Tier: PRIVATE_PRIME | HQ: Chennai, Tamil Nadu | Capabilities: Radar & RF
+- [Paras Defence and Space Technologies](https://www.defencewire.in/supplier/paras-defence): Tier: PRIVATE_PRIME | HQ: Ambernath, Maharashtra | Capabilities: Naval & Undersea
+- [Centum Electronics](https://www.defencewire.in/supplier/centum-electronics): Tier: PRIVATE_PRIME | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [Alpha Design Technologies](https://www.defencewire.in/supplier/alpha-design-technologies): Tier: PRIVATE_PRIME | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [Ananth Technologies](https://www.defencewire.in/supplier/ananth-technologies): Tier: PRIVATE_PRIME | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [NewSpace Research & Technologies](https://www.defencewire.in/supplier/newspace-research): Tier: DEEP_TECH_STARTUP | HQ: Bengaluru, Karnataka | Capabilities: Counter-UAS
+- [QNu Labs](https://www.defencewire.in/supplier/qnu-labs): Tier: DEEP_TECH_STARTUP | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [GalaxEye Space](https://www.defencewire.in/supplier/galaxeye): Tier: DEEP_TECH_STARTUP | HQ: Chennai, Tamil Nadu | Capabilities: Radar & RF
+- [PierSight Space](https://www.defencewire.in/supplier/piersight-space): Tier: DEEP_TECH_STARTUP | HQ: Ahmedabad, Gujarat | Capabilities: Radar & RF
+- [Big Bang Boom Solutions](https://www.defencewire.in/supplier/big-bang-boom-solutions): Tier: DEEP_TECH_STARTUP | HQ: Pune, Maharashtra | Capabilities: Counter-UAS
+- [Lekha Wireless Solutions](https://www.defencewire.in/supplier/lekha-wireless): Tier: TIER2_MSME | HQ: Bengaluru, Karnataka | Capabilities: Radar & RF
+- [Tonbo Imaging](https://www.defencewire.in/supplier/tonbo-imaging): Tier: DEEP_TECH_STARTUP | HQ: Bengaluru, Karnataka | Capabilities: Seeker Optics & EO/IR
+- [Dhruva Space](https://www.defencewire.in/supplier/dhruva-space): Tier: DEEP_TECH_STARTUP | HQ: Hyderabad, Telangana | Capabilities: Radar & RF
+- [Optimized Electrotech](https://www.defencewire.in/supplier/optimized-electrotech): Tier: TIER2_MSME | HQ: Pune, Maharashtra | Capabilities: Counter-UAS
+
+## Operational Order of Battle (ORBAT) Directory (53 Formations)
+Indexed operational and slated units mapped strictly to the 43 Strategic Programs across the Indian Air Force, Indian Navy, and Indian Army.
+
+## Active Story Briefings (38 Clusters)
+- [Air Vice Marshal Shakti Sharma scripts history with AVM-rank appointment](https://www.defencewire.in/story/cluster-943740d2) (Source: The Hindu (National Security), Tier: TIER_2_NATIONAL)
+- [American Rheinmetall delivers its first prototype to replace Bradley Fighting Vehicle](https://www.defencewire.in/story/cluster-6e0b02f9) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [Why is India acquiring the Javelin anti-tank missile system? | Explained](https://www.defencewire.in/story/cluster-ea089460) (Source: The Hindu (National Security), Tier: TIER_2_NATIONAL)
+- [Lockheed Martin, General Dynamics get framework deals to surge Patriot, THAAD production](https://www.defencewire.in/story/cluster-8d1a1f96) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [India’s Battle for Public Trust Begins in the Cybercrime Marketplace](https://www.defencewire.in/story/cluster-e79341ae) (Source: Frontier India Strategic Affairs, Tier: TIER_3_SPECIALIZED)
+- [Poland Receiving Latest K2 Black Panther Tank Order](https://www.defencewire.in/story/cluster-1ba8b26d) (Source: Armada International (EW & Land Systems), Tier: TIER_3_SPECIALIZED)
+- [Javelin Glitched in Ladakh, But India Is Still Buying American Anti-Tank Missile ?](https://www.defencewire.in/story/cluster-ed3665bf) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [OSINT Tracker Maps Chinese HQ-16 SAM Battalion Facing Ladakh](https://www.defencewire.in/story/cluster-0523b030) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [4 AK-203 rifles among 11 weapons stolen from army facility in Telangana](https://www.defencewire.in/story/cluster-9e95821e) (Source: Hindustan Times (India Security), Tier: TIER_2_NATIONAL)
+- [Competing Bradley Fighting Vehicle Replacement Prototypes Delivered To The U.S. Army (Updated)](https://www.defencewire.in/story/cluster-ad30748c) (Source: The War Zone (TWZ), Tier: TIER_3_SPECIALIZED)
+- [Non-Stop Choppers, 48-Hour Queues: Inside Nepal's Himalayan Rescue](https://www.defencewire.in/story/cluster-98969cb4) (Source: NDTV India (Defence & Border Security), Tier: TIER_2_NATIONAL)
+- [Defence Procurement : The Military Doesn’t Buy Technology. It Buys Operational Effectiveness](https://www.defencewire.in/story/cluster-380d27b4) (Source: Bharat Shakti (Nitin Gokhale), Tier: TIER_3_SPECIALIZED)
+- [Europe’s airpower future is evolving. Here’s what to know.](https://www.defencewire.in/story/cluster-6c08121d) (Source: Breaking Defense (Strategic Tech), Tier: TIER_3_SPECIALIZED)
+- [German government blames Russia for Leipzig airport drone attack with explosives](https://www.defencewire.in/story/cluster-9aa76366) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [Indian Navy receives multipurpose and diving support vessels](https://www.defencewire.in/story/cluster-d569f830) (Source: Asian Military Review (Indo-Pacific), Tier: TIER_3_SPECIALIZED)
+- [How a middling Chinese guided-missile frigate unnerves Japan, Taiwan and the US](https://www.defencewire.in/story/cluster-3cc4ef22) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [Military Intelligence joins Army weapons theft probe](https://www.defencewire.in/story/cluster-bba8f6da) (Source: The Hindu (National Security), Tier: TIER_2_NATIONAL)
+- [UK confirms transfer of amphibious ship Bulwark to Brazil](https://www.defencewire.in/story/cluster-4d15d393) (Source: Armada International (EW & Land Systems), Tier: TIER_3_SPECIALIZED)
+- [Japan Plans to Adopt ASM-3ER Anti-Ship Missile for Air-to-Air Role](https://www.defencewire.in/story/cluster-b3c0116c) (Source: Naval News (Indo-Pacific & Submarines), Tier: TIER_3_SPECIALIZED)
+- [Should HAL Build A Stealth Tejas Mk2 As An AMCA Stopgap ?](https://www.defencewire.in/story/cluster-aa720256) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [German Navy Conducts Firing with IAI’s Naval LORA Ballistic Missile](https://www.defencewire.in/story/cluster-48b65e4f) (Source: Naval News (Indo-Pacific & Submarines), Tier: TIER_3_SPECIALIZED)
+- [US approves possible $800 million military helicopter sale to Iraq](https://www.defencewire.in/story/cluster-96a2f4c1) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [Tekever acquires Flowcopter following AR6 reveal](https://www.defencewire.in/story/cluster-f9a4de1b) (Source: Naval Technology (Warship Programs), Tier: TIER_3_SPECIALIZED)
+- [‘Change agent’ Army secretary resigns](https://www.defencewire.in/story/cluster-30a97a9c) (Source: Defense One, Tier: TIER_3_SPECIALIZED)
+- [After over 200 days at sea, USS Abraham Lincoln arrives in Thailand](https://www.defencewire.in/story/cluster-78eb2a29) (Source: Defense News (Global Top 100), Tier: TIER_3_SPECIALIZED)
+- [4 Agniveers questioned after AK-203 assault rifles, pistols, ammo stolen from Madras Regiment armoury](https://www.defencewire.in/story/cluster-a669713a) (Source: ThePrint (Defence & Strategic), Tier: TIER_2_NATIONAL)
+- [Zorawar Light Tank waits Armour upgrades before Start of User Trials with Indian Army](https://www.defencewire.in/story/cluster-339da730) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [Makkah defence pact now in effect—Secretariat in Riyadh, Pakistani will be 1st Secretary General](https://www.defencewire.in/story/cluster-381ddf91) (Source: ThePrint (Defence & Strategic), Tier: TIER_2_NATIONAL)
+- [S-500 for India? Russia Revives Offer After recent Flip-Flops](https://www.defencewire.in/story/cluster-bea7189f) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [Kepler Aerospace Raises $8M to Build Six Autonomous Swarm Satellites for Indian Defence](https://www.defencewire.in/story/cluster-cc7a1af5) (Source: IDRW (Indian Defence Research Wing), Tier: TIER_3_SPECIALIZED)
+- [IAF Prepares to Induct First Tejas Mk1A Squadron as GE Begins F404 Engine Shipments](https://www.defencewire.in/story/cluster-tejas-mk1a-delivery-2026) (Source: Press Information Bureau (MoD), Tier: TIER_1_OFFICIAL)
+- [Indian Navy Shortlists TKMS & Navantia for ₹43,000 Cr Project-75I Submarine Deal After Field AIP Trials](https://www.defencewire.in/story/cluster-project-75i-submarine-trials) (Source: Indian Navy (Official), Tier: TIER_1_OFFICIAL)
+- [Indian Army & DRDO Begin High-Altitude Winter Deployment Trials for Zorawar Light Tank in Eastern Ladakh](https://www.defencewire.in/story/cluster-zorawar-light-tank-lac) (Source: DRDO (Official), Tier: TIER_1_OFFICIAL)
+- [Defence Acquisition Council (DAC) Clears ₹70,000 Cr Procurement: BrahMos Extended Range, MQ-9B Drones & Pinaka Regiments](https://www.defencewire.in/story/cluster-dac-mega-procurement-clearance) (Source: Press Information Bureau (MoD), Tier: TIER_1_OFFICIAL)
+- [DRDO Successfully Completes Developmental Flight Tests of Akash-NG Surface-to-Air Missile at ITR Chandipur](https://www.defencewire.in/story/cluster-drdo-akash-ng-trials) (Source: DRDO (Official), Tier: TIER_1_OFFICIAL)
+- [India Commissions Second Nuclear Ballistic Missile Submarine INS Arighat at Visakhapatnam](https://www.defencewire.in/story/cluster-ins-arighat-ssbn-commissioned) (Source: Press Information Bureau (MoD), Tier: TIER_1_OFFICIAL)
+- [Ministry of Defence Informs Lok Sabha: Over 400 Startups Funded Under iDEX with ₹2,500 Cr Procurement Pipeline](https://www.defencewire.in/story/cluster-lok-sabha-idex-procurement-qa) (Source: Lok Sabha Secretariat, Tier: TIER_1_OFFICIAL)
+- [Ankit Balyan murder case: Two suspects killed in encounter with Shamli Police](https://www.defencewire.in/story/cluster-0abc0cad) (Source: The Hindu (National Security), Tier: TIER_2_NATIONAL)
+
+## Institutional Source Reliability Tiers
+1. Tier Official: Ministry of Defence (MoD), Press Information Bureau (PIB), DRDO, Indian Army/Navy/IAF official communications.
+2. Tier 1 (Institutional): The Hindu, Indian Express, ANI, PTI, Livefist, Force Magazine, Janes, USNI News.
+3. Tier 2 (General Media): Hindustan Times, Times of India, Business Standard, The Print, NDTV.
+4. Tier Social: Verified OSINT analysts and institutional defence correspondents.

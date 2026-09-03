@@ -62,6 +62,9 @@ jobs:
       - name: Generate Sitemap
         run: npm run sitemap
 
+      - name: Generate LLM Grounding Specs
+        run: npm run llms
+
       - name: Build Production Assets
         run: npm run build
 
