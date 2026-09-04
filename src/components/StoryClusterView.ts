@@ -13,7 +13,6 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
-import { openEntityDossierModal } from './EntityDossierModal.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
 
 export function renderStoryCluster(
@@ -22,20 +21,26 @@ export function renderStoryCluster(
   isLead: boolean = false
 ): HTMLElement {
   const article = document.createElement('article');
-  article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''}`;
+  article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''} dw-cluster-card`;
   article.id = `cluster-${cluster.id}`;
+
+  const inner = document.createElement('div');
+  inner.className = 'dw-cluster-inner';
+
+  const content = document.createElement('div');
+  content.className = 'dw-cluster-content';
 
   // 1. Lead story tag
   if (isLead) {
     const leadTag = document.createElement('span');
     leadTag.className = 'dw-lead-tag';
     leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
-    article.appendChild(leadTag);
+    content.appendChild(leadTag);
   }
 
   // 1b. Consolidated Source & Geopolitical Attribution Line (Flag + Source/Badge + Time)
   const attributionEl = renderSourceAttribution(cluster.primarySource);
-  article.appendChild(attributionEl);
+  content.appendChild(attributionEl);
 
   // 2. Synthesized Headline
   const headlineEl = document.createElement('h2');
@@ -49,14 +54,14 @@ export function renderStoryCluster(
   headlineLink.textContent = sanitizePlainText(cluster.synthesizedHeadline);
 
   headlineEl.appendChild(headlineLink);
-  article.appendChild(headlineEl);
+  content.appendChild(headlineEl);
 
   // 3. Primary Snippet
   if (cluster.primarySource.snippet) {
     const snippetEl = document.createElement('p');
     snippetEl.className = 'dw-snippet';
     snippetEl.textContent = cleanStorySnippet(cluster.primarySource.snippet);
-    article.appendChild(snippetEl);
+    content.appendChild(snippetEl);
   }
 
   // 4. Related Coverage Sub-list
@@ -94,7 +99,7 @@ export function renderStoryCluster(
     }
 
     relatedBox.appendChild(relatedUl);
-    article.appendChild(relatedBox);
+    content.appendChild(relatedBox);
   }
 
   // 5. Discussion Quotes
@@ -141,7 +146,7 @@ export function renderStoryCluster(
       discBox.appendChild(metaP);
     }
 
-    article.appendChild(discBox);
+    content.appendChild(discBox);
   }
 
   // 6. Inline Base Footer (Metadata on Left + Action Buttons on Right)
@@ -160,7 +165,9 @@ export function renderStoryCluster(
       chip.title = `View sovereign intelligence dossier for ${sanitizePlainText(ent)}`;
       chip.addEventListener('click', (e) => {
         e.stopPropagation();
-        openEntityDossierModal(ent);
+        import('./EntityDossierModal.js').then(({ openEntityDossierModal }) => {
+          openEntityDossierModal(ent);
+        });
       });
       entityBox.appendChild(chip);
     }
@@ -185,9 +192,7 @@ export function renderStoryCluster(
   const permalinkTextSpan = document.createElement('span');
   permalinkTextSpan.className = 'dw-btn-label';
   permalinkTextSpan.textContent = STRINGS.story.shareBtnText;
-
-  permalinkBtn.appendChild(permalinkIconSpan);
-  permalinkBtn.appendChild(permalinkTextSpan);
+  permalinkBtn.append(permalinkIconSpan, permalinkTextSpan);
 
   permalinkBtn.addEventListener('click', () => {
     pushStoryUrl(cluster);
@@ -229,9 +234,7 @@ export function renderStoryCluster(
     const toggleTextSpan = document.createElement('span');
     toggleTextSpan.className = 'dw-btn-label';
     toggleTextSpan.textContent = isExpanded ? STRINGS.summary.summaryCollapseText : STRINGS.summary.summaryToggleText;
-
-    toggleBtn.appendChild(toggleIconSpan);
-    toggleBtn.appendChild(toggleTextSpan);
+    toggleBtn.append(toggleIconSpan, toggleTextSpan);
 
     toggleBtn.addEventListener('click', () => {
       newsVm.toggleSSBDrawer(cluster.id);
@@ -247,7 +250,37 @@ export function renderStoryCluster(
   }
 
   footerEl.appendChild(actionsGroup);
-  article.appendChild(footerEl);
+  content.appendChild(footerEl);
+
+  // 6c. Dedicated Mobile Chevron Gutter (›)
+  const chevronBtn = document.createElement('button');
+  chevronBtn.className = 'dw-cluster-chevron-gutter';
+  chevronBtn.type = 'button';
+  chevronBtn.setAttribute('aria-label', STRINGS.story.openDossierAriaLabel);
+  chevronBtn.setAttribute('title', STRINGS.story.openDossierAriaLabel);
+
+  const chevronIcon = document.createElement('span');
+  chevronIcon.className = 'dw-chevron-icon';
+  chevronIcon.setAttribute('aria-hidden', 'true');
+  chevronIcon.textContent = '›';
+  chevronBtn.appendChild(chevronIcon);
+
+  chevronBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    newsVm.openStoryDossier(cluster.id);
+    import('./StoryDossierSlideOver.js').then(({ openStoryDossierSlideOver }) => {
+      openStoryDossierSlideOver(cluster, {
+        isLead,
+        onClose: () => {
+          newsVm.closeStoryDossier();
+        }
+      });
+    });
+  });
+
+  inner.appendChild(content);
+  inner.appendChild(chevronBtn);
+  article.appendChild(inner);
 
   // 7. Expandable SSB Intelligence Drawer Container
   if (ssbDrawerEl) {

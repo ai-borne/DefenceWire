@@ -82,4 +82,15 @@ describe('Unit: Responsive Layout & Text Overflow Hygiene', () => {
       document.body.removeChild(container);
     });
   });
+
+  it('verifies mobile chevron touch gutter target and mobile feed simplification rules', () => {
+    const feedCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/feed.css'), 'utf-8');
+    expect(feedCss).toMatch(/\.dw-cluster-chevron-gutter\s*\{[^}]*width:\s*44px;/);
+    expect(feedCss).toMatch(/\.dw-cluster-chevron-gutter\s*\{[^}]*min-width:\s*44px;/);
+    expect(feedCss).toMatch(/\.dw-cluster-chevron-gutter\s*\{[^}]*min-height:\s*44px;/);
+
+    expect(responsiveCss).toContain('.dw-cluster .dw-related-box');
+    expect(responsiveCss).toContain('.dw-cluster .dw-discussions');
+    expect(responsiveCss).toMatch(/\.dw-cluster\s+\.dw-related-box,\s*\.dw-cluster\s+\.dw-discussions\s*\{\s*display:\s*none;\s*\}/);
+  });
 });

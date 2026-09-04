@@ -224,6 +224,21 @@
     padding: 0;
     font-size: 0.85rem;
   }
+
+  /* Mobile Chevron Touch Gutter Dock */
+  .dw-cluster-chevron-gutter {
+    width: 40px;
+    min-width: 40px;
+    color: var(--dw-text-secondary);
+    background-color: var(--dw-bg-secondary);
+    border-color: var(--dw-border-secondary);
+  }
+
+  /* Techmeme-style mobile feed simplicity: Relegate rich sub-lists & quotes to Slide-Over Story Dossier */
+  .dw-cluster .dw-related-box,
+  .dw-cluster .dw-discussions {
+    display: none;
+  }
 }
 
 @media (min-width: 1200px) {
