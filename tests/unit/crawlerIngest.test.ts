@@ -145,33 +145,16 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
 
   it('rejects blacklisted non-defence topics across all feeds including Tier 1', () => {
     const pibMannKiBaat: StorySourceItem = {
-      id: 'pib-mkb',
-      title: 'Prime Minister addresses 115th episode of Mann Ki Baat',
-      url: 'https://pib.gov.in/mann-ki-baat',
-      sourceName: 'PIB MoD',
-      sourceDomain: 'pib.gov.in',
-      tier: SourceTier.TIER_1_OFFICIAL,
-      publishedAt: '2026-08-30T08:00:00Z'
+      id: 'pib-mkb', title: 'Prime Minister addresses 115th episode of Mann Ki Baat', url: 'https://pib.gov.in/mann-ki-baat',
+      sourceName: 'PIB MoD', sourceDomain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL, publishedAt: '2026-08-30T08:00:00Z'
     };
-
     const sensexItem: StorySourceItem = {
-      id: 'sensex-1',
-      title: 'Sensex jumps 600 points, Nifty above 25,000 on stock market rally',
-      url: 'https://thehindu.com/stock-market',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-30T08:00:00Z'
+      id: 'sensex-1', title: 'Sensex jumps 600 points, Nifty above 25,000 on stock market rally', url: 'https://thehindu.com/stock-market',
+      sourceName: 'The Hindu', sourceDomain: 'thehindu.com', tier: SourceTier.TIER_2_NATIONAL, publishedAt: '2026-08-30T08:00:00Z'
     };
-
     const cricketItem: StorySourceItem = {
-      id: 'cricket-1',
-      title: 'BCCI announces Indian cricket squad for IPL tournament',
-      url: 'https://thehindu.com/cricket-ipl',
-      sourceName: 'The Hindu',
-      sourceDomain: 'thehindu.com',
-      tier: SourceTier.TIER_2_NATIONAL,
-      publishedAt: '2026-08-30T08:00:00Z'
+      id: 'cricket-1', title: 'BCCI announces Indian cricket squad for IPL tournament', url: 'https://thehindu.com/cricket-ipl',
+      sourceName: 'The Hindu', sourceDomain: 'thehindu.com', tier: SourceTier.TIER_2_NATIONAL, publishedAt: '2026-08-30T08:00:00Z'
     };
 
     expect(NON_DEFENCE_BLACKLIST_REGEX.test(pibMannKiBaat.title)).toBe(true);
@@ -274,4 +257,38 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[ATOMIC COMMIT GUARD]'));
     logSpy.mockRestore();
   });
+
+  it('excludes static seed clusters from live crawl output when live articles exist', async () => {
+    const mockFetch = async () => new Response(SAMPLE_XML_TEJAS, { status: 200 });
+
+    // In production, options.feeds is undefined and getActiveFeeds() is used
+    const result = await runIngestionPipeline({
+      outputPath: null,
+      fetchFn: mockFetch as typeof fetch
+    });
+
+    // In a live crawl with fresh articles, only real crawled clusters should appear
+    expect(result.clusters.length).toBeGreaterThan(0);
+    const hasInjectedSeeds = result.clusters.some(
+      (c) => c.id === 'cluster-project-75i-submarine-trials' || c.id === 'cluster-zorawar-light-tank-lac'
+    );
+    expect(hasInjectedSeeds).toBe(false);
+  });
+
+
+  it('falls back to seed clusters when both live fetch and existing dataset are empty', async () => {
+    const failingFetch = async () => new Response('', { status: 500 });
+    const result = await runIngestionPipeline({
+      feeds: [MOCK_TIER1_FEED],
+      outputPath: null,
+      fetchFn: failingFetch as typeof fetch,
+      existingClusters: []
+    });
+
+    expect(result.totalIngested).toBe(0);
+    expect(result.clusters.length).toBeGreaterThan(0);
+    // Seed clusters are used as emergency fallback
+    expect(result.clusters.some((c) => c.id === 'cluster-project-75i-submarine-trials')).toBe(true);
+  });
 });
+

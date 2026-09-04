@@ -95,7 +95,7 @@ function preserveCuratorOverrides(
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
   const startTime = Date.now();
   const feeds = options.feeds ?? getActiveFeeds();
-  const maxAgeHours = options.maxAgeHours ?? 72;
+  const maxAgeHours = options.maxAgeHours ?? 48;
   const maxClusters = options.maxClusters ?? 30;
   const apiKey = options.geminiApiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? '';
   const fetchFn = options.fetchFn ?? globalThis.fetch;
@@ -166,8 +166,8 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const allClusters = clusterArticles(freshArticles, now);
   const topClusters = allClusters.slice(0, maxClusters);
 
-  // Merge with initial seed clusters in production to guarantee permanent hydration of official/program stories
-  const shouldIncludeSeeds = options.includeSeedClusters ?? !options.feeds;
+  // Optional manual seed inclusion (off by default in live runs to maintain rolling real-time wire)
+  const shouldIncludeSeeds = options.includeSeedClusters ?? false;
   const mergedWithSeeds = [...topClusters];
   if (shouldIncludeSeeds) {
     for (const seed of INITIAL_STORY_CLUSTERS) {
