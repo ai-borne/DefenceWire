@@ -84,14 +84,6 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.story.permalinkCopied).toBe('✓ Link copied');
   });
 
-  it('should define story dossier slide-over labels and geopolitical scope flags', () => {
-    expect(STRINGS.story.openDossierAriaLabel).toBe('Open story intelligence dossier');
-    expect(STRINGS.story.dossierBackBtn).toBe('‹ Back to Top Stories');
-    expect(STRINGS.story.dossierTitle).toBe('Story Intelligence Dossier');
-    expect(STRINGS.story.domesticFlag).toBe('🇮🇳');
-    expect(STRINGS.story.globalFlag).toBe('🌏');
-  });
-
   it('should have all opt-in SSB insight box strings defined, reserved for ssb-tagged clusters', () => {
     expect(STRINGS.ssb.insightBadge).toBeDefined();
     expect(STRINGS.ssb.gdTopicsHeading).toBeDefined();

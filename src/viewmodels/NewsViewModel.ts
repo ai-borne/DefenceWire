@@ -10,7 +10,6 @@ import { INITIAL_STORY_CLUSTERS } from '../data/initialNews.js';
 import { INITIAL_RIVER_ITEMS } from '../data/riverNews.js';
 
 export type NewsStateListener = () => void;
-export type DossierChangeListener = (clusterId: string | null) => void;
 
 export class NewsViewModel {
   private clusters: StoryCluster[] = [];
@@ -18,12 +17,10 @@ export class NewsViewModel {
   private activeCategory: FilterCategory = 'all';
   private searchQuery: string = '';
   private expandedSSBClusterIds: Set<string> = new Set();
-  private activeDossierClusterId: string | null = null;
   private isLoading: boolean = false;
   private isOffline: boolean = false;
   private errorMessage: string | null = null;
   private listeners: Set<NewsStateListener> = new Set();
-  private dossierListeners: Set<DossierChangeListener> = new Set();
 
   constructor(
     initialClusters: StoryCluster[] = INITIAL_STORY_CLUSTERS,
@@ -86,37 +83,6 @@ export class NewsViewModel {
     return new Set(this.expandedSSBClusterIds);
   }
 
-  public openStoryDossier(clusterId: string, notifyState: boolean = false): void {
-    if (this.activeDossierClusterId === clusterId) return;
-    this.activeDossierClusterId = clusterId;
-    this.notifyDossierListeners(clusterId);
-    if (notifyState) this.notifyListeners();
-  }
-
-  public closeStoryDossier(notifyState: boolean = false): void {
-    if (this.activeDossierClusterId === null) return;
-    this.activeDossierClusterId = null;
-    this.notifyDossierListeners(null);
-    if (notifyState) this.notifyListeners();
-  }
-
-  public getActiveDossierClusterId(): string | null {
-    return this.activeDossierClusterId;
-  }
-
-  public getActiveDossierCluster(): StoryCluster | undefined {
-    return this.activeDossierClusterId ? this.getClusterById(this.activeDossierClusterId) : undefined;
-  }
-
-  public onDossierChange(listener: DossierChangeListener): () => void {
-    this.dossierListeners.add(listener);
-    return () => { this.dossierListeners.delete(listener); };
-  }
-
-  private notifyDossierListeners(clusterId: string | null): void {
-    for (const listener of this.dossierListeners) listener(clusterId);
-  }
-
   public setOffline(offline: boolean): void {
     if (this.isOffline === offline) return;
     this.isOffline = offline;
@@ -140,18 +106,17 @@ export class NewsViewModel {
    */
   private matchesSearch(cluster: StoryCluster, queryLower: string): boolean {
     if (!queryLower) return true;
-    const matchIntel = cluster.ssbIntel && (
-      cluster.ssbIntel.whyItMatters.toLowerCase().includes(queryLower) ||
-      cluster.ssbIntel.gdLecturettePoints?.some((p) => p.toLowerCase().includes(queryLower)) ||
-      cluster.ssbIntel.defenceTechTakeaway?.platformOrSystem.toLowerCase().includes(queryLower)
-    );
-    return cluster.synthesizedHeadline.toLowerCase().includes(queryLower) ||
-      cluster.primarySource.title.toLowerCase().includes(queryLower) ||
-      cluster.primarySource.sourceName.toLowerCase().includes(queryLower) ||
-      Boolean(cluster.primarySource.snippet?.toLowerCase().includes(queryLower)) ||
-      cluster.entities.some((e) => e.toLowerCase().includes(queryLower)) ||
-      Boolean(matchIntel) ||
-      cluster.relatedCoverage.some((r) => r.title.toLowerCase().includes(queryLower) || r.sourceName.toLowerCase().includes(queryLower));
+    if (cluster.synthesizedHeadline.toLowerCase().includes(queryLower)) return true;
+    if (cluster.primarySource.title.toLowerCase().includes(queryLower)) return true;
+    if (cluster.primarySource.sourceName.toLowerCase().includes(queryLower)) return true;
+    if (cluster.primarySource.snippet?.toLowerCase().includes(queryLower)) return true;
+    if (cluster.entities.some((e) => e.toLowerCase().includes(queryLower))) return true;
+    if (cluster.ssbIntel) {
+      if (cluster.ssbIntel.whyItMatters.toLowerCase().includes(queryLower)) return true;
+      if (cluster.ssbIntel.gdLecturettePoints?.some((p) => p.toLowerCase().includes(queryLower))) return true;
+      if (cluster.ssbIntel.defenceTechTakeaway?.platformOrSystem.toLowerCase().includes(queryLower)) return true;
+    }
+    return cluster.relatedCoverage.some((r) => r.title.toLowerCase().includes(queryLower) || r.sourceName.toLowerCase().includes(queryLower));
   }
 
   /**
@@ -194,13 +159,20 @@ export class NewsViewModel {
    * Returns all clusters, optionally including ignored ones.
    */
   public getAllClusters(includeIgnored: boolean = true): StoryCluster[] {
-    return includeIgnored ? [...this.clusters] : this.clusters.filter((c) => !c.isIgnored);
+    if (includeIgnored) return [...this.clusters];
+    return this.clusters.filter((c) => !c.isIgnored);
   }
 
+  /**
+   * Finds a cluster by its ID.
+   */
   public getClusterById(id: string): StoryCluster | undefined {
     return this.clusters.find((c) => c.id === id);
   }
 
+  /**
+   * Replaces the entire cluster list (e.g. from cache or crawler).
+   */
   public setClusters(clusters: StoryCluster[]): void {
     this.clusters = [...clusters];
     this.notifyListeners();
@@ -211,42 +183,81 @@ export class NewsViewModel {
     this.notifyListeners();
   }
 
+  /**
+   * Surgically updates a specific cluster.
+   */
   public updateCluster(id: string, updater: (cluster: StoryCluster) => StoryCluster): void {
     const idx = this.clusters.findIndex((c) => c.id === id);
-    if (idx === -1 || !this.clusters[idx]) return;
-    this.clusters[idx] = updater({ ...this.clusters[idx] });
+    if (idx === -1) return;
+    const current = this.clusters[idx];
+    if (!current) return;
+    this.clusters[idx] = updater({ ...current });
     this.notifyListeners();
   }
 
+  /**
+   * Promotes a cluster to Lead story.
+   */
   public promoteToLead(id: string): void {
     const maxScore = Math.max(...this.clusters.map((c) => c.defenceScore), 100);
-    this.clusters = this.clusters.map((c) => (c.id === id
-      ? { ...c, isLeadStory: true, isEditorPromoted: true, isIgnored: false, defenceScore: maxScore + 50, updatedAt: new Date().toISOString() }
-      : { ...c, isLeadStory: false }));
+    this.clusters = this.clusters.map((c) => {
+      if (c.id === id) {
+        return {
+          ...c,
+          isLeadStory: true,
+          isEditorPromoted: true,
+          isIgnored: false,
+          defenceScore: maxScore + 50,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return { ...c, isLeadStory: false };
+    });
     this.notifyListeners();
   }
 
+  /**
+   * Demotes a promoted lead cluster.
+   */
   public demoteStory(id: string): void {
     this.updateCluster(id, (cluster) => ({
-      ...cluster, isLeadStory: false, isEditorPromoted: false, updatedAt: new Date().toISOString()
+      ...cluster,
+      isLeadStory: false,
+      isEditorPromoted: false,
+      updatedAt: new Date().toISOString()
     }));
   }
 
+  /**
+   * Updates synthesized headline for a cluster.
+   */
   public updateHeadline(id: string, newHeadline: string): void {
     this.updateCluster(id, (cluster) => ({
-      ...cluster, synthesizedHeadline: newHeadline.trim(), updatedAt: new Date().toISOString()
+      ...cluster,
+      synthesizedHeadline: newHeadline.trim(),
+      updatedAt: new Date().toISOString()
     }));
   }
 
+  /**
+   * Updates SSB Intelligence briefing for a cluster.
+   */
   public updateSSBIntel(id: string, ssbIntel: import('../types/news.js').SSBIntelligence): void {
     this.updateCluster(id, (cluster) => ({
-      ...cluster, ssbIntel: { ...ssbIntel }, updatedAt: new Date().toISOString()
+      ...cluster,
+      ssbIntel: { ...ssbIntel },
+      updatedAt: new Date().toISOString()
     }));
   }
 
+  /**
+   * Toggles the ignored status of a cluster.
+   */
   public toggleIgnore(id: string): void {
     this.updateCluster(id, (cluster) => ({
-      ...cluster, isIgnored: !cluster.isIgnored, updatedAt: new Date().toISOString()
+      ...cluster,
+      isIgnored: !cluster.isIgnored,
+      updatedAt: new Date().toISOString()
     }));
   }
 

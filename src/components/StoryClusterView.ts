@@ -13,7 +13,8 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
-import { renderSourceAttribution } from '../utils/sourceAttribution.js';
+import { openEntityDossierModal } from './EntityDossierModal.js';
+import { renderOfficialBadge } from './OfficialBadge.js';
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -21,26 +22,22 @@ export function renderStoryCluster(
   isLead: boolean = false
 ): HTMLElement {
   const article = document.createElement('article');
-  article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''} dw-cluster-card`;
+  article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''}`;
   article.id = `cluster-${cluster.id}`;
-
-  const inner = document.createElement('div');
-  inner.className = 'dw-cluster-inner';
-
-  const content = document.createElement('div');
-  content.className = 'dw-cluster-content';
 
   // 1. Lead story tag
   if (isLead) {
     const leadTag = document.createElement('span');
     leadTag.className = 'dw-lead-tag';
     leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
-    content.appendChild(leadTag);
+    article.appendChild(leadTag);
   }
 
-  // 1b. Consolidated Source & Geopolitical Attribution Line (Flag + Source/Badge + Time)
-  const attributionEl = renderSourceAttribution(cluster.primarySource);
-  content.appendChild(attributionEl);
+  // 1b. Official Government / Parliament Q&A / PIB MoD Badge
+  const officialBadgeEl = renderOfficialBadge(cluster.primarySource);
+  if (officialBadgeEl) {
+    article.appendChild(officialBadgeEl);
+  }
 
   // 2. Synthesized Headline
   const headlineEl = document.createElement('h2');
@@ -54,14 +51,14 @@ export function renderStoryCluster(
   headlineLink.textContent = sanitizePlainText(cluster.synthesizedHeadline);
 
   headlineEl.appendChild(headlineLink);
-  content.appendChild(headlineEl);
+  article.appendChild(headlineEl);
 
   // 3. Primary Snippet
   if (cluster.primarySource.snippet) {
     const snippetEl = document.createElement('p');
     snippetEl.className = 'dw-snippet';
     snippetEl.textContent = cleanStorySnippet(cluster.primarySource.snippet);
-    content.appendChild(snippetEl);
+    article.appendChild(snippetEl);
   }
 
   // 4. Related Coverage Sub-list
@@ -99,7 +96,7 @@ export function renderStoryCluster(
     }
 
     relatedBox.appendChild(relatedUl);
-    content.appendChild(relatedBox);
+    article.appendChild(relatedBox);
   }
 
   // 5. Discussion Quotes
@@ -146,16 +143,36 @@ export function renderStoryCluster(
       discBox.appendChild(metaP);
     }
 
-    content.appendChild(discBox);
+    article.appendChild(discBox);
   }
 
   // 6. Inline Base Footer (Metadata on Left + Action Buttons on Right)
   const footerEl = document.createElement('div');
   footerEl.className = 'dw-cluster-footer';
 
-  // 6a. Clickable Entity Chips for Techmeme-grade intelligence
+  // 6a. Primary Source Meta Line
+  const metaLine = document.createElement('div');
+  metaLine.className = 'dw-source-line';
+
+  const viaSpan = document.createElement('span');
+  viaSpan.textContent = `${STRINGS.story.primarySourcePrefix} `;
+
+  const sourceNameEl = document.createElement('span');
+  sourceNameEl.className = 'dw-source-name';
+  sourceNameEl.textContent = sanitizePlainText(cleanSourceName(cluster.primarySource.sourceName));
+
+  // Relative Time
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'dw-river-meta';
+  timeSpan.textContent = `• ${formatTimeAgo(cluster.primarySource.publishedAt)}`;
+
+  metaLine.appendChild(viaSpan);
+  metaLine.appendChild(sourceNameEl);
+  metaLine.appendChild(timeSpan);
+
+  // Clickable Entity Chips for Techmeme-grade intelligence
   if (cluster.entities && cluster.entities.length > 0) {
-    const entityBox = document.createElement('div');
+    const entityBox = document.createElement('span');
     entityBox.className = 'dw-entity-chips';
     for (const ent of cluster.entities.slice(0, 3)) {
       const chip = document.createElement('button');
@@ -165,14 +182,14 @@ export function renderStoryCluster(
       chip.title = `View sovereign intelligence dossier for ${sanitizePlainText(ent)}`;
       chip.addEventListener('click', (e) => {
         e.stopPropagation();
-        import('./EntityDossierModal.js').then(({ openEntityDossierModal }) => {
-          openEntityDossierModal(ent);
-        });
+        openEntityDossierModal(ent);
       });
       entityBox.appendChild(chip);
     }
-    footerEl.appendChild(entityBox);
+    metaLine.appendChild(entityBox);
   }
+
+  footerEl.appendChild(metaLine);
 
   // 6b. Base Action Group (Permalink / Share + Summary Accordion Expander)
   const actionsGroup = document.createElement('div');
@@ -192,7 +209,9 @@ export function renderStoryCluster(
   const permalinkTextSpan = document.createElement('span');
   permalinkTextSpan.className = 'dw-btn-label';
   permalinkTextSpan.textContent = STRINGS.story.shareBtnText;
-  permalinkBtn.append(permalinkIconSpan, permalinkTextSpan);
+
+  permalinkBtn.appendChild(permalinkIconSpan);
+  permalinkBtn.appendChild(permalinkTextSpan);
 
   permalinkBtn.addEventListener('click', () => {
     pushStoryUrl(cluster);
@@ -234,7 +253,9 @@ export function renderStoryCluster(
     const toggleTextSpan = document.createElement('span');
     toggleTextSpan.className = 'dw-btn-label';
     toggleTextSpan.textContent = isExpanded ? STRINGS.summary.summaryCollapseText : STRINGS.summary.summaryToggleText;
-    toggleBtn.append(toggleIconSpan, toggleTextSpan);
+
+    toggleBtn.appendChild(toggleIconSpan);
+    toggleBtn.appendChild(toggleTextSpan);
 
     toggleBtn.addEventListener('click', () => {
       newsVm.toggleSSBDrawer(cluster.id);
@@ -250,37 +271,7 @@ export function renderStoryCluster(
   }
 
   footerEl.appendChild(actionsGroup);
-  content.appendChild(footerEl);
-
-  // 6c. Dedicated Mobile Chevron Gutter (›)
-  const chevronBtn = document.createElement('button');
-  chevronBtn.className = 'dw-cluster-chevron-gutter';
-  chevronBtn.type = 'button';
-  chevronBtn.setAttribute('aria-label', STRINGS.story.openDossierAriaLabel);
-  chevronBtn.setAttribute('title', STRINGS.story.openDossierAriaLabel);
-
-  const chevronIcon = document.createElement('span');
-  chevronIcon.className = 'dw-chevron-icon';
-  chevronIcon.setAttribute('aria-hidden', 'true');
-  chevronIcon.textContent = '›';
-  chevronBtn.appendChild(chevronIcon);
-
-  chevronBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    newsVm.openStoryDossier(cluster.id);
-    import('./StoryDossierSlideOver.js').then(({ openStoryDossierSlideOver }) => {
-      openStoryDossierSlideOver(cluster, {
-        isLead,
-        onClose: () => {
-          newsVm.closeStoryDossier();
-        }
-      });
-    });
-  });
-
-  inner.appendChild(content);
-  inner.appendChild(chevronBtn);
-  article.appendChild(inner);
+  article.appendChild(footerEl);
 
   // 7. Expandable SSB Intelligence Drawer Container
   if (ssbDrawerEl) {

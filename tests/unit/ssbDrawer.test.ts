@@ -78,12 +78,10 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     const footerEl = articleEl.querySelector('.dw-cluster-footer');
     expect(footerEl).not.toBeNull();
 
-    const attributionLine = articleEl.querySelector('.dw-source-attribution');
-    const sourceLineInFooter = footerEl?.querySelector('.dw-source-line');
+    const sourceLine = footerEl?.querySelector('.dw-source-line');
     const actionsGroup = footerEl?.querySelector('.dw-cluster-actions');
 
-    expect(attributionLine).not.toBeNull();
-    expect(sourceLineInFooter).toBeNull();
+    expect(sourceLine).not.toBeNull();
     expect(actionsGroup).not.toBeNull();
 
     const toggleBtn = actionsGroup?.querySelector('.dw-ssb-toggle-btn');

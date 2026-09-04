@@ -203,38 +203,4 @@ describe('Integration: Feed Rendering & UI Components', () => {
       expect(document.querySelector('.dw-editor-modal-overlay')).toBeNull();
     });
   });
-
-  it('should render chevron touch gutter on all clusters and open slide-over dossier on click', async () => {
-    initializeApp();
-
-    const gutters = document.querySelectorAll('.dw-cluster-chevron-gutter');
-    expect(gutters.length).toBeGreaterThan(0);
-    expect(gutters[0]?.getAttribute('aria-label')).toBe(STRINGS.story.openDossierAriaLabel);
-    expect(gutters[0]?.textContent).toContain('›');
-
-    // Click first cluster chevron gutter
-    (gutters[0] as HTMLButtonElement).click();
-
-    await vi.waitFor(() => {
-      const overlay = document.getElementById('dw-story-dossier-overlay');
-      expect(overlay).not.toBeNull();
-      expect(overlay?.getAttribute('role')).toBe('dialog');
-      expect(overlay?.querySelector('.dw-dossier-back-btn')).not.toBeNull();
-      expect(overlay?.querySelector('.dw-dossier-headline')).not.toBeNull();
-    });
-
-    // Dismiss via Back button
-    const overlay = document.getElementById('dw-story-dossier-overlay');
-    const backBtn = overlay?.querySelector('.dw-dossier-back-btn') as HTMLButtonElement;
-    backBtn.click();
-
-    await vi.waitFor(() => {
-      expect(document.getElementById('dw-story-dossier-overlay')).toBeNull();
-    });
-
-    // Summary button on main card remains independent and functional
-    const summaryBtn = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
-    expect(summaryBtn).not.toBeNull();
-    expect(summaryBtn.getAttribute('aria-expanded')).toBe('false');
-  });
 });
