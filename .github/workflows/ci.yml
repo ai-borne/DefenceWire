@@ -151,6 +151,13 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # The npm CLI bundled with actions/setup-node's node-version 22 (10.x)
+      # still calls the legacy "quick" audit endpoint, which the registry is
+      # retiring and now rejects with a 400. npm 11+ uses the bulk advisory
+      # endpoint instead, so upgrade before auditing.
+      - name: Upgrade npm for the bulk advisory audit endpoint
+        run: npm install -g npm@latest
+
       - name: Dependency Vulnerability Audit
         run: npm run check:security
 
