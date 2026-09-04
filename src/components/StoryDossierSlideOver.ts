@@ -261,6 +261,7 @@ export function openStoryDossierSlideOver(
   backdrop.setAttribute('aria-label', STRINGS.story.dossierTitle);
 
   const panel = renderStoryDossierPanel(cluster, () => dismissModal(backdrop), options.isLead);
+  panel.classList.add('is-open');
   backdrop.appendChild(panel);
 
   const backBtn = panel.querySelector<HTMLElement>('.dw-dossier-back-btn');
