@@ -57,6 +57,7 @@
   text-decoration: none;
   white-space: nowrap;
   min-height: 44px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   touch-action: manipulation;
@@ -112,6 +113,7 @@
   border-radius: var(--dw-radius-sm);
   white-space: nowrap;
   user-select: none;
+  flex-shrink: 0;
 }
 .dw-live-dot {
   width: 7px;
@@ -145,6 +147,7 @@
   color: var(--dw-text-secondary);
   min-width: 44px;
   min-height: 44px;
+  flex-shrink: 0;
   box-sizing: border-box;
   font-size: 0.75rem;
   font-weight: 600;
@@ -237,6 +240,7 @@
   padding: 10px 14px;
   min-height: 44px;
   min-width: 44px;
+  flex: 0 0 auto;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;

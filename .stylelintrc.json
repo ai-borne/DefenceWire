@@ -1,0 +1,6 @@
+{
+  "plugins": ["./scripts/stylelint-rules/flex-child-shrink-guard.mjs"],
+  "rules": {
+    "dw/flex-child-shrink-guard": true
+  }
+}

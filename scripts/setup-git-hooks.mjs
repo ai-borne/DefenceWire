@@ -22,30 +22,33 @@ if (!fs.existsSync(hooksDir)) {
 const hookPath = path.join(hooksDir, 'pre-commit');
 const hookContent = `#!/bin/sh
 # DefenceWire Multi-Gate Pre-Commit Verification Hook
-# Enforces Typecheck, Contracts, Unit Tests, Crawler Dry-Run, Production Build, Performance Budget & Security before allowing commits.
+# Enforces Typecheck, Contracts, CSS Lint, Unit Tests, Crawler Dry-Run, Production Build, Performance Budget & Security before allowing commits.
 
-echo "🔍 [1/7] Typecheck (TypeScript Strict Mode)..."
+echo "🔍 [1/8] Typecheck (TypeScript Strict Mode)..."
 npm run typecheck || { echo "❌ Typecheck failed. Commit aborted."; exit 1; }
 
-echo "🛡️ [2/7] Architecture & Contracts Guardrail (<= 300 LOC, SSOT purity)..."
+echo "🛡️ [2/8] Architecture & Contracts Guardrail (<= 300 LOC, SSOT purity)..."
 npm run check:contracts || { echo "❌ Contract check failed. Commit aborted."; exit 1; }
 
-echo "🧪 [3/7] Vitest Unit & Integration Suite..."
+echo "🎨 [3/8] CSS Lint (Stylelint, flex-shrink guard)..."
+npm run check:css || { echo "❌ CSS lint failed. Commit aborted."; exit 1; }
+
+echo "🧪 [4/8] Vitest Unit & Integration Suite..."
 npm test || { echo "❌ Test suite failed. Commit aborted."; exit 1; }
 
-echo "🤖 [4/7] Crawler Pipeline Dry-Run..."
+echo "🤖 [5/8] Crawler Pipeline Dry-Run..."
 npm run check:crawler || { echo "❌ Crawler dry-run failed. Commit aborted."; exit 1; }
 
-echo "📦 [5/7] Production Vite Build..."
+echo "📦 [6/8] Production Vite Build..."
 npm run build || { echo "❌ Production build failed. Commit aborted."; exit 1; }
 
-echo "📊 [6/7] Performance Budget (< 75 KB Gzipped JS)..."
+echo "📊 [7/8] Performance Budget (< 75 KB Gzipped JS)..."
 npm run check:budget || { echo "❌ Performance budget exceeded. Commit aborted."; exit 1; }
 
-echo "🔒 [7/7] Security Vulnerability Audit..."
+echo "🔒 [8/8] Security Vulnerability Audit..."
 npm run check:security || { echo "❌ Security audit failed. Commit aborted."; exit 1; }
 
-echo "✅ [DefenceWire Pre-Commit] All 7 pre-commit verification gates passed successfully."
+echo "✅ [DefenceWire Pre-Commit] All 8 pre-commit verification gates passed successfully."
 exit 0
 `;
 

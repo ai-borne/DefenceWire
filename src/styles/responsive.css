@@ -40,6 +40,7 @@
     min-width: 44px;
     letter-spacing: 0.4px;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .dw-utility-row {

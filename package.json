@@ -21,7 +21,8 @@
     "check:crawler": "vite-node scripts/check-crawler.mjs",
     "check:budget": "node scripts/check-bundle-budget.mjs",
     "check:security": "npm audit --audit-level=high",
-    "check": "npm run typecheck && npm run check:contracts && npm run check:crawler && npm test && npm run build && npm run check:budget && npm run check:security",
+    "check:css": "stylelint \"src/**/*.css\"",
+    "check": "npm run typecheck && npm run check:contracts && npm run check:crawler && npm run check:css && npm test && npm run build && npm run check:budget && npm run check:security",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "node scripts/setup-git-hooks.mjs"
@@ -35,6 +36,7 @@
     "@types/node": "^22.13.5",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^26.0.0",
+    "stylelint": "^17.14.1",
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
     "vitest": "^3.0.7",
