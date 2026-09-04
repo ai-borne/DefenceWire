@@ -134,7 +134,7 @@
 
 .dw-program-stage-bar { background-color: var(--dw-bg-secondary); border: 1px solid var(--dw-border-secondary); border-radius: var(--dw-radius-sm); padding: 8px 10px; }
 .dw-stage-bar-track { display: flex; list-style: none; align-items: center; justify-content: space-between; gap: 4px; }
-.dw-stage-step { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.dw-stage-step { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
 .dw-stage-step-marker {
   width: 18px;
   height: 18px;
@@ -149,7 +149,7 @@
   border: 1px solid var(--dw-border-primary);
   color: var(--dw-text-muted);
 }
-.dw-stage-step-label { font-size: 0.62rem; color: var(--dw-text-muted); white-space: nowrap; }
+.dw-stage-step-label { font-size: 0.62rem; color: var(--dw-text-muted); white-space: normal; overflow-wrap: anywhere; }
 .dw-stage-step--completed .dw-stage-step-marker { background-color: #1E7E34; color: #FFFFFF; border-color: #1E7E34; }
 .dw-stage-step--completed .dw-stage-step-label { color: var(--dw-text-secondary); font-weight: 500; }
 .dw-stage-step--active .dw-stage-step-marker { background-color: var(--dw-link); color: #FFFFFF; border-color: var(--dw-link); box-shadow: 0 0 0 2px rgba(15, 84, 153, 0.25); }
