@@ -116,7 +116,15 @@ export function buildGeminiResponseSchema(isSsb: boolean): Record<string, unknow
   };
 
   const properties: Record<string, unknown> = {
-    whyItMatters: { type: 'STRING' },
+    // Structured-output mode leans on this description more than the free-text prompt
+    // example — without it, Gemini reliably wrote three correct but plain prose
+    // sentences instead of literally including the "->" chain separators, which
+    // hasStructuredBrief requires as the machine-checkable proxy for the mandated format.
+    whyItMatters: {
+      type: 'STRING',
+      description:
+        'Exactly this literal format, including the "->" characters: [Platform/Contract Scope] -> [Operational Impact] -> [Strategic Significance]. Do not write plain prose sentences instead of the arrow-separated chain.'
+    },
     strategicAngle: { type: 'STRING', nullable: true },
     defenceTechTakeaway
   };
