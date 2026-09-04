@@ -25,6 +25,18 @@ export function containsBannedPhrases(text: string): boolean {
   return BANNED_GENERIC_PHRASES.some((phrase) => lower.includes(phrase));
 }
 
+// Proxy for the mandated "[Scope] -> [Impact] -> [Strategic Significance]" chain
+// (see MANDATORY BRIEF STRUCTURE below): requiring 2 arrow separators rejects thin,
+// non-compliant LLM briefs instead of silently caching them as "valid". Only applies
+// to LLM-generated output — the extractive miner's own deterministic whyItMatters text
+// never follows this prose structure and isn't subject to it.
+const ARROW_SEPARATOR_REGEX = /->|→/g;
+const MIN_ARROW_SEPARATORS = 2;
+
+export function hasStructuredBrief(whyItMatters: string): boolean {
+  return (whyItMatters.match(ARROW_SEPARATOR_REGEX) || []).length >= MIN_ARROW_SEPARATORS;
+}
+
 export function sanitizeGeminiOutput(text: string): string {
   let sanitized = text;
   for (const phrase of BANNED_GENERIC_PHRASES) {
@@ -83,6 +95,45 @@ export function sanitizePromptField(text: string, maxLen: number): string {
   return truncateIntelligently(cleaned, maxLen).slice(0, maxLen);
 }
 
+// Gemini structured-output schema (OpenAPI-subset) mirroring the prompt's JSON shape.
+// Declaring optional numeric/string fields as nullable stops Gemini's generation from
+// drifting into wrong types when a source article doesn't state a figure — the prior
+// failure mode was Gemini emitting `null` for an unknown budget/timeline, which is a
+// legitimate "no value" signal but crashed the old undefined-only validator.
+export function buildGeminiResponseSchema(isSsb: boolean): Record<string, unknown> {
+  const defenceTechTakeaway = {
+    type: 'OBJECT',
+    properties: {
+      platformOrSystem: { type: 'STRING' },
+      specifications: { type: 'ARRAY', items: { type: 'STRING' } },
+      keySignificance: { type: 'STRING' },
+      programTag: { type: 'STRING', nullable: true },
+      budgetCrores: { type: 'NUMBER', nullable: true },
+      deliveryTimeline: { type: 'STRING', nullable: true },
+      indigenousContentPercentage: { type: 'NUMBER', nullable: true }
+    },
+    required: ['platformOrSystem', 'specifications', 'keySignificance']
+  };
+
+  const properties: Record<string, unknown> = {
+    whyItMatters: { type: 'STRING' },
+    strategicAngle: { type: 'STRING', nullable: true },
+    defenceTechTakeaway
+  };
+
+  if (isSsb) {
+    properties.gdLecturettePoints = { type: 'ARRAY', items: { type: 'STRING' } };
+    properties.potentialInterviewQuestions = { type: 'ARRAY', items: { type: 'STRING' } };
+  }
+
+  return {
+    type: 'OBJECT',
+    properties,
+    required: ['whyItMatters'],
+    propertyOrdering: Object.keys(properties)
+  };
+}
+
 export function buildGeminiPrompt(cluster: StoryCluster): string {
   const cleanHeadline = sanitizePromptField(cluster.synthesizedHeadline, 300);
   const cleanSource = sanitizePromptField(cluster.primarySource.sourceName, 100);
@@ -132,4 +183,10 @@ Return a strict JSON object with these exact keys:
     "indigenousContentPercentage": 65
   }${ssbFields}
 }`;
+}
+
+// Bounded, single-retry correction feedback appended to the prompt when the first
+// Gemini response failed hard validation (e.g. malformed whyItMatters structure).
+export function appendCorrectionFeedback(prompt: string, previousErrors: string[]): string {
+  return `${prompt}\n\nCORRECTION REQUIRED: your previous response was rejected for: ${previousErrors.join('; ')}. Return corrected strict JSON only, following the schema and structure above exactly.`;
 }

@@ -7,14 +7,18 @@
 import * as crypto from 'node:crypto';
 import { SSBIntelligence, StoryCluster } from '../src/types/news.js';
 import { generateExtractiveSSBIntel } from './extractiveMiner.js';
+import { sanitizeGeminiSSBIntelligence } from './geminiSalvage.js';
 import {
+  appendCorrectionFeedback,
   buildGeminiPrompt,
+  buildGeminiResponseSchema,
   parseGeminiJsonFromText,
-  sanitizeGeminiOutput,
   sanitizePromptField
 } from './summarizerPrompt.js';
 
 export { generateExtractiveSSBIntel } from './extractiveMiner.js';
+export { hasStructuredBrief } from './summarizerPrompt.js';
+export { sanitizeGeminiSSBIntelligence } from './geminiSalvage.js';
 
 export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
 export const MIN_REQUEST_INTERVAL_MS = 4500;
@@ -64,18 +68,6 @@ export function generateHeuristicSSBIntel(cluster: StoryCluster): SSBIntelligenc
 
 export function sanitizePromptInput(text: string, maxLen: number): string {
   return sanitizePromptField(text, maxLen);
-}
-
-// Proxy for the prompt's mandated "[Scope] -> [Impact] -> [Strategic Significance]"
-// chain (summarizerPrompt.ts MANDATORY BRIEF STRUCTURE): requiring 2 arrow separators
-// rejects thin, non-compliant LLM briefs instead of silently caching them as "valid".
-// Only applies to LLM-generated output — the extractive miner's own deterministic
-// whyItMatters text never follows this prose structure and isn't subject to it.
-const ARROW_SEPARATOR_REGEX = /->|→/g;
-const MIN_ARROW_SEPARATORS = 2;
-
-export function hasStructuredBrief(whyItMatters: string): boolean {
-  return (whyItMatters.match(ARROW_SEPARATOR_REGEX) || []).length >= MIN_ARROW_SEPARATORS;
 }
 
 export function getSSBIntelligenceValidationErrors(data: unknown): string[] {
@@ -140,6 +132,11 @@ export function isValidSSBIntelligence(data: unknown): data is SSBIntelligence {
   return getSSBIntelligenceValidationErrors(data).length === 0;
 }
 
+// Bounded retry: one correction attempt after a hard validation failure. Kept to a
+// single retry (not a loop) per Rule 5 — this is deterministic control flow, the model
+// judgment call already happened in the first Gemini request.
+const MAX_GEMINI_ATTEMPTS = 2;
+
 export async function summarizeWithGemini(
   cluster: StoryCluster,
   apiKey: string,
@@ -159,81 +156,62 @@ export async function summarizeWithGemini(
     return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
   }
 
-  const prompt = buildGeminiPrompt(cluster);
+  const basePrompt = buildGeminiPrompt(cluster);
+  const responseSchema = buildGeminiResponseSchema(cluster.categories.includes('ssb'));
+  const modelName = getGeminiModelName();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  let lastHardErrors: string[] = [];
 
   try {
-    // 2. Sequential Throttling
-    await throttleNextRequest();
+    for (let attempt = 0; attempt < MAX_GEMINI_ATTEMPTS; attempt++) {
+      // Only throttle the first request per call — a same-call correction retry is a
+      // rare, bounded exception to the 15 RPM pacing, not a sustained request pattern.
+      if (attempt === 0) {
+        await throttleNextRequest();
+      }
 
-    const modelName = getGeminiModelName();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const response = await fetchFn(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
-      })
-    });
+      const prompt = attempt === 0 ? basePrompt : appendCorrectionFeedback(basePrompt, lastHardErrors);
+      const response = await fetchFn(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json', responseSchema, temperature: 0.2 }
+        })
+      });
 
-    if (!response.ok) {
-      const bodyText = await response.text().catch(() => '');
-      console.error('[GEMINI ERROR]', `status=${response.status} body=${bodyText.slice(0, 200)}`);
-      return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
-    }
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => '');
+        console.error('[GEMINI ERROR]', `status=${response.status} body=${bodyText.slice(0, 200)}`);
+        return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
+      }
 
-    const data = (await response.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
-
-    const parsed = parseGeminiJsonFromText(rawText);
-    if (!parsed) {
-      return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
-    }
-    const validationErrors = getSSBIntelligenceValidationErrors(parsed);
-    if (validationErrors.length === 0 && isValidSSBIntelligence(parsed) && !hasStructuredBrief(parsed.whyItMatters)) {
-      validationErrors.push('whyItMatters: does not follow mandated Scope -> Impact -> Strategic Significance structure');
-    }
-    if (isValidSSBIntelligence(parsed) && validationErrors.length === 0) {
-      const sanitizedWhy = sanitizeGeminiOutput(parsed.whyItMatters);
-      const sanitizedIntel: SSBIntelligence = {
-        provenance: 'gemini',
-        whyItMatters: sanitizedWhy || parsed.whyItMatters.trim(),
-        ...(parsed.strategicAngle ? { strategicAngle: sanitizeGeminiOutput(parsed.strategicAngle) || parsed.strategicAngle.trim() } : {}),
-        ...(parsed.defenceTechTakeaway
-          ? {
-              defenceTechTakeaway: {
-                platformOrSystem: parsed.defenceTechTakeaway.platformOrSystem.trim(),
-                specifications: parsed.defenceTechTakeaway.specifications.map((s) => s.trim()).filter(Boolean),
-                keySignificance: sanitizeGeminiOutput(parsed.defenceTechTakeaway.keySignificance) || parsed.defenceTechTakeaway.keySignificance.trim(),
-                ...(typeof parsed.defenceTechTakeaway.programTag === 'string' && parsed.defenceTechTakeaway.programTag.trim()
-                  ? { programTag: parsed.defenceTechTakeaway.programTag.trim() }
-                  : {}),
-                ...(typeof parsed.defenceTechTakeaway.budgetCrores === 'number' && parsed.defenceTechTakeaway.budgetCrores > 0
-                  ? { budgetCrores: parsed.defenceTechTakeaway.budgetCrores }
-                  : {}),
-                ...(typeof parsed.defenceTechTakeaway.deliveryTimeline === 'string' && parsed.defenceTechTakeaway.deliveryTimeline.trim()
-                  ? { deliveryTimeline: parsed.defenceTechTakeaway.deliveryTimeline.trim() }
-                  : {}),
-                ...(typeof parsed.defenceTechTakeaway.indigenousContentPercentage === 'number' && parsed.defenceTechTakeaway.indigenousContentPercentage >= 0 && parsed.defenceTechTakeaway.indigenousContentPercentage <= 100
-                  ? { indigenousContentPercentage: parsed.defenceTechTakeaway.indigenousContentPercentage }
-                  : {})
-              }
-            }
-          : {}),
-        ...(Array.isArray(parsed.gdLecturettePoints)
-          ? { gdLecturettePoints: parsed.gdLecturettePoints.map((p) => p.trim()).filter(Boolean) }
-          : {}),
-        ...(Array.isArray(parsed.potentialInterviewQuestions)
-          ? { potentialInterviewQuestions: parsed.potentialInterviewQuestions.map((q) => q.trim()).filter(Boolean) }
-          : {})
+      const data = (await response.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
       };
-      cache.set(hash, sanitizedIntel);
-      return sanitizedIntel;
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
+
+      const parsed = parseGeminiJsonFromText(rawText);
+      if (!parsed) {
+        lastHardErrors = ['root: unparseable JSON'];
+        console.error('[GEMINI VALIDATION REJECTED]', lastHardErrors.join('; '));
+        continue;
+      }
+
+      const { intel, hardErrors, droppedFields } = sanitizeGeminiSSBIntelligence(parsed);
+      if (intel) {
+        if (droppedFields.length > 0) {
+          console.warn('[GEMINI PARTIAL SALVAGE]', droppedFields.join('; '));
+        }
+        cache.set(hash, intel);
+        return intel;
+      }
+
+      lastHardErrors = hardErrors;
+      console.error('[GEMINI VALIDATION REJECTED]', hardErrors.join('; '));
     }
-    console.error('[GEMINI VALIDATION REJECTED]', validationErrors.join('; '));
   } catch (err) {
     console.error('[GEMINI ERROR]', err instanceof Error ? err.message : String(err));
   }
