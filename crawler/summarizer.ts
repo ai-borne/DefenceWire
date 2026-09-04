@@ -211,10 +211,6 @@ export async function summarizeWithGemini(
 
       lastHardErrors = hardErrors;
       console.error('[GEMINI VALIDATION REJECTED]', hardErrors.join('; '));
-      // TEMP DIAGNOSTIC — remove once the structure-rejection regression is root-caused.
-      if (hardErrors.some((e) => e.includes('does not follow mandated'))) {
-        console.error('[GEMINI DEBUG RAW WHYITMATTERS]', JSON.stringify((parsed as Record<string, unknown>).whyItMatters).slice(0, 400));
-      }
     }
   } catch (err) {
     console.error('[GEMINI ERROR]', err instanceof Error ? err.message : String(err));
