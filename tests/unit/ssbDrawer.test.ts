@@ -71,17 +71,20 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     expect(extractiveEl.textContent).toContain(STRINGS.summary.extractiveBadge);
   });
 
-  it('renders inline metadata and action buttons inside card footer', () => {
+  it('renders top consolidated attribution and action buttons inside card footer', () => {
     const newsVm = new NewsViewModel();
     const articleEl = renderStoryCluster(mockCluster, newsVm);
 
+    const attributionEl = articleEl.querySelector('.dw-source-attribution');
+    expect(attributionEl).not.toBeNull();
+    expect(attributionEl?.querySelector('.dw-geo-flag')?.textContent).toBe(STRINGS.story.globalFlag);
+    expect(attributionEl?.querySelector('.dw-source-name')?.textContent).toBe('Defense News');
+
     const footerEl = articleEl.querySelector('.dw-cluster-footer');
     expect(footerEl).not.toBeNull();
+    expect(footerEl?.querySelector('.dw-source-line')).toBeNull();
 
-    const sourceLine = footerEl?.querySelector('.dw-source-line');
     const actionsGroup = footerEl?.querySelector('.dw-cluster-actions');
-
-    expect(sourceLine).not.toBeNull();
     expect(actionsGroup).not.toBeNull();
 
     const toggleBtn = actionsGroup?.querySelector('.dw-ssb-toggle-btn');

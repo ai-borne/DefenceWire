@@ -84,6 +84,16 @@ describe('Resource Management: Strings SSOT', () => {
     expect(STRINGS.story.permalinkCopied).toBe('✓ Link copied');
   });
 
+  it('should have geopolitical scope flags and sources pill labels defined', () => {
+    expect(STRINGS.story.domesticFlag).toBe('🇮🇳');
+    expect(STRINGS.story.globalFlag).toBe('🌏');
+    expect(STRINGS.story.sourcesTogglePrefix).toBe('+');
+    expect(STRINGS.story.sourcesToggleSuffix).toBe('sources');
+    expect(STRINGS.story.sourcesCollapse).toBe('▴ Hide sources');
+    expect(STRINGS.story.sourcesSingular).toBe('source');
+    expect(STRINGS.story.perspectivesHeading).toBe('Perspectives & Official Quotes');
+  });
+
   it('should have all opt-in SSB insight box strings defined, reserved for ssb-tagged clusters', () => {
     expect(STRINGS.ssb.insightBadge).toBeDefined();
     expect(STRINGS.ssb.gdTopicsHeading).toBeDefined();

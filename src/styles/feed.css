@@ -41,6 +41,23 @@
 .dw-headline a { color: var(--dw-text-primary); text-decoration: none; }
 .dw-headline a:hover { color: var(--dw-link); text-decoration: underline; }
 
+.dw-source-attribution {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--dw-text-secondary);
+  margin-bottom: 6px;
+  min-width: 0;
+}
+
+.dw-geo-flag {
+  font-size: 0.82rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .dw-source-line {
   font-size: 0.78rem;
   color: var(--dw-text-secondary);

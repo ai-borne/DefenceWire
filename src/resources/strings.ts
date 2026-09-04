@@ -50,7 +50,11 @@ export const STRINGS = {
     permalinkCopiedTooltip: 'Link copied to clipboard', permalinkLabel: '🔗 Permalink',
     permalinkCopied: '✓ Link copied', shareBtnText: 'Share', shareBtnCopiedText: 'Copied',
     sourceTierTooltip: 'Institutional Reliability Tier', officialSignalBadge: 'Verified Signal',
-    lokSabhaBadge: '🏛️ Lok Sabha Q&A', rajyaSabhaBadge: '🏛️ Rajya Sabha Q&A', pibModBadge: '📄 PIB MoD Official'
+    lokSabhaBadge: '🏛️ Lok Sabha Q&A', rajyaSabhaBadge: '🏛️ Rajya Sabha Q&A', pibModBadge: '📄 PIB MoD Official',
+    domesticFlag: '🇮🇳', globalFlag: '🌏',
+    sourcesTogglePrefix: '+', sourcesToggleSuffix: 'sources',
+    sourcesCollapse: '▴ Hide sources', sourcesSingular: 'source',
+    perspectivesHeading: 'Perspectives & Official Quotes'
   },
   summary: {
     drawerTitle: 'Summary', collapseDrawerBtn: 'Collapse Summary', collapseAriaLabel: 'Collapse article summary',
