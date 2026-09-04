@@ -18,6 +18,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Nothing in CI runs the Playwright e2e suite (tests/e2e/), so skip the
+  # ~300MB Chromium/Firefox/WebKit binary download on every npm ci — it was
+  # the dominant cost of the install step. Local/manual e2e runs still work
+  # since `npx playwright install` fetches browsers on demand.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
 jobs:
   check_duplicate:
     name: Check for Duplicate Run

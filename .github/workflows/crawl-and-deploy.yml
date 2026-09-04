@@ -12,6 +12,13 @@ on:
 permissions:
   contents: write
 
+env:
+  # Nothing in CI runs the Playwright e2e suite (tests/e2e/), so skip the
+  # ~300MB Chromium/Firefox/WebKit binary download on every npm ci — it was
+  # the dominant cost of the install step. Local/manual e2e runs still work
+  # since `npx playwright install` fetches browsers on demand.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
 # Every crawler-pushed commit re-triggers this workflow (push trigger), and
 # it's also cron- and manually-triggerable — without this, overlapping runs
 # can race on both the git branch and the shared D1 archive. Queue instead
