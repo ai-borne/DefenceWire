@@ -44,22 +44,63 @@ export function pushStoryUrl(cluster: StoryCluster): void {
   applyStoryMeta(cluster);
 }
 
+export function buildStorySourcesUrl(clusterId: string): string {
+  return `${buildStoryUrl(clusterId)}#sources-${clusterId}`;
+}
+
+export interface StoryTarget {
+  clusterId: string | null;
+  targetDrawer: 'sources' | 'ssb' | null;
+}
+
 /**
- * Resolves the current URL to a story cluster (if any), expands its summary,
- * applies its meta tags, and scrolls it into view. Called once on initial
- * page load so a shared /story/:id link lands directly on that briefing.
+ * Resolves location pathname and hash into a target story cluster and target drawer.
+ * Supports:
+ * - #sources-${clusterId} or #/sources/${clusterId} (or /story/:id#sources) -> expands Sources Drawer
+ * - /story/:id -> expands SSB Intelligence Drawer
+ */
+export function parseStoryTargetFromLocation(location: { pathname: string; hash?: string }): StoryTarget {
+  const hash = location.hash || '';
+  if (hash.startsWith('#sources-')) {
+    const rawId = hash.slice('#sources-'.length);
+    return { clusterId: decodeURIComponent(rawId), targetDrawer: 'sources' };
+  }
+  const sourcesSlashMatch = hash.match(/^#\/?sources\/([^/?#]+)/);
+  if (sourcesSlashMatch?.[1]) {
+    return { clusterId: decodeURIComponent(sourcesSlashMatch[1]), targetDrawer: 'sources' };
+  }
+  const pathClusterId = parseStoryIdFromPath(location.pathname);
+  if (pathClusterId) {
+    if (hash === '#sources' || hash === '#/sources') {
+      return { clusterId: pathClusterId, targetDrawer: 'sources' };
+    }
+    return { clusterId: pathClusterId, targetDrawer: 'ssb' };
+  }
+  return { clusterId: null, targetDrawer: null };
+}
+
+/**
+ * Resolves the current URL & hash to a story cluster (if any), expands its
+ * corresponding drawer (sources drawer for #sources-*, ssb summary for standard story),
+ * applies its meta tags, and scrolls it into view.
  */
 export function deepLinkToStoryFromLocation(newsVm: NewsViewModel): void {
   if (typeof window === 'undefined') return;
-  const clusterId = parseStoryIdFromPath(window.location.pathname);
+  const { clusterId, targetDrawer } = parseStoryTargetFromLocation(window.location);
   if (!clusterId) return;
 
   const cluster = newsVm.getClusterById(clusterId);
   if (!cluster) return;
 
   applyStoryMeta(cluster);
-  if (!newsVm.isSSBExpanded(cluster.id) && cluster.ssbIntel) {
-    newsVm.toggleSSBDrawer(cluster.id);
+  if (targetDrawer === 'sources') {
+    if (!newsVm.isSourcesExpanded(cluster.id)) {
+      newsVm.setSourcesExpanded(cluster.id, true);
+    }
+  } else if (targetDrawer === 'ssb') {
+    if (!newsVm.isSSBExpanded(cluster.id) && cluster.ssbIntel) {
+      newsVm.toggleSSBDrawer(cluster.id);
+    }
   }
 
   requestAnimationFrame(() => {

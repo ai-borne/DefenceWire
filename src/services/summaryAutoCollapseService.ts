@@ -40,20 +40,154 @@ function findVisibleAnchorElement(afterElement?: HTMLElement | null): HTMLElemen
   return null;
 }
 
+interface CollapseDrawerParams {
+  clusterId: string;
+  drawerType: 'ssb' | 'sources';
+  newsVm: NewsViewModel;
+  aboveThreshold: number;
+  belowThreshold: number;
+}
+
 /**
- * Checks all currently expanded SSB summary drawers and collapses any that
- * have scrolled entirely out of the viewport, compensating for layout shifts.
+ * Collapses a single drawer (SSB or sources), restores focus if necessary,
+ * resets the toggle button state, removes the DOM node, updates the ViewModel,
+ * and applies zero-jump scroll compensation if collapsed above viewport.
+ */
+function collapseSingleDrawer(params: CollapseDrawerParams): boolean {
+  const { clusterId, drawerType, newsVm, aboveThreshold, belowThreshold } = params;
+  const drawerId = drawerType === 'ssb' ? `ssb-drawer-${clusterId}` : `sources-drawer-${clusterId}`;
+  const drawer = document.getElementById(drawerId);
+
+  if (!drawer) {
+    if (drawerType === 'ssb') {
+      newsVm.setSSBExpanded(clusterId, false, false);
+    } else {
+      newsVm.setSourcesExpanded(clusterId, false, false);
+    }
+    return false;
+  }
+
+  const drawerRect = drawer.getBoundingClientRect();
+  const isAbove = drawerRect.bottom <= aboveThreshold;
+  const isBelow = drawerRect.top >= belowThreshold;
+
+  if (!isAbove && !isBelow) {
+    return false;
+  }
+
+  // Zero-Jump Relative Anchor: Capture position of visible element below drawer before collapse
+  let anchorEl: HTMLElement | null = null;
+  let anchorTopBefore = 0;
+
+  if (isAbove) {
+    anchorEl = findVisibleAnchorElement(drawer);
+    if (anchorEl) {
+      anchorTopBefore = anchorEl.getBoundingClientRect().top;
+    }
+  }
+
+  // Accessible focus restoration if focus was inside collapsing drawer
+  if (typeof document !== 'undefined' && drawer.contains(document.activeElement)) {
+    const clusterEl = document.getElementById(`cluster-${clusterId}`);
+    if (clusterEl) {
+      const toggleBtn = clusterEl.querySelector<HTMLElement>(
+        drawerType === 'ssb' ? '.dw-ssb-toggle-btn' : '.dw-sources-toggle-btn'
+      );
+      const headlineLink = clusterEl.querySelector<HTMLElement>('.dw-headline a');
+      if (toggleBtn) {
+        toggleBtn.focus();
+      } else if (headlineLink) {
+        headlineLink.focus();
+      }
+    }
+  }
+
+  // Surgically reset toggle button on the story cluster
+  const clusterEl = document.getElementById(`cluster-${clusterId}`);
+  if (clusterEl) {
+    if (drawerType === 'ssb') {
+      const toggleBtn = clusterEl.querySelector<HTMLButtonElement>('.dw-ssb-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.classList.remove('is-expanded');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.setAttribute('aria-label', STRINGS.story.expandSummaryAriaLabel);
+        toggleBtn.setAttribute('title', STRINGS.summary.drawerTitle);
+        toggleBtn.textContent = '▼';
+      }
+    } else {
+      const toggleBtn = clusterEl.querySelector<HTMLButtonElement>('.dw-sources-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.classList.remove('is-expanded');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        const cluster = newsVm.getClusterById(clusterId);
+        const total = (cluster?.relatedCoverage?.length || 0) + (cluster?.discussions?.length ? 1 : 0);
+        const pillLabel = total > 0
+          ? `${STRINGS.story.sourcesTogglePrefix}${total} ${
+              total === 1 ? STRINGS.story.sourcesSingular : STRINGS.story.sourcesToggleSuffix
+            }`
+          : STRINGS.story.sourcesCollapse;
+        toggleBtn.setAttribute('aria-label', pillLabel);
+        toggleBtn.textContent = pillLabel;
+      }
+    }
+  }
+
+  // Capture height before removing DOM node
+  const drawerHeight = drawer.offsetHeight || drawerRect.height;
+  const wrapper = drawer.closest(
+    drawerType === 'ssb' ? '.dw-ssb-drawer-wrapper' : '.dw-sources-drawer-wrapper'
+  );
+
+  // Remove drawer DOM element (and its accordion wrapper if present)
+  drawer.remove();
+  if (wrapper) {
+    wrapper.remove();
+  }
+
+  // Synchronize ViewModel state silently without triggering full feed re-render
+  if (drawerType === 'ssb') {
+    newsVm.setSSBExpanded(clusterId, false, false);
+  } else {
+    newsVm.setSourcesExpanded(clusterId, false, false);
+  }
+
+  // Apply zero-jump scroll offset compensation for elements collapsed above viewport
+  if (isAbove && typeof window !== 'undefined') {
+    if (anchorEl && typeof anchorEl.getBoundingClientRect === 'function') {
+      const anchorTopAfter = anchorEl.getBoundingClientRect().top;
+      const shiftDelta = anchorTopAfter - anchorTopBefore;
+      if (shiftDelta !== 0) {
+        if (typeof window.scrollBy === 'function') {
+          window.scrollBy(0, shiftDelta);
+        } else if (typeof window.scrollTo === 'function') {
+          window.scrollTo(0, (window.scrollY || 0) + shiftDelta);
+        }
+      }
+    } else if (drawerHeight > 0) {
+      if (typeof window.scrollBy === 'function') {
+        window.scrollBy(0, -drawerHeight);
+      } else if (typeof window.scrollTo === 'function') {
+        window.scrollTo(0, (window.scrollY || 0) - drawerHeight);
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Checks all currently expanded SSB summary and corroborating sources drawers,
+ * collapsing any that have scrolled entirely out of the viewport, compensating
+ * for visual layout shifts.
  */
 export function checkAndAutoCollapseSummaries(
   newsVm: NewsViewModel,
   options?: AutoCollapseOptions
 ): number {
-  if (!newsVm.hasExpandedSSBDrawers() || typeof document === 'undefined') {
-    return 0;
-  }
-
-  const expandedClusterIds = newsVm.getExpandedSSBClusterIds();
-  if (expandedClusterIds.size === 0) {
+  if (
+    (!newsVm.hasExpandedSSBDrawers() && !newsVm.hasExpandedSourcesDrawers()) ||
+    typeof document === 'undefined'
+  ) {
     return 0;
   }
 
@@ -63,87 +197,18 @@ export function checkAndAutoCollapseSummaries(
 
   let collapsedCount = 0;
 
-  for (const clusterId of expandedClusterIds) {
-    const drawer = document.getElementById(`ssb-drawer-${clusterId}`);
-    if (!drawer) {
-      newsVm.setSSBExpanded(clusterId, false, false);
-      continue;
-    }
-
-    const drawerRect = drawer.getBoundingClientRect();
-    const isAbove = drawerRect.bottom <= aboveThreshold;
-    const isBelow = drawerRect.top >= belowThreshold;
-
-    if (!isAbove && !isBelow) {
-      continue;
-    }
-
-    // Zero-Jump Relative Anchor: Capture position of visible element below drawer before collapse
-    let anchorEl: HTMLElement | null = null;
-    let anchorTopBefore = 0;
-
-    if (isAbove) {
-      anchorEl = findVisibleAnchorElement(drawer);
-      if (anchorEl) {
-        anchorTopBefore = anchorEl.getBoundingClientRect().top;
+  if (newsVm.hasExpandedSSBDrawers()) {
+    for (const clusterId of newsVm.getExpandedSSBClusterIds()) {
+      if (collapseSingleDrawer({ clusterId, drawerType: 'ssb', newsVm, aboveThreshold, belowThreshold })) {
+        collapsedCount++;
       }
     }
+  }
 
-    // Accessible focus restoration if focus was inside collapsing drawer
-    if (typeof document !== 'undefined' && drawer.contains(document.activeElement)) {
-      const clusterEl = document.getElementById(`cluster-${clusterId}`);
-      if (clusterEl) {
-        const toggleBtn = clusterEl.querySelector<HTMLElement>('.dw-ssb-toggle-btn');
-        const headlineLink = clusterEl.querySelector<HTMLElement>('.dw-headline a');
-        if (toggleBtn) {
-          toggleBtn.focus();
-        } else if (headlineLink) {
-          headlineLink.focus();
-        }
-      }
-    }
-
-    // Surgically reset toggle button on the story cluster
-    const clusterEl = document.getElementById(`cluster-${clusterId}`);
-    if (clusterEl) {
-      const toggleBtn = clusterEl.querySelector<HTMLButtonElement>('.dw-ssb-toggle-btn');
-      if (toggleBtn) {
-        toggleBtn.classList.remove('is-expanded');
-        toggleBtn.setAttribute('aria-expanded', 'false');
-        toggleBtn.setAttribute('aria-label', STRINGS.story.expandSummaryAriaLabel);
-        toggleBtn.setAttribute('title', STRINGS.summary.drawerTitle);
-        toggleBtn.textContent = '▼';
-      }
-    }
-
-    // Capture height before removing DOM node
-    const drawerHeight = drawer.offsetHeight || drawerRect.height;
-
-    // Remove drawer DOM element
-    drawer.remove();
-
-    // Synchronize ViewModel state silently without triggering full feed re-render
-    newsVm.setSSBExpanded(clusterId, false, false);
-    collapsedCount++;
-
-    // Apply zero-jump scroll offset compensation for elements collapsed above viewport
-    if (isAbove && typeof window !== 'undefined') {
-      if (anchorEl && typeof anchorEl.getBoundingClientRect === 'function') {
-        const anchorTopAfter = anchorEl.getBoundingClientRect().top;
-        const shiftDelta = anchorTopAfter - anchorTopBefore;
-        if (shiftDelta !== 0) {
-          if (typeof window.scrollBy === 'function') {
-            window.scrollBy(0, shiftDelta);
-          } else if (typeof window.scrollTo === 'function') {
-            window.scrollTo(0, (window.scrollY || 0) + shiftDelta);
-          }
-        }
-      } else if (drawerHeight > 0) {
-        if (typeof window.scrollBy === 'function') {
-          window.scrollBy(0, -drawerHeight);
-        } else if (typeof window.scrollTo === 'function') {
-          window.scrollTo(0, (window.scrollY || 0) - drawerHeight);
-        }
+  if (newsVm.hasExpandedSourcesDrawers()) {
+    for (const clusterId of newsVm.getExpandedSourcesClusterIds()) {
+      if (collapseSingleDrawer({ clusterId, drawerType: 'sources', newsVm, aboveThreshold, belowThreshold })) {
+        collapsedCount++;
       }
     }
   }
@@ -153,7 +218,7 @@ export function checkAndAutoCollapseSummaries(
 
 /**
  * Initializes passive scroll listener with requestAnimationFrame throttling
- * to automatically collapse out-of-view summaries. Returns a teardown function.
+ * to automatically collapse out-of-view summaries and sources drawers. Returns a teardown function.
  */
 export function initSummaryAutoCollapse(
   newsVm: NewsViewModel,
@@ -176,8 +241,8 @@ export function initSummaryAutoCollapse(
       : (id: number) => clearTimeout(id);
 
   const onScroll = () => {
-    // O(1) fast bailout if no summaries are currently open
-    if (!newsVm.hasExpandedSSBDrawers()) {
+    // O(1) fast bailout if neither summaries nor sources drawers are currently open
+    if (!newsVm.hasExpandedSSBDrawers() && !newsVm.hasExpandedSourcesDrawers()) {
       return;
     }
 

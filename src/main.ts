@@ -219,6 +219,10 @@ export function initializeApp(): void {
           relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
         });
       }
+      return;
+    }
+    if (hash.startsWith('#sources-') || hash.startsWith('#/sources/')) {
+      deepLinkToStoryFromLocation(newsVm);
     }
   };
 
