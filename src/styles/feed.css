@@ -41,6 +41,36 @@
 .dw-headline a { color: var(--dw-text-primary); text-decoration: none; }
 .dw-headline a:hover { color: var(--dw-link); text-decoration: underline; }
 
+.dw-source-attribution {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+  line-height: 1.2;
+}
+
+.dw-source-attribution .dw-official-badge-container {
+  margin-bottom: 0;
+  display: inline-flex;
+}
+
+.dw-source-flag {
+  font-size: 0.85rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+}
+
+.dw-attribution-time {
+  font-size: 0.76rem;
+  color: var(--dw-text-muted);
+  white-space: nowrap;
+}
+
 .dw-source-line {
   font-size: 0.78rem;
   color: var(--dw-text-secondary);
@@ -130,6 +160,7 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .dw-permalink-btn,

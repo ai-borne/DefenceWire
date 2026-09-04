@@ -3,12 +3,26 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { onRequestGet as onGetLlmsTxt } from '../../functions/llms.txt.js';
 import { onRequestGet as onGetLlmsFullTxt } from '../../functions/llms-full.txt.js';
 import { onRequestGet as onGetSitemapXml } from '../../functions/sitemap.xml.js';
 
 describe('Pages Functions: Machine-Readable Specs & Edge Cache Revalidation', () => {
+  let originalFetch: typeof globalThis.fetch;
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ clusters: [] })
+    }) as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
   it('serves /llms.txt with 200, ETag, Cache-Tag, and grounding content on cold request', async () => {
     const request = new Request('https://www.defencewire.in/llms.txt');
     const response = await onGetLlmsTxt({ request });

@@ -14,7 +14,7 @@ import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { openEntityDossierModal } from './EntityDossierModal.js';
-import { renderOfficialBadge } from './OfficialBadge.js';
+import { renderSourceAttribution } from '../utils/sourceAttribution.js';
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -33,11 +33,9 @@ export function renderStoryCluster(
     article.appendChild(leadTag);
   }
 
-  // 1b. Official Government / Parliament Q&A / PIB MoD Badge
-  const officialBadgeEl = renderOfficialBadge(cluster.primarySource);
-  if (officialBadgeEl) {
-    article.appendChild(officialBadgeEl);
-  }
+  // 1b. Consolidated Source & Geopolitical Attribution Line (Flag + Source/Badge + Time)
+  const attributionEl = renderSourceAttribution(cluster.primarySource);
+  article.appendChild(attributionEl);
 
   // 2. Synthesized Headline
   const headlineEl = document.createElement('h2');
@@ -150,29 +148,9 @@ export function renderStoryCluster(
   const footerEl = document.createElement('div');
   footerEl.className = 'dw-cluster-footer';
 
-  // 6a. Primary Source Meta Line
-  const metaLine = document.createElement('div');
-  metaLine.className = 'dw-source-line';
-
-  const viaSpan = document.createElement('span');
-  viaSpan.textContent = `${STRINGS.story.primarySourcePrefix} `;
-
-  const sourceNameEl = document.createElement('span');
-  sourceNameEl.className = 'dw-source-name';
-  sourceNameEl.textContent = sanitizePlainText(cleanSourceName(cluster.primarySource.sourceName));
-
-  // Relative Time
-  const timeSpan = document.createElement('span');
-  timeSpan.className = 'dw-river-meta';
-  timeSpan.textContent = `• ${formatTimeAgo(cluster.primarySource.publishedAt)}`;
-
-  metaLine.appendChild(viaSpan);
-  metaLine.appendChild(sourceNameEl);
-  metaLine.appendChild(timeSpan);
-
-  // Clickable Entity Chips for Techmeme-grade intelligence
+  // 6a. Clickable Entity Chips for Techmeme-grade intelligence
   if (cluster.entities && cluster.entities.length > 0) {
-    const entityBox = document.createElement('span');
+    const entityBox = document.createElement('div');
     entityBox.className = 'dw-entity-chips';
     for (const ent of cluster.entities.slice(0, 3)) {
       const chip = document.createElement('button');
@@ -186,10 +164,8 @@ export function renderStoryCluster(
       });
       entityBox.appendChild(chip);
     }
-    metaLine.appendChild(entityBox);
+    footerEl.appendChild(entityBox);
   }
-
-  footerEl.appendChild(metaLine);
 
   // 6b. Base Action Group (Permalink / Share + Summary Accordion Expander)
   const actionsGroup = document.createElement('div');

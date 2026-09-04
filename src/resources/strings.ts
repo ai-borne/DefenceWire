@@ -46,6 +46,8 @@ export const STRINGS = {
     viewOriginalArticle: 'Open primary report', timeAgoMinutes: 'm ago',
     timeAgoHours: 'h ago', timeAgoDays: 'd ago', justNow: 'Just now',
     shareAriaLabel: 'Share this intelligence briefing', expandSummaryAriaLabel: 'Expand article summary',
+    openDossierAriaLabel: 'Open story intelligence dossier', dossierBackBtn: '‹ Back to Top Stories',
+    dossierTitle: 'Story Intelligence Dossier', domesticFlag: '🇮🇳', globalFlag: '🌏',
     permalinkIcon: '🔗', permalinkCopiedIcon: '✓', permalinkTooltip: 'Copy share link',
     permalinkCopiedTooltip: 'Link copied to clipboard', permalinkLabel: '🔗 Permalink',
     permalinkCopied: '✓ Link copied', shareBtnText: 'Share', shareBtnCopiedText: 'Copied',
