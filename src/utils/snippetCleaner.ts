@@ -165,3 +165,31 @@ export function cleanStorySnippet(rawText: string | undefined | null, maxLen = 2
   // 3. Apply intelligent sentence/word boundary truncation
   return truncateIntelligently(stripped, maxLen);
 }
+
+/**
+ * Sanitizes synthesized headlines for clean journalistic scannability:
+ * - Decodes entities & strips malicious tags
+ * - Normalizes excessive whitespace
+ * - Strips trailing periods, multiple dots, colons, or semicolons
+ * - Preserves standard abbreviations like "U.S." or single initials
+ *
+ * @param rawHeadline - Raw headline text
+ * @returns Cleaned headline without trailing periods
+ */
+export function cleanHeadline(rawHeadline: string | undefined | null): string {
+  if (!rawHeadline || typeof rawHeadline !== 'string') {
+    return '';
+  }
+
+  const decoded = decodeHtmlEntities(rawHeadline);
+  const sanitized = sanitizePlainText(decoded).replace(/\s+/g, ' ').trim();
+
+  // If ending with known abbreviations like U.S. or similar 2-letter acronyms (e.g. "in the U.S.")
+  if (/\b(?:[A-Z]\.){2,}$/i.test(sanitized)) {
+    return sanitized;
+  }
+
+  // Strip trailing periods, ellipses, colons, and semicolons
+  return sanitized.replace(/[\s.;:]+$/, '').trim();
+}
+

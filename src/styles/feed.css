@@ -38,18 +38,27 @@
 
 .dw-headline { font-size: 1.05rem; font-weight: 700; line-height: var(--dw-leading-tight); margin-bottom: 4px; }
 .dw-headline--lead { font-size: 1.25rem; font-weight: 800; line-height: 1.3; }
-.dw-headline a { color: var(--dw-text-primary); text-decoration: none; }
+.dw-headline a, .dw-headline a:visited { color: var(--dw-text-primary); text-decoration: none; }
 .dw-headline a:hover { color: var(--dw-link); text-decoration: underline; }
+
+.dw-cluster-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
 
 .dw-source-attribution {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
-  font-size: 0.75rem;
+  flex-wrap: nowrap;
+  font-size: 0.74rem;
   color: var(--dw-text-secondary);
-  margin-bottom: 6px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .dw-geo-flag {

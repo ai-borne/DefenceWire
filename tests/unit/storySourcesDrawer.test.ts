@@ -242,7 +242,7 @@ describe('StoryClusterView - Sources Drawer Card Integration', () => {
     expect(btn?.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('omits sources button when cluster has zero corroborating sources', () => {
+  it('omits sources button when cluster has zero corroborating sources but retains footer attribution', () => {
     const emptyCluster: StoryCluster = {
       ...baseCluster,
       id: 'cluster-empty',
@@ -253,9 +253,11 @@ describe('StoryClusterView - Sources Drawer Card Integration', () => {
     const card = renderStoryCluster(emptyCluster, newsVm, false);
 
     expect(card.querySelector('.dw-sources-toggle-btn')).toBeNull();
+    const footerLeft = card.querySelector('.dw-cluster-footer-left') as HTMLElement;
+    expect(footerLeft).not.toBeNull();
+    expect(footerLeft.querySelector('.dw-source-attribution')).not.toBeNull();
     const actions = card.querySelector('.dw-cluster-actions') as HTMLElement;
     expect(actions).not.toBeNull();
-    expect(actions.style.marginLeft).toBe('auto');
   });
 
   it('renders singular "+1 source" when exactly one corroborating item exists', () => {

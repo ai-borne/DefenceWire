@@ -7,8 +7,8 @@
 
 import { StoryCluster } from '../types/news.js';
 import { STRINGS } from '../resources/strings.js';
-import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
-import { cleanStorySnippet } from '../utils/snippetCleaner.js';
+import { getSafeLinkAttributes } from '../utils/security.js';
+import { cleanStorySnippet, cleanHeadline } from '../utils/snippetCleaner.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderSSBDrawer } from './SSBDrawer.js';
 import { renderStorySourcesDrawer } from './StorySourcesDrawer.js';
@@ -32,11 +32,7 @@ export function renderStoryCluster(
     article.appendChild(leadTag);
   }
 
-  // 1b. Consolidated Source & Geopolitical Attribution Line
-  const attributionEl = renderSourceAttribution(cluster.primarySource);
-  article.appendChild(attributionEl);
-
-  // 2. Synthesized Headline
+  // 2. Synthesized Headline (Headline First Scannability)
   const headlineEl = document.createElement('h2');
   headlineEl.className = `dw-headline ${isLead ? 'dw-headline--lead' : ''}`;
 
@@ -45,7 +41,7 @@ export function renderStoryCluster(
   headlineLink.href = primaryAttrs.href;
   headlineLink.target = primaryAttrs.target;
   headlineLink.rel = primaryAttrs.rel;
-  headlineLink.textContent = sanitizePlainText(cluster.synthesizedHeadline);
+  headlineLink.textContent = cleanHeadline(cluster.synthesizedHeadline);
 
   headlineEl.appendChild(headlineLink);
   article.appendChild(headlineEl);
@@ -70,11 +66,14 @@ export function renderStoryCluster(
     article.appendChild(sourcesWrapper);
   }
 
-  // 5. Inline Base Footer (Action Bar)
+  // 5. Unified Base Footer (Metadata Attribution + Action Bar)
   const footerEl = document.createElement('div');
   footerEl.className = 'dw-cluster-footer';
 
-  // 5a. Left: +X sources toggle micro-pill
+  // 5a. Left Cluster: [+X sources] Micro-Pill (if available) + [Flag] Source Attribution
+  const footerLeftEl = document.createElement('div');
+  footerLeftEl.className = 'dw-cluster-footer-left';
+
   const totalCorroboration = (cluster.relatedCoverage?.length || 0) + (cluster.discussions?.length ? 1 : 0);
   if (totalCorroboration > 0) {
     const sourcesBtn = document.createElement('button');
@@ -94,15 +93,17 @@ export function renderStoryCluster(
       newsVm.toggleSourcesDrawer(cluster.id);
     });
 
-    footerEl.appendChild(sourcesBtn);
+    footerLeftEl.appendChild(sourcesBtn);
   }
+
+  // Consolidated Source & Geopolitical Attribution Line inside footer
+  const attributionEl = renderSourceAttribution(cluster.primarySource);
+  footerLeftEl.appendChild(attributionEl);
+  footerEl.appendChild(footerLeftEl);
 
   // 5b. Right: Base Action Group (Permalink / Share + Summary Accordion Expander)
   const actionsGroup = document.createElement('div');
   actionsGroup.className = 'dw-cluster-actions';
-  if (totalCorroboration === 0) {
-    actionsGroup.style.marginLeft = 'auto';
-  }
 
   // Share / Permalink Button with subtle text and tooltip
   const permalinkBtn = document.createElement('button');

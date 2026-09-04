@@ -4,7 +4,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { cleanStorySnippet, cleanSourceName, stripSyndicationBoilerplate, truncateIntelligently } from '../../src/utils/snippetCleaner.js';
+import {
+  cleanStorySnippet,
+  cleanSourceName,
+  cleanHeadline,
+  stripSyndicationBoilerplate,
+  truncateIntelligently
+} from '../../src/utils/snippetCleaner.js';
 
 describe('cleanSourceName Utility', () => {
   it('strips long descriptive subtitles in parentheses', () => {
@@ -155,4 +161,38 @@ Read the full article on idrw.org: Pune-Based Technotreon Develops Indigenous`;
       expect(output).toBe('In Episode 1, we looked at a fundamental mistake companies make when entering the Indian defence ecosystem: there is no single customer called “the Army.”');
     });
   });
+
+  describe('cleanHeadline Utility', () => {
+    it('strips trailing periods, multiple dots, colons, and semicolons', () => {
+      expect(cleanHeadline('GSLV-F17 has successfully accomplished its mission, placing EOS-05 into the intended orbit.')).toBe(
+        'GSLV-F17 has successfully accomplished its mission, placing EOS-05 into the intended orbit'
+      );
+      expect(cleanHeadline('India Commissions Nuclear Submarine Arighat at Visakhapatnam...')).toBe(
+        'India Commissions Nuclear Submarine Arighat at Visakhapatnam'
+      );
+      expect(cleanHeadline('Defence Ministry Clears Procurement:')).toBe(
+        'Defence Ministry Clears Procurement'
+      );
+      expect(cleanHeadline('Tactical Missile Development Complete;')).toBe(
+        'Tactical Missile Development Complete'
+      );
+    });
+
+    it('preserves legitimate ending abbreviations such as U.S.', () => {
+      expect(cleanHeadline('India and France Strengthen Strategic Ties in the U.S.')).toBe(
+        'India and France Strengthen Strategic Ties in the U.S.'
+      );
+    });
+
+    it('decodes HTML entities and normalizes whitespace', () => {
+      expect(cleanHeadline('India&#039;s New Radar System Tested  .')).toBe("India's New Radar System Tested");
+    });
+
+    it('handles null, undefined, or empty string gracefully', () => {
+      expect(cleanHeadline(null)).toBe('');
+      expect(cleanHeadline(undefined)).toBe('');
+      expect(cleanHeadline('')).toBe('');
+    });
+  });
 });
+
