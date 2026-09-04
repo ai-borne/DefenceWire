@@ -33,6 +33,44 @@ export function sanitizeGeminiOutput(text: string): string {
   return sanitized.replace(/\s{2,}/g, ' ').trim();
 }
 
+export function parseGeminiJsonFromText(rawText: string): unknown {
+  if (!rawText || typeof rawText !== 'string') return null;
+  let cleaned = rawText.trim();
+  const fenceMatch = /```(?:json)?\s*([\s\S]*?)\s*```/i.exec(cleaned);
+  if (fenceMatch?.[1]) {
+    cleaned = fenceMatch[1].trim();
+  }
+
+  // Remove trailing commas before closing braces/brackets
+  const repairTrailingCommas = (str: string) => str.replace(/,\s*([\]}])/g, '$1');
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Try trailing comma cleanup
+    try {
+      return JSON.parse(repairTrailingCommas(cleaned));
+    } catch {
+      // Try extracting outermost JSON object bounds
+      const firstBrace = cleaned.indexOf('{');
+      const lastBrace = cleaned.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const sliced = cleaned.slice(firstBrace, lastBrace + 1);
+        try {
+          return JSON.parse(sliced);
+        } catch {
+          try {
+            return JSON.parse(repairTrailingCommas(sliced));
+          } catch {
+            return null;
+          }
+        }
+      }
+      return null;
+    }
+  }
+}
+
 export function sanitizePromptField(text: string, maxLen: number): string {
   if (!text || typeof text !== 'string') return '';
   return text

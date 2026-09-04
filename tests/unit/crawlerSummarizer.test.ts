@@ -228,6 +228,17 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(result).toBeNull();
   });
 
+  it('repairs Gemini JSON with markdown fences, trailing commas, or surrounding commentary', async () => {
+    const malformed = 'Summary:\n```json\n{"whyItMatters":"Fleet modernization with indigenous systems.","defenceTechTakeaway":{"platformOrSystem":"Project 75I","specifications":["AIP fuel-cell"],"keySignificance":"Extends endurance.",},}\n```';
+    const fencedFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: malformed }] } }] }), {
+      status: 200, headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', fencedFetch as typeof fetch);
+    expect(result).not.toBeNull();
+    expect(result?.whyItMatters).toContain('Fleet modernization');
+    expect(result?.defenceTechTakeaway?.platformOrSystem).toBe('Project 75I');
+  });
+
   it('logs the HTTP status and body when Gemini rejects a request, instead of failing silently', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const rejectingFetch = async () => new Response('API key not valid', { status: 400 });
@@ -286,4 +297,3 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(fallbackIntel?.defenceTechTakeaway?.platformOrSystem).toBe('Project 75I');
   });
 });
-

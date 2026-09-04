@@ -9,6 +9,7 @@ import { SSBIntelligence, StoryCluster } from '../src/types/news.js';
 import { generateExtractiveSSBIntel } from './extractiveMiner.js';
 import {
   buildGeminiPrompt,
+  parseGeminiJsonFromText,
   sanitizeGeminiOutput,
   sanitizePromptField
 } from './summarizerPrompt.js';
@@ -167,7 +168,10 @@ export async function summarizeWithGemini(
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
 
-    const parsed = JSON.parse(rawText);
+    const parsed = parseGeminiJsonFromText(rawText);
+    if (!parsed) {
+      return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
+    }
     if (isValidSSBIntelligence(parsed)) {
       const sanitizedWhy = sanitizeGeminiOutput(parsed.whyItMatters);
       const sanitizedIntel: SSBIntelligence = {
