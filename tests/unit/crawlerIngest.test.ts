@@ -35,7 +35,7 @@ const SAMPLE_XML_TEJAS = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.
 </channel></rss>`;
 
 const MOCK_GEMINI_SUCCESS = { candidates: [{ content: { parts: [{ text: JSON.stringify({
-  whyItMatters: 'Gemini-generated brief.', strategicAngle: 'Gemini strategic angle.',
+  whyItMatters: 'Test Platform induction -> Enhances operational readiness -> Gemini-generated brief.', strategicAngle: 'Gemini strategic angle.',
   defenceTechTakeaway: { platformOrSystem: 'Test Platform', specifications: ['S1', 'S2', 'S3'], keySignificance: 'Key significance.' }
 }) }] } }] };
 
@@ -122,7 +122,7 @@ describe('Crawler Ingestion Pipeline & Quality Gates', () => {
     // Every cluster attempted (and got) a real Gemini summary, not just the first 12/14.
     expect(geminiCallCount).toBe(result.clusters.length);
     for (const cluster of result.clusters) {
-      expect(cluster.ssbIntel?.whyItMatters).toBe('Gemini-generated brief.');
+      expect(cluster.ssbIntel?.whyItMatters).toBe('Test Platform induction -> Enhances operational readiness -> Gemini-generated brief.');
     }
     // The per-run enrichment summary log must reflect the real Gemini/heuristic split.
     expect(logSpy).toHaveBeenCalledWith(`[SSB ENRICHMENT] ${result.clusters.length} via Gemini, 0 heuristic fallback, 0 preserved from prior run`);

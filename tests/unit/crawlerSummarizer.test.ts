@@ -50,7 +50,7 @@ const MOCK_GEMINI_RESPONSE = {
       parts: [{
         text: JSON.stringify({
           isDefenceRelevant: true,
-          whyItMatters: 'Critical strategic leap for Indian Navy underwater deterrence in IOR.',
+          whyItMatters: 'Project 75I submarine deal for 6 boats -> Enhances underwater deterrence -> Critical strategic leap for Indian Navy in IOR.',
           gdLecturettePoints: ['AIP Technology vs Nuclear Submarine Fleet', 'Strategic Partnership Model', 'Maritime Balance'],
           potentialInterviewQuestions: ['What is Air Independent Propulsion (AIP)?', 'Why is Project 75I critical?', 'AIP vs SSN?'],
           strategicAngle: 'Countering expanding PLA Navy presence in the Malacca Straits.',
@@ -115,7 +115,7 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(isValidSSBIntelligence({})).toBe(false);
     expect(isValidSSBIntelligence({ whyItMatters: '' })).toBe(false);
     expect(isValidSSBIntelligence({
-      whyItMatters: 'Valid significance',
+      whyItMatters: 'Tejas Mk1A induction -> Boosts squadron strength -> Strengthens western air defence posture',
       strategicAngle: 'Deterrence',
       defenceTechTakeaway: { platformOrSystem: 'Tejas', specifications: ['Mach 1.8'], keySignificance: 'Air superiority' }
     })).toBe(true);
@@ -229,7 +229,7 @@ describe('Summarizer & Content-Hash Memory', () => {
   });
 
   it('repairs Gemini JSON with markdown fences, trailing commas, or surrounding commentary', async () => {
-    const malformed = 'Summary:\n```json\n{"whyItMatters":"Fleet modernization with indigenous systems.","defenceTechTakeaway":{"platformOrSystem":"Project 75I","specifications":["AIP fuel-cell"],"keySignificance":"Extends endurance.",},}\n```';
+    const malformed = 'Summary:\n```json\n{"whyItMatters":"Fleet modernization with indigenous systems -> Extends operational endurance -> Fleet modernization with indigenous systems.","defenceTechTakeaway":{"platformOrSystem":"Project 75I","specifications":["AIP fuel-cell"],"keySignificance":"Extends endurance.",},}\n```';
     const fencedFetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: malformed }] } }] }), {
       status: 200, headers: { 'Content-Type': 'application/json' }
     });
@@ -267,7 +267,7 @@ describe('Summarizer & Content-Hash Memory', () => {
         content: {
           parts: [{
             text: JSON.stringify({
-              whyItMatters: 'In a significant development, MoD clears indigenous jet engines.',
+              whyItMatters: 'In a significant development, MoD clears indigenous jet engines -> Boosts sovereign propulsion capability -> A crucial step forward for engine sovereignty.',
               strategicAngle: 'This article examines high-altitude combat.',
               defenceTechTakeaway: {
                 platformOrSystem: 'Kaveri Engine',

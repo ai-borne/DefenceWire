@@ -6,6 +6,10 @@
 
 import { DefenceTechTakeaway, SSBIntelligence, StoryCluster } from '../src/types/news.js';
 import { SourceTier } from '../src/types/source.js';
+import { truncateIntelligently } from '../src/utils/snippetCleaner.js';
+
+const RELATED_COVERAGE_SAMPLE_SIZE = 5;
+const RELATED_COVERAGE_CONFIDENCE_BONUS = 0.1;
 
 export const HIGH_VALUE_BUDGET_THRESHOLD_CR = 25000;
 export const CONFIDENCE_THRESHOLD = 0.75;
@@ -58,13 +62,17 @@ function extractVerbatimQuote(snippet: string, title: string, sourceName: string
   const combined = `${title}. ${snippet}`.trim();
   const sentences = combined.split(/(?<=[.?!])\s+/).map((s) => s.trim()).filter((s) => s.length > 20);
   const primarySentence = sentences.find((s) => /deal|approv|sanction|sign|induct|trial|clears|procure/i.test(s)) || sentences[0] || combined;
-  const cleanSentence = primarySentence.replace(/[\r\n\t]+/g, ' ').slice(0, 240).trim();
+  const cleanSentence = truncateIntelligently(primarySentence.replace(/[\r\n\t]+/g, ' '), 240);
   return `"${cleanSentence}" — ${sourceName}`;
 }
 
 export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningResult {
   const primary = cluster.primarySource;
-  const text = `${cluster.synthesizedHeadline} ${primary.title} ${primary.snippet || ''}`;
+  const relatedText = (cluster.relatedCoverage || [])
+    .slice(0, RELATED_COVERAGE_SAMPLE_SIZE)
+    .map((s) => s.snippet || '')
+    .join(' ');
+  const text = `${cluster.synthesizedHeadline} ${primary.title} ${primary.snippet || ''} ${relatedText}`;
   const platform = cluster.entities[0] || 'Strategic Defence Modernization';
 
   const { amount: budgetCrores, isHighValue } = parseBudget(text);
@@ -77,6 +85,7 @@ export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningRe
   if (budgetCrores !== undefined) confidence += 0.25;
   if (quantities !== undefined || deliveryTimeline !== undefined) confidence += 0.20;
   if (cluster.entities.length > 0 && text.toLowerCase().includes(cluster.entities[0]!.toLowerCase())) confidence += 0.15;
+  if ((cluster.relatedCoverage || []).length > 0) confidence += RELATED_COVERAGE_CONFIDENCE_BONUS;
   confidence = Math.min(1.0, Math.round(confidence * 100) / 100);
 
   const isHighConfidence = confidence >= CONFIDENCE_THRESHOLD;
@@ -123,6 +132,7 @@ export function generateExtractiveSSBIntel(cluster: StoryCluster): SSBIntelligen
   const primaryCat = cluster.categories[0] || 'strategic';
 
   const intel: SSBIntelligence = {
+    provenance: 'extractive',
     whyItMatters: mined.summaryText,
     strategicAngle: `Strengthens operational deterrence and combat posture in the ${primaryCat.toUpperCase()} domain.`,
     defenceTechTakeaway: mined.metrics

@@ -99,15 +99,73 @@ describe('Deterministic Extractive Miner', () => {
     expect(result.verbatimQuote).toMatch(/^".+" — Defence Watcher$/);
   });
 
+  it('truncates an over-long verbatim quote at a sentence/word boundary instead of mid-word', () => {
+    const longSentenceCluster = createMockCluster({
+      synthesizedHeadline: 'Analysts Discuss Future Armoured Capability',
+      primarySource: {
+        id: 'ps-long',
+        title: 'Opinion piece',
+        url: 'https://defence-blog-rumors.com/long',
+        sourceName: 'Defence Watcher',
+        sourceDomain: 'defence-watcher.com',
+        tier: SourceTier.TIER_3_SPECIALIZED,
+        publishedAt: '2026-08-30T12:00:00Z',
+        snippet: 'Military analysts suggest future armoured forces deployed across the western sector will need modernized optical sights, upgraded fire control systems, and significantly enhanced night-fighting capability to remain competitive.'
+      },
+      entities: ['Arjun Tank'],
+      categories: ['army']
+    });
+
+    const result = extractDefenceMetrics(longSentenceCluster);
+    const quoteText = result.verbatimQuote.replace(/^"|" — .+$/g, '');
+    expect(quoteText.length).toBeLessThanOrEqual(240);
+    expect(quoteText).not.toMatch(/[a-zA-Z]-$/);
+  });
+
   it('generates schema-valid SSBIntelligence with proper domain scoping', () => {
     const cluster = createMockCluster();
     const intel = generateExtractiveSSBIntel(cluster);
 
     expect(isValidSSBIntelligence(intel)).toBe(true);
     expect(intel.whyItMatters).toBeTruthy();
+    expect(intel.provenance).toBe('extractive');
     expect(intel.strategicAngle).toContain('AIRFORCE');
     expect(intel.defenceTechTakeaway?.platformOrSystem).toBe('ALH Dhruv');
     expect(intel.gdLecturettePoints).toBeUndefined();
+  });
+
+  it('mines budget figures from relatedCoverage when the primary source omits them', () => {
+    const clusterWithoutBudget = createMockCluster({
+      primarySource: {
+        id: 'ps-pib-nobudget',
+        title: 'CCS approves procurement of 34 ALH Dhruv helicopters',
+        url: 'https://pib.gov.in/PressReleasePage.aspx?PRID=2012345',
+        sourceName: 'PIB MoD',
+        sourceDomain: 'pib.gov.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-30T10:00:00Z',
+        snippet: 'The Cabinet Committee on Security approved acquisition of 34 ALH Dhruv helicopters.'
+      },
+      relatedCoverage: [
+        {
+          id: 'rc-1',
+          title: 'Deal valuation reported',
+          url: 'https://thehindu.com/alh-dhruv-deal',
+          sourceName: 'The Hindu',
+          sourceDomain: 'thehindu.com',
+          tier: SourceTier.TIER_2_NATIONAL,
+          publishedAt: '2026-08-30T11:00:00Z',
+          snippet: 'Industry sources peg the ALH Dhruv order worth Rs 8,073 crore, with delivery by 2028.'
+        }
+      ]
+    });
+
+    const noCoverageResult = extractDefenceMetrics({ ...clusterWithoutBudget, relatedCoverage: [] });
+    expect(noCoverageResult.metrics.budgetCrores).toBeUndefined();
+
+    const withCoverageResult = extractDefenceMetrics(clusterWithoutBudget);
+    expect(withCoverageResult.metrics.budgetCrores).toBe(8073);
+    expect(withCoverageResult.confidence).toBeGreaterThan(noCoverageResult.confidence);
   });
 
   it('populates lecturette and interview prompts for clusters tagged with ssb category', () => {

@@ -55,7 +55,8 @@ export const STRINGS = {
   summary: {
     drawerTitle: 'Summary', collapseDrawerBtn: 'Collapse Summary', collapseAriaLabel: 'Collapse article summary',
     summaryToggleText: 'Summary', summaryCollapseText: 'Collapse', whyItMattersHeading: 'Why It Matters',
-    techTakeawayHeading: 'Key Specifications', strategicAngleHeading: 'Strategic Angle'
+    techTakeawayHeading: 'Key Specifications', strategicAngleHeading: 'Strategic Angle',
+    extractiveBadge: 'Auto-generated brief'
   },
   ssb: {
     insightBadge: 'SSB Insight', drawerSubtitle: 'Curated for SSB Aspirants (NDA, CDS, AFCAT, INET, SSB Boards)',

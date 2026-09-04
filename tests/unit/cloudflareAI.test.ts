@@ -159,7 +159,7 @@ describe('Cloudflare Workers AI Client Adapter', () => {
     const mockSummaryPayload = {
       result: {
         response: JSON.stringify({
-          whyItMatters: 'Provides indigenous SEAD / DEAD capability for IAF.',
+          whyItMatters: 'Rudram-II flight test -> Provides indigenous SEAD / DEAD capability -> Strengthens IAF standoff strike posture.',
           strategicAngle: 'Crucial for neutralizing adversarial radar networks.',
           defenceTechTakeaway: {
             platformOrSystem: 'Rudram-II',
@@ -185,6 +185,7 @@ describe('Cloudflare Workers AI Client Adapter', () => {
     const summary = await summarizeWithCloudflareAI(MOCK_CLUSTER, options);
     expect(summary).not.toBeNull();
     expect(summary?.whyItMatters).toContain('SEAD / DEAD');
+    expect(summary?.provenance).toBe('cloudflare-ai');
     expect(summary?.defenceTechTakeaway?.platformOrSystem).toBe('Rudram-II');
     expect(fetchCount).toBe(1);
 

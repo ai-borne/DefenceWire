@@ -60,6 +60,17 @@ describe('SSBDrawer Component & Bottom Collapse Button', () => {
     expect(el.querySelector('.dw-ssb-footer')).toBeNull();
   });
 
+  it('shows no provenance badge for Gemini-sourced briefs, and one for extractive-miner-sourced briefs', () => {
+    const geminiEl = renderSSBDrawer({ ...mockIntel, provenance: 'gemini' }, 'cluster-test-1', false);
+    expect(geminiEl.textContent).not.toContain(STRINGS.summary.extractiveBadge);
+
+    const undefinedProvenanceEl = renderSSBDrawer(mockIntel, 'cluster-test-1', false);
+    expect(undefinedProvenanceEl.textContent).not.toContain(STRINGS.summary.extractiveBadge);
+
+    const extractiveEl = renderSSBDrawer({ ...mockIntel, provenance: 'extractive' }, 'cluster-test-1', false);
+    expect(extractiveEl.textContent).toContain(STRINGS.summary.extractiveBadge);
+  });
+
   it('renders inline metadata and action buttons inside card footer', () => {
     const newsVm = new NewsViewModel();
     const articleEl = renderStoryCluster(mockCluster, newsVm);

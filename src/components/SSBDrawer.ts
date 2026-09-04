@@ -177,6 +177,14 @@ export function renderSSBDrawer(
   titleEl.textContent = STRINGS.summary.drawerTitle;
 
   headerEl.appendChild(titleEl);
+
+  if (intel.provenance === 'extractive') {
+    const badge = document.createElement('span');
+    badge.className = 'dw-ssb-insight-badge';
+    badge.textContent = STRINGS.summary.extractiveBadge;
+    headerEl.appendChild(badge);
+  }
+
   drawer.appendChild(headerEl);
 
   // 2. Why it matters

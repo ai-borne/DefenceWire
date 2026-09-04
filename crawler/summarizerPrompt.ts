@@ -5,6 +5,7 @@
  */
 
 import { StoryCluster } from '../src/types/news.js';
+import { truncateIntelligently } from '../src/utils/snippetCleaner.js';
 
 export const BANNED_GENERIC_PHRASES: readonly string[] = [
   'in a significant development',
@@ -73,11 +74,13 @@ export function parseGeminiJsonFromText(rawText: string): unknown {
 
 export function sanitizePromptField(text: string, maxLen: number): string {
   if (!text || typeof text !== 'string') return '';
-  return text
+  const cleaned = text
     .replace(/<\/?article_content>/gi, '')
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    .trim()
-    .slice(0, maxLen);
+    .trim();
+  // truncateIntelligently's ellipsis suffix can push a short maxLen slightly over —
+  // enforce the hard cap prompt-injection defenses rely on.
+  return truncateIntelligently(cleaned, maxLen).slice(0, maxLen);
 }
 
 export function buildGeminiPrompt(cluster: StoryCluster): string {

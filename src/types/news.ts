@@ -64,6 +64,9 @@ export interface SSBIntelligence {
   // rendered as an opt-in insight box, not shown in the default article summary.
   gdLecturettePoints?: string[];
   potentialInterviewQuestions?: string[];
+  // Which pipeline produced this brief — lets the UI label deterministic
+  // extractive-miner output distinctly from free-form LLM analysis.
+  provenance?: 'gemini' | 'cloudflare-ai' | 'extractive';
 }
 
 export type DomainCategory =

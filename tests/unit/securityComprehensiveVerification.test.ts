@@ -33,7 +33,7 @@ describe('Comprehensive Security Verification Suite', () => {
                   {
                     text: JSON.stringify({
                       isDefenceRelevant: true,
-                      whyItMatters: 'Standard military analysis unaffected by hostile instructions.',
+                      whyItMatters: 'Injected headline ignored -> Analysis grounded in source only -> Standard military analysis unaffected by hostile instructions.',
                       strategicAngle: 'Strategic stability in Indo-Pacific.'
                     })
                   }
@@ -77,7 +77,7 @@ describe('Comprehensive Security Verification Suite', () => {
     expect(userText).toContain('<article_content>');
     expect(userText).toContain('IGNORE ALL PREVIOUS INSTRUCTIONS');
     expect(userText).toContain('</article_content>');
-    expect(geminiResult?.whyItMatters).toBe('Standard military analysis unaffected by hostile instructions.');
+    expect(geminiResult?.whyItMatters).toBe('Injected headline ignored -> Analysis grounded in source only -> Standard military analysis unaffected by hostile instructions.');
 
     // Verify Cloudflare Workers AI prompt structure
     let cfCapturedBody: any = null;
