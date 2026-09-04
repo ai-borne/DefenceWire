@@ -80,6 +80,13 @@ describe('Social UI Badging & Component Rendering', () => {
 
   it('renders verified badge and safe external link for official social discussion quotes in StoryClusterView', () => {
     const newsVm = new NewsViewModel([mockClusterWithDiscussions], []);
+    // Before expansion: discussions drawer is hidden, toggle button is present
+    const collapsedEl = renderStoryCluster(mockClusterWithDiscussions, newsVm, true);
+    expect(collapsedEl.querySelector('.dw-discussions')).toBeNull();
+    expect(collapsedEl.querySelector('.dw-sources-toggle-btn')).not.toBeNull();
+
+    // After expanding sources drawer: discussions and quotes are rendered
+    newsVm.setSourcesExpanded(mockClusterWithDiscussions.id, true);
     const element = renderStoryCluster(mockClusterWithDiscussions, newsVm, true);
 
     const discBox = element.querySelector('.dw-discussions');
@@ -103,6 +110,7 @@ describe('Social UI Badging & Component Rendering', () => {
     };
 
     const newsVm = new NewsViewModel([clusterGenericOnly], []);
+    newsVm.setSourcesExpanded(clusterGenericOnly.id, true);
     const element = renderStoryCluster(clusterGenericOnly, newsVm, false);
 
     const discBox = element.querySelector('.dw-discussions');

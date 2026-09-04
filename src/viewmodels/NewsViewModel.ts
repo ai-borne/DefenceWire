@@ -17,6 +17,7 @@ export class NewsViewModel {
   private activeCategory: FilterCategory = 'all';
   private searchQuery: string = '';
   private expandedSSBClusterIds: Set<string> = new Set();
+  private expandedSourcesClusterIds: Set<string> = new Set();
   private isLoading: boolean = false;
   private isOffline: boolean = false;
   private errorMessage: string | null = null;
@@ -52,23 +53,17 @@ export class NewsViewModel {
   }
 
   public toggleSSBDrawer(clusterId: string): void {
-    const isExpanded = this.expandedSSBClusterIds.has(clusterId);
-    this.setSSBExpanded(clusterId, !isExpanded, true);
+    this.setSSBExpanded(clusterId, !this.expandedSSBClusterIds.has(clusterId), true);
   }
 
   public setSSBExpanded(clusterId: string, expanded: boolean, notify: boolean = true): void {
-    const currentlyExpanded = this.expandedSSBClusterIds.has(clusterId);
-    if (currentlyExpanded === expanded) return;
-
+    if (this.expandedSSBClusterIds.has(clusterId) === expanded) return;
     if (expanded) {
       this.expandedSSBClusterIds.add(clusterId);
     } else {
       this.expandedSSBClusterIds.delete(clusterId);
     }
-
-    if (notify) {
-      this.notifyListeners();
-    }
+    if (notify) this.notifyListeners();
   }
 
   public isSSBExpanded(clusterId: string): boolean {
@@ -81,6 +76,32 @@ export class NewsViewModel {
 
   public getExpandedSSBClusterIds(): Set<string> {
     return new Set(this.expandedSSBClusterIds);
+  }
+
+  public toggleSourcesDrawer(clusterId: string): void {
+    this.setSourcesExpanded(clusterId, !this.expandedSourcesClusterIds.has(clusterId), true);
+  }
+
+  public setSourcesExpanded(clusterId: string, expanded: boolean, notify: boolean = true): void {
+    if (this.expandedSourcesClusterIds.has(clusterId) === expanded) return;
+    if (expanded) {
+      this.expandedSourcesClusterIds.add(clusterId);
+    } else {
+      this.expandedSourcesClusterIds.delete(clusterId);
+    }
+    if (notify) this.notifyListeners();
+  }
+
+  public isSourcesExpanded(clusterId: string): boolean {
+    return this.expandedSourcesClusterIds.has(clusterId);
+  }
+
+  public hasExpandedSourcesDrawers(): boolean {
+    return this.expandedSourcesClusterIds.size > 0;
+  }
+
+  public getExpandedSourcesClusterIds(): Set<string> {
+    return new Set(this.expandedSourcesClusterIds);
   }
 
   public setOffline(offline: boolean): void {
@@ -200,72 +221,31 @@ export class NewsViewModel {
    */
   public promoteToLead(id: string): void {
     const maxScore = Math.max(...this.clusters.map((c) => c.defenceScore), 100);
-    this.clusters = this.clusters.map((c) => {
-      if (c.id === id) {
-        return {
-          ...c,
-          isLeadStory: true,
-          isEditorPromoted: true,
-          isIgnored: false,
-          defenceScore: maxScore + 50,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return { ...c, isLeadStory: false };
-    });
+    this.clusters = this.clusters.map((c) => (c.id === id ? {
+      ...c, isLeadStory: true, isEditorPromoted: true, isIgnored: false, defenceScore: maxScore + 50, updatedAt: new Date().toISOString()
+    } : { ...c, isLeadStory: false }));
     this.notifyListeners();
   }
 
-  /**
-   * Demotes a promoted lead cluster.
-   */
   public demoteStory(id: string): void {
-    this.updateCluster(id, (cluster) => ({
-      ...cluster,
-      isLeadStory: false,
-      isEditorPromoted: false,
-      updatedAt: new Date().toISOString()
-    }));
+    this.updateCluster(id, (c) => ({ ...c, isLeadStory: false, isEditorPromoted: false, updatedAt: new Date().toISOString() }));
   }
 
-  /**
-   * Updates synthesized headline for a cluster.
-   */
   public updateHeadline(id: string, newHeadline: string): void {
-    this.updateCluster(id, (cluster) => ({
-      ...cluster,
-      synthesizedHeadline: newHeadline.trim(),
-      updatedAt: new Date().toISOString()
-    }));
+    this.updateCluster(id, (c) => ({ ...c, synthesizedHeadline: newHeadline.trim(), updatedAt: new Date().toISOString() }));
   }
 
-  /**
-   * Updates SSB Intelligence briefing for a cluster.
-   */
   public updateSSBIntel(id: string, ssbIntel: import('../types/news.js').SSBIntelligence): void {
-    this.updateCluster(id, (cluster) => ({
-      ...cluster,
-      ssbIntel: { ...ssbIntel },
-      updatedAt: new Date().toISOString()
-    }));
+    this.updateCluster(id, (c) => ({ ...c, ssbIntel: { ...ssbIntel }, updatedAt: new Date().toISOString() }));
   }
 
-  /**
-   * Toggles the ignored status of a cluster.
-   */
   public toggleIgnore(id: string): void {
-    this.updateCluster(id, (cluster) => ({
-      ...cluster,
-      isIgnored: !cluster.isIgnored,
-      updatedAt: new Date().toISOString()
-    }));
+    this.updateCluster(id, (c) => ({ ...c, isIgnored: !c.isIgnored, updatedAt: new Date().toISOString() }));
   }
 
   public subscribe(listener: NewsStateListener): () => void {
     this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
+    return () => { this.listeners.delete(listener); };
   }
 
   private notifyListeners(): void {
