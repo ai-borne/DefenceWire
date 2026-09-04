@@ -42,8 +42,11 @@ jobs:
           node-version: 22
           cache: 'npm'
 
+      # Occasionally npm ci stalls mid-fetch/extract on a runner network
+      # blip and hangs silently for the rest of the job's timeout budget.
+      # Bound each attempt to 2 minutes and retry once before giving up.
       - name: Install Dependencies
-        run: npm ci
+        run: timeout 120 npm ci || (echo "npm ci stalled after 120s, retrying once..." && npm ci)
 
       - name: Run Test Suite
         run: npm test
