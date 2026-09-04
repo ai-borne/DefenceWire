@@ -128,6 +128,62 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
   });
 
+  it('should initialize with compact story cards at rest with no expanded drawers', () => {
+    initializeApp();
+
+    const cluster = document.querySelector('article.dw-cluster');
+    expect(cluster).not.toBeNull();
+
+    // Verify neither sources drawer nor summary drawer is open at rest
+    expect(cluster?.querySelector('.dw-sources-drawer-wrapper')).toBeNull();
+    expect(cluster?.querySelector('.dw-ssb-drawer-wrapper')).toBeNull();
+
+    // Verify sources toggle pill exists for cluster with corroboration
+    const sourcesToggle = cluster?.querySelector('.dw-sources-toggle-btn') as HTMLButtonElement | null;
+    expect(sourcesToggle).not.toBeNull();
+    expect(sourcesToggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(sourcesToggle?.textContent).toMatch(/^\+\d+\s+sources?$/);
+  });
+
+  it('should toggle Sources drawer on click independently of Summary drawer', () => {
+    initializeApp();
+
+    const sourcesToggle = document.querySelector('.dw-sources-toggle-btn') as HTMLButtonElement;
+    expect(sourcesToggle).not.toBeNull();
+    expect(sourcesToggle.getAttribute('aria-expanded')).toBe('false');
+
+    // 1. Expand sources drawer
+    sourcesToggle.click();
+
+    const sourcesDrawer = document.querySelector('.dw-sources-drawer');
+    expect(sourcesDrawer).not.toBeNull();
+    expect(sourcesDrawer?.parentElement?.classList.contains('is-open')).toBe(true);
+
+    const expandedSourcesToggle = document.querySelector('.dw-sources-toggle-btn') as HTMLButtonElement;
+    expect(expandedSourcesToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(expandedSourcesToggle.textContent).toBe(STRINGS.story.sourcesCollapse);
+
+    // Summary drawer must remain unexpanded
+    expect(document.querySelector('.dw-ssb-drawer')).toBeNull();
+
+    // 2. Expand summary drawer while sources drawer is open — both operate independently
+    const summaryToggle = document.querySelector('.dw-ssb-toggle-btn') as HTMLButtonElement;
+    expect(summaryToggle).not.toBeNull();
+    summaryToggle.click();
+
+    expect(document.querySelector('.dw-ssb-drawer')).not.toBeNull();
+    expect(document.querySelector('.dw-sources-drawer')).not.toBeNull();
+
+    // 3. Collapse sources drawer cleanly via '▴ Hide sources'
+    const collapseSourcesBtn = document.querySelector('.dw-sources-toggle-btn') as HTMLButtonElement;
+    expect(collapseSourcesBtn.textContent).toBe(STRINGS.story.sourcesCollapse);
+    collapseSourcesBtn.click();
+
+    expect(document.querySelector('.dw-sources-drawer')).toBeNull();
+    // Summary drawer still open
+    expect(document.querySelector('.dw-ssb-drawer')).not.toBeNull();
+  });
+
   it('should surface the SSB Insight box and SSBMax.ai CTA only within the SSB Intel tab', () => {
     initializeApp();
 

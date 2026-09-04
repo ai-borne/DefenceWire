@@ -85,15 +85,10 @@
   }
 
   .dw-sync-label,
-  .dw-theme-label {
-    display: none !important;
-  }
+  .dw-theme-label { display: none !important; }
 
   .dw-sync-icon,
-  .dw-theme-icon {
-    font-size: 1.05rem;
-    line-height: 1;
-  }
+  .dw-theme-icon { font-size: 1.05rem; line-height: 1; }
 
   /* Full-width Expandable Search Overlay */
   .dw-search-box.is-open {
@@ -156,18 +151,34 @@
   }
 
   .dw-cluster-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
     flex-wrap: nowrap;
   }
 
-  .dw-source-line {
-    gap: 4px;
-    font-size: 0.74rem;
+  .dw-sources-toggle-btn {
+    position: relative;
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
   }
 
-  .dw-source-name {
-    max-width: 140px;
+  .dw-sources-toggle-btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
   }
+
+  .dw-source-line { gap: 4px; font-size: 0.74rem; }
+  .dw-source-name { max-width: 140px; }
 
   .dw-headline--lead {
     font-size: 1.12rem;
@@ -176,6 +187,14 @@
   .dw-headline,
   .dw-headline--lead {
     overflow-wrap: anywhere;
+  }
+
+  .dw-snippet {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .dw-nav-tab {
@@ -189,6 +208,7 @@
     margin-left: 8px;
   }
 
+  .dw-sources-drawer,
   .dw-ssb-drawer {
     padding: 10px;
   }

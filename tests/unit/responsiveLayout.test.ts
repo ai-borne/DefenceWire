@@ -13,6 +13,7 @@ describe('Unit: Responsive Layout & Text Overflow Hygiene', () => {
   const layoutCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/layout.css'), 'utf-8');
   const responsiveCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/responsive.css'), 'utf-8');
   const dossierCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/dossier.css'), 'utf-8');
+  const feedCss = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/feed.css'), 'utf-8');
 
   it('guarantees min-width: 0 on flex children to prevent horizontal blowout', () => {
     expect(layoutCss).toContain('.dw-main-feed, .dw-brand-row > *, .dw-utility-row > *, .dw-modal-header > *, .dw-cluster-footer > * { min-width: 0; }');
@@ -81,5 +82,29 @@ describe('Unit: Responsive Layout & Text Overflow Hygiene', () => {
 
       document.body.removeChild(container);
     });
+  });
+
+  it('enforces 1-line snippet clamping on mobile viewports', () => {
+    expect(responsiveCss).toMatch(/\.dw-snippet\s*\{[^}]*-webkit-line-clamp:\s*1;/);
+    expect(responsiveCss).toMatch(/\.dw-snippet\s*\{[^}]*text-overflow:\s*ellipsis;/);
+    expect(responsiveCss).toMatch(/\.dw-snippet\s*\{[^}]*overflow:\s*hidden;/);
+  });
+
+  it('enforces hardware-accelerated CSS grid accordion transitions on sources drawer', () => {
+    expect(feedCss).toMatch(/\.dw-sources-drawer-wrapper\s*\{[^}]*grid-template-rows:\s*0fr;/);
+    expect(feedCss).toMatch(/\.dw-sources-drawer-wrapper\s*\{[^}]*opacity:\s*0;/);
+    expect(feedCss).toMatch(/\.dw-sources-drawer-wrapper\.is-open\s*\{[^}]*grid-template-rows:\s*1fr;/);
+    expect(feedCss).toMatch(/\.dw-sources-drawer-wrapper\.is-open\s*\{[^}]*opacity:\s*1;/);
+    expect(feedCss).toMatch(/\.dw-sources-drawer\s*\{[^}]*min-height:\s*0;/);
+  });
+
+  it('enforces single-line cluster footer and sources toggle micro-pill styling', () => {
+    expect(feedCss).toMatch(/\.dw-cluster-footer\s*\{[^}]*flex-wrap:\s*nowrap;/);
+    expect(feedCss).toMatch(/\.dw-cluster-footer\s*\{[^}]*justify-content:\s*space-between;/);
+    expect(responsiveCss).toMatch(/\.dw-cluster-footer\s*\{[^}]*flex-wrap:\s*nowrap;/);
+    expect(feedCss).toMatch(/\.dw-sources-toggle-btn\s*\{[^}]*min-height:\s*28px;/);
+    expect(feedCss).toMatch(/\.dw-sources-toggle-btn\s*\{[^}]*flex-shrink:\s*0;/);
+    expect(responsiveCss).toMatch(/\.dw-sources-toggle-btn::before\s*\{[^}]*min-width:\s*44px;/);
+    expect(responsiveCss).toMatch(/\.dw-sources-toggle-btn::before\s*\{[^}]*min-height:\s*44px;/);
   });
 });
