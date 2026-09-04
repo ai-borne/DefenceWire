@@ -20,7 +20,7 @@
     "check:contracts": "node scripts/check-contracts.mjs",
     "check:crawler": "vite-node scripts/check-crawler.mjs",
     "check:budget": "node scripts/check-bundle-budget.mjs",
-    "check:security": "npm audit --audit-level=high",
+    "check:security": "node scripts/check-security.mjs",
     "check:css": "stylelint \"src/**/*.css\"",
     "check": "npm run typecheck && npm run check:contracts && npm run check:crawler && npm run check:css && npm test && npm run build && npm run check:budget && npm run check:security",
     "test": "vitest run",
