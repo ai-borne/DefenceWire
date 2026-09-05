@@ -15,6 +15,7 @@ import { FeedConfig, getActiveFeeds } from './feeds.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
+import { preserveCuratorOverrides, fetchCuratorOverridesFromD1, applyD1CuratorOverrides } from './curatorOverrideSync.js';
 import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
 import {
   aggregateEntityCandidates, getPromotedEntityConfigs,
@@ -52,44 +53,6 @@ export interface IngestResult {
   activeFeedsCount: number;
   durationMs: number;
   generatedAt: string;
-}
-
-function preserveCuratorOverrides(
-  newClusters: StoryCluster[],
-  existingClusters: StoryCluster[]
-): StoryCluster[] {
-  if (!existingClusters || existingClusters.length === 0) return newClusters;
-  const lockedExisting = existingClusters.filter((c) => c.isEditorPromoted || c.isIgnored);
-  if (lockedExisting.length === 0) return newClusters;
-
-  const merged = [...newClusters];
-  for (const locked of lockedExisting) {
-    const existingIndex = merged.findIndex(
-      (m) =>
-        m.id === locked.id ||
-        m.primarySource.url === locked.primarySource.url ||
-        m.synthesizedHeadline.toLowerCase() === locked.synthesizedHeadline.toLowerCase()
-    );
-
-    if (existingIndex !== -1) {
-      merged[existingIndex] = {
-        ...merged[existingIndex]!,
-        isEditorPromoted: locked.isEditorPromoted,
-        isLeadStory: locked.isEditorPromoted ? true : merged[existingIndex]!.isLeadStory,
-        isIgnored: locked.isIgnored,
-        synthesizedHeadline: locked.synthesizedHeadline,
-        ssbIntel: locked.ssbIntel || merged[existingIndex]!.ssbIntel,
-        defenceScore: locked.isEditorPromoted
-          ? Math.max(merged[existingIndex]!.defenceScore, 125)
-          : merged[existingIndex]!.defenceScore
-      };
-    } else if (locked.isEditorPromoted) {
-      merged.unshift({ ...locked, isLeadStory: true });
-    } else {
-      merged.push(locked);
-    }
-  }
-  return merged;
 }
 
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
@@ -177,8 +140,20 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
   }
 
-  // Apply Curator Override Protection Locks
-  const lockedProtectedClusters = preserveCuratorOverrides(mergedWithSeeds, existingClusters);
+  // Disk-JSON heuristic first (can reconstruct a full cluster for reinsertion),
+  // then D1 curator_overrides overlaid as authoritative where reachable —
+  // see curatorOverrideSync.ts for why.
+  const d1Config = buildD1ConfigFromEnv(process.env);
+  let lockedProtectedClusters = preserveCuratorOverrides(mergedWithSeeds, existingClusters);
+  if (d1Config) {
+    const overrideRows = await fetchCuratorOverridesFromD1(d1Config, fetchFn);
+    if (overrideRows) {
+      console.log(`[CURATOR OVERRIDES] Applying ${overrideRows.length} D1 override row(s) as authoritative.`);
+      lockedProtectedClusters = applyD1CuratorOverrides(lockedProtectedClusters, overrideRows);
+    }
+  } else {
+    console.log('[CURATOR OVERRIDES] D1 not configured; using disk-JSON override heuristic only.');
+  }
 
   // Enrich all clusters with SSB Intelligence using Dual-Engine Free Cascade
   // (Gemini Flash -> Cloudflare Workers AI -> Heuristic)
@@ -229,7 +204,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
 
   // Closed-loop dynamic entity harvesting
-  const d1Config = buildD1ConfigFromEnv(process.env);
   const r2Config = buildR2ConfigFromEnv(process.env);
   const aggregatedEntities = aggregateEntityCandidates(entityCandidates);
   const promotedConfigs = getPromotedEntityConfigs(aggregatedEntities);
