@@ -178,7 +178,7 @@ export function initializeApp(): void {
         .then(({ renderEditorDashboard }) => {
           if (editorVm.isOpen()) {
             editorContainer.innerHTML = '';
-            editorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm));
+            editorContainer.appendChild(renderEditorDashboard(editorVm, supplierCandidatesVm, updateEditorDesk));
           }
         })
         .catch(() => {
@@ -255,13 +255,8 @@ export function initializeApp(): void {
     updateFeedAndSidebar();
   });
 
-  editorVm.subscribe(() => {
-    updateEditorDesk();
-  });
-
-  supplierCandidatesVm.subscribe(() => {
-    updateEditorDesk();
-  });
+  editorVm.subscribe(() => updateEditorDesk());
+  supplierCandidatesVm.subscribe(() => updateEditorDesk());
 
   archiveVm.subscribe(() => {
     updateFeedAndSidebar();

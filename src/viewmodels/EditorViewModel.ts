@@ -19,7 +19,8 @@ export type EditorDeskPanel =
   | 'intel'
   | 'ecosystem'
   | 'crawler'
-  | 'scorecard';
+  | 'scorecard'
+  | 'ingest';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {

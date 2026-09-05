@@ -15,10 +15,26 @@ import { renderIntelReviewView } from './editor/IntelReviewView.js';
 import { renderSupplierCandidatesPanelView } from './SupplierCandidatesPanelView.js';
 import { renderCrawlerHealthView } from './editor/CrawlerHealthView.js';
 import { renderSourceScorecardView } from './editor/SourceScorecardView.js';
+import { renderIngestView } from './editor/IngestView.js';
+import { CuratorIngestViewModel } from '../viewmodels/CuratorIngestViewModel.js';
+
+// Module-scoped singleton: EditorDashboard.js is already lazy-loaded on first
+// Curator Desk open, so owning the ingest ViewModel here (rather than in the
+// eagerly-bundled main.ts) keeps it out of the main reader bundle budget.
+let ingestVmSingleton: CuratorIngestViewModel | null = null;
+
+function getIngestViewModel(onChange: () => void): CuratorIngestViewModel {
+  if (!ingestVmSingleton) {
+    ingestVmSingleton = new CuratorIngestViewModel();
+    ingestVmSingleton.subscribe(onChange);
+  }
+  return ingestVmSingleton;
+}
 
 export function renderEditorDashboard(
   editorVm: EditorViewModel,
-  supplierCandidatesVm: SupplierCandidatesPanelViewModel
+  supplierCandidatesVm: SupplierCandidatesPanelViewModel,
+  onIngestChange: () => void = () => {}
 ): HTMLElement {
   if (!editorVm.isAuthenticated()) {
     return renderEditorAuthModal(editorVm);
@@ -191,7 +207,8 @@ export function renderEditorDashboard(
     { id: 'intel', label: STRINGS.curatorDesk.tabIntel },
     { id: 'supplierCandidates', label: STRINGS.editorSupplierCandidates.panelTabLabel },
     { id: 'crawler', label: STRINGS.curatorDesk.tabCrawler },
-    { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard }
+    { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard },
+    { id: 'ingest', label: STRINGS.ingest.tabLabel }
   ];
 
   for (const tab of panelTabs) {
@@ -214,6 +231,8 @@ export function renderEditorDashboard(
     panel.appendChild(renderCrawlerHealthView(editorVm));
   } else if (editorVm.isPanelActive('scorecard')) {
     panel.appendChild(renderSourceScorecardView(editorVm));
+  } else if (editorVm.isPanelActive('ingest')) {
+    panel.appendChild(renderIngestView(getIngestViewModel(onIngestChange)));
   } else {
     panel.appendChild(renderWireCurationView(editorVm));
   }

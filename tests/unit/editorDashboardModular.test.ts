@@ -71,10 +71,10 @@ describe('Modular 5-Tab Curator Workstation', () => {
     } as any);
   });
 
-  it('renders all 5 tabs in the workstation navigation bar', () => {
+  it('renders all 6 tabs in the workstation navigation bar', () => {
     const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const tabs = el.querySelectorAll('.dw-editor-desk-tab');
-    expect(tabs.length).toBe(5);
+    expect(tabs.length).toBe(6);
 
     const labels = Array.from(tabs).map((t) => t.textContent?.trim());
     expect(labels).toContain(STRINGS.curatorDesk.tabWire);
@@ -82,6 +82,7 @@ describe('Modular 5-Tab Curator Workstation', () => {
     expect(labels).toContain(STRINGS.editorSupplierCandidates.panelTabLabel);
     expect(labels).toContain(STRINGS.curatorDesk.tabCrawler);
     expect(labels).toContain(STRINGS.curatorDesk.tabScorecard);
+    expect(labels).toContain(STRINGS.ingest.tabLabel);
   });
 
   it('switches between all 5 workstation tabs correctly', () => {
