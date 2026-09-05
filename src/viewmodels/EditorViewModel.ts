@@ -255,8 +255,8 @@ export class EditorViewModel {
     return this.publishController.getIsPurgingCache();
   }
 
-  public async purgeEdgeCache(tags?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
-    return this.publishController.purgeCache(tags, fetchFn);
+  public async purgeEdgeCache(urls?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
+    return this.publishController.purgeCache(urls, fetchFn);
   }
 
   public subscribe(listener: EditorStateListener): () => void {

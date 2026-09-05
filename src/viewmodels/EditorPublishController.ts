@@ -69,7 +69,7 @@ export class EditorPublishController {
     );
   }
 
-  public async purgeCache(tags?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
+  public async purgeCache(urls?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
     const result = await this.run(
       (loading) => { this.isPurgingCache = loading; },
       STRINGS.editor.purgingCache,
@@ -79,7 +79,7 @@ export class EditorPublishController {
         const res = await fetchFn('/api/curator/purge-cache', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: tags ? JSON.stringify({ tags }) : undefined
+          body: urls ? JSON.stringify({ urls }) : undefined
         });
         return (await res.json()) as CuratorSyncResult;
       }

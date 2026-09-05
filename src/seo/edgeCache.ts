@@ -34,9 +34,27 @@ export interface CloudflareZoneConfig {
 
 export interface EdgePurgeResult {
   success: boolean;
-  purgedTags: string[];
+  purgedTargets: string[];
   error?: string;
 }
+
+/**
+ * Concrete production URLs behind each EDGE_CACHE_TAGS entry that actually
+ * serves a purgeable response. Cloudflare's Cache-Tag-based purge_cache API
+ * requires an Enterprise plan to take effect — confirmed in production (see
+ * Phase 11/12 of the curator's-desk plan) that Cache-Tag response headers
+ * are stripped and purge-by-tag is a silent no-op on this zone regardless.
+ * purgeEdgeCacheByUrls purges by explicit file URL instead, which works on
+ * every plan tier. SUPPLIERS/PROGRAMS have no dedicated served URL (their
+ * data ships inside the built JS bundle, not a runtime endpoint) so they
+ * have no entry here.
+ */
+export const EDGE_CACHE_URLS = {
+  NEWS_FEED: 'https://www.defencewire.in/data/news.json',
+  SITEMAP: 'https://www.defencewire.in/sitemap.xml',
+  LLMS_TXT: 'https://www.defencewire.in/llms.txt',
+  LLMS_FULL: 'https://www.defencewire.in/llms-full.txt'
+} as const;
 
 /**
  * Computes a deterministic 64-bit FNV-1a hash with length suffix for synchronous,
@@ -122,22 +140,22 @@ export function buildZoneConfigFromEnv(
 }
 
 /**
- * Dispatches a Cache-Tag purge request to the Cloudflare Zone Purge API.
+ * Dispatches a file-URL purge request to the Cloudflare Zone Purge API.
  * Fails safely with diagnostic return when unconfigured or on network error.
  */
-export async function purgeEdgeCacheByTags(
-  tags: string[],
+export async function purgeEdgeCacheByUrls(
+  urls: string[],
   config: CloudflareZoneConfig | null | undefined,
   deps: { fetchFn?: typeof fetch } = {}
 ): Promise<EdgePurgeResult> {
-  if (!tags || tags.length === 0) {
-    return { success: true, purgedTags: [] };
+  if (!urls || urls.length === 0) {
+    return { success: true, purgedTargets: [] };
   }
 
   if (!config || !config.zoneId || !config.apiToken) {
     return {
       success: false,
-      purgedTags: [],
+      purgedTargets: [],
       error: 'Cloudflare credentials (CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN) not configured'
     };
   }
@@ -152,27 +170,27 @@ export async function purgeEdgeCacheByTags(
         'Authorization': `Bearer ${config.apiToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ tags })
+      body: JSON.stringify({ files: urls })
     });
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
       return {
         success: false,
-        purgedTags: [],
+        purgedTargets: [],
         error: `Cloudflare purge API returned HTTP ${res.status}: ${errText}`
       };
     }
 
     return {
       success: true,
-      purgedTags: tags
+      purgedTargets: urls
     };
   } catch (err) {
     return {
       success: false,
-      purgedTags: [],
-      error: `Network error purging edge cache tags: ${err instanceof Error ? err.message : String(err)}`
+      purgedTargets: [],
+      error: `Network error purging edge cache URLs: ${err instanceof Error ? err.message : String(err)}`
     };
   }
 }

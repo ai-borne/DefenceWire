@@ -2,7 +2,7 @@
  * Cloudflare Pages Function: /api/curator/rollback
  * Thin runtime adapter for the "Rollback Last Publish" kill-switch: restores
  * a previous published_snapshots row into the NEWS_LIVE KV namespace and
- * purges the NEWS_FEED edge cache tag.
+ * purges the news feed edge cache URL.
  * Hard limit: <= 300 LOC.
  */
 
@@ -12,7 +12,7 @@ import {
   PublishedSnapshotRow
 } from '../../../src/services/curatorRollbackHandler.js';
 import { verifyCuratorAuthorization } from '../../../src/services/curatorAuthHandler.js';
-import { purgeEdgeCacheByTags } from '../../../src/seo/edgeCache.js';
+import { purgeEdgeCacheByUrls } from '../../../src/seo/edgeCache.js';
 
 interface D1PreparedStatement {
   bind: (...params: unknown[]) => D1PreparedStatement;
@@ -87,13 +87,13 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
       kvPut: async (key, value) => {
         await kv.put(key, value);
       },
-      purgeCache: async (tags) => {
+      purgeCache: async (urls) => {
         const zoneId = context.env.CLOUDFLARE_ZONE_ID;
         const apiToken = context.env.CLOUDFLARE_API_TOKEN;
         if (!zoneId || !apiToken) {
           return { success: false, error: 'Cloudflare credentials not configured' };
         }
-        return purgeEdgeCacheByTags(tags, { zoneId, apiToken });
+        return purgeEdgeCacheByUrls(urls, { zoneId, apiToken });
       }
     },
     secret

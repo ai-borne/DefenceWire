@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { handleCuratorPublish, CuratorPublishDependencies } from '../../src/services/curatorPublishHandler.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
-import { EDGE_CACHE_TAGS } from '../../src/seo/edgeCache.js';
+import { EDGE_CACHE_URLS } from '../../src/seo/edgeCache.js';
 
 function makeCluster(overrides: Partial<StoryCluster>): StoryCluster {
   return {
@@ -132,7 +132,7 @@ describe('Curator One-Push Publish Handler', () => {
 
     await handleCuratorPublish({ clusters: [], river: [] }, null, deps);
 
-    expect(purgeCache).toHaveBeenCalledWith([EDGE_CACHE_TAGS.NEWS_FEED]);
+    expect(purgeCache).toHaveBeenCalledWith([EDGE_CACHE_URLS.NEWS_FEED]);
   });
 
   it('still succeeds but surfaces a warning when the edge cache purge fails', async () => {

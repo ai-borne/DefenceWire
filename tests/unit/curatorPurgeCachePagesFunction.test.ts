@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { onRequestPost } from '../../functions/api/curator/purge-cache.js';
 import { createSessionCookie } from '../../src/services/curatorAuthHandler.js';
-import { DEFAULT_PURGE_TAGS } from '../../src/services/curatorPurgeCacheHandler.js';
+import { DEFAULT_PURGE_URLS } from '../../src/services/curatorPurgeCacheHandler.js';
 
 describe('Pages Function: /api/curator/purge-cache', () => {
   const secret = 'curator-test-secret-2026';
@@ -58,9 +58,9 @@ describe('Pages Function: /api/curator/purge-cache', () => {
       });
 
       expect(response.status).toBe(200);
-      const body = await response.json() as { success: boolean; purgedTags: string[]; message?: string };
+      const body = await response.json() as { success: boolean; purgedUrls: string[]; message?: string };
       expect(body.success).toBe(true);
-      expect(body.purgedTags).toEqual(DEFAULT_PURGE_TAGS);
+      expect(body.purgedUrls).toEqual(DEFAULT_PURGE_URLS);
       expect(body.message).toContain('Successfully purged');
     } finally {
       globalThis.fetch = originalFetch;

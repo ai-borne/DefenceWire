@@ -5,7 +5,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import { handleCuratorRollback, CuratorRollbackDependencies, PublishedSnapshotRow } from '../../src/services/curatorRollbackHandler.js';
-import { EDGE_CACHE_TAGS } from '../../src/seo/edgeCache.js';
+import { EDGE_CACHE_URLS } from '../../src/seo/edgeCache.js';
 
 function makeDeps(overrides: Partial<CuratorRollbackDependencies> = {}): CuratorRollbackDependencies {
   return {
@@ -69,7 +69,7 @@ describe('Curator Kill-Switch Rollback Handler', () => {
 
     await handleCuratorRollback({}, null, deps);
 
-    expect(purgeCache).toHaveBeenCalledWith([EDGE_CACHE_TAGS.NEWS_FEED]);
+    expect(purgeCache).toHaveBeenCalledWith([EDGE_CACHE_URLS.NEWS_FEED]);
   });
 
   it('returns a failure result when a dependency throws', async () => {

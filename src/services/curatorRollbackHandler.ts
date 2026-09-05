@@ -9,7 +9,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { EDGE_CACHE_TAGS } from '../seo/edgeCache.js';
+import { EDGE_CACHE_URLS } from '../seo/edgeCache.js';
 import { verifySessionCookie } from './curatorAuthHandler.js';
 
 const LIVE_SNAPSHOT_KEY = 'live_snapshot';
@@ -35,7 +35,7 @@ export interface CuratorRollbackDependencies {
   runQuery: (sql: string, params: unknown[]) => Promise<PublishedSnapshotRow[]>;
   kvPut: (key: string, value: string) => Promise<void>;
   verifyAuth?: (cookieHeader: string | null) => Promise<boolean>;
-  purgeCache?: (tags: string[]) => Promise<{ success: boolean; error?: string }>;
+  purgeCache?: (urls: string[]) => Promise<{ success: boolean; error?: string }>;
 }
 
 export async function handleCuratorRollback(
@@ -72,7 +72,7 @@ export async function handleCuratorRollback(
 
     let purgeWarning = '';
     if (deps.purgeCache) {
-      const purgeResult = await deps.purgeCache([EDGE_CACHE_TAGS.NEWS_FEED]);
+      const purgeResult = await deps.purgeCache([EDGE_CACHE_URLS.NEWS_FEED]);
       if (!purgeResult.success) {
         purgeWarning = ` (edge cache purge failed: ${purgeResult.error || 'unknown error'})`;
       }

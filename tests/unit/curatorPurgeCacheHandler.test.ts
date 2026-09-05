@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   handleCuratorPurgeCache,
-  DEFAULT_PURGE_TAGS
+  DEFAULT_PURGE_URLS
 } from '../../src/services/curatorPurgeCacheHandler.js';
 
 describe('Curator Purge Cache Request Handler', () => {
@@ -31,7 +31,7 @@ describe('Curator Purge Cache Request Handler', () => {
     expect(result.error).toContain('not configured');
   });
 
-  it('purges default core tags when no custom tags provided and credentials exist', async () => {
+  it('purges default core URLs when no custom URLs provided and credentials exist', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -47,7 +47,7 @@ describe('Curator Purge Cache Request Handler', () => {
 
     expect(status).toBe(200);
     expect(result.success).toBe(true);
-    expect(result.purgedTags).toEqual(DEFAULT_PURGE_TAGS);
+    expect(result.purgedUrls).toEqual(DEFAULT_PURGE_URLS);
     expect(result.message).toContain('Successfully purged');
 
     expect(mockFetch).toHaveBeenCalledWith(
@@ -58,21 +58,21 @@ describe('Curator Purge Cache Request Handler', () => {
           'Authorization': 'Bearer token-456',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ tags: DEFAULT_PURGE_TAGS })
+        body: JSON.stringify({ files: DEFAULT_PURGE_URLS })
       })
     );
   });
 
-  it('purges custom tags when supplied in the request body', async () => {
+  it('purges custom URLs when supplied in the request body', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ success: true })
     } as unknown as Response);
 
-    const customTags = ['dw-llms-txt', 'dw-sitemap'];
+    const customUrls = ['https://www.defencewire.in/llms.txt', 'https://www.defencewire.in/sitemap.xml'];
     const { status, result } = await handleCuratorPurgeCache(
-      { tags: customTags },
+      { urls: customUrls },
       validEnv,
       true,
       { fetchFn: mockFetch as unknown as typeof fetch }
@@ -80,11 +80,11 @@ describe('Curator Purge Cache Request Handler', () => {
 
     expect(status).toBe(200);
     expect(result.success).toBe(true);
-    expect(result.purgedTags).toEqual(customTags);
+    expect(result.purgedUrls).toEqual(customUrls);
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.cloudflare.com/client/v4/zones/zone-123/purge_cache',
       expect.objectContaining({
-        body: JSON.stringify({ tags: customTags })
+        body: JSON.stringify({ files: customUrls })
       })
     );
   });

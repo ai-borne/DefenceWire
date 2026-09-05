@@ -7,12 +7,12 @@
  * cluster, (b) writes the merged snapshot to the NEWS_LIVE KV namespace so
  * functions/data/news.json.ts serves it instantly, (c) records a
  * published_snapshots row for the rollback kill-switch, pruned to the last
- * N rows, and (d) purges the NEWS_FEED edge cache tag.
+ * N rows, and (d) purges the news feed edge cache URL.
  * Hard limit: <= 300 LOC.
  */
 
 import { StoryCluster, StorySourceItem } from '../types/news.js';
-import { EDGE_CACHE_TAGS } from '../seo/edgeCache.js';
+import { EDGE_CACHE_URLS } from '../seo/edgeCache.js';
 import { verifySessionCookie } from './curatorAuthHandler.js';
 import { upsertOverride, CuratorOverrideDependencies } from './curatorOverrideHandler.js';
 
@@ -35,7 +35,7 @@ export interface CuratorPublishDependencies extends CuratorOverrideDependencies 
   kvPut: (key: string, value: string) => Promise<void>;
   insertSnapshot: (snapshotJson: string, publishedAt: string, curatorEmail: string) => Promise<void>;
   pruneSnapshots: (keep: number) => Promise<void>;
-  purgeCache?: (tags: string[]) => Promise<{ success: boolean; error?: string }>;
+  purgeCache?: (urls: string[]) => Promise<{ success: boolean; error?: string }>;
 }
 
 /**
@@ -99,7 +99,7 @@ export async function handleCuratorPublish(
 
     let purgeWarning = '';
     if (deps.purgeCache) {
-      const purgeResult = await deps.purgeCache([EDGE_CACHE_TAGS.NEWS_FEED]);
+      const purgeResult = await deps.purgeCache([EDGE_CACHE_URLS.NEWS_FEED]);
       if (!purgeResult.success) {
         purgeWarning = ` (edge cache purge failed: ${purgeResult.error || 'unknown error'})`;
       }

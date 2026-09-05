@@ -11,7 +11,7 @@ import {
   CuratorIngestRequest
 } from '../../../src/services/curatorIngestHandler.js';
 import { verifyCuratorAuthorization } from '../../../src/services/curatorAuthHandler.js';
-import { purgeEdgeCacheByTags } from '../../../src/seo/edgeCache.js';
+import { purgeEdgeCacheByUrls } from '../../../src/seo/edgeCache.js';
 import { checkRateLimit, getClientIp, getRateLimitHeaders } from '../../../src/services/edgeRateLimiter.js';
 import { STRINGS } from '../../../src/resources/strings.js';
 import type { StoryCluster, StorySourceItem } from '../../../src/types/news.js';
@@ -122,13 +122,13 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
           .bind(keep)
           .run();
       },
-      purgeCache: async (tags) => {
+      purgeCache: async (urls) => {
         const zoneId = context.env.CLOUDFLARE_ZONE_ID;
         const apiToken = context.env.CLOUDFLARE_API_TOKEN;
         if (!zoneId || !apiToken) {
           return { success: false, error: 'Cloudflare credentials not configured' };
         }
-        return purgeEdgeCacheByTags(tags, { zoneId, apiToken });
+        return purgeEdgeCacheByUrls(urls, { zoneId, apiToken });
       }
     },
     authContext.email || 'curator@institutional.internal'

@@ -3,7 +3,7 @@
  * Thin runtime adapter for the one-push "go live" curator publish flow:
  * bulk-upserts curator_overrides, writes the live KV snapshot, records a
  * published_snapshots row (pruned to the last 20), and purges the
- * NEWS_FEED edge cache tag so the change is visible immediately.
+ * news feed edge cache URL so the change is visible immediately.
  * Hard limit: <= 300 LOC.
  */
 
@@ -12,7 +12,7 @@ import {
   CuratorPublishPayload
 } from '../../../src/services/curatorPublishHandler.js';
 import { verifyCuratorAuthorization } from '../../../src/services/curatorAuthHandler.js';
-import { purgeEdgeCacheByTags } from '../../../src/seo/edgeCache.js';
+import { purgeEdgeCacheByUrls } from '../../../src/seo/edgeCache.js';
 import type { CuratorOverrideRow } from '../../../src/services/curatorOverrideHandler.js';
 
 interface D1PreparedStatement {
@@ -103,13 +103,13 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
           .bind(keep)
           .run();
       },
-      purgeCache: async (tags) => {
+      purgeCache: async (urls) => {
         const zoneId = context.env.CLOUDFLARE_ZONE_ID;
         const apiToken = context.env.CLOUDFLARE_API_TOKEN;
         if (!zoneId || !apiToken) {
           return { success: false, error: 'Cloudflare credentials not configured' };
         }
-        return purgeEdgeCacheByTags(tags, { zoneId, apiToken });
+        return purgeEdgeCacheByUrls(urls, { zoneId, apiToken });
       }
     },
     secret,

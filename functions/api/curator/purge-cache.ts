@@ -1,6 +1,6 @@
 /**
  * Cloudflare Pages Function: /api/curator/purge-cache
- * Authenticated endpoint for on-demand Edge Cache-Tag invalidation.
+ * Authenticated endpoint for on-demand edge cache invalidation by file URL.
  * Hard limit: <= 300 LOC. Target: < 60 LOC.
  */
 
@@ -38,7 +38,7 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
       body = JSON.parse(text) as CuratorPurgeCacheRequest;
     }
   } catch {
-    // Malformed body falls back to default tags
+    // Malformed body falls back to default URLs
   }
 
   const zoneId = context.env.CLOUDFLARE_ZONE_ID ?? (typeof process !== 'undefined' ? process.env?.CLOUDFLARE_ZONE_ID : undefined);

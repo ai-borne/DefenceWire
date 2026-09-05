@@ -9,7 +9,7 @@ import {
   isEtagMatch,
   buildEdgeCacheHeaders,
   buildZoneConfigFromEnv,
-  purgeEdgeCacheByTags,
+  purgeEdgeCacheByUrls,
   EDGE_CACHE_TAGS
 } from '../../src/seo/edgeCache.js';
 
@@ -78,16 +78,16 @@ describe('Edge Cache Tag & ETag Engine', () => {
   });
 
   it('handles edge cache purge gracefully when unconfigured or empty', async () => {
-    const emptyRes = await purgeEdgeCacheByTags([], null);
+    const emptyRes = await purgeEdgeCacheByUrls([], null);
     expect(emptyRes.success).toBe(true);
-    expect(emptyRes.purgedTags).toEqual([]);
+    expect(emptyRes.purgedTargets).toEqual([]);
 
-    const unconfRes = await purgeEdgeCacheByTags(['tag1'], null);
+    const unconfRes = await purgeEdgeCacheByUrls(['https://www.defencewire.in/data/news.json'], null);
     expect(unconfRes.success).toBe(false);
     expect(unconfRes.error).toContain('not configured');
   });
 
-  it('executes Cloudflare Zone Cache-Tag purge via API and handles responses', async () => {
+  it('executes Cloudflare Zone file-URL purge via API and handles responses', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -95,12 +95,12 @@ describe('Edge Cache Tag & ETag Engine', () => {
     } as unknown as Response);
 
     const config = { zoneId: 'zone-abc', apiToken: 'token-xyz' };
-    const tags = [EDGE_CACHE_TAGS.LLMS_TXT, EDGE_CACHE_TAGS.NEWS_FEED];
+    const urls = ['https://www.defencewire.in/llms.txt', 'https://www.defencewire.in/data/news.json'];
 
-    const result = await purgeEdgeCacheByTags(tags, config, { fetchFn: mockFetch as unknown as typeof fetch });
+    const result = await purgeEdgeCacheByUrls(urls, config, { fetchFn: mockFetch as unknown as typeof fetch });
 
     expect(result.success).toBe(true);
-    expect(result.purgedTags).toEqual(tags);
+    expect(result.purgedTargets).toEqual(urls);
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.cloudflare.com/client/v4/zones/zone-abc/purge_cache',
       expect.objectContaining({
@@ -109,7 +109,7 @@ describe('Edge Cache Tag & ETag Engine', () => {
           'Authorization': 'Bearer token-xyz',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ tags })
+        body: JSON.stringify({ files: urls })
       })
     );
   });
@@ -122,7 +122,7 @@ describe('Edge Cache Tag & ETag Engine', () => {
     } as unknown as Response);
 
     const config = { zoneId: 'zone-abc', apiToken: 'token-xyz' };
-    const result = await purgeEdgeCacheByTags(['dw-llms-txt'], config, {
+    const result = await purgeEdgeCacheByUrls(['https://www.defencewire.in/llms.txt'], config, {
       fetchFn: mockFailedFetch as unknown as typeof fetch
     });
 
@@ -130,7 +130,7 @@ describe('Edge Cache Tag & ETag Engine', () => {
     expect(result.error).toContain('HTTP 403: Forbidden: Invalid Token');
 
     const mockNetworkError = vi.fn().mockRejectedValue(new Error('Connection timed out'));
-    const netResult = await purgeEdgeCacheByTags(['dw-llms-txt'], config, {
+    const netResult = await purgeEdgeCacheByUrls(['https://www.defencewire.in/llms.txt'], config, {
       fetchFn: mockNetworkError as unknown as typeof fetch
     });
 

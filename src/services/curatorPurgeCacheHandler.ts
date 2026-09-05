@@ -1,31 +1,32 @@
 /**
  * Curator Edge Cache Purge Request Handler for DefenceWire.in
- * Handles authenticated requests to purge Cloudflare Edge Cache by tags.
+ * Handles authenticated requests to purge Cloudflare Edge Cache by explicit
+ * file URL. Purging by Cache-Tag was confirmed non-functional in production
+ * (the Cache-Tag response header is stripped zone-wide, likely an
+ * Enterprise-plan-only Cloudflare feature) — see EDGE_CACHE_URLS in
+ * edgeCache.ts.
  * Hard limit: <= 300 LOC.
  */
 
 import {
-  purgeEdgeCacheByTags,
-  EDGE_CACHE_TAGS
+  purgeEdgeCacheByUrls,
+  EDGE_CACHE_URLS
 } from '../seo/edgeCache.js';
 
-export const DEFAULT_PURGE_TAGS: readonly string[] = Object.freeze([
-  EDGE_CACHE_TAGS.LLMS_TXT,
-  EDGE_CACHE_TAGS.LLMS_FULL,
-  EDGE_CACHE_TAGS.SITEMAP,
-  EDGE_CACHE_TAGS.NEWS_FEED,
-  EDGE_CACHE_TAGS.SUPPLIERS,
-  EDGE_CACHE_TAGS.PROGRAMS,
-  EDGE_CACHE_TAGS.AI_GROUNDING
+export const DEFAULT_PURGE_URLS: readonly string[] = Object.freeze([
+  EDGE_CACHE_URLS.LLMS_TXT,
+  EDGE_CACHE_URLS.LLMS_FULL,
+  EDGE_CACHE_URLS.SITEMAP,
+  EDGE_CACHE_URLS.NEWS_FEED
 ]);
 
 export interface CuratorPurgeCacheRequest {
-  tags?: string[];
+  urls?: string[];
 }
 
 export interface CuratorPurgeCacheResult {
   success: boolean;
-  purgedTags: string[];
+  purgedUrls: string[];
   message?: string;
   error?: string;
 }
@@ -50,7 +51,7 @@ export async function handleCuratorPurgeCache(
       status: 401,
       result: {
         success: false,
-        purgedTags: [],
+        purgedUrls: [],
         error: 'Unauthorized: Valid curator session or Zero Trust identity required'
       }
     };
@@ -64,24 +65,24 @@ export async function handleCuratorPurgeCache(
       status: 503,
       result: {
         success: false,
-        purgedTags: [],
+        purgedUrls: [],
         error: 'Cloudflare credentials (CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN) not configured'
       }
     };
   }
 
-  let tagsToPurge = [...DEFAULT_PURGE_TAGS];
-  if (body && Array.isArray(body.tags) && body.tags.length > 0) {
-    const customTags = body.tags
-      .map((t) => (typeof t === 'string' ? t.trim() : ''))
-      .filter((t) => t.length > 0);
-    if (customTags.length > 0) {
-      tagsToPurge = customTags;
+  let urlsToPurge = [...DEFAULT_PURGE_URLS];
+  if (body && Array.isArray(body.urls) && body.urls.length > 0) {
+    const customUrls = body.urls
+      .map((u) => (typeof u === 'string' ? u.trim() : ''))
+      .filter((u) => u.length > 0);
+    if (customUrls.length > 0) {
+      urlsToPurge = customUrls;
     }
   }
 
-  const purgeResult = await purgeEdgeCacheByTags(
-    tagsToPurge,
+  const purgeResult = await purgeEdgeCacheByUrls(
+    urlsToPurge,
     { zoneId, apiToken },
     { fetchFn: deps.fetchFn }
   );
@@ -91,8 +92,8 @@ export async function handleCuratorPurgeCache(
       status: 200,
       result: {
         success: true,
-        purgedTags: tagsToPurge,
-        message: `Successfully purged ${tagsToPurge.length} edge cache tags.`
+        purgedUrls: urlsToPurge,
+        message: `Successfully purged ${urlsToPurge.length} edge cache URLs.`
       }
     };
   }
@@ -101,7 +102,7 @@ export async function handleCuratorPurgeCache(
     status: 502,
     result: {
       success: false,
-      purgedTags: [],
+      purgedUrls: [],
       error: purgeResult.error ?? 'Edge cache purge failed'
     }
   };

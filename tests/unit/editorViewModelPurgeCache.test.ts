@@ -48,19 +48,20 @@ describe('EditorViewModel: Purge Edge Cache', () => {
     );
   });
 
-  it('passes specific tags in the request body when supplied', async () => {
+  it('passes specific URLs in the request body when supplied', async () => {
     const vm = makeEditorVm();
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ success: true })
     } as unknown as Response);
 
-    await vm.purgeEdgeCache(['dw-llms-txt', 'dw-sitemap'], mockFetch as unknown as typeof fetch);
+    const urls = ['https://www.defencewire.in/llms.txt', 'https://www.defencewire.in/sitemap.xml'];
+    await vm.purgeEdgeCache(urls, mockFetch as unknown as typeof fetch);
 
     expect(mockFetch).toHaveBeenCalledWith(
       '/api/curator/purge-cache',
       expect.objectContaining({
-        body: JSON.stringify({ tags: ['dw-llms-txt', 'dw-sitemap'] })
+        body: JSON.stringify({ urls })
       })
     );
   });
