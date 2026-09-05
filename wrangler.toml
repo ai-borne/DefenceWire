@@ -13,6 +13,16 @@ database_id = "6c03abeb-ce1f-4669-8985-dbbdd3735807"
 [ai]
 binding = "AI"
 
+# Live-published news snapshot cache — holds the single key "live_snapshot"
+# written by the curator "Sync to Cloudflare D1" / rollback flow
+# (functions/api/curator/publish.ts, rollback.ts) and read by
+# functions/data/news.json.ts, which falls back to the static
+# public/data/news.json asset when this is unset. See d1/README.md for
+# one-time provisioning steps (same pattern as the D1 database above).
+[[kv_namespaces]]
+binding = "NEWS_LIVE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
 # Archived story cluster_json blobs (moved off D1 to stay under D1 quota) —
 # see crawler/r2ArchiveStore.ts (GitHub Actions write path, S3-compatible REST)
 # and src/archive/archiveRow.ts (Pages Functions read path, native binding).

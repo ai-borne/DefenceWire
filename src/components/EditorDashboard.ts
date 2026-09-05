@@ -109,6 +109,17 @@ export function renderEditorDashboard(
   };
   actionGroup.appendChild(purgeBtn);
 
+  // Rollback Last Publish Button (kill-switch)
+  const rollbackBtn = document.createElement('button');
+  rollbackBtn.type = 'button';
+  rollbackBtn.className = 'dw-editor-btn dw-editor-btn--rollback';
+  rollbackBtn.textContent = editorVm.getIsRollingBack() ? `⏳ ${STRINGS.editor.rollingBack}` : `↩️ ${STRINGS.editor.rollbackLastPublish}`;
+  rollbackBtn.disabled = editorVm.getIsRollingBack();
+  rollbackBtn.onclick = async () => {
+    await editorVm.rollbackToPreviousPublish();
+  };
+  actionGroup.appendChild(rollbackBtn);
+
   // Export JSON Button
   const exportBtn = document.createElement('button');
   exportBtn.type = 'button';

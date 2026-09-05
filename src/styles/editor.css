@@ -241,6 +241,11 @@
   color: var(--dw-text-accent);
 }
 
+.dw-editor-btn--rollback {
+  color: var(--dw-text-accent);
+  border-color: var(--dw-text-accent);
+}
+
 /* Prompt / Edit Form inside Editor */
 .dw-editor-edit-dialog {
   display: flex;

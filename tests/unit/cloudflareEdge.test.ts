@@ -51,7 +51,12 @@ describe('Cloudflare Pages Edge & Production Deployment Configuration', () => {
     expect(parsed.version).toBe(1);
     expect(parsed.include).toContain('/*');
     expect(parsed.exclude).toContain('/assets/*');
-    expect(parsed.exclude).toContain('/data/*');
+
+    // /data/* must NOT be excluded: functions/data/news.json.ts (Phase 1 curator
+    // publish/rollback) needs Pages Functions routing to reach this path so it
+    // can override the static asset with the live KV snapshot. Excluding it here
+    // would silently make that Function unreachable in both prod and local dev.
+    expect(parsed.exclude).not.toContain('/data/*');
   });
 
   it('verifies public/_redirects provides SPA 200 rewrite fallback', () => {

@@ -4,13 +4,6 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { StoryCluster, StorySourceItem } from '../types/news.js';
-
-export interface CuratorSyncPayload {
-  clusters: StoryCluster[];
-  river: StorySourceItem[];
-}
-
 export interface CuratorSyncResult {
   success: boolean;
   message?: string;
@@ -111,36 +104,6 @@ export class CuratorSyncService {
       }
 
       return { success: false, error: `D1 delete error (${response.status})` };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { success: false, error: message };
-    }
-  }
-
-  /**
-   * Synchronizes all active cluster overrides in batch.
-   */
-  public async publishCuratedSnapshot(payload: CuratorSyncPayload): Promise<CuratorSyncResult> {
-    try {
-      let savedCount = 0;
-      const promoted = payload.clusters.filter((c) => c.isEditorPromoted || c.isLeadStory || c.isIgnored);
-
-      for (const cluster of promoted) {
-        const type = cluster.isIgnored ? 'ignore' : cluster.isEditorPromoted ? 'promote' : 'headline';
-        const res = await this.saveOverride(cluster.id, type, {
-          headline: cluster.synthesizedHeadline,
-          isLeadStory: cluster.isLeadStory,
-          isEditorPromoted: cluster.isEditorPromoted,
-          isIgnored: cluster.isIgnored,
-          ssbIntel: cluster.ssbIntel
-        });
-        if (res.success) savedCount++;
-      }
-
-      return {
-        success: true,
-        message: `Synced ${savedCount} curated overrides to Cloudflare D1.`
-      };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { success: false, error: message };

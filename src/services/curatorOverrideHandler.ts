@@ -76,6 +76,39 @@ export async function handleGetOverrides(
 }
 
 /**
+ * Upserts a single curator override row. No auth check — callers that loop
+ * over multiple clusters in one request (e.g. curatorPublishHandler.ts)
+ * verify auth once up front rather than per row.
+ */
+export async function upsertOverride(
+  deps: Pick<CuratorOverrideDependencies, 'runQuery' | 'runMutation'>,
+  id: string,
+  overrideType: string,
+  payload: Record<string, unknown>,
+  curatorEmail: string
+): Promise<{ id: string; curatorEmail: string }> {
+  const cleanId = id.trim().slice(0, 120);
+  const cleanType = overrideType.trim().slice(0, 30);
+  const cleanEmail = curatorEmail.trim().slice(0, 120);
+  const payloadStr = JSON.stringify(payload);
+  const updatedAt = new Date().toISOString();
+
+  const mutate = deps.runMutation || deps.runQuery;
+  await mutate(
+    `INSERT INTO curator_overrides (id, override_type, payload_json, updated_at, curator_email)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       override_type = excluded.override_type,
+       payload_json = excluded.payload_json,
+       updated_at = excluded.updated_at,
+       curator_email = excluded.curator_email`,
+    [cleanId, cleanType, payloadStr, updatedAt, cleanEmail]
+  );
+
+  return { id: cleanId, curatorEmail: cleanEmail };
+}
+
+/**
  * Handles saving/upserting a curator override with Zero Trust audit logging.
  */
 export async function handleSaveOverride(
@@ -97,26 +130,9 @@ export async function handleSaveOverride(
     return { success: false, error: 'Invalid override payload: id, overrideType, and payload are required.' };
   }
 
-  const cleanId = body.id.trim().slice(0, 120);
-  const cleanType = body.overrideType.trim().slice(0, 30);
-  const cleanEmail = curatorEmail.trim().slice(0, 120);
-  const payloadStr = JSON.stringify(body.payload);
-  const updatedAt = new Date().toISOString();
-
   try {
-    const mutate = deps.runMutation || deps.runQuery;
-    await mutate(
-      `INSERT INTO curator_overrides (id, override_type, payload_json, updated_at, curator_email)
-       VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         override_type = excluded.override_type,
-         payload_json = excluded.payload_json,
-         updated_at = excluded.updated_at,
-         curator_email = excluded.curator_email`,
-      [cleanId, cleanType, payloadStr, updatedAt, cleanEmail]
-    );
-
-    return { success: true, data: { id: cleanId, curatorEmail: cleanEmail } };
+    const data = await upsertOverride(deps, body.id, body.overrideType, body.payload, curatorEmail);
+    return { success: true, data };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Failed to save override';
     return { success: false, error: msg };

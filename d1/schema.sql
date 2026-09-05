@@ -61,6 +61,21 @@ CREATE TABLE IF NOT EXISTS curator_overrides (
 
 CREATE INDEX IF NOT EXISTS idx_curator_overrides_updated_at ON curator_overrides (updated_at DESC);
 
+-- One-Push "Go Live" Publish History & Kill-Switch Audit Trail
+-- Each row is a full {clusters, river} snapshot at the moment a curator hit
+-- "Sync to Cloudflare D1". functions/data/news.json.ts serves the most recent
+-- via the NEWS_LIVE KV binding; the "Rollback Last Publish" action restores
+-- the second-most-recent row into KV. Pruned to the last 20 rows on insert
+-- (see curatorPublishHandler.ts) — no separate cron needed.
+CREATE TABLE IF NOT EXISTS published_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  snapshot_json TEXT NOT NULL,
+  published_at TEXT NOT NULL,
+  curator_email TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_published_snapshots_published_at ON published_snapshots (published_at DESC);
+
 -- Dynamic Discovered Military Entities Table
 -- Closed-loop knowledge base: stores newly discovered platforms, missiles, and codenames.
 -- When an entity crosses the corroboration threshold (>= 3 mentions across >= 2 sources),

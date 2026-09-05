@@ -9,12 +9,12 @@ import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { AuthService } from '../../src/services/authService.js';
-import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
+import { CuratorPublishService } from '../../src/services/curatorPublishService.js';
 
 describe('EditorViewModel', () => {
   let newsVm: NewsViewModel;
   let authService: AuthService;
-  let syncService: CuratorSyncService;
+  let publishService: CuratorPublishService;
   let editorVm: EditorViewModel;
 
   const mockCluster1: StoryCluster = {
@@ -67,8 +67,8 @@ describe('EditorViewModel', () => {
     }
     newsVm = new NewsViewModel([mockCluster1, mockCluster2], []);
     authService = new AuthService();
-    syncService = new CuratorSyncService();
-    editorVm = new EditorViewModel(newsVm, authService, syncService);
+    publishService = new CuratorPublishService();
+    editorVm = new EditorViewModel(newsVm, authService, publishService);
   });
 
   it('retrieves candidate clusters sorted with scores', () => {
@@ -166,7 +166,7 @@ describe('EditorViewModel', () => {
     expect(parsed.clusters.length).toBe(2);
   });
 
-  it('coordinates publishing to production with syncService', async () => {
+  it('coordinates publishing to production with publishService', async () => {
     const mockFetch = async () =>
       ({
         ok: true,
@@ -176,11 +176,32 @@ describe('EditorViewModel', () => {
         })
       } as unknown as Response);
 
-    const customSync = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const vm = new EditorViewModel(newsVm, authService, customSync);
+    const customPublish = new CuratorPublishService(mockFetch as unknown as typeof fetch);
+    const vm = new EditorViewModel(newsVm, authService, customPublish);
 
     const res = await vm.publishToProduction();
     expect(res.success).toBe(true);
     expect(vm.getPublishStatusMessage()).toBeDefined();
+  });
+
+  it('coordinates rollback to previous publish with publishService', async () => {
+    const mockFetch = async () =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          message: 'Rolled back to snapshot published 2026-09-01T00:00:00Z.'
+        })
+      } as unknown as Response);
+
+    const customPublish = new CuratorPublishService(mockFetch as unknown as typeof fetch);
+    const vm = new EditorViewModel(newsVm, authService, customPublish);
+
+    expect(vm.getIsRollingBack()).toBe(false);
+    const res = await vm.rollbackToPreviousPublish();
+    expect(res.success).toBe(true);
+    expect(vm.getIsRollingBack()).toBe(false);
+    expect(vm.getPublishStatusMessage()).toContain('Rolled back');
   });
 });

@@ -80,3 +80,20 @@ the write path is running by checking the Actions log for a line like:
 If it stays at `0 archived, 0 failed` for a long time, that's expected
 until stories actually start aging out of the top-30 / 72-hour window —
 give it a few hours to a day of real traffic before worrying.
+
+## 7. (Curator Desk) Create the NEWS_LIVE KV namespace
+
+The curator desk's "Sync to Cloudflare D1" / "Rollback Last Publish" flow
+needs a KV namespace to hold the currently-live news snapshot. Like the D1
+database, this degrades gracefully until provisioned: `functions/data/news.json.ts`
+falls back to the static `public/data/news.json` asset when the binding is
+absent, and `/api/curator/publish` / `/api/curator/rollback` return a 503
+instead of erroring.
+
+```bash
+npx wrangler kv namespace create NEWS_LIVE
+```
+
+This prints an `id`. Open `wrangler.toml` and replace `REPLACE_WITH_KV_NAMESPACE_ID`
+in the `[[kv_namespaces]]` block with it, then commit — same as the D1
+`database_id`, it's an identifier, not a secret.

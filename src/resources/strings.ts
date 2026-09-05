@@ -217,6 +217,8 @@ export const STRINGS = {
     publishSuccess: 'Synced to Cloudflare D1 successfully!', publishError: 'Failed to sync with Cloudflare D1.',
     purgeCache: 'Purge Edge Cache', purgingCache: 'Purging Edge Cache...',
     purgeCacheSuccess: 'Edge Cache purged successfully!', purgeCacheError: 'Failed to purge Edge Cache.',
+    rollbackLastPublish: 'Rollback Last Publish', rollingBack: 'Rolling Back...',
+    rollbackSuccess: 'Rolled back to previous publish successfully!', rollbackError: 'Failed to roll back to previous publish.',
     exportJson: 'Export JSON', copyJson: 'Copy JSON', copiedToClipboard: 'Curated intelligence JSON copied to clipboard!',
     stealthHint: 'Curator Desk unlocked via institutional shortcut.', zeroTrustBadge: 'Zero Trust Verified',
     sessionBadge: 'Institutional Session'

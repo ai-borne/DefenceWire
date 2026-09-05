@@ -7,8 +7,9 @@
 import { StoryCluster, SSBIntelligence, StorySourceItem } from '../types/news.js';
 import { NewsViewModel } from './NewsViewModel.js';
 import { AuthService, defaultAuthService } from '../services/authService.js';
-import { CuratorSyncService, defaultCuratorSyncService, CuratorSyncResult } from '../services/curatorSyncService.js';
-import { STRINGS } from '../resources/strings.js';
+import { CuratorPublishService } from '../services/curatorPublishService.js';
+import { CuratorSyncResult } from '../services/curatorSyncService.js';
+import { EditorPublishController } from './EditorPublishController.js';
 
 export type EditorFilterMode = 'all' | 'active' | 'ignored';
 export type EditorDeskPanel =
@@ -24,25 +25,22 @@ export type EditorStateListener = () => void;
 export class EditorViewModel {
   private newsVm: NewsViewModel;
   private authService: AuthService;
-  private syncService: CuratorSyncService;
+  private publishController: EditorPublishController;
   private filterMode: EditorFilterMode = 'all';
   private searchQuery: string = '';
   private isDashboardOpen: boolean = false;
   private activeDeskPanel: EditorDeskPanel = 'stories';
   private activeEditingClusterId: string | null = null;
-  private isPublishing: boolean = false;
-  private isPurgingCache: boolean = false;
-  private publishStatusMessage: string | null = null;
   private listeners: Set<EditorStateListener> = new Set();
 
   constructor(
     newsVm: NewsViewModel,
     authService?: AuthService,
-    syncService?: CuratorSyncService
+    publishService?: CuratorPublishService
   ) {
     this.newsVm = newsVm;
     this.authService = authService || defaultAuthService;
-    this.syncService = syncService || defaultCuratorSyncService;
+    this.publishController = new EditorPublishController(() => this.notifyListeners(), publishService);
 
     // Mirror updates from NewsViewModel
     this.newsVm.subscribe(() => {
@@ -143,16 +141,15 @@ export class EditorViewModel {
   }
 
   public getIsPublishing(): boolean {
-    return this.isPublishing;
+    return this.publishController.getIsPublishing();
   }
 
   public getPublishStatusMessage(): string | null {
-    return this.publishStatusMessage;
+    return this.publishController.getStatusMessage();
   }
 
   public clearPublishStatus(): void {
-    this.publishStatusMessage = null;
-    this.notifyListeners();
+    this.publishController.clearStatus();
   }
 
   /**
@@ -219,65 +216,34 @@ export class EditorViewModel {
   }
 
   /**
-   * Synchronizes curated snapshot to Cloudflare D1 via authenticated edge endpoint.
+   * Publishes the curated snapshot live via the one-push server-side publish endpoint.
    */
   public async publishToProduction(): Promise<CuratorSyncResult> {
-    this.isPublishing = true;
-    this.publishStatusMessage = STRINGS.editor.publishing;
-    this.notifyListeners();
+    const payload = {
+      clusters: this.newsVm.getAllClusters(true),
+      river: this.newsVm.getFilteredRiverItems()
+    };
+    return this.publishController.publish(payload);
+  }
 
-    try {
-      const payload = {
-        clusters: this.newsVm.getAllClusters(true),
-        river: this.newsVm.getFilteredRiverItems()
-      };
+  public getIsRollingBack(): boolean {
+    return this.publishController.getIsRollingBack();
+  }
 
-      const result = await this.syncService.publishCuratedSnapshot(payload);
-      this.isPublishing = false;
-      this.publishStatusMessage = result.success
-        ? (result.message || STRINGS.editor.publishSuccess)
-        : `${STRINGS.editor.publishError} ${result.error || ''}`;
-      this.notifyListeners();
-      return result;
-    } catch (err) {
-      this.isPublishing = false;
-      const message = err instanceof Error ? err.message : String(err);
-      this.publishStatusMessage = `${STRINGS.editor.publishError} ${message}`;
-      this.notifyListeners();
-      return { success: false, error: message };
-    }
+  /**
+   * Kill-switch: reverts the live homepage to the previous published snapshot,
+   * independent of whatever is in any curator's browser memory.
+   */
+  public async rollbackToPreviousPublish(): Promise<CuratorSyncResult> {
+    return this.publishController.rollback();
   }
 
   public getIsPurgingCache(): boolean {
-    return this.isPurgingCache;
+    return this.publishController.getIsPurgingCache();
   }
 
   public async purgeEdgeCache(tags?: string[], fetchFn: typeof fetch = globalThis.fetch): Promise<boolean> {
-    this.isPurgingCache = true;
-    this.publishStatusMessage = STRINGS.editor.purgingCache;
-    this.notifyListeners();
-
-    try {
-      const res = await fetchFn('/api/curator/purge-cache', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: tags ? JSON.stringify({ tags }) : undefined
-      });
-
-      const data = (await res.json()) as { success: boolean; message?: string; error?: string };
-      this.isPurgingCache = false;
-      this.publishStatusMessage = data.success
-        ? (data.message || STRINGS.editor.purgeCacheSuccess)
-        : `${STRINGS.editor.purgeCacheError} ${data.error || ''}`;
-      this.notifyListeners();
-      return data.success;
-    } catch (err) {
-      this.isPurgingCache = false;
-      const message = err instanceof Error ? err.message : String(err);
-      this.publishStatusMessage = `${STRINGS.editor.purgeCacheError} ${message}`;
-      this.notifyListeners();
-      return false;
-    }
+    return this.publishController.purgeCache(tags, fetchFn);
   }
 
   public subscribe(listener: EditorStateListener): () => void {

@@ -11,14 +11,14 @@ import { STRINGS } from '../../src/resources/strings.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { AuthService } from '../../src/services/authService.js';
-import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
+import { CuratorPublishService } from '../../src/services/curatorPublishService.js';
 import { SupplierCandidatesPanelViewModel } from '../../src/viewmodels/SupplierCandidatesPanelViewModel.js';
 import { CuratorSupplierCandidateSyncService } from '../../src/services/curatorSupplierCandidateSyncService.js';
 
 describe('EditorDashboard Component Integration', () => {
   let newsVm: NewsViewModel;
   let authService: AuthService;
-  let syncService: CuratorSyncService;
+  let publishService: CuratorPublishService;
   let editorVm: EditorViewModel;
   let supplierCandidatesVm: SupplierCandidatesPanelViewModel;
 
@@ -60,8 +60,8 @@ describe('EditorDashboard Component Integration', () => {
     }
     newsVm = new NewsViewModel([mockCluster], []);
     authService = new AuthService();
-    syncService = new CuratorSyncService();
-    editorVm = new EditorViewModel(newsVm, authService, syncService);
+    publishService = new CuratorPublishService();
+    editorVm = new EditorViewModel(newsVm, authService, publishService);
     editorVm.setOpen(true);
     const noopFetch = (async () => ({ ok: true, json: async () => ({ success: true, data: [] }) })) as unknown as typeof fetch;
     supplierCandidatesVm = new SupplierCandidatesPanelViewModel(new CuratorSupplierCandidateSyncService(noopFetch));
@@ -82,6 +82,7 @@ describe('EditorDashboard Component Integration', () => {
     const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     expect(el.textContent).toContain(STRINGS.editor.dashboardTitle);
     expect(el.textContent).toContain(STRINGS.editor.publishToProduction);
+    expect(el.textContent).toContain(STRINGS.editor.rollbackLastPublish);
     expect(el.textContent).toContain(STRINGS.editor.exportJson);
     expect(el.textContent).toContain(STRINGS.editor.copyJson);
     expect(el.textContent).toContain(STRINGS.editor.lockDesk);

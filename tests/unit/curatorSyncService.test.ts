@@ -5,38 +5,8 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { CuratorSyncService } from '../../src/services/curatorSyncService.js';
-import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
-import { SourceTier } from '../../src/types/source.js';
 
 describe('CuratorSyncService (Cloudflare D1 Edge Sync)', () => {
-  const mockPayload: { clusters: StoryCluster[]; river: StorySourceItem[] } = {
-    clusters: [
-      {
-        id: 'cluster-1',
-        synthesizedHeadline: 'CCS Clears 5th-Gen AMCA Stealth Fighter Prototype Funding',
-        primarySource: {
-          id: 'src-1',
-          title: 'CCS clears AMCA funding',
-          url: 'https://pib.gov.in/news/1',
-          sourceName: 'PIB India',
-          sourceDomain: 'pib.gov.in',
-          tier: SourceTier.TIER_1_OFFICIAL,
-          publishedAt: '2026-08-30T10:00:00Z'
-        },
-        relatedCoverage: [],
-        discussions: [],
-        categories: ['airforce'],
-        entities: ['AMCA'],
-        defenceScore: 92,
-        isLeadStory: true,
-        isEditorPromoted: true,
-        createdAt: '2026-08-30T10:00:00Z',
-        updatedAt: '2026-08-30T10:00:00Z'
-      }
-    ],
-    river: []
-  };
-
   it('fetches active overrides from D1 endpoint', async () => {
     const mockRows = [
       { id: 'cluster-1', override_type: 'promote', payload_json: '{}', updated_at: '2026-08-31T00:00:00Z' }
@@ -122,19 +92,5 @@ describe('CuratorSyncService (Cloudflare D1 Edge Sync)', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('Unauthorized');
-  });
-
-  it('synchronizes curated snapshot batch to Cloudflare D1', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ success: true })
-    } as Response);
-
-    const service = new CuratorSyncService(mockFetch as unknown as typeof fetch);
-    const result = await service.publishCuratedSnapshot(mockPayload);
-
-    expect(result.success).toBe(true);
-    expect(result.message).toContain('Synced 1 curated overrides');
   });
 });
