@@ -241,6 +241,12 @@
   color: var(--dw-text-accent);
 }
 
+.dw-editor-btn--delete {
+  color: var(--dw-text-accent);
+  border-color: var(--dw-text-accent);
+  font-weight: 700;
+}
+
 .dw-editor-btn--rollback {
   color: var(--dw-text-accent);
   border-color: var(--dw-text-accent);

@@ -53,7 +53,7 @@ END;
 -- directly in Cloudflare D1 instead of storing GitHub PATs in browser localStorage.
 CREATE TABLE IF NOT EXISTS curator_overrides (
   id TEXT PRIMARY KEY,            -- story cluster ID
-  override_type TEXT NOT NULL,    -- 'promote' | 'demote' | 'headline' | 'ssb' | 'ignore'
+  override_type TEXT NOT NULL,    -- 'promote' | 'demote' | 'headline' | 'ssb' | 'ignore' | 'delete' (permanent tombstone, Phase 3)
   payload_json TEXT NOT NULL,     -- JSON representation of the override
   updated_at TEXT NOT NULL,       -- ISO 8601 timestamp
   curator_email TEXT NOT NULL DEFAULT 'curator@institutional.internal' -- Authenticated Zero Trust user identity for audit trail

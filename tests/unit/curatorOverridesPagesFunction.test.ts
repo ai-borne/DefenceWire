@@ -128,6 +128,38 @@ describe('Cloudflare Pages Function: /api/curator/overrides', () => {
     expect(body.data.id).toBe('cluster-1');
   });
 
+  it('round-trips a "delete" tombstone override_type through POST (Phase 3 permanent tombstone)', async () => {
+    const mockDb = {
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnThis(),
+        run: vi.fn().mockResolvedValue({ success: true })
+      })
+    };
+
+    const validCookie = await createSessionCookie(secret, 3600);
+    const request = new Request('http://localhost:5176/api/curator/overrides', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: validCookie
+      },
+      body: JSON.stringify({ id: 'cluster-deleted', overrideType: 'delete', payload: { deletedAt: '2026-09-05T00:00:00Z' } })
+    });
+
+    const response = await onRequestPost({
+      request,
+      env: { DB: mockDb as unknown as any, CURATOR_SESSION_SECRET: secret }
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { success: boolean; data: { id: string } };
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe('cluster-deleted');
+
+    const insertCall = (mockDb.prepare as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string;
+    expect(insertCall).toContain('INSERT INTO curator_overrides');
+  });
+
   it('rejects DELETE override with 401 when unauthenticated', async () => {
     const mockDb = { prepare: vi.fn() };
     const request = new Request('http://localhost:5176/api/curator/overrides?id=cluster-1', {

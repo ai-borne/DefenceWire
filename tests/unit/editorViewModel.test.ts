@@ -149,6 +149,33 @@ describe('EditorViewModel', () => {
     expect(editorVm.getClusterById('cluster-1')?.isIgnored).toBe(false);
   });
 
+  it('permanently deletes a story and excludes it from candidate clusters and the public feed', () => {
+    editorVm.deleteStory('cluster-1');
+
+    expect(editorVm.getClusterById('cluster-1')?.isDeleted).toBe(true);
+    expect(editorVm.getCandidateClusters().some((c) => c.id === 'cluster-1')).toBe(false);
+
+    const publicFeed = newsVm.getFilteredClusters();
+    expect(publicFeed.totalMatchingStories).toBe(1);
+    expect(publicFeed.leadStory?.id).toBe('cluster-2');
+  });
+
+  it('includes deletedClusterIds in the publish payload so the server can write a delete tombstone', async () => {
+    let capturedBody: unknown;
+    const mockFetch = async (_url: unknown, init?: RequestInit) => {
+      capturedBody = init?.body ? JSON.parse(String(init.body)) : undefined;
+      return { ok: true, status: 200, json: async () => ({ success: true }) } as unknown as Response;
+    };
+    const customPublish = new CuratorPublishService(mockFetch as unknown as typeof fetch);
+    const vm = new EditorViewModel(newsVm, authService, customPublish);
+
+    vm.deleteStory('cluster-1');
+    await vm.publishToProduction();
+
+    expect((capturedBody as { deletedClusterIds: string[] }).deletedClusterIds).toEqual(['cluster-1']);
+    expect((capturedBody as { clusters: StoryCluster[] }).clusters.some((c) => c.id === 'cluster-1')).toBe(false);
+  });
+
   it('handles auth operations and session state correctly', async () => {
     expect(editorVm.isAuthenticated()).toBe(false);
 

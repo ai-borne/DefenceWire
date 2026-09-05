@@ -14,6 +14,7 @@ import { CuratorSyncResult } from './curatorSyncService.js';
 export interface CuratorPublishPayload {
   clusters: StoryCluster[];
   river: StorySourceItem[];
+  deletedClusterIds?: string[];
 }
 
 function resolveEndpoint(path: string): string {

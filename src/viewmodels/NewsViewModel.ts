@@ -146,7 +146,7 @@ export class NewsViewModel {
   public getFilteredClusters(): FilteredFeedResult {
     const queryLower = this.searchQuery.toLowerCase();
     const eligible = this.clusters.filter((c) => {
-      if (c.isIgnored) return false;
+      if (c.isIgnored || c.isDeleted) return false;
       if (this.activeCategory !== 'all' && this.activeCategory !== 'river') {
         if (!c.categories.includes(this.activeCategory as DomainCategory)) return false;
       }
@@ -177,11 +177,23 @@ export class NewsViewModel {
   }
 
   /**
-   * Returns all clusters, optionally including ignored ones.
+   * Returns all clusters, optionally including ignored ones. Tombstoned
+   * (isDeleted) clusters are excluded unconditionally — unlike ignore, a
+   * delete is permanent and never surfaced back to the desk for review.
    */
   public getAllClusters(includeIgnored: boolean = true): StoryCluster[] {
-    if (includeIgnored) return [...this.clusters];
-    return this.clusters.filter((c) => !c.isIgnored);
+    const notDeleted = this.clusters.filter((c) => !c.isDeleted);
+    if (includeIgnored) return notDeleted;
+    return notDeleted.filter((c) => !c.isIgnored);
+  }
+
+  /**
+   * IDs of tombstoned clusters, kept internally (not physically removed) so
+   * a publish can still tell the server which clusters to write a 'delete'
+   * override for, even though they're excluded from every other read path.
+   */
+  public getDeletedClusterIds(): string[] {
+    return this.clusters.filter((c) => c.isDeleted).map((c) => c.id);
   }
 
   /**
@@ -241,6 +253,17 @@ export class NewsViewModel {
 
   public toggleIgnore(id: string): void {
     this.updateCluster(id, (c) => ({ ...c, isIgnored: !c.isIgnored, updatedAt: new Date().toISOString() }));
+  }
+
+  /**
+   * Tombstones a cluster permanently: excluded from the public feed and the
+   * desk's own candidate list from this point on, with no restore path
+   * (unlike ignore). See crawler/curatorOverrideSync.ts for how the
+   * matching 'delete' override_type keeps it from reappearing after a
+   * future crawl regenerates the feed.
+   */
+  public deleteCluster(id: string): void {
+    this.updateCluster(id, (c) => ({ ...c, isDeleted: true, updatedAt: new Date().toISOString() }));
   }
 
   public subscribe(listener: NewsStateListener): () => void {

@@ -96,6 +96,7 @@ export interface StoryCluster {
   isLeadStory: boolean;
   isEditorPromoted?: boolean;
   isIgnored?: boolean;
+  isDeleted?: boolean;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }

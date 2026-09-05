@@ -209,6 +209,23 @@ describe('runIngestionPipeline — D1 override survival through a full crawl', (
     expect(overridden?.isIgnored).toBe(true);
   });
 
+  it('never lets a D1 "delete"-tombstoned cluster reappear after a fresh crawl regenerates it (Phase 3)', async () => {
+    Object.assign(process.env, D1_ENV);
+    const plainFetch = vi.fn(async (input: RequestInfo | URL) =>
+      String(input).includes('pib.gov.in') ? new Response(SAMPLE_XML, { status: 200 }) : new Response('', { status: 404 })
+    );
+    delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    const baseline = await runIngestionPipeline({ feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null, fetchFn: plainFetch as unknown as typeof fetch });
+    const clusterId = baseline.clusters[0]!.id;
+
+    Object.assign(process.env, D1_ENV);
+    const overrideRows = [{ id: clusterId, override_type: 'delete', payload_json: '{}', updated_at: '2026-09-01T00:00:00Z' }];
+    const fetchStub = buildFetchStub(overrideRows);
+    const result = await runIngestionPipeline({ feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null, fetchFn: fetchStub as unknown as typeof fetch });
+
+    expect(result.clusters.some((c) => c.id === clusterId)).toBe(false);
+  });
+
   it('fails loud (logs, does not silently skip) when D1 is configured but the query errors, and still returns a usable result via the disk fallback', async () => {
     Object.assign(process.env, D1_ENV);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

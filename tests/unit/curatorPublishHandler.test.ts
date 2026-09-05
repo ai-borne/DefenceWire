@@ -96,6 +96,36 @@ describe('Curator One-Push Publish Handler', () => {
     expect(deps.pruneSnapshots).toHaveBeenCalledWith(20);
   });
 
+  it('writes a "delete" tombstone override for each deletedClusterIds entry, separate from the changed-cluster loop', async () => {
+    const deps = makeDeps();
+    const untouched = makeCluster({ id: 'cluster-untouched' });
+
+    const result = await handleCuratorPublish(
+      { clusters: [untouched], river: [], deletedClusterIds: ['cluster-deleted'] },
+      null,
+      deps,
+      undefined,
+      'editor@defencewire.in'
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('Published 1 curated overrides live.');
+
+    expect(deps.runMutation).toHaveBeenCalledTimes(1);
+    const [sql, params] = (deps.runMutation as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(sql).toContain('INSERT INTO curator_overrides');
+    expect(params[0]).toBe('cluster-deleted');
+    expect(params[1]).toBe('delete');
+  });
+
+  it('treats a missing deletedClusterIds as no tombstones, not an error', async () => {
+    const deps = makeDeps();
+    const result = await handleCuratorPublish({ clusters: [], river: [] }, null, deps);
+
+    expect(result.success).toBe(true);
+    expect(deps.runMutation).not.toHaveBeenCalled();
+  });
+
   it('purges the NEWS_FEED edge cache tag on successful publish', async () => {
     const purgeCache = vi.fn().mockResolvedValue({ success: true });
     const deps = makeDeps({ purgeCache });

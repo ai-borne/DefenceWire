@@ -89,8 +89,53 @@ export function renderCandidateCard(cluster: StoryCluster, editorVm: EditorViewM
   ignoreBtn.onclick = () => editorVm.toggleIgnore(cluster.id);
   actions.appendChild(ignoreBtn);
 
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.className = 'dw-editor-btn dw-editor-btn--delete';
+  deleteBtn.textContent = STRINGS.editor.deleteStory;
+  deleteBtn.onclick = () => {
+    renderDeleteConfirm(formContainer, cluster, editorVm);
+  };
+  actions.appendChild(deleteBtn);
+
   card.appendChild(actions);
   return card;
+}
+
+export function renderDeleteConfirm(container: HTMLElement, cluster: StoryCluster, editorVm: EditorViewModel): void {
+  container.innerHTML = '';
+  const form = document.createElement('div');
+  form.className = 'dw-editor-edit-dialog';
+
+  const prompt = document.createElement('p');
+  prompt.textContent = STRINGS.editor.deleteConfirmPrompt;
+  form.appendChild(prompt);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.display = 'flex';
+  btnRow.style.gap = '6px';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.className = 'dw-editor-btn dw-editor-btn--delete';
+  confirmBtn.textContent = STRINGS.editor.confirmDelete;
+  confirmBtn.onclick = () => {
+    editorVm.deleteStory(cluster.id);
+    container.innerHTML = '';
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'dw-editor-btn';
+  cancelBtn.textContent = STRINGS.editor.cancel;
+  cancelBtn.onclick = () => {
+    container.innerHTML = '';
+  };
+
+  btnRow.appendChild(confirmBtn);
+  btnRow.appendChild(cancelBtn);
+  form.appendChild(btnRow);
+  container.appendChild(form);
 }
 
 export function renderHeadlineEditor(container: HTMLElement, cluster: StoryCluster, editorVm: EditorViewModel): void {

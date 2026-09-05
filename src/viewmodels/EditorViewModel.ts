@@ -205,6 +205,16 @@ export class EditorViewModel {
   }
 
   /**
+   * Permanently tombstones a story. Unlike ignore, there is no restore —
+   * the cluster drops out of every desk/public view immediately and, on
+   * the next publish, a 'delete' override_type row tells the crawler to
+   * never resurrect it (see NewsViewModel.deleteCluster).
+   */
+  public deleteStory(clusterId: string): void {
+    this.newsVm.deleteCluster(clusterId);
+  }
+
+  /**
    * Exports complete curated dataset formatted as JSON.
    */
   public exportCuratedJson(): string {
@@ -221,7 +231,8 @@ export class EditorViewModel {
   public async publishToProduction(): Promise<CuratorSyncResult> {
     const payload = {
       clusters: this.newsVm.getAllClusters(true),
-      river: this.newsVm.getFilteredRiverItems()
+      river: this.newsVm.getFilteredRiverItems(),
+      deletedClusterIds: this.newsVm.getDeletedClusterIds()
     };
     return this.publishController.publish(payload);
   }

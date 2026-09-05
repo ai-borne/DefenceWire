@@ -22,6 +22,7 @@ const LIVE_SNAPSHOT_KEY = 'live_snapshot';
 export interface CuratorPublishPayload {
   clusters: StoryCluster[];
   river: StorySourceItem[];
+  deletedClusterIds?: string[];
 }
 
 export interface CuratorPublishResult {
@@ -79,6 +80,16 @@ export async function handleCuratorPublish(
       );
     }
 
+    // Tombstones: deleted clusters are already excluded from body.clusters
+    // (NewsViewModel.getAllClusters(true) drops them), so they're carried
+    // separately here — this is the only write path for a 'delete'
+    // override_type row, which crawler/curatorOverrideSync.ts then treats
+    // as a permanent exclusion, surviving future crawl regenerations.
+    const deletedIds = Array.isArray(body.deletedClusterIds) ? body.deletedClusterIds : [];
+    for (const id of deletedIds) {
+      await upsertOverride(deps, id, 'delete', { deletedAt: new Date().toISOString() }, curatorEmail);
+    }
+
     const publishedAt = new Date().toISOString();
     const snapshotJson = JSON.stringify({ clusters: body.clusters, river: body.river });
 
@@ -96,7 +107,7 @@ export async function handleCuratorPublish(
 
     return {
       success: true,
-      message: `Published ${changed.length} curated overrides live.${purgeWarning}`
+      message: `Published ${changed.length + deletedIds.length} curated overrides live.${purgeWarning}`
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
