@@ -106,7 +106,6 @@ export function renderEditorDashboard(
   actionBar.style.background = 'var(--dw-bg-secondary)';
   actionBar.style.borderBottom = '1px solid var(--dw-border-secondary)';
   actionBar.style.display = 'flex';
-  actionBar.style.justifyContent = 'space-between';
   actionBar.style.alignItems = 'center';
   actionBar.style.flexWrap = 'wrap';
   actionBar.style.gap = '8px';
@@ -188,9 +187,9 @@ export function renderEditorDashboard(
   lockBtn.className = 'dw-editor-btn dw-editor-btn--lock';
   lockBtn.textContent = `🔒 ${STRINGS.editor.lockDesk}`;
   lockBtn.onclick = () => editorVm.logout();
+  actionGroup.appendChild(lockBtn);
 
   actionBar.appendChild(actionGroup);
-  actionBar.appendChild(lockBtn);
   panel.appendChild(actionBar);
 
   // Status message banner if any
