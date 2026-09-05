@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
  * DefenceWire Performance Budget Verification
- * Enforces hard limit: Total gzipped JS bundle in dist/ must be < 82 KB (83,968 bytes).
+ * Enforces hard limit: Total gzipped JS bundle in dist/ must be < 100 KB (102,400 bytes).
  * Raised from 40 KB to 55 KB when MOAT 2 was established, to 75 KB when Pillar A
  * (Jane's-grade specifications for all 43 programs, serial order books, and iDEX/ADITI challenges)
- * was integrated, and to 82 KB when Phase 2.4 (Pillar B Ecosystem Explorer & Supplier Dossier
+ * was integrated, to 82 KB when Phase 2.4 (Pillar B Ecosystem Explorer & Supplier Dossier
  * Modal — the verified supplier directory UI, filters, and cross-linked program dossiers) was
- * integrated. Flagged for explicit sign-off, not a silent bump — see Phase 2.4 handoff report.
+ * integrated, and to 100 KB by explicit user sign-off after the Curator's Desk plan's Phase 5
+ * (Knowledge Base tab) left the 82 KB cap at ~90 bytes of headroom — see that plan's Phase 10
+ * handoff report. Still flagged for explicit sign-off, not a silent bump.
  *
  * FUTURE OPTIMIZATION STRATEGIES (If bundle exceeds budget):
  * 1. Code-Split / Lazy-Load Rare Features (~12 KB saving):
@@ -23,7 +25,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as zlib from 'node:zlib';
 
-const MAX_BYTES = 82 * 1024; // 82 KB = 83,968 bytes
+const MAX_BYTES = 100 * 1024; // 100 KB = 102,400 bytes
 const distAssetsDir = path.resolve(process.cwd(), 'dist/assets');
 
 if (!fs.existsSync(distAssetsDir)) {
