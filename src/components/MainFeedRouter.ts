@@ -12,15 +12,22 @@ import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
 import { cleanStorySnippet } from '../utils/snippetCleaner.js';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
-import { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
-import { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
-import { SuppliersViewModel } from '../viewmodels/SuppliersViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
-import { renderArchiveView } from './ArchiveView.js';
-import { renderProgramsExplorerView } from './ProgramsExplorerView.js';
-import { renderSuppliersExplorerView } from './suppliers/SuppliersExplorerView.js';
+import { createLazyViewModelLoader, LazyAccessor } from '../services/lazyViewModelFactory.js';
+import type { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
+import type { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
+import type { SuppliersViewModel } from '../viewmodels/SuppliersViewModel.js';
 import type { EditorViewModel } from '../viewmodels/EditorViewModel.js';
 import type { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCandidatesPanelViewModel.js';
+
+// Module-scoped: caches the dynamically-imported view-render function
+// alongside main.ts's lazily-loaded ViewModels, so once a route has loaded
+// once, subsequent re-renders (e.g. a filter click inside Programs) take
+// the synchronous fast-path in renderLazyRoute instead of re-showing the
+// loading placeholder for an already-warm module.
+const loadArchiveView = createLazyViewModelLoader(() => import('./ArchiveView.js'), (m) => m);
+const loadProgramsExplorerView = createLazyViewModelLoader(() => import('./ProgramsExplorerView.js'), (m) => m);
+const loadSuppliersExplorerView = createLazyViewModelLoader(() => import('./suppliers/SuppliersExplorerView.js'), (m) => m);
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -123,13 +130,52 @@ function renderStoryClustersView(mainFeed: HTMLElement, newsVm: NewsViewModel, s
   }
 }
 
+/**
+ * Renders a lazy-loaded route. If every dependency is already warm (checked
+ * via `peekReady`), renders synchronously — this matters because a Promise's
+ * `.then()` always defers to a microtask even when already resolved, so
+ * without this fast-path every state change within an already-loaded route
+ * (e.g. a Programs domain-filter click) would flash the loading placeholder
+ * on each re-render. Only a genuinely cold load shows the placeholder.
+ */
+function renderLazyRoute<T>(
+  mainFeed: HTMLElement,
+  newsVm: NewsViewModel,
+  activeCat: string,
+  loadingText: string,
+  peekReady: () => T | undefined,
+  load: () => Promise<T>,
+  render: (resolved: T) => HTMLElement
+): void {
+  const ready = peekReady();
+  if (ready !== undefined) {
+    mainFeed.appendChild(render(ready));
+    return;
+  }
+
+  const placeholder = document.createElement('p');
+  placeholder.className = 'dw-snippet';
+  placeholder.textContent = loadingText;
+  mainFeed.appendChild(placeholder);
+
+  load()
+    .then((resolved) => {
+      if (newsVm.getActiveCategory() !== activeCat || !mainFeed.contains(placeholder)) return;
+      placeholder.remove();
+      mainFeed.appendChild(render(resolved));
+    })
+    .catch(() => {
+      placeholder.textContent = STRINGS.errors.feedLoadFailed;
+    });
+}
+
 export function renderMainFeedContent(
   mainFeed: HTMLElement,
   activeCat: string,
   newsVm: NewsViewModel,
-  archiveVm: ArchiveViewModel,
-  programsVm?: ProgramsViewModel,
-  suppliersVm?: SuppliersViewModel,
+  ensureArchiveVm: LazyAccessor<ArchiveViewModel>,
+  ensureProgramsVm: LazyAccessor<ProgramsViewModel>,
+  ensureSuppliersVm: LazyAccessor<SuppliersViewModel>,
   editorVm?: EditorViewModel,
   supplierCandidatesVm?: SupplierCandidatesPanelViewModel
 ): void {
@@ -142,13 +188,48 @@ export function renderMainFeedContent(
   if (activeCat === 'river') {
     renderRiverView(mainFeed, newsVm);
   } else if (activeCat === 'archive') {
-    mainFeed.appendChild(renderArchiveView(archiveVm, newsVm));
+    renderLazyRoute(
+      mainFeed,
+      newsVm,
+      activeCat,
+      STRINGS.archive.loading,
+      () => {
+        const vm = ensureArchiveVm.peek();
+        const mod = loadArchiveView.peek();
+        return vm && mod ? ([vm, mod] as const) : undefined;
+      },
+      () => Promise.all([ensureArchiveVm(), loadArchiveView()]),
+      ([archiveVm, { renderArchiveView }]) => renderArchiveView(archiveVm, newsVm)
+    );
   } else if (activeCat === 'programs') {
-    const vm = programsVm ?? new ProgramsViewModel(newsVm);
-    mainFeed.appendChild(renderProgramsExplorerView(vm, suppliersVm));
+    renderLazyRoute(
+      mainFeed,
+      newsVm,
+      activeCat,
+      STRINGS.programs.loadingExplorer,
+      () => {
+        const pVm = ensureProgramsVm.peek();
+        const sVm = ensureSuppliersVm.peek();
+        const mod = loadProgramsExplorerView.peek();
+        return pVm && sVm && mod ? ([pVm, sVm, mod] as const) : undefined;
+      },
+      () => Promise.all([ensureProgramsVm(), ensureSuppliersVm(), loadProgramsExplorerView()]),
+      ([programsVm, suppliersVm, { renderProgramsExplorerView }]) => renderProgramsExplorerView(programsVm, suppliersVm)
+    );
   } else if (activeCat === 'suppliers') {
-    const vm = suppliersVm ?? new SuppliersViewModel();
-    mainFeed.appendChild(renderSuppliersExplorerView(vm));
+    renderLazyRoute(
+      mainFeed,
+      newsVm,
+      activeCat,
+      STRINGS.suppliers.loadingExplorer,
+      () => {
+        const vm = ensureSuppliersVm.peek();
+        const mod = loadSuppliersExplorerView.peek();
+        return vm && mod ? ([vm, mod] as const) : undefined;
+      },
+      () => Promise.all([ensureSuppliersVm(), loadSuppliersExplorerView()]),
+      ([suppliersVm, { renderSuppliersExplorerView }]) => renderSuppliersExplorerView(suppliersVm)
+    );
   } else if (activeCat === 'curator' || activeCat === 'editor') {
     const curatorContainer = document.createElement('div');
     curatorContainer.className = 'dw-curator-route-container';

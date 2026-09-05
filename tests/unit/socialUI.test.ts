@@ -9,7 +9,6 @@ import { renderStoryCluster } from '../../src/components/StoryClusterView.js';
 import { renderRiverRail } from '../../src/components/RiverRailView.js';
 import { renderMainFeedContent } from '../../src/components/MainFeedRouter.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
-import { ArchiveViewModel } from '../../src/viewmodels/ArchiveViewModel.js';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { STRINGS } from '../../src/resources/strings.js';
@@ -138,10 +137,15 @@ describe('Social UI Badging & Component Rendering', () => {
 
   it('renders Tier 1 Social verified badge in MainFeedRouter River view', () => {
     const newsVm = new NewsViewModel([], [mockSocialRiverItem, mockStandardRiverItem]);
-    const archiveVm = new ArchiveViewModel();
+    // 'river' never touches Archive/Programs/Suppliers, which are lazy-loaded —
+    // this stub would only be invoked (and fail) if that branch were mis-routed.
+    const unusedLazyVm = Object.assign(
+      () => Promise.reject(new Error('should not be called for the river route')),
+      { peek: () => undefined }
+    );
 
     const container = document.createElement('div');
-    renderMainFeedContent(container, 'river', newsVm, archiveVm);
+    renderMainFeedContent(container, 'river', newsVm, unusedLazyVm, unusedLazyVm, unusedLazyVm);
 
     const riverRows = container.querySelectorAll('.dw-river-item');
     expect(riverRows.length).toBe(2);

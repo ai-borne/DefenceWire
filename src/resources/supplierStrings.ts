@@ -23,6 +23,7 @@ const supplierStrings = {
   tierDeepTechStartup: 'Deep-Tech Startup (iDEX / SRIJAN)',
   searchPlaceholder: 'Search suppliers by name, capability or subsystem...',
   noResults: 'No verified suppliers matched your filter criteria.',
+  loadingExplorer: 'Loading Suppliers Ecosystem Explorer...',
   linkedProgramsPrefix: 'Linked to',
   linkedProgramsSuffix: 'programs',
   sortLinkedDesc: 'Most Connected',

@@ -132,6 +132,7 @@ export const STRINGS = {
     notAvailable: 'TBD',
     searchPlaceholder: 'Search 43 programs (e.g. Tejas, AMCA, P-75I, Zorawar, Kusha)...',
     noResults: 'No strategic programs matched your filter criteria.',
+    loadingExplorer: 'Loading Strategic Programs Explorer...',
     noWirePulseTitle: 'Active 24/7 Intelligence Watch',
     noWirePulseBody: 'This sovereign platform is tracked across 50+ official defence and institutional feeds. Historical milestones, tests, contracts, and deployments will automatically index here as live coverage develops.',
     // Modal Tab Labels & Navigation

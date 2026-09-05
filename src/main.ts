@@ -9,9 +9,6 @@ import { ThemeViewModel } from './viewmodels/ThemeViewModel.js';
 import { NewsViewModel } from './viewmodels/NewsViewModel.js';
 import { EditorViewModel } from './viewmodels/EditorViewModel.js';
 import { SupplierCandidatesPanelViewModel } from './viewmodels/SupplierCandidatesPanelViewModel.js';
-import { ArchiveViewModel } from './viewmodels/ArchiveViewModel.js';
-import { ProgramsViewModel } from './viewmodels/ProgramsViewModel.js';
-import { SuppliersViewModel } from './viewmodels/SuppliersViewModel.js';
 import { defaultStorageService } from './services/storageService.js';
 import { defaultAuthService } from './services/authService.js';
 import { defaultPwaService } from './services/pwaService.js';
@@ -22,11 +19,10 @@ import { renderMainFeedContent } from './components/MainFeedRouter.js';
 import { renderRiverRail } from './components/RiverRailView.js';
 import { renderEcosystemRail } from './components/EcosystemRail.js';
 import { renderFooter } from './components/FooterView.js';
-import { openProgramDetailModal } from './components/ProgramDetailModal.js';
-import { openSupplierDetailModal } from './components/suppliers/SupplierDetailModal.js';
-import { getProgramById, findProgramByAlias } from './data/strategicPrograms.js';
 import { deepLinkToStoryFromLocation } from './services/permalinkService.js';
 import { initSummaryAutoCollapse } from './services/summaryAutoCollapseService.js';
+import { createLazyViewModelLoader } from './services/lazyViewModelFactory.js';
+import { resolveProgramPermalink, resolveSupplierPermalink } from './services/dossierPermalinkService.js';
 
 export function initializeApp(): void {
   const appElement = document.getElementById('app');
@@ -37,9 +33,27 @@ export function initializeApp(): void {
   const newsVm = new NewsViewModel();
   const editorVm = new EditorViewModel(newsVm);
   const supplierCandidatesVm = new SupplierCandidatesPanelViewModel();
-  const archiveVm = new ArchiveViewModel();
-  const programsVm = new ProgramsViewModel(newsVm);
-  const suppliersVm = new SuppliersViewModel(newsVm);
+
+  // Archive/Programs/Suppliers each carry their own heavy data module (D1
+  // archive search, the 43-program spec catalog, the supplier directory)
+  // that most first-time visitors never touch — constructed lazily, on
+  // first tab click or permalink hit, to keep that weight out of the
+  // eagerly-loaded main bundle (mirrors the EditorDashboard pattern below).
+  const ensureArchiveVm = createLazyViewModelLoader(
+    () => import('./viewmodels/ArchiveViewModel.js'),
+    ({ ArchiveViewModel }) => new ArchiveViewModel(),
+    (vm) => vm.subscribe(() => updateFeedAndSidebar())
+  );
+  const ensureProgramsVm = createLazyViewModelLoader(
+    () => import('./viewmodels/ProgramsViewModel.js'),
+    ({ ProgramsViewModel }) => new ProgramsViewModel(newsVm),
+    (vm) => vm.subscribe(() => updateFeedAndSidebar())
+  );
+  const ensureSuppliersVm = createLazyViewModelLoader(
+    () => import('./viewmodels/SuppliersViewModel.js'),
+    ({ SuppliersViewModel }) => new SuppliersViewModel(newsVm),
+    (vm) => vm.subscribe(() => updateFeedAndSidebar())
+  );
 
   // Initialize summary auto-collapse listener
   initSummaryAutoCollapse(newsVm);
@@ -162,7 +176,7 @@ export function initializeApp(): void {
 
     // Re-render Main Feed
     mainFeed.innerHTML = '';
-    renderMainFeedContent(mainFeed, activeCat, newsVm, archiveVm, programsVm, suppliersVm, editorVm, supplierCandidatesVm);
+    renderMainFeedContent(mainFeed, activeCat, newsVm, ensureArchiveVm, ensureProgramsVm, ensureSuppliersVm, editorVm, supplierCandidatesVm);
 
     // Re-render Sidebar Rail
     sidebar.innerHTML = '';
@@ -170,7 +184,7 @@ export function initializeApp(): void {
     sidebar.appendChild(renderRiverRail(newsVm, 10));
   };
 
-  // 7. Dynamic Editor Desk Renderer (Preserving 82 KB Budget)
+  // 7. Dynamic Editor Desk Renderer (Preserving the Main Bundle Budget)
   const updateEditorDesk = () => {
     editorContainer.innerHTML = '';
     if (editorVm.isOpen()) {
@@ -200,25 +214,12 @@ export function initializeApp(): void {
     const path = window.location.pathname;
     const progMatch = hash.match(/^#\/?program\/([^/?#]+)/) || path.match(/^\/program\/([^/?#]+)/);
     if (progMatch?.[1]) {
-      const decoded = decodeURIComponent(progMatch[1]);
-      const prog = getProgramById(decoded) ?? findProgramByAlias(decoded);
-      if (prog) {
-        openProgramDetailModal(prog, {
-          relatedClusters: programsVm.getProgramRelatedClusters(prog.id),
-          getSupplierRelatedClusters: (id) => suppliersVm.getSupplierRelatedClusters(id)
-        });
-      }
+      resolveProgramPermalink(decodeURIComponent(progMatch[1]), ensureProgramsVm, ensureSuppliersVm);
       return;
     }
     const supMatch = hash.match(/^#\/?supplier\/([^/?#]+)/) || path.match(/^\/supplier\/([^/?#]+)/);
     if (supMatch?.[1]) {
-      const decoded = decodeURIComponent(supMatch[1]);
-      const supplier = suppliersVm.getCachedSupplier(decoded);
-      if (supplier) {
-        openSupplierDetailModal(supplier, {
-          relatedClusters: suppliersVm.getSupplierRelatedClusters(supplier.id)
-        });
-      }
+      resolveSupplierPermalink(decodeURIComponent(supMatch[1]), ensureSuppliersVm);
       return;
     }
     if (hash.startsWith('#sources-') || hash.startsWith('#/sources/')) {
@@ -242,25 +243,14 @@ export function initializeApp(): void {
     });
   }
 
-  // Subscriptions
+  // Subscriptions (Archive/Programs/Suppliers subscribe themselves once
+  // constructed — see ensureArchiveVm/ensureProgramsVm/ensureSuppliersVm above)
   newsVm.subscribe(() => {
-    updateFeedAndSidebar();
-  });
-
-  programsVm.subscribe(() => {
-    updateFeedAndSidebar();
-  });
-
-  suppliersVm.subscribe(() => {
     updateFeedAndSidebar();
   });
 
   editorVm.subscribe(() => updateEditorDesk());
   supplierCandidatesVm.subscribe(() => updateEditorDesk());
-
-  archiveVm.subscribe(() => {
-    updateFeedAndSidebar();
-  });
 
   defaultFeedSyncService.onFeedUpdated(async (payload) => {
     if (payload.clusters && payload.clusters.length > 0) {
