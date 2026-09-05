@@ -31,7 +31,7 @@ function runAudit() {
     const isRegistryOutage = output.includes('503 Service Unavailable') ||
       output.includes('502 Bad Gateway') ||
       output.includes('network timeout') ||
-      result.error?.code === 'ETIMEDOUT';
+      /** @type {NodeJS.ErrnoException | undefined} */ (result.error)?.code === 'ETIMEDOUT';
 
     if (isRegistryOutage) {
       if (attempt < MAX_RETRIES) {

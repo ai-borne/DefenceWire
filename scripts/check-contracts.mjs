@@ -17,6 +17,7 @@ let failed = false;
 let totalFilesChecked = 0;
 
 // 1. LOC Guardrail
+/** @param {string} dirPath */
 function checkLoc(dirPath) {
   if (!fs.existsSync(dirPath)) return;
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -39,6 +40,7 @@ function checkLoc(dirPath) {
 }
 
 // 2. Resource Purity: Zero Hardcoded Hex Colors in Components
+/** @param {string} dirPath */
 function checkHexColors(dirPath) {
   if (!fs.existsSync(dirPath)) return;
   const files = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -107,10 +109,10 @@ function checkCssTokenPurity() {
     let match;
 
     while ((match = ruleRegex.exec(cleanContent)) !== null) {
-      const decls = match[1].split(';');
+      const decls = (match[1] ?? '').split(';');
       for (const decl of decls) {
         const parts = decl.split(':');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0]) {
           const prop = parts[0].trim().toLowerCase();
           const val = parts.slice(1).join(':').trim();
           if (TARGET_PROPS.has(prop)) {

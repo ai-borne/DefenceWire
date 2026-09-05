@@ -17,6 +17,13 @@
  * and programs that already exist in the verified directory.
  */
 
+/** @typedef {{ accountId: string, databaseId: string, apiToken: string }} D1Config */
+
+/**
+ * @param {string} sql
+ * @param {unknown[]} params
+ * @param {D1Config} config
+ */
 async function runD1Query(sql, params, config) {
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/d1/database/${config.databaseId}/query`;
   const res = await fetch(endpoint, {
@@ -43,6 +50,7 @@ function loadConfig() {
   return { accountId, databaseId, apiToken };
 }
 
+/** @param {D1Config} config */
 async function listPending(config) {
   const rows = await runD1Query(
     `SELECT id, supplier_name, program_id, subsystem_name, confidence, mention_count, source_count, source_domains, source_story_id
@@ -64,11 +72,20 @@ async function listPending(config) {
   }
 }
 
+/**
+ * @param {string} id
+ * @param {D1Config} config
+ */
 async function getCandidate(id, config) {
   const rows = await runD1Query('SELECT * FROM supplier_candidates WHERE id = ? LIMIT 1;', [id], config);
   return rows[0] || null;
 }
 
+/**
+ * @param {string} id
+ * @param {string | undefined} reviewer
+ * @param {D1Config} config
+ */
 async function approve(id, reviewer, config) {
   const candidate = await getCandidate(id, config);
   if (!candidate) {
@@ -104,6 +121,11 @@ async function approve(id, reviewer, config) {
   console.log('   Note: subsystem_name and indigenisation_status were drafted defaults — verify/edit them in D1 if needed.');
 }
 
+/**
+ * @param {string} id
+ * @param {string | undefined} reviewer
+ * @param {D1Config} config
+ */
 async function reject(id, reviewer, config) {
   const candidate = await getCandidate(id, config);
   if (!candidate) {

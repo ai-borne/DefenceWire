@@ -26,10 +26,12 @@ const messages = stylelint.utils.ruleMessages(ruleName, {
     'below its min-size and the nowrap text will overflow into neighboring items instead of the row scrolling.'
 });
 
+/** @param {string} value */
 function isNonZeroLength(value) {
   return value.trim() !== '0' && value.trim() !== '0px';
 }
 
+/** @param {any[]} decls postcss Declaration nodes (stylelint's postcss types aren't imported here) */
 function hasZeroShrink(decls) {
   return decls.some((decl) => {
     if (decl.prop.toLowerCase() === 'flex-shrink') {
@@ -44,27 +46,32 @@ function hasZeroShrink(decls) {
   });
 }
 
+/** @param {boolean} enabled */
 const dwFlexChildShrinkGuard = (enabled) => {
+  /**
+   * @param {any} root postcss Root
+   * @param {any} result stylelint Result
+   */
   return (root, result) => {
     if (!enabled) return;
 
-    root.walkRules((rule) => {
-      const decls = rule.nodes ? rule.nodes.filter((n) => n.type === 'decl') : [];
+    root.walkRules((/** @type {any} */ rule) => {
+      const decls = rule.nodes ? rule.nodes.filter((/** @type {any} */ n) => n.type === 'decl') : [];
 
       const isNowrap = decls.some(
-        (d) => d.prop.toLowerCase() === 'white-space' && d.value.trim() === 'nowrap'
+        (/** @type {any} */ d) => d.prop.toLowerCase() === 'white-space' && d.value.trim() === 'nowrap'
       );
       if (!isNowrap) return;
 
       const hasPinnedMinSize = decls.some(
-        (d) =>
+        (/** @type {any} */ d) =>
           ['min-width', 'min-height'].includes(d.prop.toLowerCase()) &&
           isNonZeroLength(d.value)
       );
       if (!hasPinnedMinSize) return;
 
       const hasOverflowHidden = decls.some(
-        (d) => d.prop.toLowerCase() === 'overflow' && d.value.trim() === 'hidden'
+        (/** @type {any} */ d) => d.prop.toLowerCase() === 'overflow' && d.value.trim() === 'hidden'
       );
       if (hasOverflowHidden) return;
 
@@ -80,4 +87,7 @@ const dwFlexChildShrinkGuard = (enabled) => {
   };
 };
 
+// @ts-expect-error — stylelint's real runtime API accepts a plain rule
+// function here (the documented plugin pattern this follows); the
+// installed @types/stylelint's Rule<> signature doesn't reflect that.
 export default stylelint.createPlugin(ruleName, dwFlexChildShrinkGuard);

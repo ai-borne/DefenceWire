@@ -12,6 +12,7 @@ const DIRS_TO_CHECK = ['src', 'crawler', 'tests', 'functions'];
 let failed = false;
 let totalChecked = 0;
 
+/** @param {string} dirPath */
 function checkDirectory(dirPath) {
   if (!fs.existsSync(dirPath)) return;
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });

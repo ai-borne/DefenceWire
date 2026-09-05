@@ -14,7 +14,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "allowJs": true,
+    "checkJs": true
   },
-  "include": ["src", "tests", "functions"]
+  "include": ["src", "tests", "functions", "scripts"]
 }

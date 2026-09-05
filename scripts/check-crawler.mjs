@@ -5,7 +5,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { CRAWLER_FEEDS, getActiveFeeds, getFeedsByTier } from '../crawler/feeds.js';
+import { CRAWLER_FEEDS, getFeedsByTier } from '../crawler/feeds.js';
 import { parseFeedXml } from '../crawler/parser.js';
 import { clusterArticles } from '../src/engine/clusterEngine.js';
 import { SourceTier } from '../src/types/source.js';
