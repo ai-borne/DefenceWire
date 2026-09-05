@@ -87,6 +87,13 @@
   gap: 6px;
 }
 
+.dw-editor-desk-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
 .dw-editor-filter-tab,
 .dw-editor-desk-tab {
   padding: 5px 12px;
@@ -97,6 +104,11 @@
   color: var(--dw-text-secondary);
   border-radius: 3px;
   cursor: pointer;
+}
+
+.dw-editor-desk-tab {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dw-editor-filter-tab.active,

@@ -170,11 +170,10 @@ export function renderEditorDashboard(
 
   // 3. 5-Tab Workstation Navigation
   const deskTabs = document.createElement('div');
-  deskTabs.className = 'dw-editor-filters';
+  deskTabs.className = 'dw-editor-desk-tabs';
   deskTabs.style.padding = '8px 18px';
   deskTabs.style.background = 'var(--dw-bg-secondary)';
   deskTabs.style.borderBottom = '1px solid var(--dw-border-secondary)';
-  deskTabs.style.overflowX = 'auto';
 
   const panelTabs: Array<{ id: EditorDeskPanel; label: string }> = [
     { id: 'stories', label: STRINGS.curatorDesk.tabWire },
