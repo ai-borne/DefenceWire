@@ -21,7 +21,7 @@ binding = "AI"
 # one-time provisioning steps (same pattern as the D1 database above).
 [[kv_namespaces]]
 binding = "NEWS_LIVE"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "92a38bdb1a01477081c617f6a2b76b70"
 
 # Archived story cluster_json blobs (moved off D1 to stay under D1 quota) —
 # see crawler/r2ArchiveStore.ts (GitHub Actions write path, S3-compatible REST)
