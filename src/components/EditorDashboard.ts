@@ -145,6 +145,7 @@ export function renderEditorDashboard(
   rollbackBtn.textContent = editorVm.getIsRollingBack() ? `⏳ ${STRINGS.editor.rollingBack}` : `↩️ ${STRINGS.editor.rollbackLastPublish}`;
   rollbackBtn.disabled = editorVm.getIsRollingBack();
   rollbackBtn.onclick = async () => {
+    if (!window.confirm(STRINGS.editor.rollbackConfirmPrompt)) return;
     await editorVm.rollbackToPreviousPublish();
   };
   actionGroup.appendChild(rollbackBtn);

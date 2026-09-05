@@ -3,7 +3,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderEditorDashboard } from '../../src/components/EditorDashboard.js';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
@@ -138,5 +138,30 @@ describe('EditorDashboard Component Integration', () => {
 
     lockBtn?.click();
     expect(editorVm.isAuthenticated()).toBe(false);
+  });
+
+  it('gates rollback on window.confirm — cancel skips it, accept calls the service', async () => {
+    authService.setAuthenticated(true);
+    const rollbackFetch = vi.fn(async () => ({ ok: true, json: async () => ({ success: true }) })) as unknown as typeof fetch;
+    publishService = new CuratorPublishService(rollbackFetch);
+    editorVm = new EditorViewModel(newsVm, authService, publishService);
+    editorVm.setOpen(true);
+
+    const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
+    const rollbackBtn = el.querySelector('.dw-editor-btn--rollback') as HTMLButtonElement | null;
+    expect(rollbackBtn).not.toBeNull();
+
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+    rollbackBtn?.click();
+    await Promise.resolve();
+    expect(confirmSpy).toHaveBeenCalledWith(STRINGS.editor.rollbackConfirmPrompt);
+    expect(rollbackFetch).not.toHaveBeenCalled();
+
+    confirmSpy.mockReturnValueOnce(true);
+    rollbackBtn?.click();
+    await Promise.resolve();
+    expect(rollbackFetch).toHaveBeenCalled();
+
+    confirmSpy.mockRestore();
   });
 });
