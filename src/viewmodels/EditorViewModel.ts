@@ -20,7 +20,8 @@ export type EditorDeskPanel =
   | 'ecosystem'
   | 'crawler'
   | 'scorecard'
-  | 'ingest';
+  | 'ingest'
+  | 'knowledgeBase';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {

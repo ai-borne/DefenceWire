@@ -171,3 +171,27 @@
   color: var(--dw-text-accent);
   border: 1px solid var(--dw-text-accent);
 }
+
+/* Knowledge Base Tab Styles (Phase 5) */
+.dw-kb-select {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border: 1px solid var(--dw-border-primary);
+  border-radius: 3px;
+  background: var(--dw-bg-secondary);
+  color: var(--dw-text-primary);
+}
+
+.dw-kb-table-th-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.dw-kb-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  font-size: 0.78rem;
+  color: var(--dw-text-secondary);
+}

@@ -17,10 +17,13 @@ import { renderCrawlerHealthView } from './editor/CrawlerHealthView.js';
 import { renderSourceScorecardView } from './editor/SourceScorecardView.js';
 import { renderIngestView } from './editor/IngestView.js';
 import { CuratorIngestViewModel } from '../viewmodels/CuratorIngestViewModel.js';
+import { renderKnowledgeBaseView } from './editor/KnowledgeBaseView.js';
+import { CuratorKnowledgeBaseViewModel } from '../viewmodels/CuratorKnowledgeBaseViewModel.js';
+import knowledgeBaseStrings from '../resources/knowledgeBaseStrings.js';
 
-// Module-scoped singleton: EditorDashboard.js is already lazy-loaded on first
-// Curator Desk open, so owning the ingest ViewModel here (rather than in the
-// eagerly-bundled main.ts) keeps it out of the main reader bundle budget.
+// Module-scoped singletons: EditorDashboard.js is already lazy-loaded on first
+// Curator Desk open, so owning these ViewModels here (rather than in the
+// eagerly-bundled main.ts) keeps them out of the main reader bundle budget.
 let ingestVmSingleton: CuratorIngestViewModel | null = null;
 
 function getIngestViewModel(onChange: () => void): CuratorIngestViewModel {
@@ -29,6 +32,16 @@ function getIngestViewModel(onChange: () => void): CuratorIngestViewModel {
     ingestVmSingleton.subscribe(onChange);
   }
   return ingestVmSingleton;
+}
+
+let knowledgeBaseVmSingleton: CuratorKnowledgeBaseViewModel | null = null;
+
+function getKnowledgeBaseViewModel(onChange: () => void): CuratorKnowledgeBaseViewModel {
+  if (!knowledgeBaseVmSingleton) {
+    knowledgeBaseVmSingleton = new CuratorKnowledgeBaseViewModel();
+    knowledgeBaseVmSingleton.subscribe(onChange);
+  }
+  return knowledgeBaseVmSingleton;
 }
 
 export function renderEditorDashboard(
@@ -208,7 +221,8 @@ export function renderEditorDashboard(
     { id: 'supplierCandidates', label: STRINGS.editorSupplierCandidates.panelTabLabel },
     { id: 'crawler', label: STRINGS.curatorDesk.tabCrawler },
     { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard },
-    { id: 'ingest', label: STRINGS.ingest.tabLabel }
+    { id: 'ingest', label: STRINGS.ingest.tabLabel },
+    { id: 'knowledgeBase', label: knowledgeBaseStrings.tabLabel }
   ];
 
   for (const tab of panelTabs) {
@@ -233,6 +247,8 @@ export function renderEditorDashboard(
     panel.appendChild(renderSourceScorecardView(editorVm));
   } else if (editorVm.isPanelActive('ingest')) {
     panel.appendChild(renderIngestView(getIngestViewModel(onIngestChange)));
+  } else if (editorVm.isPanelActive('knowledgeBase')) {
+    panel.appendChild(renderKnowledgeBaseView(getKnowledgeBaseViewModel(onIngestChange)));
   } else {
     panel.appendChild(renderWireCurationView(editorVm));
   }

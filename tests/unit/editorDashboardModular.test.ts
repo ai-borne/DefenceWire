@@ -10,6 +10,9 @@ import { renderWireCurationView } from '../../src/components/editor/WireCuration
 import { renderIntelReviewView } from '../../src/components/editor/IntelReviewView.js';
 import { renderCrawlerHealthView } from '../../src/components/editor/CrawlerHealthView.js';
 import { renderSourceScorecardView } from '../../src/components/editor/SourceScorecardView.js';
+import { renderKnowledgeBaseView } from '../../src/components/editor/KnowledgeBaseView.js';
+import { CuratorKnowledgeBaseViewModel } from '../../src/viewmodels/CuratorKnowledgeBaseViewModel.js';
+import knowledgeBaseStrings from '../../src/resources/knowledgeBaseStrings.js';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { SupplierCandidatesPanelViewModel } from '../../src/viewmodels/SupplierCandidatesPanelViewModel.js';
@@ -71,10 +74,10 @@ describe('Modular 5-Tab Curator Workstation', () => {
     } as any);
   });
 
-  it('renders all 6 tabs in the workstation navigation bar', () => {
+  it('renders all 7 tabs in the workstation navigation bar', () => {
     const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const tabs = el.querySelectorAll('.dw-editor-desk-tab');
-    expect(tabs.length).toBe(6);
+    expect(tabs.length).toBe(7);
 
     const labels = Array.from(tabs).map((t) => t.textContent?.trim());
     expect(labels).toContain(STRINGS.curatorDesk.tabWire);
@@ -83,6 +86,7 @@ describe('Modular 5-Tab Curator Workstation', () => {
     expect(labels).toContain(STRINGS.curatorDesk.tabCrawler);
     expect(labels).toContain(STRINGS.curatorDesk.tabScorecard);
     expect(labels).toContain(STRINGS.ingest.tabLabel);
+    expect(labels).toContain(knowledgeBaseStrings.tabLabel);
   });
 
   it('switches between all 5 workstation tabs correctly', () => {
@@ -111,6 +115,11 @@ describe('Modular 5-Tab Curator Workstation', () => {
     const scorecardTab = tabs.find((t) => t.textContent?.includes(STRINGS.curatorDesk.tabScorecard));
     scorecardTab?.click();
     expect(editorVm.isPanelActive('scorecard')).toBe(true);
+
+    // 6. Tab 7: Knowledge Base
+    const kbTab = tabs.find((t) => t.textContent?.includes(knowledgeBaseStrings.tabLabel));
+    kbTab?.click();
+    expect(editorVm.isPanelActive('knowledgeBase')).toBe(true);
   });
 
   it('Tab 1 (WireCurationView) renders cluster cards and filters', () => {
@@ -148,6 +157,29 @@ describe('Modular 5-Tab Curator Workstation', () => {
     expect(view.textContent).toContain('pib.gov.in');
     expect(view.textContent).toContain('100%');
     expect(view.textContent).toContain('1.00x');
+  });
+
+  it('Tab 7 (KnowledgeBaseView) triggers an initial load and renders fetched rows', async () => {
+    const fetchTable = vi.fn().mockResolvedValue({
+      success: true,
+      rows: [{ domain: 'livefistdefence.com', reputation_multiplier: 1.2 }],
+      totalCount: 1,
+      page: 0,
+      pageSize: 20
+    });
+    const kbVm = new CuratorKnowledgeBaseViewModel({ fetchTable } as any);
+
+    const firstRender = renderKnowledgeBaseView(kbVm);
+    expect(firstRender.textContent).toContain(knowledgeBaseStrings.heading);
+    expect(firstRender.textContent).toContain(knowledgeBaseStrings.loading);
+    expect(fetchTable).toHaveBeenCalledWith(expect.objectContaining({ table: 'discovered_entities' }));
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const secondRender = renderKnowledgeBaseView(kbVm);
+    expect(secondRender.textContent).toContain('livefistdefence.com');
+    expect(secondRender.querySelector('.dw-kb-select')).toBeDefined();
   });
 });
 
