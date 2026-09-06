@@ -11,12 +11,6 @@
     gap: 20px;
   }
 
-  /* Surface the Wire / Ecosystem rail above the main feed on mobile —
-     otherwise it sits below a long feed and is effectively never seen. */
-  .dw-sidebar-rail {
-    order: -1;
-  }
-
   /* 2-Tier Header Layout */
   .dw-header-inner {
     padding: 8px 12px;

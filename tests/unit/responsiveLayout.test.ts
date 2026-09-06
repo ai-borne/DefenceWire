@@ -98,6 +98,14 @@ describe('Unit: Responsive Layout & Text Overflow Hygiene', () => {
     expect(feedCss).toMatch(/\.dw-sources-drawer\s*\{[^}]*min-height:\s*0;/);
   });
 
+  it('does not push the Wire/Ecosystem sidebar rail above tab content on mobile', () => {
+    // Regression: `.dw-sidebar-rail { order: -1; }` forced the DEFENCEWIRE
+    // NETWORK and WIRE widgets to render before every tab's actual content
+    // on mobile. The sidebar must follow its natural DOM order (after the
+    // main feed) at the mobile breakpoint, same as desktop.
+    expect(responsiveCss).not.toMatch(/\.dw-sidebar-rail\s*\{[^}]*order:\s*-1/);
+  });
+
   it('enforces single-line cluster footer and sources toggle micro-pill styling', () => {
     expect(feedCss).toMatch(/\.dw-cluster-footer\s*\{[^}]*flex-wrap:\s*nowrap;/);
     expect(feedCss).toMatch(/\.dw-cluster-footer\s*\{[^}]*justify-content:\s*space-between;/);
