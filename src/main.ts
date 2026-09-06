@@ -179,9 +179,12 @@ export function initializeApp(): void {
     renderMainFeedContent(mainFeed, activeCat, newsVm, ensureArchiveVm, ensureProgramsVm, ensureSuppliersVm, editorVm, supplierCandidatesVm);
 
     // Re-render Sidebar Rail
+    // The Wire tab's own content IS the wire feed — skip the duplicate rail there.
     sidebar.innerHTML = '';
     sidebar.appendChild(renderEcosystemRail());
-    sidebar.appendChild(renderRiverRail(newsVm, 10));
+    if (activeCat !== 'river') {
+      sidebar.appendChild(renderRiverRail(newsVm, 10));
+    }
   };
 
   // 7. Dynamic Editor Desk Renderer (Preserving the Main Bundle Budget)

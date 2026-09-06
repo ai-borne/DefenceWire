@@ -101,6 +101,12 @@ describe('Integration: Feed Rendering & UI Components', () => {
     const mainFeed = document.querySelector('.dw-main-feed');
     expect(mainFeed?.textContent).toContain(STRINGS.river.heading);
     expect(mainFeed?.textContent).toContain(STRINGS.river.subheading);
+
+    // Regression: the sidebar's "Wire" rail duplicates the tab's own content
+    // when the Wire tab itself is active — it must not render alongside it.
+    const rails = document.querySelectorAll('aside.dw-rail-card');
+    expect(rails.length).toBe(1);
+    expect(document.querySelector('.dw-sidebar-rail')?.textContent).not.toContain(STRINGS.river.heading);
   });
 
   it('should toggle the article Summary drawer on click without SSB/CTA noise on Top Stories', () => {
