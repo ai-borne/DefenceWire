@@ -21,10 +21,10 @@ export const STRINGS = {
     onlineNotice: 'Live feed connected.'
   },
   nav: {
-    all: 'Top Stories', official: 'Official & Parliament', programs: 'Programs',
-    tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Defence Tech',
+    all: 'Top Stories', official: 'Official', programs: 'Programs',
+    tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Tech',
     strategic: 'Geopolitics', procurement: 'Procurement', ssb: 'SSB Intel',
-    river: 'River of News', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
+    river: 'Wire', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
     suppliers: supplierStrings.navTab,
     categoriesAriaLabel: 'Defence Categories'
   },
@@ -241,7 +241,7 @@ export const STRINGS = {
     system: 'System Default', iconLight: '☀️', iconDark: '🌙', iconSystem: '⚙️'
   },
   river: {
-    heading: 'River of News', subheading: 'Chronological unfiltered wire from 40+ Indian defence feeds',
+    heading: 'Wire', subheading: 'Chronological unfiltered wire from 40+ Indian defence feeds',
     sourceLabel: 'Source', filterPlaceholder: 'Filter wire...'
   },
   archive: {

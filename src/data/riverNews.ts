@@ -1,5 +1,5 @@
 /**
- * Real-Time Chronological River of News Wire Items
+ * Real-Time Chronological Wire Feed Items
  * Unfiltered, fast-moving defence news updates.
  * Hard limit: <= 300 LOC.
  */

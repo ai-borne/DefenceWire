@@ -17,15 +17,15 @@ describe('Resource Management: Strings SSOT', () => {
 
   it('should have all navigation tab labels defined including MOAT tabs', () => {
     expect(STRINGS.nav.all).toBe('Top Stories');
-    expect(STRINGS.nav.official).toBe('Official & Parliament');
+    expect(STRINGS.nav.official).toBe('Official');
     expect(STRINGS.nav.programs).toBe('Programs');
     expect(STRINGS.nav.tenders).toBe('Tenders & RFPs');
     expect(STRINGS.nav.idex).toBe('iDEX & Startups');
-    expect(STRINGS.nav.tech).toBe('Defence Tech');
+    expect(STRINGS.nav.tech).toBe('Tech');
     expect(STRINGS.nav.strategic).toBe('Geopolitics');
     expect(STRINGS.nav.procurement).toBe('Procurement');
     expect(STRINGS.nav.ssb).toBe('SSB Intel');
-    expect(STRINGS.nav.river).toBe('River of News');
+    expect(STRINGS.nav.river).toBe('Wire');
     expect(STRINGS.nav.archive).toBe('Archive');
   });
 

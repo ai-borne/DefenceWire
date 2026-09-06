@@ -1,6 +1,6 @@
 /**
  * Navigation Bar Component for DefenceWire.in
- * Filter pills for domain categories and River of News.
+ * Filter pills for domain categories and the Wire feed.
  * Hard limit: <= 300 LOC.
  */
 
@@ -15,15 +15,15 @@ interface NavItem {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { id: 'all', label: STRINGS.nav.all },
-  { id: 'official', label: STRINGS.nav.official },
-  { id: 'programs', label: STRINGS.nav.programs },
+  { id: 'river', label: STRINGS.nav.river },
   { id: 'tech', label: STRINGS.nav.tech },
   { id: 'strategic', label: STRINGS.nav.strategic },
+  { id: 'programs', label: STRINGS.nav.programs },
   { id: 'procurement', label: STRINGS.nav.procurement },
+  { id: 'suppliers', label: STRINGS.nav.suppliers },
   { id: 'ssb', label: STRINGS.nav.ssb },
-  { id: 'river', label: STRINGS.nav.river },
-  { id: 'archive', label: STRINGS.nav.archive },
-  { id: 'suppliers', label: STRINGS.nav.suppliers }
+  { id: 'official', label: STRINGS.nav.official },
+  { id: 'archive', label: STRINGS.nav.archive }
 ] as const;
 
 export function renderNavigationBar(newsVm: NewsViewModel): HTMLElement {

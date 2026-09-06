@@ -33,15 +33,15 @@ describe('NavigationBar Component', () => {
 
     const expectedLabels = [
       STRINGS.nav.all,
-      STRINGS.nav.official,
-      STRINGS.nav.programs,
+      STRINGS.nav.river,
       STRINGS.nav.tech,
       STRINGS.nav.strategic,
+      STRINGS.nav.programs,
       STRINGS.nav.procurement,
+      STRINGS.nav.suppliers,
       STRINGS.nav.ssb,
-      STRINGS.nav.river,
-      STRINGS.nav.archive,
-      STRINGS.nav.suppliers
+      STRINGS.nav.official,
+      STRINGS.nav.archive
     ];
 
     tabs.forEach((tab, index) => {
@@ -100,7 +100,7 @@ describe('NavigationBar Component', () => {
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
 
-    // Click Official & Parliament tab (index 1)
+    // Click Official tab
     const officialTab = tabs.find((t) => t.textContent === STRINGS.nav.official);
     expect(officialTab).toBeDefined();
     officialTab!.click();
