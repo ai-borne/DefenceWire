@@ -54,8 +54,15 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Avoid caching non-HTTP/HTTPS, chrome extensions, or /api/ endpoints (Zero Trust / Edge functions)
-  if (url.protocol !== 'http:' && url.protocol !== 'https:' || url.pathname.startsWith('/api/')) {
+  // Avoid caching non-HTTP/HTTPS, chrome extensions, /api/ endpoints (Zero
+  // Trust / Edge functions), or /data/ endpoints (dynamic feed data whose
+  // freshness is governed server-side — see functions/data/news.json.ts —
+  // and must never get stuck in Cache Storage past that).
+  if (
+    (url.protocol !== 'http:' && url.protocol !== 'https:') ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/data/')
+  ) {
     return;
   }
 
