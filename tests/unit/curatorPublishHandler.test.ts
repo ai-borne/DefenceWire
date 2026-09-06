@@ -94,6 +94,16 @@ describe('Curator One-Push Publish Handler', () => {
       'editor@defencewire.in'
     );
     expect(deps.pruneSnapshots).toHaveBeenCalledWith(20);
+
+    // The KV snapshot must carry its own generatedAt so /data/news.json can
+    // compare it against the static feed instead of trusting it forever.
+    const [, kvSnapshotJson] = (deps.kvPut as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const parsedSnapshot = JSON.parse(kvSnapshotJson);
+    expect(parsedSnapshot.generatedAt).toEqual(expect.any(String));
+    expect(new Date(parsedSnapshot.generatedAt).toString()).not.toBe('Invalid Date');
+
+    const [, insertedPublishedAt] = (deps.insertSnapshot as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(parsedSnapshot.generatedAt).toBe(insertedPublishedAt);
   });
 
   it('writes a "delete" tombstone override for each deletedClusterIds entry, separate from the changed-cluster loop', async () => {

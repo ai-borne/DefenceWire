@@ -91,7 +91,10 @@ export async function handleCuratorPublish(
     }
 
     const publishedAt = new Date().toISOString();
-    const snapshotJson = JSON.stringify({ clusters: body.clusters, river: body.river });
+    // generatedAt lets functions/data/news.json.ts (liveSnapshotFreshness.ts)
+    // compare this snapshot's age against the hourly-crawled static feed,
+    // instead of an untimestamped publish overriding it forever.
+    const snapshotJson = JSON.stringify({ clusters: body.clusters, river: body.river, generatedAt: publishedAt });
 
     await deps.kvPut(LIVE_SNAPSHOT_KEY, snapshotJson);
     await deps.insertSnapshot(snapshotJson, publishedAt, curatorEmail);
