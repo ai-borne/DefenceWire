@@ -281,3 +281,17 @@
   gap: 10px;
 }
 .dw-footer-links { display: flex; gap: 14px; flex-wrap: wrap; }
+.dw-footer-copyright { font-weight: 600; }
+.dw-footer-disclaimer { font-size: 0.74rem; color: var(--dw-text-muted); }
+.dw-footer-ecosystem {
+  border-top: 1px solid var(--dw-border-secondary);
+  padding-top: 10px;
+}
+.dw-footer-ecosystem-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dw-text-muted);
+  margin: 0 0 6px;
+}
+.dw-footer-ecosystem-links { display: flex; gap: 14px; flex-wrap: wrap; }
