@@ -141,6 +141,16 @@ export function extractMilitaryEntities(text: string): { entities: string[]; cat
     }
   }
 
+  // Every recognized defence story carries SSB prep value (GD topics, interview
+  // questions) — 'ssb' is an overlay tag, not a distinct topic domain, so it's added
+  // alongside whatever specific categories (airforce/navy/strategic/etc.) were found.
+  // This is the sole place that gates SSBIntelligence generation downstream
+  // (summarizer.ts's isSSBRelevant, extractiveMiner.ts) — without it, gdLecturettePoints
+  // and potentialInterviewQuestions are never requested/generated for any cluster.
+  if (categoriesSet.size > 0) {
+    categoriesSet.add('ssb');
+  }
+
   return {
     entities: Array.from(new Set(entities)),
     categories: Array.from(categoriesSet)

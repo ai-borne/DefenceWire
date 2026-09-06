@@ -116,4 +116,15 @@ describe('Military Entities Registry & Domain Mapping', () => {
     expect(res4.entities).toContain('Project Kusha');
     expect(res4.categories).toContain('strategic');
   });
+
+  it('tags every recognized defence story with the ssb overlay category so SSB briefs get generated', () => {
+    // Regression guard for the SSB Intel tab being empty: summarizer.ts/extractiveMiner.ts
+    // gate GD/interview question generation entirely on categories.includes('ssb'). If this
+    // stops being set, that generation silently stops for every cluster again.
+    const namedPlatform = extractMilitaryEntities('IAF carries out successful test firing of Astra Mk2 BVR missile from Su-30MKI fighter');
+    expect(namedPlatform.categories).toContain('ssb');
+
+    const fallbackDefenceContext = extractMilitaryEntities('Ministry of Defence approves new weapon procurement deal worth 5000 crore');
+    expect(fallbackDefenceContext.categories).toContain('ssb');
+  });
 });
