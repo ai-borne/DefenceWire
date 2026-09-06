@@ -13,11 +13,12 @@ import {
   buildGeminiPrompt,
   buildGeminiResponseSchema,
   parseGeminiJsonFromText,
+  requiresPlatformBrief,
   sanitizePromptField
 } from './summarizerPrompt.js';
 
 export { generateExtractiveSSBIntel } from './extractiveMiner.js';
-export { hasStructuredBrief } from './summarizerPrompt.js';
+export { hasStructuredBrief, requiresPlatformBrief } from './summarizerPrompt.js';
 export { sanitizeGeminiSSBIntelligence } from './geminiSalvage.js';
 
 export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
@@ -157,7 +158,8 @@ export async function summarizeWithGemini(
   }
 
   const basePrompt = buildGeminiPrompt(cluster);
-  const responseSchema = buildGeminiResponseSchema(cluster.categories.includes('ssb'));
+  const includeTechTakeaway = requiresPlatformBrief(cluster.categories);
+  const responseSchema = buildGeminiResponseSchema(cluster.categories.includes('ssb'), includeTechTakeaway);
   const modelName = getGeminiModelName();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
@@ -200,7 +202,7 @@ export async function summarizeWithGemini(
         continue;
       }
 
-      const { intel, hardErrors, droppedFields } = sanitizeGeminiSSBIntelligence(parsed);
+      const { intel, hardErrors, droppedFields } = sanitizeGeminiSSBIntelligence(parsed, includeTechTakeaway);
       if (intel) {
         if (droppedFields.length > 0) {
           console.warn('[GEMINI PARTIAL SALVAGE]', droppedFields.join('; '));

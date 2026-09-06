@@ -102,7 +102,7 @@ function sanitizeStringArray(value: unknown, maxLen: number, dropped: string[], 
 // the Gemini path only; getSSBIntelligenceValidationErrors/isValidSSBIntelligence in
 // summarizer.ts stay as the strict all-or-nothing gate used by the Cloudflare Workers
 // AI fallback path.
-export function sanitizeGeminiSSBIntelligence(data: unknown): GeminiSalvageResult {
+export function sanitizeGeminiSSBIntelligence(data: unknown, requireChain = true): GeminiSalvageResult {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return { intel: null, hardErrors: ['root: not a JSON object'], droppedFields: [] };
   }
@@ -111,7 +111,7 @@ export function sanitizeGeminiSSBIntelligence(data: unknown): GeminiSalvageResul
   if (typeof obj.whyItMatters !== 'string' || obj.whyItMatters.trim().length === 0 || obj.whyItMatters.length > 1000) {
     return { intel: null, hardErrors: ['whyItMatters: missing, empty, or exceeds 1000 chars'], droppedFields: [] };
   }
-  if (!hasStructuredBrief(obj.whyItMatters)) {
+  if (!hasStructuredBrief(obj.whyItMatters, requireChain)) {
     return {
       intel: null,
       hardErrors: ['whyItMatters: does not follow mandated Scope -> Impact -> Strategic Significance structure'],
