@@ -352,3 +352,47 @@ CREATE TABLE IF NOT EXISTS story_thread_events (
 CREATE INDEX IF NOT EXISTS idx_story_thread_events_thread_seq ON story_thread_events (thread_id, sequence_index ASC);
 CREATE INDEX IF NOT EXISTS idx_story_thread_events_cluster ON story_thread_events (cluster_id);
 CREATE INDEX IF NOT EXISTS idx_story_thread_events_published ON story_thread_events (published_at ASC);
+
+-- ============================================================================
+-- Pillar D: Semantic Knowledge Graph & Epistemic Triples (Phase 2)
+-- ============================================================================
+
+-- Semantic graph nodes representing platforms, units, facilities, and programs.
+CREATE TABLE IF NOT EXISTS graph_nodes (
+  id TEXT PRIMARY KEY,               -- normalized slug, e.g. 'node_l-70-guns', 'node_delhi'
+  label TEXT NOT NULL,              -- display name e.g. 'L-70 Guns'
+  category TEXT NOT NULL,           -- 'platform' | 'threat' | 'facility' | 'location' | 'organization' | 'program'
+  mention_count INTEGER NOT NULL DEFAULT 1,
+  degree INTEGER NOT NULL DEFAULT 0,-- degree centrality (number of connected edges)
+  first_seen_at TEXT NOT NULL,      -- ISO 8601
+  last_seen_at TEXT NOT NULL,       -- ISO 8601
+  metadata_json TEXT                -- optional JSON string
+);
+
+CREATE INDEX IF NOT EXISTS idx_graph_nodes_category ON graph_nodes (category);
+CREATE INDEX IF NOT EXISTS idx_graph_nodes_degree ON graph_nodes (degree DESC);
+CREATE INDEX IF NOT EXISTS idx_graph_nodes_last_seen ON graph_nodes (last_seen_at DESC);
+
+-- Directed semantic relationships with truth states and observation timestamps.
+CREATE TABLE IF NOT EXISTS graph_edges (
+  id TEXT PRIMARY KEY,               -- deterministic: 'edge_${source_id}_${predicate}_${target_id}'
+  source_id TEXT NOT NULL,           -- references graph_nodes(id)
+  target_id TEXT NOT NULL,           -- references graph_nodes(id)
+  predicate TEXT NOT NULL,           -- 'DEPLOYED_TO' | 'CONNECTED_TO' | 'PROCURES' | 'TESTED_AT' | 'TARGETS' | 'DEVELOPED_BY' | 'ENGAGED_WITH' | 'SUPPLIES' | 'INTERCEPTED'
+  epistemic_state TEXT NOT NULL DEFAULT 'CONFIRMED', -- 'CONFIRMED' | 'CONTESTED' | 'SUPERSEDED' | 'DISPUTED' | 'RETRACTED'
+  weight REAL NOT NULL DEFAULT 1.0,
+  cluster_id TEXT,                  -- maps to StoryCluster.id
+  first_observed_at TEXT NOT NULL,   -- ISO 8601
+  last_observed_at TEXT NOT NULL,    -- ISO 8601
+  source_url TEXT NOT NULL,
+  context_snippet TEXT,
+  FOREIGN KEY (source_id) REFERENCES graph_nodes(id) ON DELETE CASCADE,
+  FOREIGN KEY (target_id) REFERENCES graph_nodes(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_graph_edges_source_pred ON graph_edges (source_id, predicate);
+CREATE INDEX IF NOT EXISTS idx_graph_edges_target_pred ON graph_edges (target_id, predicate);
+CREATE INDEX IF NOT EXISTS idx_graph_edges_epistemic ON graph_edges (epistemic_state);
+CREATE INDEX IF NOT EXISTS idx_graph_edges_observed ON graph_edges (last_observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_graph_edges_cluster ON graph_edges (cluster_id);
+

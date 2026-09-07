@@ -25,6 +25,9 @@ import { runSupplierCandidateExtraction } from './supplierCandidateExtractor.js'
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBreaker } from './sourceTracker.js';
 import { runThreadContinuity } from './threadSync.js';
+import { runGraphExtractionAndSync } from './graphSync.js';
+
+
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -234,6 +237,11 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   // Temporal story threading & lineage engine (Phase 1)
   const threadResult = await runThreadContinuity(finalClusters, d1Config, { fetchFn });
   console.log(`[D1 THREAD SYNC] ${threadResult.syncedThreads} threads, ${threadResult.syncedEvents} events synced`);
+
+  // Semantic triplet & knowledge graph extraction (Phase 2)
+  const graphResult = await runGraphExtractionAndSync(finalClusters, d1Config, { fetchFn });
+  console.log(`[D1 GRAPH SYNC] ${graphResult.syncedNodes} nodes, ${graphResult.syncedEdges} edges synced`);
+
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
