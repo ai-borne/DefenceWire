@@ -24,6 +24,7 @@ export interface CuratorPatternDependencies {
   runQuery: (sql: string, params: unknown[]) => Promise<Record<string, unknown>[]>;
   runMutation?: (sql: string, params: unknown[]) => Promise<unknown>;
   verifyAuth?: (cookieHeader: string | null) => Promise<boolean>;
+  purgeCache?: (tags: string[]) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface CuratorPatternResponse<T = unknown> {
@@ -108,6 +109,14 @@ export async function handleReviewPattern(
     const updatedRow = updatedRows[0];
     if (!updatedRow) {
       return { success: false, error: 'Failed to retrieve updated pattern.' };
+    }
+
+    if (deps.purgeCache && (body.action === 'approve' || body.action === 'edit')) {
+      try {
+        await deps.purgeCache(['dw-patterns']);
+      } catch {
+        // Cache purge failure is non-fatal to the primary D1 mutation
+      }
     }
 
     return {

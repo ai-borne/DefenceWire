@@ -12,7 +12,8 @@ export const EDGE_CACHE_TAGS = {
   NEWS_FEED: 'dw-news-feed',
   SUPPLIERS: 'dw-suppliers',
   PROGRAMS: 'dw-programs',
-  AI_GROUNDING: 'dw-ai-grounding'
+  AI_GROUNDING: 'dw-ai-grounding',
+  PATTERNS: 'dw-patterns'
 } as const;
 
 export type EdgeCacheTag = (typeof EDGE_CACHE_TAGS)[keyof typeof EDGE_CACHE_TAGS];
@@ -53,7 +54,8 @@ export const EDGE_CACHE_URLS = {
   NEWS_FEED: 'https://www.defencewire.in/data/news.json',
   SITEMAP: 'https://www.defencewire.in/sitemap.xml',
   LLMS_TXT: 'https://www.defencewire.in/llms.txt',
-  LLMS_FULL: 'https://www.defencewire.in/llms-full.txt'
+  LLMS_FULL: 'https://www.defencewire.in/llms-full.txt',
+  PATTERNS: 'https://www.defencewire.in/api/patterns'
 } as const;
 
 /**
@@ -131,10 +133,10 @@ export function buildEdgeCacheHeaders(options: EdgeCacheHeaderOptions = {}): Rec
  * Resolves Cloudflare Zone Config from environment variables.
  */
 export function buildZoneConfigFromEnv(
-  env: NodeJS.ProcessEnv | Record<string, string | undefined>
+  env: NodeJS.ProcessEnv | Record<string, unknown>
 ): CloudflareZoneConfig | null {
-  const zoneId = env.CLOUDFLARE_ZONE_ID;
-  const apiToken = env.CLOUDFLARE_API_TOKEN;
+  const zoneId = typeof env.CLOUDFLARE_ZONE_ID === 'string' ? env.CLOUDFLARE_ZONE_ID : undefined;
+  const apiToken = typeof env.CLOUDFLARE_API_TOKEN === 'string' ? env.CLOUDFLARE_API_TOKEN : undefined;
   if (!zoneId || !apiToken) return null;
   return { zoneId, apiToken };
 }
@@ -194,3 +196,59 @@ export async function purgeEdgeCacheByUrls(
     };
   }
 }
+
+/**
+ * Dispatches a Cache-Tag purge request to the Cloudflare Zone Purge API.
+ */
+export async function purgeEdgeCacheByTags(
+  tags: string[],
+  config: CloudflareZoneConfig | null | undefined,
+  deps: { fetchFn?: typeof fetch } = {}
+): Promise<EdgePurgeResult> {
+  if (!tags || tags.length === 0) {
+    return { success: true, purgedTargets: [] };
+  }
+
+  if (!config || !config.zoneId || !config.apiToken) {
+    return {
+      success: false,
+      purgedTargets: [],
+      error: 'Cloudflare credentials (CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN) not configured'
+    };
+  }
+
+  const fetchFn = deps.fetchFn ?? fetch;
+  const endpoint = `https://api.cloudflare.com/client/v4/zones/${config.zoneId}/purge_cache`;
+
+  try {
+    const res = await fetchFn(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tags })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      return {
+        success: false,
+        purgedTargets: [],
+        error: `Cloudflare purge API returned HTTP ${res.status}: ${errText}`
+      };
+    }
+
+    return {
+      success: true,
+      purgedTargets: tags
+    };
+  } catch (err) {
+    return {
+      success: false,
+      purgedTargets: [],
+      error: `Network error purging edge cache tags: ${err instanceof Error ? err.message : String(err)}`
+    };
+  }
+}
+

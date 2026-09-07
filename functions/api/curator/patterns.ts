@@ -11,6 +11,12 @@ import {
 } from '../../../src/services/curatorPatternHandler.js';
 import { verifyCuratorAuthorization } from '../../../src/services/curatorAuthHandler.js';
 import { PatternReviewRequest, PatternStatus } from '../../../src/types/patterns.js';
+import {
+  buildZoneConfigFromEnv,
+  purgeEdgeCacheByUrls,
+  purgeEdgeCacheByTags,
+  EDGE_CACHE_URLS
+} from '../../../src/seo/edgeCache.js';
 
 interface D1PreparedStatement {
   bind: (...params: unknown[]) => D1PreparedStatement;
@@ -29,6 +35,8 @@ interface PagesFunctionContext {
     CURATOR_SESSION_SECRET?: string;
     CURATOR_SESSION_EPOCH?: string;
     CURATOR_TEAM_DOMAIN?: string;
+    CLOUDFLARE_ZONE_ID?: string;
+    CLOUDFLARE_API_TOKEN?: string;
   };
 }
 
@@ -113,6 +121,12 @@ export async function onRequestPost(context: PagesFunctionContext): Promise<Resp
         },
         runMutation: async (sql, params) => {
           return db.prepare(sql).bind(...params).run();
+        },
+        purgeCache: async (tags) => {
+          const zoneConfig = buildZoneConfigFromEnv(context.env);
+          if (!zoneConfig) return { success: false, error: 'Zone not configured' };
+          await purgeEdgeCacheByUrls([EDGE_CACHE_URLS.PATTERNS], zoneConfig);
+          return purgeEdgeCacheByTags(tags, zoneConfig);
         }
       },
       cookieHeader,
