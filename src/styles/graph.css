@@ -1,0 +1,112 @@
+/* Knowledge Graph & Micro-Canvas Stylesheet (Phase 3) */
+/* Strictly uses var(--dw-*) tokens for all colors, borders, and backgrounds. */
+/* Hard limit: <= 300 LOC */
+
+.dw-graph-view { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+.dw-graph-header { display: flex; flex-direction: column; gap: 10px; }
+.dw-graph-title-row { display: flex; align-items: center; justify-content: space-between; }
+.dw-graph-title { font-size: 1.4rem; font-weight: 700; color: var(--dw-text-primary); margin: 0; }
+.dw-graph-subtitle { font-size: 0.88rem; color: var(--dw-text-secondary); line-height: var(--dw-leading-normal); margin: 0; }
+
+.dw-graph-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.dw-graph-category-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+.dw-graph-tab {
+  background: var(--dw-bg-secondary); color: var(--dw-text-secondary);
+  border: 1px solid var(--dw-border-primary); border-radius: var(--dw-radius-sm);
+  padding: 5px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;
+}
+.dw-graph-tab:hover { background: var(--dw-bg-hover); color: var(--dw-text-primary); }
+.dw-graph-tab.active { background: var(--dw-text-accent); color: var(--dw-text-on-accent); border-color: var(--dw-text-accent); }
+
+.dw-graph-search {
+  background: var(--dw-bg-card); color: var(--dw-text-primary);
+  border: 1px solid var(--dw-border-primary); border-radius: var(--dw-radius-sm);
+  padding: 6px 12px; font-size: 0.82rem; width: 260px; outline: none;
+}
+.dw-graph-search:focus { border-color: var(--dw-text-accent); }
+
+/* Split Layout: Canvas + Inspector */
+.dw-graph-layout { display: flex; gap: 16px; width: 100%; min-height: 580px; }
+.dw-graph-canvas-wrapper {
+  position: relative; flex: 1; min-height: 580px;
+  background: var(--dw-bg-card); border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md); overflow: hidden; display: flex; flex-direction: column;
+}
+.dw-graph-canvas { width: 100%; height: calc(100% - 50px); display: block; touch-action: none; }
+.dw-graph-floating-controls { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 10; }
+.dw-graph-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  background: var(--dw-bg-secondary); color: var(--dw-text-primary);
+  border: 1px solid var(--dw-border-primary); border-radius: var(--dw-radius-sm);
+  font-size: 1.1rem; cursor: pointer; box-shadow: var(--dw-shadow-modal);
+}
+.dw-graph-btn:hover { background: var(--dw-bg-hover); }
+
+/* Time Scrubber Bar */
+.dw-graph-scrubber {
+  height: 50px; background: var(--dw-bg-secondary); border-top: 1px solid var(--dw-border-primary);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 14px; gap: 14px; z-index: 10;
+}
+.dw-graph-scrubber-controls { display: flex; align-items: center; gap: 8px; }
+.dw-graph-scrubber-btn {
+  background: var(--dw-bg-card); color: var(--dw-text-primary); border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm); padding: 4px 8px; font-size: 0.82rem; cursor: pointer;
+}
+.dw-graph-scrubber-btn:hover { background: var(--dw-bg-hover); }
+.dw-graph-scrubber-date { font-size: 0.8rem; font-family: var(--dw-font-mono); font-weight: 600; color: var(--dw-text-primary); white-space: nowrap; }
+.dw-graph-scrubber-track { display: flex; align-items: center; flex: 1; gap: 10px; }
+.dw-graph-scrubber-slider { flex: 1; accent-color: var(--dw-text-accent); cursor: pointer; }
+.dw-graph-scrubber-bound { font-size: 0.72rem; color: var(--dw-text-muted); font-family: var(--dw-font-mono); }
+.dw-graph-scrubber-counter {
+  font-size: 0.75rem; font-weight: 600; color: var(--dw-text-accent);
+  background: var(--dw-badge-tint-accent); padding: 2px 6px; border-radius: var(--dw-radius-sm); white-space: nowrap;
+}
+
+/* Inspector Sidebar */
+.dw-graph-inspector {
+  width: 320px; background: var(--dw-bg-card); border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-md); padding: 16px; overflow-y: auto; max-height: 580px;
+}
+.dw-graph-inspector-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; text-align: center; color: var(--dw-text-muted); padding: 40px 16px; gap: 12px;
+}
+.dw-graph-empty-icon { font-size: 2rem; }
+.dw-graph-inspector-card { display: flex; flex-direction: column; gap: 10px; }
+.dw-graph-inspector-name { font-size: 1.1rem; font-weight: 700; color: var(--dw-text-primary); margin: 0; }
+.dw-graph-inspector-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.dw-graph-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: var(--dw-radius-sm); text-transform: uppercase; }
+
+.dw-graph-cat-platform { background: var(--dw-tier-1-social-bg); color: var(--dw-tier-1-social-text); }
+.dw-graph-cat-threat { background: var(--dw-badge-tint-accent); color: var(--dw-text-accent); }
+.dw-graph-cat-facility { background: var(--dw-tier-1-bg); color: var(--dw-tier-1-text); }
+.dw-graph-cat-location { background: var(--dw-tier-3-bg); color: var(--dw-tier-3-text); }
+.dw-graph-cat-organization { background: var(--dw-tier-2-bg); color: var(--dw-tier-2-text); }
+.dw-graph-cat-program { background: var(--dw-badge-tint-accent); color: var(--dw-text-accent); }
+.dw-graph-badge-degree { background: var(--dw-badge-bg); color: var(--dw-badge-text); }
+
+.dw-graph-inspector-dates { font-size: 0.75rem; color: var(--dw-text-muted); font-family: var(--dw-font-mono); }
+.dw-graph-btn-action {
+  background: var(--dw-bg-secondary); color: var(--dw-link); border: 1px solid var(--dw-border-primary);
+  border-radius: var(--dw-radius-sm); padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: center;
+}
+.dw-graph-btn-action:hover { background: var(--dw-bg-hover); }
+.dw-graph-inspector-subhead { font-size: 0.84rem; font-weight: 700; color: var(--dw-text-primary); margin-top: 8px; }
+.dw-graph-link-list { display: flex; flex-direction: column; gap: 8px; }
+.dw-graph-link-item {
+  display: flex; align-items: center; justify-content: space-between; padding: 6px 8px;
+  background: var(--dw-bg-secondary); border-radius: var(--dw-radius-sm); font-size: 0.78rem; cursor: pointer; gap: 6px;
+}
+.dw-graph-link-item:hover { background: var(--dw-bg-hover); }
+.dw-graph-link-predicate { font-size: 0.68rem; font-family: var(--dw-font-mono); color: var(--dw-text-muted); text-transform: uppercase; }
+.dw-graph-link-neighbor { font-weight: 600; color: var(--dw-text-primary); flex: 1; }
+.dw-graph-state-pill { font-size: 0.64rem; padding: 1px 4px; border-radius: var(--dw-radius-sm); }
+.dw-graph-state-confirmed { background: var(--dw-tier-1-bg); color: var(--dw-tier-1-text); }
+.dw-graph-state-contested, .dw-graph-state-disputed { background: var(--dw-tier-3-bg); color: var(--dw-tier-3-text); }
+.dw-graph-state-superseded, .dw-graph-state-retracted { background: var(--dw-badge-tint-accent); color: var(--dw-text-muted); }
+.dw-graph-source-link { color: var(--dw-link); font-weight: bold; padding: 0 4px; }
+
+@media (max-width: 860px) {
+  .dw-graph-layout { flex-direction: column; }
+  .dw-graph-inspector { width: 100%; max-height: 280px; }
+}

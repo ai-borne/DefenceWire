@@ -43,9 +43,9 @@ describe('Integration: Feed Rendering & UI Components', () => {
     const searchInput = app?.querySelector('input[type="search"]');
     expect(searchInput).not.toBeNull();
 
-    // Verify Navigation Tabs (10 tabs)
+    // Verify Navigation Tabs (11 tabs)
     const navTabs = app?.querySelectorAll('.dw-nav-tab');
-    expect(navTabs?.length).toBe(10);
+    expect(navTabs?.length).toBe(11);
 
     // Verify Story Clusters
     const clusters = app?.querySelectorAll('article.dw-cluster');

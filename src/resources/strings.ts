@@ -8,6 +8,7 @@ import supplierStrings from './supplierStrings.js';
 import editorSupplierCandidateStrings from './editorSupplierCandidateStrings.js';
 import curatorDeskStrings from './curatorDeskStrings.js';
 import ingestStrings from './ingestStrings.js';
+import graphStrings from './graphStrings.js';
 
 export const STRINGS = {
   app: {
@@ -25,7 +26,7 @@ export const STRINGS = {
     tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Tech',
     strategic: 'Geopolitics', procurement: 'Procurement', ssb: 'SSB Intel',
     river: 'Wire', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
-    suppliers: supplierStrings.navTab,
+    suppliers: supplierStrings.navTab, graph: graphStrings.tabTitle,
     categoriesAriaLabel: 'Defence Categories'
   },
   categories: {
@@ -278,10 +279,8 @@ export const STRINGS = {
     errorTooltip: 'Unable to sync feed. Showing cached intelligence.', ariaSyncNow: 'Revalidate and synchronize live defence intelligence feed',
     liveStatus: 'Live Feed Connected'
   },
-  suppliers: supplierStrings,
-  editorSupplierCandidates: editorSupplierCandidateStrings,
-  curatorDesk: curatorDeskStrings,
-  ingest: ingestStrings,
+  suppliers: supplierStrings, editorSupplierCandidates: editorSupplierCandidateStrings,
+  curatorDesk: curatorDeskStrings, ingest: ingestStrings, graph: graphStrings,
   dossier: {
     modalTitlePrefix: '🛡️ Sovereign Dossier: ', modalAriaPrefix: 'Dossier: ', closeAriaLabel: 'Close Dossier', loading: 'Querying D1 intelligence archive...',
     noRecordsPrefix: 'No historical dossier records found for ', domainLabel: 'DOMAIN', corroborationLabel: 'CORROBORATION',

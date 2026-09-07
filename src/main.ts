@@ -214,6 +214,10 @@ export function initializeApp(): void {
       defaultAuthService.checkSession();
       return;
     }
+    if (hash === '#graph' || hash === '#/graph' || hash === '#intel-graph' || hash === '#/intel-graph') {
+      newsVm.setActiveCategory('graph');
+      return;
+    }
     const path = window.location.pathname;
     const progMatch = hash.match(/^#\/?program\/([^/?#]+)/) || path.match(/^\/program\/([^/?#]+)/);
     if (progMatch?.[1]) {
