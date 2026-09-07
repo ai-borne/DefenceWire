@@ -98,3 +98,18 @@ export function formatLiveIST(date: Date = new Date(), includeSeconds: boolean =
     return date.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
   }
 }
+
+/**
+ * Extracts clean YYYY-MM-DD date string from an ISO timestamp.
+ */
+export function formatDateOnly(isoString: string): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString.slice(0, 10);
+    return d.toISOString().slice(0, 10);
+  } catch {
+    return isoString.slice(0, 10);
+  }
+}
+

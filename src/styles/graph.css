@@ -91,6 +91,7 @@
   border-radius: var(--dw-radius-sm); padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: center;
 }
 .dw-graph-btn-action:hover { background: var(--dw-bg-hover); }
+.dw-graph-btn-thread { margin-top: 6px; }
 .dw-graph-inspector-subhead { font-size: 0.84rem; font-weight: 700; color: var(--dw-text-primary); margin-top: 8px; }
 .dw-graph-link-list { display: flex; flex-direction: column; gap: 8px; }
 .dw-graph-link-item {

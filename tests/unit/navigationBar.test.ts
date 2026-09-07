@@ -24,12 +24,12 @@ describe('NavigationBar Component', () => {
     expect(tablist?.getAttribute('role')).toBe('tablist');
   });
 
-  it('should render all 10 navigation tabs in expected order', () => {
+  it('should render all navigation tabs in expected order', () => {
     const newsVm = new NewsViewModel();
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-    expect(tabs.length).toBe(11);
+    expect(tabs.length).toBe(12);
 
     const expectedLabels = [
       STRINGS.nav.all,
@@ -39,6 +39,7 @@ describe('NavigationBar Component', () => {
       STRINGS.nav.programs,
       STRINGS.nav.procurement,
       STRINGS.nav.suppliers,
+      STRINGS.nav.threads,
       STRINGS.nav.graph,
       STRINGS.nav.ssb,
       STRINGS.nav.official,
@@ -75,6 +76,7 @@ describe('NavigationBar Component', () => {
       'tech',
       'strategic',
       'procurement',
+      'threads',
       'ssb',
       'river',
       'archive'
