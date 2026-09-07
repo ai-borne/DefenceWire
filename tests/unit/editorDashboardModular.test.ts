@@ -13,6 +13,7 @@ import { renderSourceScorecardView } from '../../src/components/editor/SourceSco
 import { renderKnowledgeBaseView } from '../../src/components/editor/KnowledgeBaseView.js';
 import { CuratorKnowledgeBaseViewModel } from '../../src/viewmodels/CuratorKnowledgeBaseViewModel.js';
 import knowledgeBaseStrings from '../../src/resources/knowledgeBaseStrings.js';
+import { PATTERN_STRINGS } from '../../src/resources/patternStrings.js';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { SupplierCandidatesPanelViewModel } from '../../src/viewmodels/SupplierCandidatesPanelViewModel.js';
@@ -74,10 +75,10 @@ describe('Modular 5-Tab Curator Workstation', () => {
     } as any);
   });
 
-  it('renders all 7 tabs in the workstation navigation bar', () => {
+  it('renders all 8 tabs in the workstation navigation bar', () => {
     const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const tabs = el.querySelectorAll('.dw-editor-desk-tab');
-    expect(tabs.length).toBe(7);
+    expect(tabs.length).toBe(8);
 
     const labels = Array.from(tabs).map((t) => t.textContent?.trim());
     expect(labels).toContain(STRINGS.curatorDesk.tabWire);
@@ -87,6 +88,7 @@ describe('Modular 5-Tab Curator Workstation', () => {
     expect(labels).toContain(STRINGS.curatorDesk.tabScorecard);
     expect(labels).toContain(STRINGS.ingest.tabLabel);
     expect(labels).toContain(knowledgeBaseStrings.tabLabel);
+    expect(labels).toContain(PATTERN_STRINGS.tabLabel);
   });
 
   it('switches between all 5 workstation tabs correctly', () => {
@@ -120,6 +122,11 @@ describe('Modular 5-Tab Curator Workstation', () => {
     const kbTab = tabs.find((t) => t.textContent?.includes(knowledgeBaseStrings.tabLabel));
     kbTab?.click();
     expect(editorVm.isPanelActive('knowledgeBase')).toBe(true);
+
+    // 7. Tab 8: Emergent Patterns
+    const patTab = tabs.find((t) => t.textContent?.includes(PATTERN_STRINGS.tabLabel));
+    patTab?.click();
+    expect(editorVm.isPanelActive('patterns')).toBe(true);
   });
 
   it('Tab 1 (WireCurationView) renders cluster cards and filters', () => {

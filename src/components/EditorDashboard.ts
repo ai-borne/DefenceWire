@@ -20,6 +20,9 @@ import { CuratorIngestViewModel } from '../viewmodels/CuratorIngestViewModel.js'
 import { renderKnowledgeBaseView } from './editor/KnowledgeBaseView.js';
 import { CuratorKnowledgeBaseViewModel } from '../viewmodels/CuratorKnowledgeBaseViewModel.js';
 import knowledgeBaseStrings from '../resources/knowledgeBaseStrings.js';
+import { renderPatternReviewView } from './editor/PatternReviewView.js';
+import { PatternReviewViewModel } from '../viewmodels/PatternReviewViewModel.js';
+import { PATTERN_STRINGS } from '../resources/patternStrings.js';
 
 // Module-scoped singletons: EditorDashboard.js is already lazy-loaded on first
 // Curator Desk open, so owning these ViewModels here (rather than in the
@@ -42,6 +45,17 @@ function getKnowledgeBaseViewModel(onChange: () => void): CuratorKnowledgeBaseVi
     knowledgeBaseVmSingleton.subscribe(onChange);
   }
   return knowledgeBaseVmSingleton;
+}
+
+let patternReviewVmSingleton: PatternReviewViewModel | null = null;
+
+function getPatternReviewViewModel(onChange: () => void): PatternReviewViewModel {
+  if (!patternReviewVmSingleton) {
+    patternReviewVmSingleton = new PatternReviewViewModel();
+    patternReviewVmSingleton.subscribe(onChange);
+    void patternReviewVmSingleton.loadPatterns();
+  }
+  return patternReviewVmSingleton;
 }
 
 export function renderEditorDashboard(
@@ -222,7 +236,8 @@ export function renderEditorDashboard(
     { id: 'crawler', label: STRINGS.curatorDesk.tabCrawler },
     { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard },
     { id: 'ingest', label: STRINGS.ingest.tabLabel },
-    { id: 'knowledgeBase', label: knowledgeBaseStrings.tabLabel }
+    { id: 'knowledgeBase', label: knowledgeBaseStrings.tabLabel },
+    { id: 'patterns', label: PATTERN_STRINGS.tabLabel }
   ];
 
   for (const tab of panelTabs) {
@@ -249,6 +264,8 @@ export function renderEditorDashboard(
     panel.appendChild(renderIngestView(getIngestViewModel(onIngestChange)));
   } else if (editorVm.isPanelActive('knowledgeBase')) {
     panel.appendChild(renderKnowledgeBaseView(getKnowledgeBaseViewModel(onIngestChange)));
+  } else if (editorVm.isPanelActive('patterns')) {
+    panel.appendChild(renderPatternReviewView(getPatternReviewViewModel(onIngestChange)));
   } else {
     panel.appendChild(renderWireCurationView(editorVm));
   }

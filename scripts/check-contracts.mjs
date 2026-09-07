@@ -72,7 +72,9 @@ function checkContracts() {
     'src/types/programs.ts',
     'src/types/orbat.ts',
     'src/types/threads.ts',
-    'src/resources/threadStrings.ts'
+    'src/resources/threadStrings.ts',
+    'src/types/patterns.ts',
+    'src/resources/patternStrings.ts'
   ];
 
   for (const relPath of requiredContracts) {

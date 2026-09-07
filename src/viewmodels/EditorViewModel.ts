@@ -21,7 +21,8 @@ export type EditorDeskPanel =
   | 'crawler'
   | 'scorecard'
   | 'ingest'
-  | 'knowledgeBase';
+  | 'knowledgeBase'
+  | 'patterns';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {
