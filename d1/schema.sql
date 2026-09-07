@@ -308,3 +308,47 @@ CREATE TABLE IF NOT EXISTS supplier_candidates (
 );
 
 CREATE INDEX IF NOT EXISTS idx_supplier_candidates_status ON supplier_candidates (status, confidence DESC);
+
+-- ============================================================================
+-- Pillar C: Temporal Story Threading & Lineage Engine (Phase 1)
+-- ============================================================================
+
+-- Persistent story threads tracking evolving multi-month defence storylines.
+CREATE TABLE IF NOT EXISTS story_threads (
+  id TEXT PRIMARY KEY,             -- deterministic slug, e.g. 'th_lca-tejas-mk1a'
+  title TEXT NOT NULL,            -- display title, e.g. 'LCA Tejas Mk1A Delivery Arc'
+  canonical_entity TEXT NOT NULL, -- primary tracked entity, e.g. 'Tejas Mk1A'
+  category TEXT NOT NULL,         -- 'airforce' | 'navy' | 'army' | 'tech' | 'strategic' | 'procurement'
+  status TEXT NOT NULL DEFAULT 'active', -- 'active' | 'dormant' | 'concluded'
+  event_count INTEGER NOT NULL DEFAULT 1,
+  first_event_at TEXT NOT NULL,   -- ISO 8601
+  last_event_at TEXT NOT NULL,    -- ISO 8601
+  summary TEXT,                   -- short synthesis or description
+  created_at TEXT NOT NULL,       -- ISO 8601
+  updated_at TEXT NOT NULL        -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_threads_status_last_event ON story_threads (status, last_event_at DESC);
+CREATE INDEX IF NOT EXISTS idx_story_threads_canonical_entity ON story_threads (canonical_entity);
+CREATE INDEX IF NOT EXISTS idx_story_threads_last_event_at ON story_threads (last_event_at DESC);
+
+-- Individual chronological milestones / cluster events within a story thread.
+CREATE TABLE IF NOT EXISTS story_thread_events (
+  id TEXT PRIMARY KEY,             -- deterministic, e.g. 'ev_<cluster_id>' or '<thread_id>:<sequence_code>'
+  thread_id TEXT NOT NULL,         -- references story_threads(id)
+  cluster_id TEXT NOT NULL,        -- maps to StoryCluster.id
+  sequence_code TEXT NOT NULL,     -- e.g. 'x1.1.1', 'x1.1.2', 'x1.2.1'
+  sequence_index INTEGER NOT NULL, -- 1, 2, 3...
+  headline TEXT NOT NULL,
+  delta_summary TEXT NOT NULL,     -- what changed in this update
+  primary_source_name TEXT NOT NULL,
+  primary_source_url TEXT NOT NULL,
+  published_at TEXT NOT NULL,      -- ground-truth publish timestamp
+  entities TEXT NOT NULL,          -- JSON array of strings
+  created_at TEXT NOT NULL,        -- ISO 8601
+  FOREIGN KEY (thread_id) REFERENCES story_threads(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_thread_seq ON story_thread_events (thread_id, sequence_index ASC);
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_cluster ON story_thread_events (cluster_id);
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_published ON story_thread_events (published_at ASC);

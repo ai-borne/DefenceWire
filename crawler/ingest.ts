@@ -24,6 +24,7 @@ import {
 import { runSupplierCandidateExtraction } from './supplierCandidateExtractor.js';
 import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBreaker } from './sourceTracker.js';
+import { runThreadContinuity } from './threadSync.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -229,6 +230,10 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, r2Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
+
+  // Temporal story threading & lineage engine (Phase 1)
+  const threadResult = await runThreadContinuity(finalClusters, d1Config, { fetchFn });
+  console.log(`[D1 THREAD SYNC] ${threadResult.syncedThreads} threads, ${threadResult.syncedEvents} events synced`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
