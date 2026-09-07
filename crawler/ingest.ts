@@ -26,8 +26,7 @@ import { registerDynamicEntities } from '../src/data/militaryEntities.js';
 import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBreaker } from './sourceTracker.js';
 import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
-
-
+import { runPatternDetectionAndSync } from './patternSync.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -242,6 +241,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const graphResult = await runGraphExtractionAndSync(finalClusters, d1Config, { fetchFn });
   console.log(`[D1 GRAPH SYNC] ${graphResult.syncedNodes} nodes, ${graphResult.syncedEdges} edges synced`);
 
+  // Emergent pattern & hypothesis synthesizer (Phase 5)
+  const patternResult = await runPatternDetectionAndSync(finalClusters, d1Config, { fetchFn, apiKey });
+  console.log(`[D1 PATTERN SYNC] ${patternResult.syncedPatterns} patterns synced, ${patternResult.candidates.length} candidates detected`);
 
   const generatedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
