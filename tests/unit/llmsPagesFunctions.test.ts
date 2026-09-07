@@ -3,12 +3,55 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { onRequestGet as onGetLlmsTxt } from '../../functions/llms.txt.js';
 import { onRequestGet as onGetLlmsFullTxt } from '../../functions/llms-full.txt.js';
 import { onRequestGet as onGetSitemapXml } from '../../functions/sitemap.xml.js';
 
 describe('Pages Functions: Machine-Readable Specs & Edge Cache Revalidation', () => {
+  const originalFetch = globalThis.fetch;
+  const mockFeedJson = JSON.stringify({
+    clusters: [
+      {
+        id: 'mock-cluster-1',
+        synthesizedHeadline: 'HAL Tejas Mk1A Squadron Standup',
+        primarySource: {
+          id: 'src-mock-1',
+          title: 'HAL Tejas Mk1A Squadron Standup',
+          url: 'https://pib.gov.in/tejas',
+          sourceName: 'PIB MoD',
+          sourceDomain: 'pib.gov.in',
+          tier: 1,
+          publishedAt: '2026-09-01T10:00:00Z'
+        },
+        relatedCoverage: [],
+        discussions: [],
+        categories: ['airforce'],
+        entities: ['Tejas Mk1A'],
+        defenceScore: 90,
+        isLeadStory: false,
+        createdAt: '2026-09-01T10:00:00Z',
+        updatedAt: '2026-09-01T10:00:00Z'
+      }
+    ],
+    river: []
+  });
+
+  beforeEach(() => {
+    globalThis.fetch = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(mockFeedJson, {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      )
+    );
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
   it('serves /llms.txt with 200, ETag, Cache-Tag, and grounding content on cold request', async () => {
     const request = new Request('https://www.defencewire.in/llms.txt');
     const response = await onGetLlmsTxt({ request });
