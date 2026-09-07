@@ -99,7 +99,8 @@ function checkCssTokenPurity() {
     'src/styles/curatorDesk.css',
     'src/styles/orbat.css',
     'src/styles/graph.css',
-    'src/styles/threads.css'
+    'src/styles/threads.css',
+    'src/styles/patterns.css'
   ];
   const TARGET_PROPS = new Set(['color', 'background', 'background-color', 'border-color', 'box-shadow']);
   const ALLOWED_KEYWORDS = new Set(['transparent', 'none', 'inherit', 'initial', 'unset', 'currentcolor']);

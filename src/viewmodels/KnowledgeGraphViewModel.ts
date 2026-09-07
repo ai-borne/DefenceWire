@@ -28,6 +28,7 @@ export class KnowledgeGraphViewModel {
   private searchQuery = '';
   private selectedNodeId: string | null = null;
   private hoveredNodeId: string | null = null;
+  private focusedNodeIds: Set<string> = new Set();
   private minDate = '2026-01-01T00:00:00Z';
   private maxDate = new Date().toISOString();
   private currentDate = new Date().toISOString();
@@ -198,6 +199,18 @@ export class KnowledgeGraphViewModel {
     if (this.hoveredNodeId === id) return;
     this.hoveredNodeId = id;
     this.notify();
+  }
+
+  public focusNodes(nodeIds: string[]): void {
+    this.focusedNodeIds = new Set(nodeIds);
+    if (nodeIds.length > 0) {
+      this.selectedNodeId = nodeIds[0] || null;
+    }
+    this.notify();
+  }
+
+  public getFocusedNodeIds(): Set<string> {
+    return new Set(this.focusedNodeIds);
   }
 
   public setCurrentDate(date: string): void {

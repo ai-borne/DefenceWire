@@ -1,0 +1,283 @@
+/* Public Emergent Situational Matrix Stylesheet for DefenceWire.in */
+/* Pure CSS variable design system compliant with checkCssTokenPurity */
+/* Hard limit: <= 300 LOC */
+
+@keyframes dw-radar-pulse {
+  0% { opacity: 0.4; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.92); }
+}
+
+.dw-pattern-matrix-banner {
+  display: block;
+  position: relative;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  background-color: var(--dw-bg-card);
+  border: 1px solid var(--dw-border-primary);
+  border-left: 4px solid var(--dw-text-accent);
+  border-radius: var(--dw-radius-md);
+  box-shadow: var(--dw-shadow-modal);
+  transition: all 0.2s ease-in-out;
+}
+
+.dw-pattern-matrix-banner.is-hidden {
+  display: none;
+}
+
+/* Header bar: Live radar indicator, confidence score, carousel controls, dismiss */
+.dw-pattern-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--dw-border-secondary);
+}
+
+.dw-pattern-banner-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dw-pattern-radar-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--dw-text-accent);
+  animation: dw-radar-pulse 1.8s infinite ease-in-out;
+}
+
+.dw-pattern-brand-label {
+  font-family: var(--dw-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--dw-text-accent);
+  text-transform: uppercase;
+}
+
+.dw-pattern-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Confidence meter */
+.dw-pattern-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dw-text-primary);
+}
+
+.dw-pattern-confidence-bar-bg {
+  width: 36px;
+  height: 5px;
+  background-color: var(--dw-border-secondary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.dw-pattern-confidence-bar-fill {
+  height: 100%;
+  background-color: var(--dw-domain-aerospace);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Pagination controls */
+.dw-pattern-nav-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dw-pattern-nav-btn {
+  background-color: var(--dw-bg-secondary);
+  color: var(--dw-text-primary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dw-pattern-nav-btn:hover {
+  background-color: var(--dw-bg-hover);
+}
+
+.dw-pattern-page-indicator {
+  font-family: var(--dw-font-mono);
+  font-size: 0.72rem;
+  color: var(--dw-text-muted);
+  padding: 0 4px;
+}
+
+/* Dismiss button */
+.dw-pattern-dismiss-btn {
+  background: transparent;
+  border: none;
+  color: var(--dw-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--dw-radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.dw-pattern-dismiss-btn:hover {
+  color: var(--dw-text-primary);
+  background-color: var(--dw-bg-hover);
+}
+
+/* Pattern Title & Synthesis */
+.dw-pattern-title {
+  margin: 0 0 6px 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+  line-height: var(--dw-leading-tight);
+}
+
+.dw-pattern-synthesis {
+  margin: 0 0 14px 0;
+  font-size: 0.88rem;
+  color: var(--dw-text-secondary);
+  line-height: var(--dw-leading-normal);
+}
+
+/* Entity Tag Pills */
+.dw-pattern-entities {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.dw-pattern-entity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--dw-text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.dw-pattern-entity-pill:hover {
+  background-color: var(--dw-bg-hover);
+  border-color: var(--dw-border-primary);
+}
+
+/* Action Footer */
+.dw-pattern-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dw-pattern-btn-inspect {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: var(--dw-text-accent);
+  color: var(--dw-text-on-accent);
+  border: none;
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.dw-pattern-btn-inspect:hover {
+  opacity: 0.9;
+}
+
+.dw-pattern-btn-signals {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background-color: var(--dw-bg-secondary);
+  color: var(--dw-text-primary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dw-pattern-btn-signals:hover {
+  background-color: var(--dw-bg-hover);
+}
+
+/* Expandable Drawer: Co-Occurring Signals */
+.dw-pattern-drawer {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background-color: var(--dw-bg-secondary);
+  border: 1px solid var(--dw-border-secondary);
+  border-radius: var(--dw-radius-sm);
+}
+
+.dw-pattern-drawer.is-collapsed {
+  display: none;
+}
+
+.dw-pattern-drawer-title {
+  margin: 0 0 8px 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--dw-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dw-pattern-signals-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dw-pattern-signal-item {
+  font-size: 0.82rem;
+  color: var(--dw-text-secondary);
+  line-height: var(--dw-leading-tight);
+}
+
+.dw-pattern-signal-link {
+  color: var(--dw-link);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dw-pattern-signal-link:hover {
+  text-decoration: underline;
+}

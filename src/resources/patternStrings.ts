@@ -36,7 +36,21 @@ export const PATTERN_STRINGS = {
   badgeMediumConfidence: 'Moderate Signal',
   badgeEmergent: 'Emergent Matrix',
   modalAriaLabel: 'Emergent Pattern Review Panel',
-  refreshBtn: 'Refresh Queue'
+  refreshBtn: 'Refresh Queue',
+
+  // Public Reader Situational Matrix
+  publicHeading: 'Emergent Situational Matrix',
+  publicSubheading: 'Multi-signal correlation & tactical intelligence hypotheses',
+  exploreInGraph: 'Inspect in Intel Graph',
+  coOccurringSignals: 'Co-Occurring Story Signals',
+  dismissLabel: 'Dismiss briefing banner',
+  highConfidenceBadge: 'High Confidence',
+  moderateConfidenceBadge: 'Moderate Confidence',
+  patternCountPrefix: 'Pattern',
+  prevPattern: 'Previous pattern',
+  nextPattern: 'Next pattern',
+  toggleSignals: 'Toggle co-occurring signals',
+  radarLiveSignal: 'LIVE SIGNAL CORRELATION'
 } as const;
 
 export default PATTERN_STRINGS;

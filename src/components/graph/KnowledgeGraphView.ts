@@ -267,8 +267,8 @@ export function renderKnowledgeGraphView(vm: KnowledgeGraphViewModel): HTMLEleme
   const unsubscribeInspector = vm.subscribe(updateInspector);
   updateInspector();
 
-  // Load initial graph data if not yet loaded
-  vm.loadSubgraph();
+  // Load initial graph data (centered on focused node if available)
+  vm.loadSubgraph(vm.getSelectedNodeId() || undefined);
 
   // Cleanup hook
   (container as HTMLElement & { __cleanup?: () => void }).__cleanup = () => {

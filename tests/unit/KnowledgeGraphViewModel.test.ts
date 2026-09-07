@@ -158,4 +158,19 @@ describe('KnowledgeGraphViewModel State & Filtering', () => {
     expect(vm.getFilteredData().nodes).toHaveLength(3);
     expect(vm.getIsLoading()).toBe(false);
   });
+
+  it('focuses nodes and selects first focused node', () => {
+    const vm = new KnowledgeGraphViewModel();
+    vm.setData(mockPayload);
+
+    expect(vm.getSelectedNodeId()).toBeNull();
+    expect(vm.getFocusedNodeIds().size).toBe(0);
+
+    vm.focusNodes(['delhi', 'drone']);
+
+    expect(vm.getSelectedNodeId()).toBe('delhi');
+    expect(vm.getFocusedNodeIds().has('delhi')).toBe(true);
+    expect(vm.getFocusedNodeIds().has('drone')).toBe(true);
+  });
 });
+

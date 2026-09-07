@@ -6,13 +6,10 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { SourceTier } from '../types/source.js';
 import { STRINGS } from '../resources/strings.js';
-import { sanitizePlainText, getSafeLinkAttributes } from '../utils/security.js';
-import { cleanStorySnippet } from '../utils/snippetCleaner.js';
-import { formatTimeAgo } from '../utils/dateUtils.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
+import { renderRiverView } from './RiverView.js';
 import { createLazyViewModelLoader, LazyAccessor } from '../services/lazyViewModelFactory.js';
 import type { ArchiveViewModel } from '../viewmodels/ArchiveViewModel.js';
 import type { ProgramsViewModel } from '../viewmodels/ProgramsViewModel.js';
@@ -21,10 +18,7 @@ import type { EditorViewModel } from '../viewmodels/EditorViewModel.js';
 import type { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCandidatesPanelViewModel.js';
 
 // Module-scoped: caches the dynamically-imported view-render function
-// alongside main.ts's lazily-loaded ViewModels, so once a route has loaded
-// once, subsequent re-renders (e.g. a filter click inside Programs) take
-// the synchronous fast-path in renderLazyRoute instead of re-showing the
-// loading placeholder for an already-warm module.
+// alongside main.ts's lazily-loaded ViewModels.
 const loadArchiveView = createLazyViewModelLoader(() => import('./ArchiveView.js'), (m) => m);
 const loadProgramsExplorerView = createLazyViewModelLoader(() => import('./ProgramsExplorerView.js'), (m) => m);
 const loadSuppliersExplorerView = createLazyViewModelLoader(() => import('./suppliers/SuppliersExplorerView.js'), (m) => m);
@@ -38,6 +32,15 @@ const loadThreadExplorerVm = createLazyViewModelLoader(
   () => import('../viewmodels/ThreadExplorerViewModel.js'),
   ({ ThreadExplorerViewModel }) => new ThreadExplorerViewModel()
 );
+const loadPublicPatternBanner = createLazyViewModelLoader(() => import('./patterns/PublicPatternBanner.js'), (m) => m);
+const loadPublicPatternVm = createLazyViewModelLoader(
+  () => import('../viewmodels/PublicPatternViewModel.js'),
+  ({ PublicPatternViewModel }) => {
+    const vm = new PublicPatternViewModel();
+    vm.loadPatterns();
+    return vm;
+  }
+);
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -46,79 +49,43 @@ function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): voi
   mainFeed.appendChild(searchInfo);
 }
 
-function renderRiverView(mainFeed: HTMLElement, newsVm: NewsViewModel): void {
-  const riverTitle = document.createElement('h2');
-  riverTitle.className = 'dw-headline--lead';
-  riverTitle.style.marginBottom = '12px';
-  riverTitle.textContent = `⚡ ${STRINGS.river.heading}`;
-
-  const riverSub = document.createElement('p');
-  riverSub.className = 'dw-snippet';
-  riverSub.textContent = STRINGS.river.subheading;
-
-  mainFeed.appendChild(riverTitle);
-  mainFeed.appendChild(riverSub);
-
-  const items = newsVm.getFilteredRiverItems();
-  if (items.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'dw-snippet';
-    empty.textContent = STRINGS.search.noResults;
-    mainFeed.appendChild(empty);
-    return;
-  }
-
-  const fullRiverList = document.createElement('div');
-  fullRiverList.style.marginTop = '16px';
-
-  for (const item of items) {
-    const row = document.createElement('div');
-    row.className = 'dw-river-item';
-    row.style.padding = '10px 0';
-
-    const link = document.createElement('a');
-    const safeAttrs = getSafeLinkAttributes(item.url);
-    link.href = safeAttrs.href;
-    link.target = safeAttrs.target;
-    link.rel = safeAttrs.rel;
-    link.style.fontWeight = '600';
-    link.textContent = sanitizePlainText(item.title);
-
-    const meta = document.createElement('div');
-    meta.className = 'dw-river-meta';
-
-    const sourceSpan = document.createElement('span');
-    sourceSpan.textContent = sanitizePlainText(item.sourceName);
-    meta.appendChild(sourceSpan);
-
-    if (item.tier === SourceTier.TIER_1_SOCIAL) {
-      const badge = document.createElement('span');
-      badge.className = 'dw-tier-badge dw-tier-TIER_1_SOCIAL';
-      badge.style.marginLeft = '4px';
-      badge.style.marginRight = '4px';
-      badge.textContent = STRINGS.story.officialSignalBadge;
-      meta.appendChild(badge);
-    }
-
-    const timeSpan = document.createElement('span');
-    timeSpan.textContent = ` • ${formatTimeAgo(item.publishedAt)}`;
-    meta.appendChild(timeSpan);
-
-    row.appendChild(link);
-    if (item.snippet) {
-      const snip = document.createElement('p');
-      snip.className = 'dw-snippet';
-      snip.style.margin = '4px 0';
-      snip.textContent = cleanStorySnippet(item.snippet);
-      row.appendChild(snip);
-    }
-    row.appendChild(meta);
-    fullRiverList.appendChild(row);
-  }
-  mainFeed.appendChild(fullRiverList);
-}
-
 function renderStoryClustersView(mainFeed: HTMLElement, newsVm: NewsViewModel, searchQuery: string): void {
+  // Mount PublicPatternBanner at top of feed if not filtering by search query
+  if (!searchQuery) {
+    const bannerContainer = document.createElement('div');
+    bannerContainer.className = 'dw-pattern-banner-container';
+    mainFeed.appendChild(bannerContainer);
+
+    const patternVm = loadPublicPatternVm.peek();
+    const patternView = loadPublicPatternBanner.peek();
+
+    const mountBanner = (vm: import('../viewmodels/PublicPatternViewModel.js').PublicPatternViewModel, viewMod: typeof import('./patterns/PublicPatternBanner.js')) => {
+      const bannerEl = viewMod.renderPublicPatternBanner(vm, {
+        onInspectInGraph: (nodeIds) => {
+          newsVm.setActiveCategory('graph');
+          loadKnowledgeGraphVm().then((gVm) => gVm.focusNodes(nodeIds));
+        },
+        onEntityClick: (entityId) => {
+          import('./threads/ThreadDetailModal.js')
+            .then(({ openThreadDetailModal }) => openThreadDetailModal(entityId))
+            .catch(() => {
+              newsVm.setActiveCategory('graph');
+              loadKnowledgeGraphVm().then((gVm) => gVm.focusNodes([entityId]));
+            });
+        }
+      });
+      bannerContainer.appendChild(bannerEl);
+    };
+
+    if (patternVm && patternView) {
+      mountBanner(patternVm, patternView);
+    } else {
+      Promise.all([loadPublicPatternVm(), loadPublicPatternBanner()]).then(([vm, viewMod]) => {
+        mountBanner(vm, viewMod);
+      });
+    }
+  }
+
   const { leadStory, regularClusters, totalMatchingStories } = newsVm.getFilteredClusters();
 
   if (totalMatchingStories === 0) {
@@ -141,12 +108,7 @@ function renderStoryClustersView(mainFeed: HTMLElement, newsVm: NewsViewModel, s
 }
 
 /**
- * Renders a lazy-loaded route. If every dependency is already warm (checked
- * via `peekReady`), renders synchronously — this matters because a Promise's
- * `.then()` always defers to a microtask even when already resolved, so
- * without this fast-path every state change within an already-loaded route
- * (e.g. a Programs domain-filter click) would flash the loading placeholder
- * on each re-render. Only a genuinely cold load shows the placeholder.
+ * Renders a lazy-loaded route. If every dependency is already warm, renders synchronously.
  */
 function renderLazyRoute<T>(
   mainFeed: HTMLElement,
