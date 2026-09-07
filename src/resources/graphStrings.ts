@@ -38,7 +38,25 @@ const graphStrings = {
   timeScrubberTitle: 'Timeline Scrubber',
   twoHopNeighborhood: '2-Hop Local Neighborhood',
   resetView: 'Reset Graph View',
-  rateLimitExceeded: 'Too many requests. Please slow down.'
+  rateLimitExceeded: 'Too many requests. Please slow down.',
+  zoomIn: 'Zoom In',
+  zoomOut: 'Zoom Out',
+  recenter: 'Re-center Simulation',
+  searchPlaceholder: 'Search entity in knowledge graph...',
+  inspectorTitle: 'Entity Intelligence',
+  inspectorNoSelection: 'Select any node on the canvas to inspect strategic linkages, observed predicates, and epistemic truth states.',
+  inspectorDegreeLabel: 'Degree Centrality',
+  inspectorFirstSeen: 'First Observed',
+  inspectorLastSeen: 'Last Observed',
+  inspectorConnectedLinks: 'Connected Linkages',
+  inspectorFocusTwoHop: 'Focus 2-Hop Neighborhood',
+  inspectorClose: 'Close Inspector',
+  inspectorViewSources: 'View Primary Source',
+  timeScrubberPlay: 'Play Timeline Animation',
+  timeScrubberPause: 'Pause Animation',
+  timeScrubberCurrentDate: 'Temporal Slice',
+  timeScrubberVisibleLinks: 'Visible Linkages',
+  canvasAriaLabel: 'Interactive force-directed military knowledge graph canvas'
 } as const;
 
 export default graphStrings;

@@ -28,6 +28,11 @@ import type { SupplierCandidatesPanelViewModel } from '../viewmodels/SupplierCan
 const loadArchiveView = createLazyViewModelLoader(() => import('./ArchiveView.js'), (m) => m);
 const loadProgramsExplorerView = createLazyViewModelLoader(() => import('./ProgramsExplorerView.js'), (m) => m);
 const loadSuppliersExplorerView = createLazyViewModelLoader(() => import('./suppliers/SuppliersExplorerView.js'), (m) => m);
+const loadKnowledgeGraphView = createLazyViewModelLoader(() => import('./graph/KnowledgeGraphView.js'), (m) => m);
+const loadKnowledgeGraphVm = createLazyViewModelLoader(
+  () => import('../viewmodels/KnowledgeGraphViewModel.js'),
+  ({ KnowledgeGraphViewModel }) => new KnowledgeGraphViewModel()
+);
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -229,6 +234,20 @@ export function renderMainFeedContent(
       },
       () => Promise.all([ensureSuppliersVm(), loadSuppliersExplorerView()]),
       ([suppliersVm, { renderSuppliersExplorerView }]) => renderSuppliersExplorerView(suppliersVm)
+    );
+  } else if (activeCat === 'graph') {
+    renderLazyRoute(
+      mainFeed,
+      newsVm,
+      activeCat,
+      STRINGS.graph.loadingGraph,
+      () => {
+        const vm = loadKnowledgeGraphVm.peek();
+        const mod = loadKnowledgeGraphView.peek();
+        return vm && mod ? ([vm, mod] as const) : undefined;
+      },
+      () => Promise.all([loadKnowledgeGraphVm(), loadKnowledgeGraphView()]),
+      ([graphVm, { renderKnowledgeGraphView }]) => renderKnowledgeGraphView(graphVm)
     );
   } else if (activeCat === 'curator' || activeCat === 'editor') {
     const curatorContainer = document.createElement('div');

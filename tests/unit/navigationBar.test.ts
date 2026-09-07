@@ -29,7 +29,7 @@ describe('NavigationBar Component', () => {
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-    expect(tabs.length).toBe(10);
+    expect(tabs.length).toBe(11);
 
     const expectedLabels = [
       STRINGS.nav.all,
@@ -39,6 +39,7 @@ describe('NavigationBar Component', () => {
       STRINGS.nav.programs,
       STRINGS.nav.procurement,
       STRINGS.nav.suppliers,
+      STRINGS.nav.graph,
       STRINGS.nav.ssb,
       STRINGS.nav.official,
       STRINGS.nav.archive
