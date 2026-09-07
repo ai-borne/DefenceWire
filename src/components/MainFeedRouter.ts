@@ -33,6 +33,11 @@ const loadKnowledgeGraphVm = createLazyViewModelLoader(
   () => import('../viewmodels/KnowledgeGraphViewModel.js'),
   ({ KnowledgeGraphViewModel }) => new KnowledgeGraphViewModel()
 );
+const loadThreadExplorerView = createLazyViewModelLoader(() => import('./threads/ThreadExplorerView.js'), (m) => m);
+const loadThreadExplorerVm = createLazyViewModelLoader(
+  () => import('../viewmodels/ThreadExplorerViewModel.js'),
+  ({ ThreadExplorerViewModel }) => new ThreadExplorerViewModel()
+);
 
 function renderSearchInfoBanner(mainFeed: HTMLElement, searchQuery: string): void {
   const searchInfo = document.createElement('div');
@@ -186,7 +191,7 @@ export function renderMainFeedContent(
 ): void {
   const searchQuery = newsVm.getSearchQuery();
 
-  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'suppliers' && activeCat !== 'curator' && activeCat !== 'editor') {
+  if (searchQuery && activeCat !== 'archive' && activeCat !== 'programs' && activeCat !== 'suppliers' && activeCat !== 'graph' && activeCat !== 'threads' && activeCat !== 'curator' && activeCat !== 'editor') {
     renderSearchInfoBanner(mainFeed, searchQuery);
   }
 
@@ -248,6 +253,20 @@ export function renderMainFeedContent(
       },
       () => Promise.all([loadKnowledgeGraphVm(), loadKnowledgeGraphView()]),
       ([graphVm, { renderKnowledgeGraphView }]) => renderKnowledgeGraphView(graphVm)
+    );
+  } else if (activeCat === 'threads') {
+    renderLazyRoute(
+      mainFeed,
+      newsVm,
+      activeCat,
+      STRINGS.threads.loadingThreads,
+      () => {
+        const vm = loadThreadExplorerVm.peek();
+        const mod = loadThreadExplorerView.peek();
+        return vm && mod ? ([vm, mod] as const) : undefined;
+      },
+      () => Promise.all([loadThreadExplorerVm(), loadThreadExplorerView()]),
+      ([threadsVm, { renderThreadExplorerView }]) => renderThreadExplorerView(threadsVm)
     );
   } else if (activeCat === 'curator' || activeCat === 'editor') {
     const curatorContainer = document.createElement('div');

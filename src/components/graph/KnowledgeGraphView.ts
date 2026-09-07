@@ -6,6 +6,7 @@
  */
 
 import graphStrings from '../../resources/graphStrings.js';
+import threadStrings from '../../resources/threadStrings.js';
 import { NodeCategory } from '../../types/graph.js';
 import { sanitizePlainText, getSafeLinkAttributes } from '../../utils/security.js';
 import { KnowledgeGraphViewModel } from '../../viewmodels/KnowledgeGraphViewModel.js';
@@ -184,6 +185,18 @@ export function renderKnowledgeGraphView(vm: KnowledgeGraphViewModel): HTMLEleme
       vm.loadSubgraph(node.id);
     });
     card.appendChild(focusBtn);
+
+    const threadBtn = document.createElement('button');
+    threadBtn.className = 'dw-graph-btn-action dw-graph-btn-thread';
+    threadBtn.textContent = `🔗 ${threadStrings.viewFullThread}`;
+    threadBtn.addEventListener('click', () => {
+      import('../threads/ThreadDetailModal.js')
+        .then(({ openThreadDetailModal }) => {
+          openThreadDetailModal(node.id);
+        })
+        .catch(() => {});
+    });
+    card.appendChild(threadBtn);
 
     // Connected Linkages List
     const linksHeading = document.createElement('h4');

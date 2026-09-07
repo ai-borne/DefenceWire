@@ -28,7 +28,18 @@ const threadStrings = {
   filterAllStatuses: 'All Tracks',
   backToThreads: '← Back to All Threads',
   searchPlaceholder: 'Search threads by program or platform...',
-  rateLimitExceeded: 'Too many requests. Please slow down.'
+  rateLimitExceeded: 'Too many requests. Please slow down.',
+  selectThreadPrompt: 'Select a thread to view its chronological evolution timeline.',
+  milestonesCount: 'milestones',
+  firstReported: 'First Reported',
+  latestUpdate: 'Latest Update',
+  viewFullThread: 'View Complete Thread Timeline',
+  closeTimeline: 'Close Timeline',
+  viewInGraph: 'View in Intel Graph',
+  filterDormant: 'Dormant Tracks',
+  filterConcluded: 'Concluded Tracks',
+  modalCloseAria: 'Close thread timeline modal',
+  openThreadAria: 'Open program thread evolution timeline'
 } as const;
 
 export default threadStrings;

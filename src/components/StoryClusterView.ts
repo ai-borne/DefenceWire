@@ -99,6 +99,22 @@ export function renderStoryCluster(
   // Consolidated Source & Geopolitical Attribution Line inside footer
   const attributionEl = renderSourceAttribution(cluster.primarySource);
   footerLeftEl.appendChild(attributionEl);
+
+  const primaryEntity = cluster.programTags?.[0] || cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem;
+  if (primaryEntity) {
+    const threadBadge = document.createElement('button');
+    threadBadge.className = 'dw-story-thread-badge';
+    threadBadge.type = 'button';
+    threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${primaryEntity}`);
+    threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${primaryEntity}`;
+    threadBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
+        openThreadDetailModal(primaryEntity);
+      }).catch(() => {});
+    });
+    footerLeftEl.appendChild(threadBadge);
+  }
   footerEl.appendChild(footerLeftEl);
 
   // 5b. Right: Base Action Group (Permalink / Share + Summary Accordion Expander)
