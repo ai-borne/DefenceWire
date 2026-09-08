@@ -82,7 +82,7 @@ export function renderStoryCluster(
       threadBadge.className = 'dw-story-thread-badge';
       threadBadge.type = 'button';
       threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${badgeInfo.label}`);
-      threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${badgeInfo.label}`;
+      threadBadge.textContent = badgeInfo.label;
       threadBadge.addEventListener('click', (e) => {
         e.stopPropagation();
         import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
