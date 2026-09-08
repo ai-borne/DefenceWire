@@ -4,19 +4,10 @@
  */
 
 import { decodeHtmlEntities } from '../src/utils/security.js';
+import { isNoiseTag } from '../src/utils/hashtagUtils.js';
 
-const NOISE_TAGS = new Set([
-  'news', 'india', 'indian', 'defence', 'defense', 'security', 'update', 'updates',
-  'topnews', 'breakingnews', 'national', 'international', 'general', 'latest',
-  'article', 'articles', 'pressrelease', 'pressreleases', 'world', 'asia',
-  'southasia', 'mod', 'ministryofdefence', 'editorial', 'opinion', 'report', 'reports'
-]);
-
-export function isNoiseCategoryTag(tag: string): boolean {
-  if (!tag || typeof tag !== 'string') return true;
-  const normalized = tag.replace(/^#/, '').toLowerCase().replace(/[\s\-_]+/g, '');
-  return normalized.length <= 1 || NOISE_TAGS.has(normalized);
-}
+export const isNoiseCategoryTag = isNoiseTag;
+export { isNoiseTag };
 
 function normalizeTagToHashtag(raw: string): string | null {
   const decoded = decodeHtmlEntities(raw).trim();

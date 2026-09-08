@@ -6,12 +6,13 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { StoryCluster } from '../src/types/news.js';
+import { DomainCategory, StoryCluster } from '../src/types/news.js';
 import {
   StoryThread,
   StoryThreadEvent,
   ThreadContinuityResult
 } from '../src/types/threads.js';
+import { cleanHashtag, hashtagToSlug, isNoiseTag } from '../src/utils/hashtagUtils.js';
 
 const DORMANT_DAYS = 60;
 const DORMANT_MS = DORMANT_DAYS * 24 * 60 * 60 * 1000;
@@ -25,13 +26,50 @@ export function slugify(text: string): string {
 }
 
 export function extractCanonicalEntities(cluster: StoryCluster): string[] {
-  const candidates: string[] = [];
-  if (cluster.programTags) candidates.push(...cluster.programTags);
+  const rawCandidates: string[] = [];
+  if (cluster.primaryTag) rawCandidates.push(cluster.primaryTag);
+  if (cluster.hashtags) rawCandidates.push(...cluster.hashtags);
+  if (cluster.programTags) rawCandidates.push(...cluster.programTags);
   if (cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem) {
-    candidates.push(cluster.ssbIntel.defenceTechTakeaway.platformOrSystem);
+    rawCandidates.push(cluster.ssbIntel.defenceTechTakeaway.platformOrSystem);
   }
-  if (cluster.entities) candidates.push(...cluster.entities);
-  return Array.from(new Set(candidates.map((e) => e.trim()).filter((e) => e.length >= 3)));
+  if (cluster.entities) rawCandidates.push(...cluster.entities);
+
+  const seen = new Set<string>();
+  const candidates: string[] = [];
+
+  for (const raw of rawCandidates) {
+    if (!raw || typeof raw !== 'string') continue;
+    const trimmed = raw.trim();
+    if (!trimmed || isNoiseTag(trimmed)) continue;
+
+    const cleaned = trimmed.startsWith('#') ? cleanHashtag(trimmed) : trimmed;
+    if (!cleaned || isNoiseTag(cleaned) || cleaned.length < 2) continue;
+
+    const lower = cleaned.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.add(lower);
+      candidates.push(cleaned);
+    }
+  }
+
+  return candidates;
+}
+
+export function generateThreadTitle(entity: string, category?: DomainCategory | string): string {
+  const displayEntity = cleanHashtag(entity) || entity;
+  const cat = (category || '').toLowerCase();
+
+  if (cat === 'procurement' || cat === 'tenders') {
+    return `${displayEntity} Acquisition & Delivery Arc`;
+  }
+  if (cat === 'airforce' || cat === 'army' || cat === 'navy' || cat === 'strategic') {
+    return `${displayEntity} Operational & Strategic Arc`;
+  }
+  if (cat === 'tech' || cat === 'space') {
+    return `${displayEntity} Technology & Systems Arc`;
+  }
+  return `${displayEntity} Intelligence & Strategic Arc`;
 }
 
 export function calculateJaccard(setA: Set<string>, setB: Set<string>): number {
@@ -136,14 +174,15 @@ export function matchAndAdvanceThreads(
     if (matchedThreads.length === 0) {
       // Spawn new thread for primary entity
       const primaryEntity = canonicalEntities[0]!;
-      const threadId = `th_${slugify(primaryEntity)}`;
+      const threadId = hashtagToSlug(primaryEntity) || `th_${slugify(primaryEntity)}`;
       if (threadMap.has(threadId)) continue; // avoid collision
 
+      const primaryCategory = cluster.categories[0] ?? 'strategic';
       const newThread: StoryThread = {
         id: threadId,
-        title: `${primaryEntity} Development & Delivery Arc`,
+        title: generateThreadTitle(primaryEntity, primaryCategory),
         canonicalEntity: primaryEntity,
-        category: cluster.categories[0] ?? 'strategic',
+        category: primaryCategory,
         status: 'active',
         eventCount: 1,
         firstEventAt: cluster.primarySource.publishedAt,

@@ -22,6 +22,7 @@ import {
   eventRowToStoryThreadEvent,
   threadRowToStoryThread
 } from './threadQueryBuilder.js';
+import { cleanHashtag, hashtagToSlug, canonicalizeTag } from '../utils/hashtagUtils.js';
 
 export interface ThreadHandlerDeps {
   runQuery: (sql: string, params: unknown[]) => Promise<unknown[]>;
@@ -80,15 +81,23 @@ export async function handleGetThreadDetail(
   }
 
   const cleanId = sanitizeThreadId(trimmed);
-  const slug = slugifyThreadCandidate(trimmed);
-  const slugId = slug.startsWith('th-')
-    ? `th_${slug.slice(3)}`
-    : slug.startsWith('th_')
-      ? slug
-      : `th_${slug}`;
+  const slugId = hashtagToSlug(trimmed) || (slugifyThreadCandidate(trimmed) ? `th_${slugifyThreadCandidate(trimmed)}` : '');
+  const cleanedTag = cleanHashtag(trimmed);
+  const canonicalEntity = canonicalizeTag(trimmed);
+
+  const candidateEntities: string[] = [];
+  if (cleanedTag) candidateEntities.push(cleanedTag);
+  if (canonicalEntity) candidateEntities.push(canonicalEntity);
+  const unhashed = trimmed.replace(/^#+/, '').trim();
+  if (unhashed) candidateEntities.push(unhashed.slice(0, 100));
 
   try {
-    const threadStmt = buildGetThreadByIdStatement(cleanId || slugId, slugId, trimmed.slice(0, 100));
+    const threadStmt = buildGetThreadByIdStatement(
+      cleanId || slugId,
+      slugId,
+      canonicalEntity || cleanedTag || trimmed.slice(0, 100),
+      candidateEntities
+    );
     const threadRows = (await deps.runQuery(threadStmt.sql, threadStmt.params)) as StoryThreadRow[];
     if (threadRows.length === 0 || !threadRows[0]) {
       return { thread: null, events: [], error: 'Thread not found' };

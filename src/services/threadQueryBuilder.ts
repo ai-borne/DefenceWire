@@ -150,9 +150,10 @@ export function buildListThreadsStatement(options: ThreadQueryOptions = {}): D1S
 export function buildGetThreadByIdStatement(
   primaryId: string,
   slugId?: string,
-  canonicalEntity?: string
+  canonicalEntity?: string,
+  candidateEntities?: string[]
 ): D1Statement {
-  const clauses = ['id = ?'];
+  const clauses: string[] = ['id = ?'];
   const params: unknown[] = [primaryId];
 
   if (slugId && slugId !== primaryId) {
@@ -160,9 +161,17 @@ export function buildGetThreadByIdStatement(
     params.push(slugId);
   }
 
-  if (canonicalEntity) {
+  const entities = new Set<string>();
+  if (canonicalEntity) entities.add(canonicalEntity);
+  if (candidateEntities) {
+    for (const ent of candidateEntities) {
+      if (ent) entities.add(ent);
+    }
+  }
+
+  for (const ent of entities) {
     clauses.push('canonical_entity = ? COLLATE NOCASE');
-    params.push(canonicalEntity);
+    params.push(ent);
   }
 
   return {

@@ -145,5 +145,29 @@ describe('handleGetThreadDetail', () => {
     expect(result.error).toBe('Invalid thread ID');
     expect(runQuery).not.toHaveBeenCalled();
   });
+
+  it('resolves #Su-57, su-57, th_su-57, and Su-57 identically', async () => {
+    const mockSu57Row: StoryThreadRow = {
+      ...mockThreadRow,
+      id: 'th_su-57',
+      title: 'Su-57 Operational & Strategic Arc',
+      canonical_entity: 'Su-57'
+    };
+
+    const runQuery = vi.fn().mockImplementation((sql: string) => {
+      if (sql.includes('FROM story_threads')) {
+        return Promise.resolve([mockSu57Row]);
+      }
+      return Promise.resolve([mockEventRow]);
+    });
+
+    const inputs = ['#Su-57', 'su-57', 'th_su-57', 'Su-57', '#Su57'];
+    for (const input of inputs) {
+      const res = await handleGetThreadDetail(input, { runQuery });
+      expect(res.thread?.id).toBe('th_su-57');
+      expect(res.thread?.canonicalEntity).toBe('Su-57');
+      expect(res.error).toBeUndefined();
+    }
+  });
 });
 
