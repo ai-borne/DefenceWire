@@ -92,18 +92,50 @@ describe('ThreadDetailModal Component', () => {
     expect(timelineCard?.getAttribute('data-sequence-code')).toBe('x1.1.1');
   });
 
-  it('should display error message when thread fails to load', async () => {
+  it('should display compiling briefing state when thread has not yet accumulated milestones in D1', async () => {
     vi.spyOn(threadService, 'fetchThreadDetail').mockResolvedValue({
       thread: null,
       events: [],
       error: 'Thread not found in D1 archive'
     });
 
-    openThreadDetailModal('unknown-id');
+    openThreadDetailModal('su-57');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const compilingState = document.querySelector('.dw-thread-compiling-state');
+    expect(compilingState).not.toBeNull();
+    expect(compilingState?.textContent).toContain('Compiling chronological intelligence arc for #Su-57...');
+  });
+
+  it('should display network error message when network request fails', async () => {
+    vi.spyOn(threadService, 'fetchThreadDetail').mockResolvedValue({
+      thread: null,
+      events: [],
+      error: 'Network error loading thread detail.'
+    });
+
+    openThreadDetailModal('su-57');
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     const snippet = document.querySelector('.dw-snippet');
-    expect(snippet?.textContent).toContain('Thread not found');
+    expect(snippet?.textContent).toContain('Network error');
+  });
+
+  it('should display compiling briefing state in timeline when thread exists but has 0 events', async () => {
+    vi.spyOn(threadService, 'fetchThreadDetail').mockResolvedValue({
+      thread: {
+        ...MOCK_THREAD,
+        canonicalEntity: 'Su-57'
+      },
+      events: []
+    });
+
+    openThreadDetailModal('th_su-57');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const compilingState = document.querySelector('.dw-thread-compiling-state');
+    expect(compilingState).not.toBeNull();
+    expect(compilingState?.textContent).toContain('Compiling chronological intelligence arc for #Su-57...');
   });
 
   it('should dismiss modal when close button is clicked', async () => {

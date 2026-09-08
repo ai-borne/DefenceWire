@@ -11,6 +11,23 @@ import { sanitizePlainText } from '../../utils/security.js';
 import { formatDateOnly } from '../../utils/dateUtils.js';
 import threadStrings from '../../resources/threadStrings.js';
 import { renderThreadTimelineCard } from './ThreadTimelineCard.js';
+import { cleanHashtag } from '../../utils/hashtagUtils.js';
+
+function renderCompilingBriefingState(entity: string): HTMLElement {
+  const compilingEl = document.createElement('div');
+  compilingEl.className = 'dw-thread-empty dw-thread-compiling-state';
+
+  const cleanTag = cleanHashtag(entity) || sanitizePlainText(entity);
+  const titleEl = document.createElement('h4');
+  titleEl.textContent = `${threadStrings.compilingBriefingPrefix}${cleanTag}${threadStrings.compilingBriefingSuffix}`;
+
+  const descEl = document.createElement('p');
+  descEl.textContent = threadStrings.compilingBriefingDesc;
+
+  compilingEl.appendChild(titleEl);
+  compilingEl.appendChild(descEl);
+  return compilingEl;
+}
 
 export function openThreadDetailModal(threadId: string): void {
   const backdrop = document.createElement('div');
@@ -55,11 +72,16 @@ export function openThreadDetailModal(threadId: string): void {
   void fetchThreadDetail(threadId).then((result) => {
     content.innerHTML = '';
 
-    if (result.error || !result.thread) {
+    if (result.error && !result.error.toLowerCase().includes('not found') && result.error.toLowerCase().includes('network')) {
       const errorP = document.createElement('p');
       errorP.className = 'dw-snippet';
       errorP.textContent = result.error || threadStrings.errorLoadingThreads;
       content.appendChild(errorP);
+      return;
+    }
+
+    if (!result.thread) {
+      content.appendChild(renderCompilingBriefingState(threadId));
       return;
     }
 
@@ -109,10 +131,7 @@ export function openThreadDetailModal(threadId: string): void {
     timelineBranch.className = 'dw-timeline-branch';
 
     if (events.length === 0) {
-      const emptyEvents = document.createElement('p');
-      emptyEvents.className = 'dw-snippet';
-      emptyEvents.textContent = threadStrings.emptyThreadsDescription;
-      timelineBranch.appendChild(emptyEvents);
+      timelineBranch.appendChild(renderCompilingBriefingState(thread.canonicalEntity || threadId));
     } else {
       events.forEach((event, idx) => {
         const isLatest = idx === events.length - 1;

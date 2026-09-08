@@ -19,6 +19,7 @@ import {
   normalizeNodeId,
   RECOGNIZED_TARGET_ENTITIES
 } from './graphStopNodes.js';
+import { canonicalizeTag, cleanHashtag } from '../src/utils/hashtagUtils.js';
 
 interface CandidateEntity {
   name: string;
@@ -66,6 +67,24 @@ function findCandidateEntities(cluster: StoryCluster): CandidateEntity[] {
       candidates.set(target.name.toLowerCase(), {
         name: target.name,
         isStopNode: isGraphStopNode(target.name)
+      });
+    }
+  }
+
+  // 3. Newly sighted hashtag entities & primary tags
+  const tags = [
+    ...(cluster.hashtags || []),
+    ...(cluster.primaryTag ? [cluster.primaryTag] : [])
+  ];
+  for (const tag of tags) {
+    if (!tag) continue;
+    const clean = canonicalizeTag(tag) || cleanHashtag(tag);
+    if (!clean || clean.length <= 1) continue;
+    const key = clean.toLowerCase();
+    if (!candidates.has(key)) {
+      candidates.set(key, {
+        name: clean,
+        isStopNode: isGraphStopNode(clean)
       });
     }
   }

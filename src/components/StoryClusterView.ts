@@ -14,6 +14,46 @@ import { renderSSBDrawer } from './SSBDrawer.js';
 import { renderStorySourcesDrawer } from './StorySourcesDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
+import { canonicalizeTag, cleanHashtag, isNoiseTag } from '../utils/hashtagUtils.js';
+
+interface StoryBadgeInfo {
+  label: string;
+  target: string;
+}
+
+function resolveStoryBadge(cluster: StoryCluster): StoryBadgeInfo | null {
+  const candidates = [
+    cluster.primaryTag,
+    cluster.hashtags?.[0],
+    cluster.programTags?.[0],
+    cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem
+  ];
+
+  for (const raw of candidates) {
+    if (!raw || typeof raw !== 'string') continue;
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.length <= 1) continue;
+    if (trimmed.toLowerCase() === 'strategic defence modernization') continue;
+    if (isNoiseTag(trimmed)) continue;
+
+    const isHashtag = trimmed.startsWith('#') || !/\s/.test(trimmed) || raw === cluster.primaryTag || (cluster.hashtags && cluster.hashtags.includes(raw));
+    if (isHashtag) {
+      const canonical = canonicalizeTag(trimmed) || cleanHashtag(trimmed) || trimmed.replace(/^#+/, '');
+      if (!canonical || isNoiseTag(canonical)) continue;
+      return {
+        label: `#${canonical}`,
+        target: canonical
+      };
+    }
+
+    return {
+      label: trimmed,
+      target: trimmed
+    };
+  }
+
+  return null;
+}
 
 export function renderStoryCluster(
   cluster: StoryCluster,
@@ -25,8 +65,8 @@ export function renderStoryCluster(
   article.id = `cluster-${cluster.id}`;
 
   // 1. Top Kicker Ribbon (Lead Story Tag and/or Contextual Story Thread Badge)
-  const primaryEntity = cluster.programTags?.[0] || cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem;
-  if (isLead || primaryEntity) {
+  const badgeInfo = resolveStoryBadge(cluster);
+  if (isLead || badgeInfo) {
     const kickerRow = document.createElement('div');
     kickerRow.className = 'dw-cluster-kicker-row';
 
@@ -37,16 +77,16 @@ export function renderStoryCluster(
       kickerRow.appendChild(leadTag);
     }
 
-    if (primaryEntity) {
+    if (badgeInfo) {
       const threadBadge = document.createElement('button');
       threadBadge.className = 'dw-story-thread-badge';
       threadBadge.type = 'button';
-      threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${primaryEntity}`);
-      threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${primaryEntity}`;
+      threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${badgeInfo.label}`);
+      threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${badgeInfo.label}`;
       threadBadge.addEventListener('click', (e) => {
         e.stopPropagation();
         import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
-          openThreadDetailModal(primaryEntity);
+          openThreadDetailModal(badgeInfo.target);
         }).catch(() => {});
       });
       kickerRow.appendChild(threadBadge);

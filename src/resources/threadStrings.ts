@@ -39,7 +39,11 @@ const threadStrings = {
   filterDormant: 'Dormant Tracks',
   filterConcluded: 'Concluded Tracks',
   modalCloseAria: 'Close thread timeline modal',
-  openThreadAria: 'Open program thread evolution timeline'
+  openThreadAria: 'Open program thread evolution timeline',
+  compilingBriefingPrefix: 'Compiling chronological intelligence arc for #',
+  compilingBriefingSuffix: '...',
+  compilingBriefingDesc: 'Intelligence signals are actively being indexed. Chronological milestones will compound as multi-source coverage unfolds.',
+  hashtagBadgeAria: 'Story Thread'
 } as const;
 
 export default threadStrings;

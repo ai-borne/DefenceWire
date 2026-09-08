@@ -228,4 +228,30 @@ describe('Triplet Extraction from Story Clusters', () => {
     expect(targetEdge).toBeDefined();
     expect(targetEdge?.predicate).toBe('TARGETS');
   });
+
+  it('extracts candidate entities and relations from cluster.hashtags and cluster.primaryTag', () => {
+    const cluster = createMockCluster({
+      synthesizedHeadline: 'Su-57 fighters deployed to forward base in Ladakh for deterrence trials',
+      primaryTag: '#Su57',
+      hashtags: ['#Su57', '#TASL'],
+      entities: ['Ladakh']
+    });
+
+    const result = extractTripletsFromClusters([cluster]);
+
+    const su57Node = result.nodes.find((n) => n.id === 'node_su-57');
+    expect(su57Node).toBeDefined();
+    expect(su57Node?.label).toBe('Su-57');
+    expect(su57Node?.category).toBe('platform');
+
+    const taslNode = result.nodes.find((n) => n.id === 'node_tasl');
+    expect(taslNode).toBeDefined();
+    expect(taslNode?.label).toBe('TASL');
+
+    const deployEdge = result.edges.find(
+      (e) => e.sourceId === 'node_su-57' && e.targetId === 'node_ladakh'
+    );
+    expect(deployEdge).toBeDefined();
+    expect(deployEdge?.predicate).toBe('DEPLOYED_TO');
+  });
 });
