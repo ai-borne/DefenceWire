@@ -110,6 +110,25 @@ describe('handleGetThreadDetail', () => {
     expect(result.error).toBeUndefined();
   });
 
+  it('resolves thread when queried with canonical entity name or slug without th_ prefix', async () => {
+    const runQuery = vi.fn().mockImplementation((sql: string) => {
+      if (sql.includes('FROM story_threads')) {
+        // Assert query uses parameter binding covering id and canonical_entity
+        expect(sql).toContain('canonical_entity');
+        return Promise.resolve([mockThreadRow]);
+      }
+      return Promise.resolve([mockEventRow]);
+    });
+
+    // Test with human-readable canonical entity name
+    const resultByEntity = await handleGetThreadDetail('Tejas Mk1A', { runQuery });
+    expect(resultByEntity.thread?.id).toBe('th_tejas-mk1a');
+
+    // Test with slugified name without th_ prefix
+    const resultBySlug = await handleGetThreadDetail('tejas-mk1a', { runQuery });
+    expect(resultBySlug.thread?.id).toBe('th_tejas-mk1a');
+  });
+
   it('returns 404 error when thread does not exist', async () => {
     const runQuery = vi.fn().mockResolvedValue([]);
     const result = await handleGetThreadDetail('th_nonexistent', { runQuery });
@@ -127,3 +146,4 @@ describe('handleGetThreadDetail', () => {
     expect(runQuery).not.toHaveBeenCalled();
   });
 });
+

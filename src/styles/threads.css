@@ -176,15 +176,42 @@
 }
 .dw-thread-modal-content { display: flex; flex-direction: column; gap: 16px; }
 
+/* Top Kicker Row for Story Clusters */
+.dw-cluster-kicker-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.dw-cluster-kicker-row .dw-lead-tag {
+  margin-bottom: 0;
+}
+
 /* Contextual Thread Badge on News Cards */
 .dw-story-thread-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: var(--dw-badge-tint-accent); color: var(--dw-text-accent);
-  border: 1px solid var(--dw-text-accent); border-radius: var(--dw-radius-sm);
-  font-size: 0.72rem; font-weight: 600; padding: 2px 8px; cursor: pointer;
-  text-decoration: none; transition: background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--dw-badge-tint-accent);
+  color: var(--dw-text-accent);
+  border: 1px solid var(--dw-text-accent);
+  border-radius: var(--dw-radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.dw-story-thread-badge:hover { background: var(--dw-bg-hover); }
+.dw-story-thread-badge:hover {
+  background: var(--dw-bg-hover);
+}
 
 @media (max-width: 860px) {
   .dw-threads-layout { flex-direction: column; }

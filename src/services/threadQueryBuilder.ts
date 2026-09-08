@@ -147,10 +147,27 @@ export function buildListThreadsStatement(options: ThreadQueryOptions = {}): D1S
   };
 }
 
-export function buildGetThreadByIdStatement(id: string): D1Statement {
+export function buildGetThreadByIdStatement(
+  primaryId: string,
+  slugId?: string,
+  canonicalEntity?: string
+): D1Statement {
+  const clauses = ['id = ?'];
+  const params: unknown[] = [primaryId];
+
+  if (slugId && slugId !== primaryId) {
+    clauses.push('id = ?');
+    params.push(slugId);
+  }
+
+  if (canonicalEntity) {
+    clauses.push('canonical_entity = ? COLLATE NOCASE');
+    params.push(canonicalEntity);
+  }
+
   return {
-    sql: `SELECT * FROM story_threads WHERE id = ? LIMIT 1`,
-    params: [id]
+    sql: `SELECT * FROM story_threads WHERE (${clauses.join(' OR ')}) LIMIT 1`,
+    params
   };
 }
 

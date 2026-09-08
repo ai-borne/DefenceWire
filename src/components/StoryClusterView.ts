@@ -24,12 +24,35 @@ export function renderStoryCluster(
   article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''}`;
   article.id = `cluster-${cluster.id}`;
 
-  // 1. Lead story tag
-  if (isLead) {
-    const leadTag = document.createElement('span');
-    leadTag.className = 'dw-lead-tag';
-    leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
-    article.appendChild(leadTag);
+  // 1. Top Kicker Ribbon (Lead Story Tag and/or Contextual Story Thread Badge)
+  const primaryEntity = cluster.programTags?.[0] || cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem;
+  if (isLead || primaryEntity) {
+    const kickerRow = document.createElement('div');
+    kickerRow.className = 'dw-cluster-kicker-row';
+
+    if (isLead) {
+      const leadTag = document.createElement('span');
+      leadTag.className = 'dw-lead-tag';
+      leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
+      kickerRow.appendChild(leadTag);
+    }
+
+    if (primaryEntity) {
+      const threadBadge = document.createElement('button');
+      threadBadge.className = 'dw-story-thread-badge';
+      threadBadge.type = 'button';
+      threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${primaryEntity}`);
+      threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${primaryEntity}`;
+      threadBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
+          openThreadDetailModal(primaryEntity);
+        }).catch(() => {});
+      });
+      kickerRow.appendChild(threadBadge);
+    }
+
+    article.appendChild(kickerRow);
   }
 
   // 2. Synthesized Headline (Headline First Scannability)
@@ -99,22 +122,6 @@ export function renderStoryCluster(
   // Consolidated Source & Geopolitical Attribution Line inside footer
   const attributionEl = renderSourceAttribution(cluster.primarySource);
   footerLeftEl.appendChild(attributionEl);
-
-  const primaryEntity = cluster.programTags?.[0] || cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem;
-  if (primaryEntity) {
-    const threadBadge = document.createElement('button');
-    threadBadge.className = 'dw-story-thread-badge';
-    threadBadge.type = 'button';
-    threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${primaryEntity}`);
-    threadBadge.textContent = `${STRINGS.threads.badgePrefix} ${primaryEntity}`;
-    threadBadge.addEventListener('click', (e) => {
-      e.stopPropagation();
-      import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
-        openThreadDetailModal(primaryEntity);
-      }).catch(() => {});
-    });
-    footerLeftEl.appendChild(threadBadge);
-  }
   footerEl.appendChild(footerLeftEl);
 
   // 5b. Right: Base Action Group (Permalink / Share + Summary Accordion Expander)

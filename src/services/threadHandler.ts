@@ -66,30 +66,42 @@ export async function handleListThreads(
   }
 }
 
+export function slugifyThreadCandidate(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 export async function handleGetThreadDetail(
   rawId: string,
   deps: ThreadHandlerDeps
 ): Promise<ThreadDetailResult> {
-  const cleanId = sanitizeThreadId(rawId);
-  if (!cleanId) {
+  const trimmed = typeof rawId === 'string' ? rawId.trim() : '';
+  if (!trimmed) {
     return { thread: null, events: [], error: 'Invalid thread ID' };
   }
 
+  const cleanId = sanitizeThreadId(trimmed);
+  const slug = slugifyThreadCandidate(trimmed);
+  const slugId = slug.startsWith('th-')
+    ? `th_${slug.slice(3)}`
+    : slug.startsWith('th_')
+      ? slug
+      : `th_${slug}`;
+
   try {
-    const threadStmt = buildGetThreadByIdStatement(cleanId);
+    const threadStmt = buildGetThreadByIdStatement(cleanId || slugId, slugId, trimmed.slice(0, 100));
     const threadRows = (await deps.runQuery(threadStmt.sql, threadStmt.params)) as StoryThreadRow[];
     if (threadRows.length === 0 || !threadRows[0]) {
       return { thread: null, events: [], error: 'Thread not found' };
     }
 
     const thread = threadRowToStoryThread(threadRows[0]);
-    const eventsStmt = buildGetEventsByThreadIdStatement(cleanId);
+    const eventsStmt = buildGetEventsByThreadIdStatement(thread.id);
     const eventRows = (await deps.runQuery(eventsStmt.sql, eventsStmt.params)) as StoryThreadEventRow[];
     const events: StoryThreadEvent[] = eventRows.map(eventRowToStoryThreadEvent);
 
     return { thread, events };
   } catch (err) {
-    console.error(`[THREAD HANDLER] Error fetching thread detail for ${cleanId}:`, err);
+    console.error(`[THREAD HANDLER] Error fetching thread detail for ${trimmed}:`, err);
     return { thread: null, events: [], error: 'Database query failed' };
   }
 }

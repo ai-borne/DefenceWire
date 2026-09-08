@@ -28,7 +28,13 @@ interface PagesFunctionContext {
 
 export async function onRequestGet(context: PagesFunctionContext): Promise<Response> {
   const clientIp = getClientIp(context.request.headers);
-  const rawId = context.params.id ?? '';
+  const rawParam = context.params.id ?? '';
+  let rawId = rawParam;
+  try {
+    rawId = decodeURIComponent(rawParam);
+  } catch {
+    rawId = rawParam;
+  }
   const rateLimitKey = `thread_detail:${clientIp}`;
   const rateLimit = checkRateLimit(rateLimitKey, 60, 60_000);
   const rateLimitHeaders = getRateLimitHeaders(rateLimit);
