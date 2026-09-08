@@ -1,8 +1,14 @@
-# Intelligence Knowledge Base Pipeline: Info to Structured Knowledge
+# Living Hashtag Knowledge Base & Compounding Intelligence Pipeline
 
-## 1. Core Mental Model
+## 1. Core Mental Model & Strategic MOAT
 
-DefenceWire operates on a continuous, compounding pipeline that converts ephemeral 72-hour wire reports into an institutional, long-arc defence intelligence knowledge base.
+DefenceWire operates on a continuous, compounding pipeline that converts ephemeral, 24-to-72-hour wire reports into an institutional, long-arc defence intelligence knowledge base.
+
+Standard news aggregators and social feeds treat defense news as disposable streams. DefenceWire's **MOAT (Defensible Competitive Advantage)** is created by an autonomous, multi-layered pipeline:
+1. **Dynamic Entity & Hashtag Ingestion**: Automatically detects, extracts, and canonicalizes sovereign platforms, tenders, operational theaters, and programs (`#DACClearance`, `#LAC`, `#HIMARS`, `#Su57`, `#TASL`).
+2. **Autonomous Chronological Lineage (Story Threads)**: Builds multi-month, git-style evolutionary arcs in Cloudflare D1 with delta summaries and milestone tracking.
+3. **Semantic Knowledge Graph**: Ingests relational triplets with epistemic truth states (`CONFIRMED`, `DISPUTED`, `SUPERSEDED`, `RETRACTED`), linking platforms, facilities, locations, and threats.
+4. **Cross-Thread Pattern Synthesis**: Detects systemic multi-domain convergences across seemingly isolated news events.
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -11,8 +17,18 @@ DefenceWire operates on a continuous, compounding pipeline that converts ephemer
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-| CLUSTERING & SSB EXTRACTION (clusterEngine.ts, rankingEngine.ts)                  |
-| - De-duplication, entity extraction, defence tech takeaway, whyItMatters          |
+| DUAL-ENGINE HARVESTING & AI ENRICHMENT                                            |
+| 1. Feed Extractor (feedTagExtractor.ts): Extracts <category>, <dc:subject>, #tags |
+| 2. LLM Ingestion (summarizerPrompt.ts): Structured output for primaryTag, hashtags|
+| 3. AI Salvage (geminiSalvage.ts): Sanitizes & preserves tags on validation retry  |
+| 4. Noise Filter (hashtagUtils.ts): Drops #News, #India, #Defence, #Security       |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| CLUSTERING & CANONICAL SSOT (clusterEngine.ts, hashtagUtils.ts)                   |
+| - Consolidates source items into StoryCluster (cluster.hashtags, primaryTag)      |
+| - Normalizes variants: #Su57 / Su-57 -> canonical "Su-57", slug "th_su-57"        |
 +-----------------------------------------------------------------------------------+
                                          |
             +----------------------------+----------------------------+
@@ -21,9 +37,10 @@ DefenceWire operates on a continuous, compounding pipeline that converts ephemer
 +---------------------------+                             +-------------------------+
 | TEMPORAL STORY THREADING  |                             | SEMANTIC GRAPH ENGINE   |
 | (threadContinuityEngine)  |                             | (tripletExtractor.ts)   |
-| - Canonical Entity Match  |                             | - Stop-Node Filtering   |
-| - Jaccard Similarity      |                             | - Relational Predicates |
-| - Git-style x1.1.1 Arcs   |                             | - Epistemic Truth State |
+| - Matches existing thread |                             | - Graph Stop-Nodes      |
+|   or spawns dynamic arc   |                             | - Relational Predicates |
+| - Git-style x1.1.1 Arcs   |                             |   (DEPLOYED_TO, etc.)   |
+| - Jaccard Similarity (0.35|                             | - Epistemic Truth State |
 | - Key Delta Synthesis     |                             | - Weight Incrementing   |
 +---------------------------+                             +-------------------------+
             |                                                         |
@@ -48,53 +65,70 @@ DefenceWire operates on a continuous, compounding pipeline that converts ephemer
                  v                                               v
 +---------------------------------+             +-----------------------------------+
 | CURATOR DESK (Human-in-the-Loop)|             | PUBLIC CONSUMPTION INTERFACES     |
-| - Pattern Review & Promotion    |             | - Story Threads Tab (Timeline)    |
-| - Knowledge Base D1 Table Audit |             | - Intel Graph Tab (Canvas Engine) |
-| - Overrides & Tombstones        |             | - Public Situational Banner       |
-+---------------------------------+             +-----------------------------------+
+| - Pattern Review & Promotion    |             | - Card Hashtag Badges (#Tag)      |
+| - Knowledge Base D1 Table Audit |             | - Story Threads Tab (Timeline)    |
+| - Overrides & Tombstones        |             | - Thread Detail Modal             |
++---------------------------------+             | - Intel Graph Tab (Canvas Engine) |
+                                                | - Public Situational Banner       |
+                                                +-----------------------------------+
 ```
 
 ---
 
-## 2. Ingestion & Clustering (Entry Point)
+## 2. Ingestion, Hashtag Extraction & Noise Suppression
 
-* **Entry Point**: `crawler/ingest.ts`
-* **Trigger**: Scheduled hourly GitHub Actions run or ad-hoc ingestion (`functions/api/curator/ingest.ts`).
+* **Primary Modules**:
+  - `crawler/feedTagExtractor.ts`: Parses XML feeds for `<category>`, `<dc:subject>`, and inline `#hashtag` occurrences.
+  - `crawler/summarizerPrompt.ts`: Guides Gemini to return structured `primaryTag` and `hashtags` properties.
+  - `crawler/geminiSalvage.ts`: Sanitizes Gemini structured output, drops invalid entries, and enforces clean `#Tag` tokens.
+  - `src/utils/hashtagUtils.ts`: SSOT for noise tag filtering, slug generation, and canonical entity formatting.
+  - `src/engine/clusterEngine.ts`: Aggregates feed tags across clustered articles into `cluster.hashtags` and `cluster.primaryTag`.
 
-### Process:
-1. **Fetch & Normalize**: Ingests articles across registered feeds (MoD PIB, service releases, OSINT sources).
-2. **Cluster Formation** (`clusterEngine.ts`): Groups related articles across sources within a 72-hour rolling window into a single `StoryCluster`.
-3. **Structured Enrichment**: Extracts entities, assigns categories (`airforce`, `navy`, `army`, `tech`, `strategic`, `procurement`), and generates an SSB brief:
-   - `whyItMatters`: Concrete tactical or geopolitical impact.
-   - `defenceTechTakeaway`: Platform specifications, suppliers, and capabilities.
+### Noise Suppression & Stop-Tag Filtering (`isNoiseTag`)
+To prevent feed polluters and generic labels from collapsing disparate stories into single meaningless threads (e.g. `th_news`, `th_defence`), generic keywords are filtered at ingestion:
+- **Noise Blocklist**: `news`, `india`, `indian`, `defence`, `defense`, `security`, `update`, `updates`, `topnews`, `breakingnews`, `national`, `international`, `general`, `latest`, `article`, `articles`, `pressrelease`, `world`, `asia`, `mod`, `briefing`, `analysis`, `exclusive`.
+- **Length Filter**: Any tag with normalized length $\le 1$ is immediately rejected.
+
+### Canonical Normalization (`canonicalizeTag`, `hashtagToSlug`)
+Unifies disparate naming conventions across feeds, news outlets, and user queries:
+- `#Su57`, `Su-57`, `su57`, `th_su-57` $\rightarrow$ Canonical Entity: `Su-57`, Slug: `th_su-57`.
+- `#INSSudarshini` $\rightarrow$ `INS-Sudarshini`, Slug: `th_ins-sudarshini`.
+- `#EOS05` $\rightarrow$ `EOS-05`, Slug: `th_eos-05`.
+- `#DACClearance`, `#DAC Clearance` $\rightarrow$ `DAC Clearance`, Slug: `th_dac-clearance`.
 
 ---
 
-## 3. Pillar 1: Temporal Story Threading (Evolutionary Arcs)
+## 3. Pillar 1: Temporal Story Threading (Living Lineage Arcs)
 
 * **Engine**: `crawler/threadContinuityEngine.ts`
 * **Sync Layer**: `crawler/threadSync.ts`
 * **Storage**: Cloudflare D1 tables `story_threads` and `story_thread_events`
+* **Consumer**: `src/components/threads/ThreadDetailModal.ts` & `src/components/threads/ThreadExplorerView.ts`
 
 ### How It Works:
-1. **Canonical Entity Identification**:
-   - Inspects `cluster.programTags`, `cluster.ssbIntel.defenceTechTakeaway.platformOrSystem`, and `cluster.entities`.
-   - Normalizes candidates into standardized slugs (e.g., `tejas-mk1a`, `s400-triumf`, `netra-aewc`).
-2. **Thread Matching (`scoreMatch`)**:
-   - Computes intersection and Jaccard similarity between the cluster's normalized entities and existing threads in D1.
-   - A score $\ge 0.35$ attaches the cluster to an existing thread. Otherwise, a new thread is spawned with deterministic slug `th_<entity-slug>`.
+1. **Candidate Extraction (`extractCanonicalEntities`)**:
+   - Inspects `cluster.primaryTag`, `cluster.hashtags`, `cluster.programTags`, `cluster.ssbIntel.defenceTechTakeaway.platformOrSystem`, and `cluster.entities`.
+   - Filters candidates through `isNoiseTag()`.
+2. **Thread Matching & Dynamic Creation (`scoreMatch`, `generateThreadTitle`)**:
+   - Computes Jaccard similarity and exact entity overlaps against existing active/dormant D1 threads.
+   - If Jaccard score $\ge 0.35$, links to existing thread.
+   - If no match is found, **dynamically births a new thread** with domain-adaptive naming:
+     - Procurement / Tenders: `"${displayEntity} Acquisition & Delivery Arc"`
+     - Air Force / Army / Navy / Strategic: `"${displayEntity} Operational & Strategic Arc"`
+     - Tech / Space: `"${displayEntity} Technology & Systems Arc"`
+     - General / Geopolitics: `"${displayEntity} Intelligence & Strategic Arc"`
 3. **Chronological Sorting & Git-Style Indexing (`sortAndIndexEvents`)**:
-   - Out-of-order crawls are sorted by the verified publish timestamp (`publishedAt`).
-   - Sequence codes are assigned deterministically:
-     - Initial report: `x1.1.1`
+   - Events are sorted chronologically by `publishedAt`.
+   - Milestone sequence codes:
+     - First sighting: `x1.1.1`
      - Subsequent updates: `x1.1.2`, `x1.1.3`
-     - Program split / branch: `x1.2.1`
+     - Branch / Program split: `x1.2.1`
 4. **Key Delta Extraction**:
-   - Extracts the delta summary from `cluster.ssbIntel.whyItMatters` or snippet, capturing what changed in this specific event relative to the overall program.
+   - Synthesizes what changed in the latest event relative to previous milestones.
 5. **Lifecycle State Machine**:
-   - `active`: Received an event update within the last 60 days.
-   - `dormant`: No updates for $\ge 60$ days. Reactivates to `active` automatically when a matching story occurs.
-   - `concluded`: Explicitly marked by curator or project completion.
+   - `active`: Event observed within the last 60 days.
+   - `dormant`: No event for $\ge 60$ days. Reactivates to `active` automatically when a new cluster matches.
+   - `concluded`: Formally closed program or milestone sequence.
 
 ---
 
@@ -104,25 +138,28 @@ DefenceWire operates on a continuous, compounding pipeline that converts ephemer
 * **Stop-Node Filtering**: `crawler/graphStopNodes.ts`
 * **Sync Layer**: `crawler/graphSync.ts`
 * **Storage**: Cloudflare D1 tables `graph_nodes` and `graph_edges`
+* **Consumer**: `src/components/graph/KnowledgeGraphView.ts` (Micro-Canvas Engine)
 
 ### How It Works:
-1. **Stop-Node Suppression**:
-   - General terms like `"India"`, `"Indian Army"`, `"Ministry of Defence"`, and `"Government"` are suppressed by `isGraphStopNode()`. This prevents giant, uninformative super-hubs from creating graph hairballs.
-2. **Predicate & Direction Inference**:
-   - Scans text for candidate entities and correlates them with recognized action patterns:
-     - `DEPLOYED_TO`: Platform stationed at a location or facility (e.g., `Su-30MKI` $\to$ `Andaman & Nicobar`).
-     - `TESTED_AT`: System evaluated at a range (e.g., `BrahMos` $\to$ `ITR Chandipur`).
-     - `PROCURES`: Service branch or DAC ordering a system.
-     - `DEVELOPED_BY`: System linked to design agency/DPSU (e.g., `DRDO`, `HAL`).
-     - `TARGETS` / `ENGAGED_WITH` / `SUPPLIES` / `INTERCEPTED`.
-3. **Epistemic Truth State Detection (`detectEpistemicState`)**:
-   - `CONFIRMED`: Official announcement, formal clearance, delivered unit.
-   - `CONTESTED`: Conflicting claims, unverified leak, speculation.
-   - `SUPERSEDED`: Updated contract value, altered delivery target, revised order.
-   - `DISPUTED`: Official denial, conflicting ministry statement.
-   - `RETRACTED`: Published report withdrawn or clarified false.
-4. **Graph Upsert & Compounding Weights**:
-   - If an edge already exists, its `weight` increments (`weight = weight + 1.0`), its `last_observed_at` timestamp updates, and the connected nodes' degree centralities are recalculated.
+1. **Stop-Node Suppression (`isGraphStopNode`)**:
+   - High-frequency super-hubs (`"India"`, `"Indian Army"`, `"MoD"`, `"IAF"`, `"Government"`) are suppressed from the graph topology. This prevents unreadable combinatorial "hairballs" while preserving specific platforms (`Su-57`, `Akash-NG`, `HIMARS`), locations (`Ladakh`, `LAC`, `Chandipur`), and facilities.
+2. **Hashtag & Entity Node Induction**:
+   - Newly discovered hashtags (`cluster.hashtags`, `cluster.primaryTag`) automatically induce new active nodes in the Knowledge Graph.
+3. **Relational Predicate Inference**:
+   - `DEPLOYED_TO`: Platform moved to operational sector or location (e.g. `Su-30MKI` $\to$ `Ladakh`).
+   - `TESTED_AT`: Platform fired or trialed at a testing facility (e.g. `BrahMos` $\to$ `ITR Chandipur`).
+   - `PROCURES` / `SUPPLIES`: Acquisition Council (DAC), MoD, or foreign partner ordering/delivering a system.
+   - `TARGETS`: Air defense or weapon system intercepting a threat (e.g. `Akash-NG` $\to$ `Drone Infiltration`).
+   - `CONNECTED_TO`: Correlated platform, program, or operational linkage.
+4. **Epistemic Truth State Machine (`detectEpistemicState`)**:
+   - `CONFIRMED`: Official announcement, signed contract, verified test.
+   - `CONTESTED`: Unconfirmed leaks, conflicting media claims, speculation.
+   - `SUPERSEDED`: Contract order replaced, updated timeline, revised specs.
+   - `DISPUTED`: Official ministry refutation, clarified false report.
+   - `RETRACTED`: News publication withdrawn or retracted.
+5. **Compounding Edge Weights & Auditing**:
+   - Repeated co-occurrences increment edge weight (`weight += 1.0`).
+   - `firstObservedAt` preserves original origin timestamp, while `lastObservedAt` tracks the latest intelligence signal.
 
 ---
 
@@ -132,46 +169,47 @@ DefenceWire operates on a continuous, compounding pipeline that converts ephemer
 * **Synthesizer**: `crawler/patternSynthesizer.ts`
 * **Sync Layer**: `crawler/patternSync.ts`
 * **Storage**: Cloudflare D1 table `emergent_patterns`
+* **Consumer**: `src/components/patterns/PublicPatternBanner.ts` & `src/components/editor/PatternReviewView.ts`
 
 ### How It Works:
-1. **Spatiotemporal Graph Clustering**:
-   - Evaluates dense subgraphs formed by events occurring within a rolling 72-hour window.
-   - Example: A drone sighting in Pathankot + counter-UAS procurement approval + L-70 deployment.
-2. **Situational Assessment Synthesis**:
-   - Generates a 2-sentence intelligence assessment highlighting the cross-track convergence.
-   - Execution hierarchy:
-     1. **Primary**: Gemini Flash Free Tier API
+1. **Cross-Story Convergence Detection**:
+   - Evaluates spatiotemporal subgraphs across independent story clusters within a rolling 72-hour window.
+   - Detects when multi-thread events correlate (e.g. border tensions at `#LAC` + rapid procurement at `#DACClearance` + OEM supplier contracts).
+2. **Hypothesis Synthesis**:
+   - Synthesizes a 2-sentence actionable intelligence briefing.
+   - Free Tier Cascading Engine:
+     1. **Primary**: Gemini Flash
      2. **Fallback 1**: Cloudflare Workers AI (`@cf/meta/llama-3-8b-instruct`)
-     3. **Fallback 2**: Deterministic template heuristic (no external API dependence)
-3. **Curator Review Workflow**:
-   - Generated patterns are saved with `status = 'draft'`.
-   - Curators inspect drafts in the Curator's Desk (`src/components/editor/PatternReviewView.ts`).
-   - Approving a pattern updates `status = 'approved'`, instantly publishing it to the public Situational Matrix banner on the homepage.
+     3. **Fallback 2**: Deterministic Template NLP Heuristic
+3. **Curator-in-the-Loop Verification**:
+   - Newly detected patterns are staged with `status = 'draft'`.
+   - Editorial desk reviews, modifies, approves, or rejects patterns.
+   - Approved patterns immediately broadcast via the public banner on the homepage.
 
 ---
 
-## 6. Edge API & Consumption Architecture
-
-All graph and thread data is served at the edge using Cloudflare Pages Functions with rate-limiting and CDN edge caching:
+## 6. Edge API & Frontend Integration
 
 | Endpoint | Method | Backend Handler | Description |
 | :--- | :--- | :--- | :--- |
 | `/api/threads/list` | `GET` | `threadHandler.ts` | Filterable list of story threads with status, pagination, and search. |
-| `/api/threads/[id]` | `GET` | `threadHandler.ts` | Complete chronological event evolution branch for a thread. |
+| `/api/threads/[id]` | `GET` | `threadHandler.ts` | Complete chronological event evolution branch for a thread, resolving IDs, hashtags, or canonical labels. |
 | `/api/graph/subgraph` | `GET` | `graphQueryHandler.ts` | 1-hop / 2-hop graph neighborhood traversal with date bounds and filters. |
 | `/api/curator/patterns` | `GET/POST` | `curatorPatternHandler.ts` | Review, approve, edit, or reject emergent pattern candidates. |
 | `/api/curator/knowledge-base`| `GET` | `curatorKnowledgeBaseHandler.ts`| Read-only paginated table viewer for all underlying D1 data. |
 
 ### Frontend UI Components:
+* **Card Hashtag Badges** (`src/components/StoryClusterView.ts`):
+  - Renders clean, un-pinned entity badges (e.g. `#DAC Clearance`, `#LAC`, `#HIMARS`).
+  - Clicking any badge instantly opens the **Thread Detail Modal**.
+* **Thread Detail Modal** (`src/components/threads/ThreadDetailModal.ts`):
+  - Displays the complete milestone progression, delta summaries, and primary sources.
+  - Automatically displays a graceful "Compiling Chronological Arc" state if signals are actively indexing.
 * **Story Threads View** (`src/components/threads/ThreadExplorerView.ts`):
-  - Two-column responsive layout: Master list on the left, chronological git-commit branch on the right.
-  - Rendered via `ThreadTimelineCard.ts` showing sequence badges, source attribution, and synthesized delta boxes.
+  - Two-column responsive layout: Master list on the left, chronological git-commit timeline on the right.
 * **Intel Graph View** (`src/components/graph/KnowledgeGraphView.ts`):
   - 60fps micro-canvas force simulation (`KnowledgeGraphCanvas.ts`, `forceSimulation.ts`) using custom Euler/Verlet spring mechanics with zero third-party dependencies (< 4 KB gzip).
-  - Time scrubber (`TimeScrubber.ts`) to scrub through historical dates and observe graph evolution.
-  - Inspector sidebar detailing degree centrality, epistemic states, and 2-hop linkages.
-* **Public Pattern Banner** (`src/components/patterns/PublicPatternBanner.ts`):
-  - Mounted atop the front page to surface approved emergent situational assessments.
+  - Inspector sidebar detailing degree centrality, epistemic states, and 2-hop linkages with direct links to full Story Threads.
 
 ---
 
@@ -180,9 +218,9 @@ All graph and thread data is served at the edge using Cloudflare Pages Functions
 ```sql
 -- Story Threads
 CREATE TABLE IF NOT EXISTS story_threads (
-  id TEXT PRIMARY KEY,             -- deterministic slug, e.g. 'th_lca-tejas-mk1a'
+  id TEXT PRIMARY KEY,             -- deterministic slug, e.g. 'th_su-57', 'th_dac-clearance'
   title TEXT NOT NULL,
-  canonical_entity TEXT NOT NULL,
+  canonical_entity TEXT NOT NULL,  -- normalized entity name, e.g. 'Su-57', 'DAC Clearance'
   category TEXT NOT NULL,         -- 'airforce' | 'navy' | 'army' | 'tech' | 'strategic' | 'procurement'
   status TEXT NOT NULL DEFAULT 'active', -- 'active' | 'dormant' | 'concluded'
   event_count INTEGER NOT NULL DEFAULT 1,
@@ -212,7 +250,7 @@ CREATE TABLE IF NOT EXISTS story_thread_events (
 
 -- Graph Nodes
 CREATE TABLE IF NOT EXISTS graph_nodes (
-  id TEXT PRIMARY KEY,             -- normalized slug, e.g. 'node_su-30mki'
+  id TEXT PRIMARY KEY,             -- normalized slug, e.g. 'node_su-57'
   label TEXT NOT NULL,
   category TEXT NOT NULL,         -- 'platform' | 'threat' | 'facility' | 'location' | 'organization' | 'program'
   mention_count INTEGER NOT NULL DEFAULT 1,
@@ -227,7 +265,7 @@ CREATE TABLE IF NOT EXISTS graph_edges (
   id TEXT PRIMARY KEY,             -- deterministic: 'edge_${source}_${pred}_${target}'
   source_id TEXT NOT NULL,
   target_id TEXT NOT NULL,
-  predicate TEXT NOT NULL,         -- 'DEPLOYED_TO' | 'TESTED_AT' | 'PROCURES' | etc.
+  predicate TEXT NOT NULL,         -- 'DEPLOYED_TO' | 'TESTED_AT' | 'PROCURES' | 'TARGETS' | 'CONNECTED_TO' | etc.
   epistemic_state TEXT NOT NULL DEFAULT 'CONFIRMED', -- 'CONFIRMED' | 'CONTESTED' | 'SUPERSEDED' | 'DISPUTED' | 'RETRACTED'
   weight REAL NOT NULL DEFAULT 1.0,
   cluster_id TEXT,
@@ -256,15 +294,11 @@ CREATE TABLE IF NOT EXISTS emergent_patterns (
 
 ---
 
-## 8. Hard Invariants & Rules for Developers
+## 8. Hard Architectural Invariants
 
-1. **Strict Line Limit ($\le 300$ LOC)**: Every module must stay under 300 lines of code. Split logic across services, query builders, and view models.
-2. **Zero Inlined Resources**:
-   - Copy: Centralize in dedicated resource files (`src/resources/threadStrings.ts`, `graphStrings.ts`, `patternStrings.ts`).
-   - Colors: Centralize in `src/resources/colors.ts` and CSS variables. Never hardcode hex colors in component code.
-3. **Non-Blocking Crawl Execution**:
-   - Failures in thread matching, graph triplet extraction, or pattern synthesis must **never** break or abort the core news feed crawl in `crawler/ingest.ts`. All sync operations use non-fatal error boundaries.
-4. **Strict SQL Parameterization**:
-   - Every D1 statement must use parameterized `?` bindings via `queryBuilder` utilities. Direct string interpolation in SQL is strictly forbidden.
-5. **Client Performance & Bundle Budget**:
-   - The force-directed graph canvas and thread explorer views must remain lazy-loaded via `createLazyViewModelLoader` so the main homepage bundle remains under the budget cap (< 100 KB gzip).
+1. **Strict Line Limit ($\le 300$ LOC)**: Every module must stay under 300 lines of code. Sub-helpers (`feedTagExtractor.ts`, `graphStopNodes.ts`, `hashtagUtils.ts`) are used to protect main crawlers and parsers.
+2. **Zero Inlined Resources**: UI copy, tab titles, and badges must come from SSOT resource files (`src/resources/threadStrings.ts`, `graphStrings.ts`, `strings.ts`). Colors must strictly consume CSS variables.
+3. **Non-Blocking Crawl Fault Isolation**: Failures in thread sync, triplet extraction, or pattern detection must never crash the core news feed crawl in `crawler/ingest.ts`.
+4. **Strict SQL Parameterization**: Every D1 statement must use parameterized `?` bindings via query builder utilities (`threadQueryBuilder.ts`). String interpolation in SQL is strictly prohibited.
+5. **Client Performance & Micro-Bundle Budget**: The force-directed graph canvas and thread explorer are lazily loaded on demand to keep the initial client bundle light (< 100 KB gzip).
+
