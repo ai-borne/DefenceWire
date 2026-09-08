@@ -100,4 +100,73 @@ describe('runThreadContinuity', () => {
     expect(result.failed).toBeGreaterThanOrEqual(1);
     expect(result.syncedThreads).toBe(0);
   });
+
+  it('validates that d1/seeds/threads.sql contains valid seed statements for all non-program platforms', async () => {
+    const fs = await import('fs');
+    const sqlContent = fs.readFileSync('d1/seeds/threads.sql', 'utf8');
+    const statements = sqlContent.split(';').map(s => s.trim()).filter(Boolean);
+
+    expect(statements.length).toBeGreaterThanOrEqual(20);
+    for (const stmt of statements) {
+      expect(stmt).toMatch(/^INSERT OR REPLACE INTO (story_threads|story_thread_events)/);
+    }
+
+    const expectedThreads = [
+      'th_dac-clearance',
+      'th_qrsam',
+      'th_pralay',
+      'th_project-kusha',
+      'th_rafale',
+      'th_su-57',
+      'th_apache',
+      'th_tasl',
+      'th_eos-05',
+      'th_ins-sudarshini',
+      'th_lac'
+    ];
+
+    for (const threadId of expectedThreads) {
+      expect(sqlContent).toContain(`'${threadId}'`);
+    }
+  });
+
+  it('syncs clusters with hashtags and primaryTag to D1 cleanly', async () => {
+    const config = {
+      accountId: 'acc-123',
+      databaseId: 'db-456',
+      apiToken: 'token-789'
+    };
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, opts: RequestInit) => {
+      const body = JSON.parse(opts.body as string) as { sql: string };
+      if (body.sql.includes('SELECT * FROM')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(JSON.stringify({ result: [{ results: [] }] }))
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ result: [{ meta: { changes: 1 } }] }))
+      });
+    });
+
+    const hashtagCluster: StoryCluster = {
+      ...makeCluster('cluster-su57', 'Su-57'),
+      entities: ['Su-57'],
+      primaryTag: 'Su-57',
+      hashtags: ['Su57'],
+      programTags: ['su-57']
+    };
+
+    const result = await runThreadContinuity([hashtagCluster], config, { fetchFn: mockFetch });
+    expect(result.syncedThreads).toBe(1);
+    expect(result.syncedEvents).toBe(1);
+    expect(result.failed).toBe(0);
+    expect(result.continuity.threads[0]?.canonicalEntity).toBe('Su-57');
+    expect(result.continuity.threads[0]?.id).toBe('th_su-57');
+  });
 });
+

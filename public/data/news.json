@@ -58,7 +58,7 @@
         "strategicAngle": "Strengthens operational deterrence and combat posture in the PROCUREMENT domain.",
         "defenceTechTakeaway": {
           "platformOrSystem": "DAC Clearance",
-          "programTag": "DAC Clearance",
+          "programTag": "dac-clearance",
           "specifications": [
             "Validated operational acquisition parameter",
             "Official capital expenditure authorization",
@@ -76,7 +76,14 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "DAC Clearance",
+      "hashtags": [
+        "DACClearance"
+      ],
+      "programTags": [
+        "dac-clearance"
+      ]
     },
     {
       "id": "cluster-55ccd228",
@@ -112,7 +119,7 @@
         "strategicAngle": "Strengthens operational deterrence and combat posture in the PROCUREMENT domain.",
         "defenceTechTakeaway": {
           "platformOrSystem": "DAC Clearance",
-          "programTag": "DAC Clearance",
+          "programTag": "dac-clearance",
           "specifications": [
             "Validated operational acquisition parameter",
             "Official capital expenditure authorization",
@@ -130,7 +137,14 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "DAC Clearance",
+      "hashtags": [
+        "DACClearance"
+      ],
+      "programTags": [
+        "dac-clearance"
+      ]
     },
     {
       "id": "cluster-58fc361b",
@@ -152,7 +166,9 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "LAC"
+      ],
       "defenceScore": 48.5,
       "isLeadStory": false,
       "createdAt": "2026-09-07T17:18:41.000Z",
@@ -162,26 +178,33 @@
         "whyItMatters": "\"Indian, Chinese armies hold talks focusing on maintaining peace along LAC.\" — Hindustan Times (India Security)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "LAC",
+          "programTag": "lac",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Line of Actual Control operational demarcation",
+            "Corps Commander-level bilateral de-escalation framework",
+            "Dimapur-based 3 Corps sector monitoring"
           ],
-          "keySignificance": "Hindustan Times (India Security) confirms critical operational induction milestone."
+          "keySignificance": "Hindustan Times (India Security) confirms high-level military dialogue along LAC."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for LAC.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of LAC?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "LAC",
+      "hashtags": [
+        "LAC"
+      ],
+      "programTags": [
+        "lac"
+      ]
     },
     {
       "id": "cluster-69b57dc5",
@@ -203,36 +226,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "LAC"
+      ],
       "defenceScore": 42.5,
       "isLeadStory": false,
       "createdAt": "2026-09-07T02:39:01.000Z",
       "updatedAt": "2026-09-07T02:39:01.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"India, China Hold First Corps Commander-Level Talks in Arunachal.\" — Bharat Shakti (Nitin Gokhale)",
+        "whyItMatters": "\"India, China Hold First Corps Commander-Level Talks in Arunachal.\" — The Wire (Strategic Defence)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "LAC",
+          "programTag": "lac",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Line of Actual Control eastern sector boundary",
+            "22nd round Corps Commander-level talks framework",
+            "Wacha border meeting point coordination"
           ],
-          "keySignificance": "Bharat Shakti (Nitin Gokhale) confirms critical operational induction milestone."
+          "keySignificance": "The Wire (Strategic Defence) confirms bilateral military dialogue in Arunachal sector."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for LAC.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of LAC?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "LAC",
+      "hashtags": [
+        "LAC"
+      ],
+      "programTags": [
+        "lac"
+      ]
     },
     {
       "id": "cluster-9e899a54",
@@ -264,23 +296,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Mysterious Black Jet That Emerged At Long Beach Airport Identified.\" — The War Zone (TWZ)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the AIRFORCE domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "The War Zone (TWZ) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -307,36 +329,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "HIMARS"
+      ],
       "defenceScore": 40.5,
       "isLeadStory": false,
       "createdAt": "2026-09-08T10:47:22.000Z",
       "updatedAt": "2026-09-08T10:47:22.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"The Swedish government said it needs more rocket artillery fast, signing off on a $733 million purchase of HIMARS weapons from the United States.\" — Defense News (Global Top 100)",
+        "whyItMatters": "\"Sweden to buy HIMARS rocket artillery for around $730 million.\" — Defense News (Global Top 100)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "HIMARS",
+          "programTag": "himars",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Order Value: $733 million foreign military sale",
+            "High Mobility Artillery Rocket System (HIMARS)",
+            "Precision rocket artillery rapid induction"
           ],
-          "keySignificance": "Defense News (Global Top 100) confirms critical operational induction milestone."
+          "keySignificance": "Defense News (Global Top 100) confirms $733M HIMARS procurement."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for HIMARS.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of HIMARS?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "HIMARS",
+      "hashtags": [
+        "HIMARS"
+      ],
+      "programTags": [
+        "himars"
+      ]
     },
     {
       "id": "cluster-ccbf9e39",
@@ -368,23 +399,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"EU abruptly shelves Kallas-led defense panel after pushback from Berlin, Paris, Rome.\" — Defense News (Global Top 100)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "Defense News (Global Top 100) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -447,7 +468,11 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "QRSAM",
+      "hashtags": [
+        "QRSAM"
+      ]
     },
     {
       "id": "cluster-cc290d54",
@@ -478,23 +503,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"HC refuses to urgently hear plea seeking more DU hostels amid PG collapse row: 'Unnecessarily you waste your own time'.\" — Hindustan Times (India Security)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "Hindustan Times (India Security) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -529,23 +544,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Indian firm in Estonia arms deal has no dealings with defence ministry: Officials.\" — The Indian Express (India Defence)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the PROCUREMENT domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "The Indian Express (India Defence) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -580,23 +585,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Penguin looks to expand defence footprint beyond fast craft.\" — Asian Military Review (Indo-Pacific)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "Asian Military Review (Indo-Pacific) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -659,7 +654,11 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Pralay",
+      "hashtags": [
+        "Pralay"
+      ]
     },
     {
       "id": "cluster-49dfd39b",
@@ -719,7 +718,11 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Project Kusha",
+      "hashtags": [
+        "ProjectKusha"
+      ]
     },
     {
       "id": "cluster-e7887d81",
@@ -750,23 +753,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Kanpur engineer detained in Moscow, wife fears forced military entry; Indian embassy responds.\" — Hindustan Times (India Security)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "Hindustan Times (India Security) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -792,36 +785,48 @@
         "procurement",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "Apache",
+        "TASL"
+      ],
       "defenceScore": 31,
       "isLeadStory": false,
       "createdAt": "2026-09-07T10:36:55.000Z",
       "updatedAt": "2026-09-07T10:36:55.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"The journey to 400th fuselage for Apache, regarded as one of the most advanced & combat-proven attack helicopters in its class, began with India signing contract for 22 Apaches in 2015.\" — ThePrint (Defence & Strategic)",
+        "whyItMatters": "\"From 0 contracts to 400 Apache fuselages, the two-decade journey of Tata’s defence arm TASL.\" — ThePrint (Defence & Strategic)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the PROCUREMENT domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "Apache",
+          "programTag": "apache",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Order Quantity: 400 fuselages manufactured by TASL",
+            "Boeing AH-64 Apache global aerospace supply chain",
+            "Hyderabad aero-structures joint venture facility"
           ],
-          "keySignificance": "ThePrint (Defence & Strategic) confirms critical operational induction milestone."
+          "keySignificance": "ThePrint (Defence & Strategic) confirms 400th Apache fuselage delivery by TASL."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Apache.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of Apache?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Apache",
+      "hashtags": [
+        "Apache",
+        "TASL"
+      ],
+      "programTags": [
+        "apache",
+        "tasl"
+      ]
     },
     {
       "id": "cluster-9bc47562",
@@ -852,23 +857,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Russia Puts Its New High-Speed Train Through a Brutal Collision Test.\" — Frontier India Strategic Affairs",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "Frontier India Strategic Affairs confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -894,36 +889,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "Air Launched Effects"
+      ],
       "defenceScore": 30.8,
       "isLeadStory": false,
       "createdAt": "2026-09-08T03:50:47.000Z",
       "updatedAt": "2026-09-08T03:50:47.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"The Development of Air Launched Effects.\" — Armada International (EW & Land Systems)",
+        "whyItMatters": "\"While much attention has focused on the long-term development of unmanned Collaborative Combat Aircraft (CCA), Air Launched Effects (ALE) technology from rotorcraft is advancing faster.\" — Armada International (EW & Land Systems)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "Air Launched Effects",
+          "programTag": "air-launched-effects",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Collaborative Combat Aircraft (CCA) integration",
+            "Rotorcraft unmanned teaming capability",
+            "Autonomous airborne sensor and kinetic deployment"
           ],
-          "keySignificance": "Armada International (EW & Land Systems) confirms critical operational induction milestone."
+          "keySignificance": "Armada International (EW & Land Systems) highlights rapid ALE maturation."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Air Launched Effects.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of Air Launched Effects?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Air Launched Effects",
+      "hashtags": [
+        "ALE"
+      ],
+      "programTags": [
+        "air-launched-effects"
+      ]
     },
     {
       "id": "cluster-a8509747",
@@ -954,23 +958,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Army officer quizzed over records as cantonment weapon heist mystery deepens.\" — The Indian Express (India Defence)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the ARMY domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "The Indian Express (India Defence) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -996,7 +990,9 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "PR9560"
+      ],
       "defenceScore": 30.3,
       "isLeadStory": false,
       "createdAt": "2026-09-08T02:59:40.000Z",
@@ -1006,26 +1002,33 @@
         "whyItMatters": "\"The PR9560 tactical radio appears to have been procured by several countries from its manufacturer based in the People’s Republic of China.\" — Armada International (EW & Land Systems)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "PR9560",
+          "programTag": "pr9560",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Handheld tactical SDR communications transceiver",
+            "Tactical squad-level encrypted comms system",
+            "Validated operational battlefield deployment"
           ],
-          "keySignificance": "Armada International (EW & Land Systems) confirms critical operational induction milestone."
+          "keySignificance": "Armada International (EW & Land Systems) confirms PR9560 tactical radio procurement."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for PR9560.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of PR9560?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "PR9560",
+      "hashtags": [
+        "PR9560"
+      ],
+      "programTags": [
+        "pr9560"
+      ]
     },
     {
       "id": "cluster-daa0bb08",
@@ -1048,36 +1051,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "Skylark UAV"
+      ],
       "defenceScore": 30.1,
       "isLeadStory": false,
       "createdAt": "2026-09-08T02:30:38.000Z",
       "updatedAt": "2026-09-08T02:30:38.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"Chinese Study Claims Israeli Skylark Used by Pakistan against India in Op Sindoor.\" — IDRW (Indian Defence Research Wing)",
+        "whyItMatters": "\"A recent Chinese report of conflict between India and Pakistan during theOperation Sindoor claims for the first...\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "Skylark UAV",
+          "programTag": "skylark",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Tactical reconnaissance miniature UAV system",
+            "Cross-border tactical surveillance platform",
+            "Operational electronic intelligence payload"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
+          "keySignificance": "IDRW (Indian Defence Research Wing) reports adversary deployment of Skylark UAV."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Skylark UAV.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of Skylark UAV?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Skylark UAV",
+      "hashtags": [
+        "Skylark"
+      ],
+      "programTags": [
+        "skylark"
+      ]
     },
     {
       "id": "cluster-8592e79b",
@@ -1100,36 +1112,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "EOS-05"
+      ],
       "defenceScore": 30.1,
       "isLeadStory": false,
       "createdAt": "2026-09-08T02:30:26.000Z",
       "updatedAt": "2026-09-08T02:30:26.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"ISRO Carries out Third and final orbit maneuvering of EOS-05 spacecraft.\" — IDRW (Indian Defence Research Wing)",
+        "whyItMatters": "\"ISRO has said that it has carried out The third and final orbit raising manoeuvre to increase...\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "EOS-05",
+          "programTag": "eos-05",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Third and final orbit raising maneuver completed",
+            "Earth Observation Satellite payload integration",
+            "Geostationary surveillance orbit insertion"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
+          "keySignificance": "IDRW (Indian Defence Research Wing) confirms successful EOS-05 orbit raising."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for EOS-05.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of EOS-05?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "EOS-05",
+      "hashtags": [
+        "EOS05"
+      ],
+      "programTags": [
+        "eos-05"
+      ]
     },
     {
       "id": "cluster-351d0771",
@@ -1152,36 +1173,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "Su-57"
+      ],
       "defenceScore": 30.1,
       "isLeadStory": false,
       "createdAt": "2026-09-08T02:30:22.000Z",
       "updatedAt": "2026-09-08T02:30:22.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"Russian Su-57 Conducts Rehearsal Flight Over Egypt.\" — IDRW (Indian Defence Research Wing)",
+        "whyItMatters": "\"Russia’s Su-57 fifth-generation fighter has taken to the skies over Egypt for a rehearsal flight ahead of...\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "Su-57",
+          "programTag": "su-57",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Fifth-generation stealth multirole air superiority fighter",
+            "Airshow and foreign military flight demonstration in Egypt",
+            "Internal weapons bay and thrust-vectoring Saturn AL-41F1 engines"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
+          "keySignificance": "IDRW (Indian Defence Research Wing) highlights Su-57 international flight demonstration."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Su-57.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of Su-57?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Su-57",
+      "hashtags": [
+        "Su57"
+      ],
+      "programTags": [
+        "su-57"
+      ]
     },
     {
       "id": "cluster-eb6d289c",
@@ -1213,23 +1243,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"India is moving forward with independent agency & strategic autonomy amid geopolitical uncertainties, says Shri Rajnath Singh.\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -1265,23 +1285,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"In constant touch with home minister over pending issues between J&K and Centre: CM Omar Abdullah.\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -1317,23 +1327,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Detained Pakistani resident repatriated along IB in Jammu.\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -1360,36 +1360,45 @@
         "strategic",
         "ssb"
       ],
-      "entities": [],
+      "entities": [
+        "INS Sudarshini"
+      ],
       "defenceScore": 30.1,
       "isLeadStory": false,
       "createdAt": "2026-09-08T02:30:12.000Z",
       "updatedAt": "2026-09-08T02:30:12.000Z",
       "ssbIntel": {
         "provenance": "extractive",
-        "whyItMatters": "\"INS Sudarshini departs Spain’s Barcelona after concluding port call.\" — IDRW (Indian Defence Research Wing)",
+        "whyItMatters": "\"Indian Navy’s sail training ship, INS Sudarshini concluded her port call at Barcelona, Spain, on 06 Sep...\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
         "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
+          "platformOrSystem": "INS Sudarshini",
+          "programTag": "ins-sudarshini",
           "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
+            "Indian Navy sail training ship deployment",
+            "Port call concluded at Barcelona, Spain",
+            "Long-range maritime training and naval diplomacy mission"
           ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
+          "keySignificance": "IDRW (Indian Defence Research Wing) reports INS Sudarshini concluding European deployment."
         },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for INS Sudarshini.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of INS Sudarshini?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "INS Sudarshini",
+      "hashtags": [
+        "INSSudarshini"
+      ],
+      "programTags": [
+        "ins-sudarshini"
+      ]
     },
     {
       "id": "cluster-1318f51e",
@@ -1421,23 +1430,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"NIA searches residence of ‘white-collar’ terror accused in J&K.\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the STRATEGIC domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -1491,7 +1490,7 @@
         "strategicAngle": "Strengthens operational deterrence and combat posture in the AIRFORCE domain.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Rafale",
-          "programTag": "Rafale",
+          "programTag": "rafale",
           "specifications": [
             "Validated operational acquisition parameter",
             "Official capital expenditure authorization",
@@ -1509,7 +1508,14 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Rafale",
+      "hashtags": [
+        "Rafale"
+      ],
+      "programTags": [
+        "rafale"
+      ]
     },
     {
       "id": "cluster-3c67816d",
@@ -1548,7 +1554,7 @@
         "strategicAngle": "Strengthens operational deterrence and combat posture in the AIRFORCE domain.",
         "defenceTechTakeaway": {
           "platformOrSystem": "Rafale",
-          "programTag": "Rafale",
+          "programTag": "rafale",
           "specifications": [
             "Validated operational acquisition parameter",
             "Official capital expenditure authorization",
@@ -1566,7 +1572,14 @@
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
-      }
+      },
+      "primaryTag": "Rafale",
+      "hashtags": [
+        "Rafale"
+      ],
+      "programTags": [
+        "rafale"
+      ]
     },
     {
       "id": "cluster-4a3a1580",
@@ -1598,23 +1611,13 @@
         "provenance": "extractive",
         "whyItMatters": "\"Punjab Police bust cross-border arms, drug smuggling module in Amritsar.\" — IDRW (Indian Defence Research Wing)",
         "strategicAngle": "Strengthens operational deterrence and combat posture in the PROCUREMENT domain.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Strategic Defence Modernization",
-          "programTag": "Strategic Defence Modernization",
-          "specifications": [
-            "Validated operational acquisition parameter",
-            "Official capital expenditure authorization",
-            "Phased strategic deployment milestone"
-          ],
-          "keySignificance": "IDRW (Indian Defence Research Wing) confirms critical operational induction milestone."
-        },
         "gdLecturettePoints": [
-          "Indigenisation vs Rapid Induction: Timeline tradeoffs for Strategic Defence Modernization.",
+          "Indigenisation vs Rapid Induction: Timeline tradeoffs for armed forces modernization.",
           "Integration into Tri-Service Joint Theatre Command doctrines.",
           "Strategic deterrence impact in the Indian Ocean Region and Northern Borders."
         ],
         "potentialInterviewQuestions": [
-          "What are the operational role and specifications of Strategic Defence Modernization?",
+          "What are the operational role and specifications of armed forces modernization?",
           "How does this procurement align with Atmanirbhar Bharat defence mandates?",
           "What logistical and supply chain bottlenecks must be addressed for this capability?"
         ]
@@ -1647,16 +1650,7 @@
       "isIgnored": true,
       "ssbIntel": {
         "whyItMatters": "Neutralizing organized crime elements and contract killers is essential for maintaining domestic law and order, preventing criminal networks from destabilizing regional internal security. Decisive law enforcement responses serve to disrupt local syndicate operations and restore public confidence.",
-        "strategicAngle": "Demonstrates proactive tactical intelligence and immediate response capabilities of state police forces against armed criminal entities, reinforcing domestic deterrence against organized crime syndicates.",
-        "defenceTechTakeaway": {
-          "platformOrSystem": "Standard Issue Law Enforcement Small Arms (9mm Service Pistols)",
-          "specifications": [
-            "Caliber: 9x19mm Parabellum",
-            "Effective Range: 50 meters",
-            "Operation: Semi-automatic recoil-operated firing mechanism"
-          ],
-          "keySignificance": "Essential close-quarters weaponry providing police quick-reaction teams with reliable stopping power and self-defence capability during urban engagements."
-        }
+        "strategicAngle": "Demonstrates proactive tactical intelligence and immediate response capabilities of state police forces against armed criminal entities, reinforcing domestic deterrence against organized crime syndicates."
       }
     }
   ],
