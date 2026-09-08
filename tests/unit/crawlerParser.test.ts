@@ -27,33 +27,25 @@ const MOCK_FEED: FeedConfig = {
 };
 
 const SAMPLE_RSS_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>PIB Defence Press Releases</title>
-    <link>https://pib.gov.in</link>
-    <description>Official Indian Defence Releases</description>
-    <item>
-      <title><![CDATA[DAC Approves &amp; Clears 97 Additional Tejas Mk1A Fighter Aircraft]]></title>
-      <link>https://pib.gov.in/PressReleasePage.aspx?PRID=2048999</link>
-      <pubDate>Sun, 30 Aug 2026 08:30:00 GMT</pubDate>
-      <description><![CDATA[<p>The Defence Acquisition Council chaired by Raksha Mantri accorded AoN for <b>₹67,000 Crore</b> procurement under Atmanirbhar Bharat.</p>]]></description>
-    </item>
-    <item>
-      <title>Indian Navy inducts 2nd Arihant-class SSBN INS Arighat</title>
-      <guid isPermaLink="true">https://pib.gov.in/PressReleasePage.aspx?PRID=2048888</guid>
-      <pubDate>2026-08-29T10:00:00Z</pubDate>
-      <description>Strategic deterrence strengthened with commissioning of nuclear submarine.</description>
-    </item>
-  </channel>
-</rss>`;
+<rss version="2.0"><channel>
+  <title>PIB Defence Press Releases</title><link>https://pib.gov.in</link><description>Official Indian Defence Releases</description>
+  <item>
+    <title><![CDATA[DAC Approves &amp; Clears 97 Additional Tejas Mk1A Fighter Aircraft]]></title>
+    <link>https://pib.gov.in/PressReleasePage.aspx?PRID=2048999</link><pubDate>Sun, 30 Aug 2026 08:30:00 GMT</pubDate>
+    <description><![CDATA[<p>The Defence Acquisition Council chaired by Raksha Mantri accorded AoN for <b>₹67,000 Crore</b> procurement under Atmanirbhar Bharat.</p>]]></description>
+  </item>
+  <item>
+    <title>Indian Navy inducts 2nd Arihant-class SSBN INS Arighat</title>
+    <guid isPermaLink="true">https://pib.gov.in/PressReleasePage.aspx?PRID=2048888</guid><pubDate>2026-08-29T10:00:00Z</pubDate>
+    <description>Strategic deterrence strengthened with commissioning of nuclear submarine.</description>
+  </item>
+</channel></rss>`;
 
 const SAMPLE_ATOM_XML = `<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Livefist Defence</title>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Livefist Defence</title>
   <entry>
     <title>IAF Tejas Mk1A Squadron Prepares for Operational Induction</title>
-    <link href="https://www.livefistdefence.com/iaf-tejas-mk1a-induction" />
-    <updated>2026-08-30T09:00:00Z</updated>
+    <link href="https://www.livefistdefence.com/iaf-tejas-mk1a-induction" /><updated>2026-08-30T09:00:00Z</updated>
     <summary>HAL flight testing reaches final phase ahead of first delivery.</summary>
   </entry>
 </feed>`;
@@ -254,20 +246,31 @@ describe('Feed Parser & Circuit Breakers', () => {
     expect(items[0]?.snippet).not.toContain('Read the full article on idrw.org');
   });
 
+  it('extracts categories, dc:subject, and embedded hashtags onto StorySourceItem.tags', () => {
+    const xml = `<rss version="2.0"><channel><item>
+      <title>DAC clears procurement of #Su57 stealth fighters</title>
+      <link>https://pib.gov.in/su57-deal</link>
+      <category>Su-57</category>
+      <category>News</category>
+      <dc:subject>Aviation</dc:subject>
+      <description>IAF evaluation completed for modern fighter fleet.</description>
+    </item></channel></rss>`;
+    const items = parseFeedXml(xml, MOCK_FEED);
+    expect(items.length).toBe(1);
+    expect(items[0]?.tags).toContain('#Su-57');
+    expect(items[0]?.tags).toContain('#Su57');
+    expect(items[0]?.tags).toContain('#Aviation');
+    expect(items[0]?.tags).not.toContain('#News');
+  });
+
   it('blocks private, loopback, link-local, and internal SSRF URLs via isSafeFeedUrl', () => {
-    expect(isSafeFeedUrl('http://127.0.0.1/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://localhost:8080/feed')).toBe(false);
-    expect(isSafeFeedUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
-    expect(isSafeFeedUrl('http://10.0.1.5/feed.xml')).toBe(false);
-    expect(isSafeFeedUrl('http://172.16.0.1/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://192.168.1.1/feed')).toBe(false);
-    expect(isSafeFeedUrl('http://0.0.0.0/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://[::1]/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://[fe80::1]/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://[fc00::1]/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://[::ffff:127.0.0.1]/rss')).toBe(false);
-    expect(isSafeFeedUrl('http://internal.service.local/rss')).toBe(false);
-    expect(isSafeFeedUrl('file:///etc/passwd')).toBe(false);
+    const blockedUrls = [
+      'http://127.0.0.1/rss', 'http://localhost:8080/feed', 'http://169.254.169.254/latest/meta-data/',
+      'http://10.0.1.5/feed.xml', 'http://172.16.0.1/rss', 'http://192.168.1.1/feed', 'http://0.0.0.0/rss',
+      'http://[::1]/rss', 'http://[fe80::1]/rss', 'http://[fc00::1]/rss', 'http://[::ffff:127.0.0.1]/rss',
+      'http://internal.service.local/rss', 'file:///etc/passwd'
+    ];
+    for (const url of blockedUrls) expect(isSafeFeedUrl(url)).toBe(false);
     expect(isSafeFeedUrl('https://pib.gov.in/feed.xml')).toBe(true);
     expect(isSafeFeedUrl('https://thehindu.com/defence/rss')).toBe(true);
   });

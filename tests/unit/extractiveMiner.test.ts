@@ -42,11 +42,11 @@ describe('Deterministic Extractive Miner', () => {
 
     expect(result.confidence).toBeGreaterThanOrEqual(CONFIDENCE_THRESHOLD);
     expect(result.isHighConfidence).toBe(true);
-    expect(result.metrics.platformOrSystem).toBe('ALH Dhruv');
-    expect(result.metrics.budgetCrores).toBe(8073);
-    expect(result.metrics.quantities).toBe('34 helicopters');
-    expect(result.metrics.deliveryTimeline).toBe('2028');
-    expect(result.metrics.indigenousContentPercentage).toBe(65);
+    expect(result.metrics?.platformOrSystem).toBe('ALH Dhruv');
+    expect(result.metrics?.budgetCrores).toBe(8073);
+    expect(result.metrics?.quantities).toBe('34 helicopters');
+    expect(result.metrics?.deliveryTimeline).toBe('2028');
+    expect(result.metrics?.indigenousContentPercentage).toBe(65);
     expect(result.summaryText).toContain('ALH Dhruv:');
     expect(result.summaryText).toContain('₹8,073 Cr');
     expect(result.summaryText).toContain('PIB MoD');
@@ -69,10 +69,10 @@ describe('Deterministic Extractive Miner', () => {
     });
 
     const result = extractDefenceMetrics(megaCluster);
-    expect(result.metrics.budgetCrores).toBe(67000);
-    expect(result.metrics.budgetCrores).toBeGreaterThan(HIGH_VALUE_BUDGET_THRESHOLD_CR);
-    expect(result.metrics.isHighValueOrder).toBe(true);
-    expect(result.metrics.sanityAuditRequired).toBe(true);
+    expect(result.metrics?.budgetCrores).toBe(67000);
+    expect(result.metrics?.budgetCrores).toBeGreaterThan(HIGH_VALUE_BUDGET_THRESHOLD_CR);
+    expect(result.metrics?.isHighValueOrder).toBe(true);
+    expect(result.metrics?.sanityAuditRequired).toBe(true);
   });
 
   it('falls back to verbatim cited excerpt when confidence is below 0.75', () => {
@@ -161,10 +161,10 @@ describe('Deterministic Extractive Miner', () => {
     });
 
     const noCoverageResult = extractDefenceMetrics({ ...clusterWithoutBudget, relatedCoverage: [] });
-    expect(noCoverageResult.metrics.budgetCrores).toBeUndefined();
+    expect(noCoverageResult.metrics?.budgetCrores).toBeUndefined();
 
     const withCoverageResult = extractDefenceMetrics(clusterWithoutBudget);
-    expect(withCoverageResult.metrics.budgetCrores).toBe(8073);
+    expect(withCoverageResult.metrics?.budgetCrores).toBe(8073);
     expect(withCoverageResult.confidence).toBeGreaterThan(noCoverageResult.confidence);
   });
 
@@ -178,5 +178,56 @@ describe('Deterministic Extractive Miner', () => {
     expect(intel.gdLecturettePoints?.length).toBeGreaterThanOrEqual(3);
     expect(intel.potentialInterviewQuestions?.length).toBeGreaterThanOrEqual(3);
     expect(intel.strategicAngle).toContain('SSB');
+  });
+
+  it('eliminates Strategic Defence Modernization fallback and omits defenceTechTakeaway when no entity exists', () => {
+    const nonEntityCluster = createMockCluster({
+      synthesizedHeadline: 'Defence Minister Addresses Bilateral Security Dialogue',
+      primarySource: {
+        id: 'ps-policy',
+        title: 'India and France discuss regional maritime domain security cooperation',
+        url: 'https://mod.gov.in/bilateral-dialogue',
+        sourceName: 'MoD Releases',
+        sourceDomain: 'mod.gov.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-30T10:00:00Z',
+        snippet: 'Defence Minister held bilateral talks focusing on maritime security cooperation in the Indo-Pacific region.'
+      },
+      entities: [],
+      programTags: [],
+      categories: ['strategic']
+    });
+
+    const result = extractDefenceMetrics(nonEntityCluster);
+    expect(result.metrics).toBeUndefined();
+    expect(result.summaryText).not.toContain('Strategic Defence Modernization');
+
+    const intel = generateExtractiveSSBIntel(nonEntityCluster);
+    expect(isValidSSBIntelligence(intel)).toBe(true);
+    expect(intel.defenceTechTakeaway).toBeUndefined();
+    expect(JSON.stringify(intel)).not.toContain('Strategic Defence Modernization');
+  });
+
+  it('uses cluster.primaryTag as platform when entities array is empty', () => {
+    const hashtagCluster = createMockCluster({
+      synthesizedHeadline: 'Stealth Fighter Assessment Ongoing',
+      primarySource: {
+        id: 'ps-su57',
+        title: 'IAF reviews options for fifth-generation fighters',
+        url: 'https://pib.gov.in/su57-eval',
+        sourceName: 'PIB MoD',
+        sourceDomain: 'pib.gov.in',
+        tier: SourceTier.TIER_1_OFFICIAL,
+        publishedAt: '2026-08-30T10:00:00Z',
+        snippet: 'Evaluation of twin-engine stealth platforms continues.'
+      },
+      entities: [],
+      programTags: [],
+      primaryTag: '#Su57',
+      categories: ['airforce', 'tech']
+    });
+
+    const result = extractDefenceMetrics(hashtagCluster);
+    expect(result.metrics?.platformOrSystem).toBe('#Su57');
   });
 });

@@ -83,4 +83,34 @@ describe('Cluster Engine: MOAT Category Inheritance', () => {
     expect(clusters[0]?.programTags).toContain('amca');
     expect(clusters[0]?.categories).toContain('programs');
   });
+
+  it('aggregates unique item tags into cluster.hashtags and sets primaryTag', () => {
+    const item1: StorySourceItem = {
+      id: 'item-tejas-1',
+      title: 'MoD Clears LCA Tejas Mk1A Procurement Contract at Aero India',
+      url: 'https://thehindu.com/tejas-aero-india',
+      sourceName: 'The Hindu',
+      sourceDomain: 'thehindu.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-08-30T09:00:00Z',
+      tags: ['#TejasMk1A', '#AeroIndia']
+    };
+    const item2: StorySourceItem = {
+      id: 'item-tejas-2',
+      title: 'CCS Accords Final Clearance for LCA Tejas Mk1A Procurement Deal with TASL',
+      url: 'https://livefistdefence.com/tejas-tasl',
+      sourceName: 'Livefist',
+      sourceDomain: 'livefistdefence.com',
+      tier: SourceTier.TIER_3_SPECIALIZED,
+      publishedAt: '2026-08-30T09:30:00Z',
+      tags: ['#TejasMk1A', '#TASL']
+    };
+
+    const clusters = clusterArticles([item1, item2]);
+    expect(clusters).toHaveLength(1);
+    expect(clusters[0]?.hashtags).toContain('#TejasMk1A');
+    expect(clusters[0]?.hashtags).toContain('#AeroIndia');
+    expect(clusters[0]?.hashtags).toContain('#TASL');
+    expect(clusters[0]?.primaryTag).toBe('#TejasMk1A');
+  });
 });

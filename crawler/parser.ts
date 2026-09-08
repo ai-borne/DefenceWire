@@ -11,6 +11,7 @@ import { computeStableHash } from '../src/utils/stableId.js';
 import { FeedConfig } from './feedTypes.js';
 import { parseSansadXmlFeed } from './sansadScraper.js';
 import { normalizeSocialPostItem } from './socialNormalizer.js';
+import { extractFeedTags } from './feedTagExtractor.js';
 
 export const MAX_FEED_BYTES = 5 * 1024 * 1024; // 5 MB stream cap
 
@@ -193,22 +194,17 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
     if (!block) continue;
     const rawTitle = extractTagValue(block, 'title');
     const rawLink = extractLink(block);
-    const rawPubDate =
-      extractTagValue(block, 'pubDate') ||
-      extractTagValue(block, 'published') ||
-      extractTagValue(block, 'updated') ||
-      extractTagValue(block, 'dc:date');
-    const rawDescription =
-      extractTagValue(block, 'description') ||
-      extractTagValue(block, 'media:description') ||
-      extractTagValue(block, 'summary') ||
-      extractTagValue(block, 'content:encoded') ||
-      extractTagValue(block, 'content');
+    const rawPubDate = extractTagValue(block, 'pubDate') || extractTagValue(block, 'published') ||
+      extractTagValue(block, 'updated') || extractTagValue(block, 'dc:date');
+    const rawDescription = extractTagValue(block, 'description') || extractTagValue(block, 'media:description') ||
+      extractTagValue(block, 'summary') || extractTagValue(block, 'content:encoded') || extractTagValue(block, 'content');
     const rawImageUrl = extractThumbnail(block);
     const cleanTitle = sanitizePlainText(rawTitle);
     const cleanSnippet = cleanStorySnippet(rawDescription, 280);
 
     if (!cleanTitle || !rawLink || !isValidUrl(rawLink)) continue;
+
+    const tags = extractFeedTags(block, cleanTitle, cleanSnippet);
 
     let item: StorySourceItem = {
       id: `${feed.id}-${computeStableHash(rawLink)}`,
@@ -219,7 +215,8 @@ export function parseFeedXml(xmlContent: string, feed: FeedConfig): StorySourceI
       tier: feed.tier,
       publishedAt: parsePublicationDate(rawPubDate),
       snippet: cleanSnippet.length > 0 ? cleanSnippet : undefined,
-      imageUrl: rawImageUrl
+      imageUrl: rawImageUrl,
+      tags: tags.length > 0 ? tags : undefined
     };
 
     if (

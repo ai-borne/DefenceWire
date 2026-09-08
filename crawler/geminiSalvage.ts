@@ -13,6 +13,8 @@ export interface GeminiSalvageResult {
   intel: SSBIntelligence | null;
   hardErrors: string[];
   droppedFields: string[];
+  primaryTag?: string;
+  hashtags?: string[];
 }
 
 function sanitizeDefenceTechTakeaway(value: unknown, dropped: string[]): DefenceTechTakeaway | null {
@@ -148,5 +150,43 @@ export function sanitizeGeminiSSBIntelligence(data: unknown, requireChain = true
     if (questions) intel.potentialInterviewQuestions = questions;
   }
 
-  return { intel, hardErrors: [], droppedFields: dropped };
+  let primaryTag: string | undefined;
+  if (obj.primaryTag !== undefined && obj.primaryTag !== null) {
+    if (typeof obj.primaryTag === 'string' && obj.primaryTag.trim() && obj.primaryTag.length <= 100) {
+      const cleaned = obj.primaryTag.trim();
+      primaryTag = cleaned.startsWith('#') ? cleaned : `#${cleaned.replace(/\s+/g, '')}`;
+      intel.primaryTag = primaryTag;
+    } else {
+      dropped.push('primaryTag');
+    }
+  }
+
+  let hashtags: string[] | undefined;
+  if (obj.hashtags !== undefined && obj.hashtags !== null) {
+    if (Array.isArray(obj.hashtags)) {
+      const valid = obj.hashtags
+        .filter((h): h is string => typeof h === 'string' && h.trim().length > 0 && h.length <= 100)
+        .map((h) => {
+          const t = h.trim();
+          return t.startsWith('#') ? t : `#${t.replace(/\s+/g, '')}`;
+        });
+      if (valid.length !== obj.hashtags.length) {
+        dropped.push('hashtags[invalid entries]');
+      }
+      if (valid.length > 0) {
+        hashtags = valid;
+        intel.hashtags = hashtags;
+      }
+    } else {
+      dropped.push('hashtags');
+    }
+  }
+
+  return {
+    intel,
+    hardErrors: [],
+    droppedFields: dropped,
+    ...(primaryTag ? { primaryTag } : {}),
+    ...(hashtags ? { hashtags } : {})
+  };
 }

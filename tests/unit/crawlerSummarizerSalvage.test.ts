@@ -117,4 +117,57 @@ describe('Gemini partial-salvage validation', () => {
     const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', stillNonCompliantFetch as typeof fetch);
     expect(result).toBeNull();
   });
+
+  it('salvages and normalizes primaryTag and hashtags from Gemini response', async () => {
+    const taggedFetch = async () => new Response(JSON.stringify({
+      candidates: [{
+        content: {
+          parts: [{
+            text: JSON.stringify({
+              whyItMatters: 'Su-57 stealth fighter induction -> Expands 5th-gen capability -> Alters regional deterrence.',
+              primaryTag: 'Su-57',
+              hashtags: ['#Su57', 'StealthFighter'],
+              defenceTechTakeaway: {
+                platformOrSystem: 'Su-57',
+                specifications: ['Internal weapons bay'],
+                keySignificance: 'Enhances air superiority.'
+              }
+            })
+          }]
+        }
+      }]
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', taggedFetch as typeof fetch);
+    expect(result).not.toBeNull();
+    expect(result?.primaryTag).toBe('#Su-57');
+    expect(result?.hashtags).toContain('#Su57');
+    expect(result?.hashtags).toContain('#StealthFighter');
+  });
+
+  it('drops malformed primaryTag and invalid hashtag entries while preserving brief', async () => {
+    const badTagsFetch = async () => new Response(JSON.stringify({
+      candidates: [{
+        content: {
+          parts: [{
+            text: JSON.stringify({
+              whyItMatters: 'Pinaka MBRL salvo -> Destroys area targets -> Bolsters artillery firepower.',
+              primaryTag: 12345, // invalid type
+              hashtags: ['#Pinaka', null, ''], // invalid entries
+              defenceTechTakeaway: {
+                platformOrSystem: 'Pinaka',
+                specifications: ['Guided rocket'],
+                keySignificance: 'Precision strike.'
+              }
+            })
+          }]
+        }
+      }]
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', badTagsFetch as typeof fetch);
+    expect(result).not.toBeNull();
+    expect(result?.primaryTag).toBeUndefined();
+    expect(result?.hashtags).toEqual(['#Pinaka']);
+  });
 });

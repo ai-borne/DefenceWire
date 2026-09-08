@@ -110,10 +110,6 @@ export function areStoriesSimilar(itemA: StorySourceItem, itemB: StorySourceItem
   return jaccard >= threshold;
 }
 
-
-
-
-
 /**
  * Converts an official social post into a structured DiscussionQuote.
  */
@@ -255,6 +251,14 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
       finalCategories.add('programs');
     }
 
+    const clusterTags = new Set<string>();
+    for (const item of group) {
+      if (item.tags) {
+        for (const t of item.tags) clusterTags.add(t);
+      }
+    }
+    const hashtags = clusterTags.size > 0 ? Array.from(clusterTags) : undefined;
+
     const baseCluster: StoryCluster = {
       id: `cluster-${computeStableHash(primary.url)}`,
       synthesizedHeadline: primary.title,
@@ -264,6 +268,8 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
       categories: Array.from(finalCategories),
       entities,
       programTags: programTags.length > 0 ? programTags : undefined,
+      hashtags,
+      primaryTag: hashtags?.[0],
       defenceScore: 0,
       isLeadStory: false,
       createdAt: primary.publishedAt,

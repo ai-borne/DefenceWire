@@ -33,6 +33,7 @@ export interface StorySourceItem {
   isPrimary?: boolean;
   parliamentMeta?: ParliamentQuestionMeta;
   officialType?: OfficialSourceType;
+  tags?: string[];
 }
 
 export interface DiscussionQuote {
@@ -67,6 +68,8 @@ export interface SSBIntelligence {
   // Which pipeline produced this brief — lets the UI label deterministic
   // extractive-miner output distinctly from free-form LLM analysis.
   provenance?: 'gemini' | 'cloudflare-ai' | 'extractive';
+  primaryTag?: string;
+  hashtags?: string[];
 }
 
 export type DomainCategory =
@@ -92,6 +95,8 @@ export interface StoryCluster {
   categories: DomainCategory[];
   entities: string[];
   programTags?: string[];
+  primaryTag?: string;
+  hashtags?: string[];
   defenceScore: number;
   isLeadStory: boolean;
   isEditorPromoted?: boolean;

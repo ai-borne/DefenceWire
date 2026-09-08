@@ -201,6 +201,13 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
 
     cluster.ssbIntel = intel;
+    if (intel?.primaryTag && !cluster.primaryTag) {
+      cluster.primaryTag = intel.primaryTag;
+    }
+    if (intel?.hashtags && intel.hashtags.length > 0) {
+      const merged = new Set([...(cluster.hashtags || []), ...intel.hashtags]);
+      cluster.hashtags = Array.from(merged);
+    }
   }
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';

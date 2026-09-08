@@ -23,7 +23,7 @@ export interface ExtractedDefenceMetrics extends DefenceTechTakeaway {
 export interface ExtractiveMiningResult {
   confidence: number;
   isHighConfidence: boolean;
-  metrics: ExtractedDefenceMetrics;
+  metrics?: ExtractedDefenceMetrics;
   verbatimQuote: string;
   summaryText: string;
 }
@@ -73,7 +73,7 @@ export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningRe
     .map((s) => s.snippet || '')
     .join(' ');
   const text = `${cluster.synthesizedHeadline} ${primary.title} ${primary.snippet || ''} ${relatedText}`;
-  const platform = cluster.entities[0] || 'Strategic Defence Modernization';
+  const platform = cluster.entities[0] || cluster.primaryTag || cluster.programTags?.[0];
 
   const { amount: budgetCrores, isHighValue } = parseBudget(text);
   const quantities = parseQuantities(text);
@@ -92,7 +92,7 @@ export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningRe
   const verbatimQuote = extractVerbatimQuote(primary.snippet || '', primary.title, primary.sourceName);
 
   let summaryText = verbatimQuote;
-  if (isHighConfidence) {
+  if (isHighConfidence && platform) {
     const parts = [`${platform}:`];
     if (quantities) parts.push(`Procurement/induction of ${quantities}`);
     if (budgetCrores) parts.push(`valued at ₹${budgetCrores.toLocaleString('en-IN')} Cr`);
@@ -102,18 +102,15 @@ export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningRe
     summaryText = parts.join(' ');
   }
 
-  const specs = [
-    quantities ? `Order Quantity: ${quantities}` : 'Validated operational acquisition parameter',
-    budgetCrores ? `Approved Outlay: ₹${budgetCrores.toLocaleString('en-IN')} Cr` : 'Official capital expenditure authorization',
-    deliveryTimeline ? `Induction Schedule: ${deliveryTimeline}` : 'Phased strategic deployment milestone'
-  ];
+  let metrics: ExtractedDefenceMetrics | undefined;
+  if (platform) {
+    const specs = [
+      quantities ? `Order Quantity: ${quantities}` : 'Validated operational acquisition parameter',
+      budgetCrores ? `Approved Outlay: ₹${budgetCrores.toLocaleString('en-IN')} Cr` : 'Official capital expenditure authorization',
+      deliveryTimeline ? `Induction Schedule: ${deliveryTimeline}` : 'Phased strategic deployment milestone'
+    ];
 
-  return {
-    confidence,
-    isHighConfidence,
-    verbatimQuote,
-    summaryText,
-    metrics: {
+    metrics = {
       platformOrSystem: platform,
       programTag: cluster.programTags?.[0] || platform,
       specifications: specs,
@@ -123,7 +120,15 @@ export function extractDefenceMetrics(cluster: StoryCluster): ExtractiveMiningRe
       ...(icPct !== undefined ? { indigenousContentPercentage: icPct } : {}),
       ...(quantities !== undefined ? { quantities } : {}),
       ...(isHighValue ? { isHighValueOrder: true, sanityAuditRequired: true } : {})
-    }
+    };
+  }
+
+  return {
+    confidence,
+    isHighConfidence,
+    verbatimQuote,
+    summaryText,
+    ...(metrics ? { metrics } : {})
   };
 }
 
@@ -134,18 +139,22 @@ export function generateExtractiveSSBIntel(cluster: StoryCluster): SSBIntelligen
   const intel: SSBIntelligence = {
     provenance: 'extractive',
     whyItMatters: mined.summaryText,
-    strategicAngle: `Strengthens operational deterrence and combat posture in the ${primaryCat.toUpperCase()} domain.`,
-    defenceTechTakeaway: mined.metrics
+    strategicAngle: `Strengthens operational deterrence and combat posture in the ${primaryCat.toUpperCase()} domain.`
   };
 
+  if (mined.metrics) {
+    intel.defenceTechTakeaway = mined.metrics;
+  }
+
   if (cluster.categories.includes('ssb')) {
+    const target = mined.metrics?.platformOrSystem || 'armed forces modernization';
     intel.gdLecturettePoints = [
-      `Indigenisation vs Rapid Induction: Timeline tradeoffs for ${mined.metrics.platformOrSystem}.`,
+      `Indigenisation vs Rapid Induction: Timeline tradeoffs for ${target}.`,
       `Integration into Tri-Service Joint Theatre Command doctrines.`,
       `Strategic deterrence impact in the Indian Ocean Region and Northern Borders.`
     ];
     intel.potentialInterviewQuestions = [
-      `What are the operational role and specifications of ${mined.metrics.platformOrSystem}?`,
+      `What are the operational role and specifications of ${target}?`,
       `How does this procurement align with Atmanirbhar Bharat defence mandates?`,
       `What logistical and supply chain bottlenecks must be addressed for this capability?`
     ];

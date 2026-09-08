@@ -123,7 +123,17 @@ export function buildGeminiResponseSchema(isSsb: boolean, includeTechTakeaway = 
 
   const properties: Record<string, unknown> = {
     whyItMatters: { type: 'STRING', description: whyItMattersDescription },
-    strategicAngle: { type: 'STRING', nullable: true }
+    strategicAngle: { type: 'STRING', nullable: true },
+    primaryTag: {
+      type: 'STRING',
+      nullable: true,
+      description: 'Primary entity hashtag identifying this storyline (e.g. #Su57, #TejasMk1A, #TASL, #Project75I, #LAC).'
+    },
+    hashtags: {
+      type: 'ARRAY',
+      items: { type: 'STRING' },
+      description: 'Relevant entity and system hashtags starting with # (e.g. ["#Su57", "#StealthFighter"]).'
+    }
   };
 
   // Only requested when the source category plausibly describes a concrete
@@ -226,7 +236,9 @@ Entities: ${cleanEntities.join(', ')}
 Return a strict JSON object with these exact keys:
 {
   "whyItMatters": "${isPlatformStory ? 'Structured 3-point brief: Scope -> Operational Impact -> Strategic Significance' : 'Plain 2-3 sentence brief'}",
-  "strategicAngle": "Strategic perspective on deterrence/doctrine"${techTakeawayField}${ssbFields}
+  "strategicAngle": "Strategic perspective on deterrence/doctrine",
+  "primaryTag": "#PrimaryEntity (e.g. #Su57, #TejasMk1A, #TASL, #LAC)",
+  "hashtags": ["#Entity1", "#System2"]${techTakeawayField}${ssbFields}
 }`;
 }
 
