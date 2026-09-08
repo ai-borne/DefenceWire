@@ -18,10 +18,14 @@ export const KNOWN_MILITARY_ENTITIES: MilitaryEntityConfig[] = [
   { name: 'AMCA', pattern: /\bamca\b|advanced\s+medium\s+combat\s+aircraft/i, categories: ['airforce', 'tech', 'strategic'] },
   { name: 'Rafale', pattern: /\brafale(-m)?\b/i, categories: ['airforce', 'navy', 'procurement'] },
   { name: 'Su-30MKI', pattern: /\b(su-30\s*mki|sukhoi-30|super\s*sukhoi)\b/i, categories: ['airforce', 'tech'] },
+  { name: 'Mirage 2000', pattern: /\b(mirage(-?\s*2000)?)\b/i, categories: ['airforce', 'procurement'] },
+  { name: 'Su-57', pattern: /\b(su-?57|felon)\b/i, categories: ['airforce', 'tech'] },
+  { name: 'MiG-29', pattern: /\b(mig-?29k?|fulcrum|baaz)\b/i, categories: ['airforce', 'navy'] },
   { name: 'C-295', pattern: /\bc-?295\b/i, categories: ['airforce', 'procurement'] },
   { name: 'Ghatak UCAV', pattern: /\b(ghatak|aura)\b|stealth\s+ucav/i, categories: ['airforce', 'tech'] },
   { name: 'Netra AEW&C', pattern: /\b(netra|phalcon|aew&c|awacs)\b/i, categories: ['airforce', 'tech'] },
   { name: 'Prachand LCH', pattern: /\bprachand\b|light\s+combat\s+helicopter|lch/i, categories: ['airforce', 'army'] },
+  { name: 'Apache AH-64E', pattern: /\b(apache|ah-?64e?)\b/i, categories: ['airforce', 'army', 'procurement'] },
   { name: 'Rudra / ALH', pattern: /\b(rudra|alh\s*dhruv|dhruv\s*helicopter|luh)\b/i, categories: ['airforce', 'army', 'tech'] },
   { name: 'Tapas UAV', pattern: /\b(tapas(-bh-201)?|rustom(-[12])?|archer(-ng)?)\b/i, categories: ['tech', 'airforce'] },
   { name: 'MQ-9B SkyGuardian', pattern: /\bmq-9b\b|seaguardian|skyguardian|predator\s+drone/i, categories: ['navy', 'procurement', 'tech'] },
@@ -62,12 +66,16 @@ export const KNOWN_MILITARY_ENTITIES: MilitaryEntityConfig[] = [
   { name: 'ATAGS', pattern: /\batags\b|advanced\s+towed\s+artillery/i, categories: ['army', 'tech'] },
   { name: 'Arjun Mk-1A', pattern: /\b(arjun\s*(mk-?1a|mark\s*1a|tank)?|t-90\s*bhishma|t-72\s*ajeya)\b/i, categories: ['army', 'tech'] },
   { name: 'WhAP', pattern: /\b(whap|kestrel|ficv)\b/i, categories: ['army', 'tech'] },
+  { name: 'HIMARS', pattern: /\bhimars\b/i, categories: ['army', 'procurement'] },
 
-  // --- Strategic Agencies & Procurement Bodies ---
+  // --- Strategic Agencies, Suppliers & Theaters ---
   { name: 'DRDO', pattern: /\bdrdo\b/i, categories: ['tech'] },
   { name: 'HAL', pattern: /\bhal\b|hindustan\s+aeronautics/i, categories: ['tech', 'airforce'] },
+  { name: 'TASL', pattern: /\b(tasl|tata\s+advanced\s+systems)\b/i, categories: ['tech', 'procurement'] },
   { name: 'DAC Clearance', pattern: /\bdac\b|defence\s+acquisition\s+council/i, categories: ['procurement'] },
-  { name: 'CCS Approval', pattern: /\bccs\b|cabinet\s+committee\s+on\s+security/i, categories: ['procurement', 'strategic'] }
+  { name: 'CCS Approval', pattern: /\bccs\b|cabinet\s+committee\s+on\s+security/i, categories: ['procurement', 'strategic'] },
+  { name: 'LAC', pattern: /\b(lac|line\s+of\s+actual\s+control)\b/i, categories: ['strategic', 'army'] },
+  { name: 'LOC', pattern: /\b(loc|line\s+of\s+control)\b/i, categories: ['strategic', 'army'] }
 ];
 
 export const DYNAMIC_MILITARY_ENTITIES: MilitaryEntityConfig[] = [];

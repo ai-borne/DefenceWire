@@ -182,4 +182,22 @@ describe('Story Cluster Thread Badge Placement', () => {
     const kickerRow = card.querySelector('.dw-cluster-kicker-row');
     expect(kickerRow).toBeNull();
   });
+
+  it('suppresses polluted publisher tags (#India-News, #IdrwTeam, #Space) and falls through to valid program tags', () => {
+    const clusterPolluted: StoryCluster = {
+      ...baseCluster,
+      id: 'cluster-polluted',
+      primaryTag: '#India-News',
+      hashtags: ['#IdrwTeam', '#Space'],
+      programTags: ['Sukhoi-30 Fighters with RVV BD Missiles']
+    };
+
+    const card = renderStoryCluster(clusterPolluted, mockNewsVm, false);
+    const badge = card.querySelector('.dw-story-thread-badge');
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent).not.toContain('India-News');
+    expect(badge?.textContent).not.toContain('IdrwTeam');
+    expect(badge?.textContent).not.toContain('Space');
+    expect(badge?.textContent).toContain('Sukhoi-30 Fighters with RVV BD Missiles');
+  });
 });

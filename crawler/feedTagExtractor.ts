@@ -4,19 +4,19 @@
  */
 
 import { decodeHtmlEntities } from '../src/utils/security.js';
-import { isNoiseTag } from '../src/utils/hashtagUtils.js';
+import { isNoiseTag, isDefenseTag, cleanHashtag } from '../src/utils/hashtagUtils.js';
 
 export const isNoiseCategoryTag = isNoiseTag;
-export { isNoiseTag };
+export { isNoiseTag, isDefenseTag };
 
 function normalizeTagToHashtag(raw: string): string | null {
   const decoded = decodeHtmlEntities(raw).trim();
   if (!decoded) return null;
   const cleaned = decoded.replace(/^#+/, '').trim();
-  if (isNoiseCategoryTag(cleaned)) return null;
-  const tagToken = cleaned.replace(/\s+/g, '');
-  if (!tagToken || isNoiseCategoryTag(tagToken)) return null;
-  return `#${tagToken}`;
+  if (!isDefenseTag(cleaned)) return null;
+  const formatted = cleanHashtag(cleaned).replace(/\s+/g, '');
+  if (!formatted || !isDefenseTag(formatted)) return null;
+  return `#${formatted}`;
 }
 
 export function extractFeedTags(xmlBlock: string, title?: string, snippet?: string): string[] {

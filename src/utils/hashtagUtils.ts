@@ -4,23 +4,42 @@
  * Hard limit: <= 300 LOC (Target: <= 80 LOC).
  */
 
+import { extractMilitaryEntities } from '../data/militaryEntities.js';
+
 const NOISE_TAGS = new Set([
   'news', 'india', 'indian', 'defence', 'defense', 'security', 'update', 'updates',
   'topnews', 'breakingnews', 'national', 'international', 'general', 'latest',
   'article', 'articles', 'pressrelease', 'pressreleases', 'world', 'asia',
   'southasia', 'mod', 'ministryofdefence', 'editorial', 'opinion', 'report', 'reports',
-  'alert', 'alerts', 'brief', 'briefing', 'analysis', 'exclusive'
+  'alert', 'alerts', 'brief', 'briefing', 'analysis', 'exclusive', 'indianews',
+  'idrwteam', 'idrw', 'andhrapradesh', 'space', 'trending'
 ]);
 
-const KNOWN_ACRONYMS = new Set([
-  'tasl', 'lac', 'drdo', 'hal', 'iaf', 'mod', 'dac', 'ccs', 'amca', 'qrsam',
+export const KNOWN_ACRONYMS = new Set([
+  'tasl', 'lac', 'loc', 'drdo', 'hal', 'iaf', 'mod', 'dac', 'ccs', 'amca', 'qrsam',
   'bmd', 'uav', 'ucav', 'eos', 'ins', 'bvr', 'mbrl', 'atgm', 'lracm', 'erads'
 ]);
+
+const STRATEGIC_TAG_REGEX = /^(atmanirbhar|idex|makeinindia|iddm|procurement|strategic|indigenous|dap2020|drdo|hal|bel|tasl|mod|dac|ccs|lac|loc|army|navy|airforce|iaf|c-?uas|cuas|uav|ucav|bmd|ew|sigint|radar|sonar|artillery|missile|warship|submarine|corvette|frigate|destroyer|aircraft|fighter|stealth|hypersonic|aeroindia|defexpo|defense|defence|aviation|aerospace|apache)/i;
+
+const ACRONYM_PATTERN = /^(tasl|lac|loc|drdo|hal|iaf|mod|dac|ccs|amca|qrsam|bmd|uav|ucav|eos|ins|bvr|mbrl|atgm|lracm|erads|mig|su|csl|mdl|grse|gsl|bel|bdl|midhani)\d*([a-z])?$/i;
 
 export function isNoiseTag(tag: string): boolean {
   if (!tag || typeof tag !== 'string') return true;
   const normalized = tag.replace(/^#/, '').toLowerCase().replace(/[\s\-_]+/g, '');
   return normalized.length <= 1 || NOISE_TAGS.has(normalized);
+}
+
+export function isDefenseTag(tag: string): boolean {
+  if (!tag || typeof tag !== 'string') return false;
+  if (isNoiseTag(tag)) return false;
+  const cleaned = tag.replace(/^#+/, '').replace(/^th[_-]/i, '').trim();
+  if (!cleaned || cleaned.length <= 1) return false;
+  const lower = cleaned.toLowerCase().replace(/[\s\-_]+/g, '');
+  if (KNOWN_ACRONYMS.has(lower) || ACRONYM_PATTERN.test(lower)) return true;
+  if (STRATEGIC_TAG_REGEX.test(lower)) return true;
+  const military = extractMilitaryEntities(cleaned);
+  return military.entities.length > 0;
 }
 
 export function cleanHashtag(raw: string): string {

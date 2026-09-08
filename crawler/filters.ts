@@ -28,7 +28,8 @@ export const NON_DEFENCE_BLACKLIST = [
   'civic body', 'panchayat', 'municipal corporation', 'municipal tender', 'highway toll',
   'admit card', 'board exam', 'cbse result', 'neet exam', 'neet ug', 'jee main',
   'upsc prelims', 'bail plea', 'custody battle', 'cheating case', 'dowry death',
-  'traffic challan', 'property tax', 'metro fare', 'water supply cut', 'garbage collection'
+  'traffic challan', 'property tax', 'metro fare', 'water supply cut', 'garbage collection',
+  'temple theft', 'burglary', 'chain snatching', 'pickpocketing'
 ];
 
 export const NON_DEFENCE_BLACKLIST_REGEX = new RegExp(
@@ -36,7 +37,9 @@ export const NON_DEFENCE_BLACKLIST_REGEX = new RegExp(
   'i'
 );
 
-export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|bel|bdl|mdl|grse|gsl|csl|midhani|tasl|dac|ccs|lac|loc|ssb|aon|iddm|atags|mbbr|iadc|cds|dmr|ssbn|ssn|sam|bvr|qrsam|vshorads?|lch|luh|alhs?|bmd|ecm|c-uas|cuas|uavs?|ucavs?|fpv|loitering munition|defence|defense|military|army|navy|air force|armed forces|warship|corvette|frigate|destroyer|submarine|tejas|amca|rafale|zorawar|brahmos|pinaka|s-400|prachand|aircraft carrier|tri-service|theat(?:er|re) command|missile|artillery|howitzers?|infantry|air defen[sc]e|electronic warfare|sigint|counter-drone|stealth|hypersonic|standoff strike|interceptor|dap 2020|idex|tata advanced systems|kalyani strategic|l&t defence|solar industries|zen tech|adani defence|(?:defence|defense|military|arms|weapons?|capital|iaf|drdo|navy|army|mod)\s+procurement|procurement\s+(?:of|for)\s+(?:defence|defense|military|arms|weapons?|missiles?|aircraft|tanks?|howitzers?|ammunition|radars?|warships?|drones?)|capital\s+acquisition|defence\s+acquisition|(?:atmanirbhar|indigenous)\s+(?:defence|defense|weapon|missile|armou?r|security|military)|make\s+in\s+india\s+in\s+defence)\b/i;
+export const DEFENCE_WHOLE_WORD_REGEX = /\b(mod|iaf|drdo|hal|bel|bdl|mdl|grse|gsl|csl|midhani|tasl|dac|ccs|lac|loc|ssb|aon|iddm|atags|mbbr|iadc|cds|dmr|ssbn|ssn|sam|bvr|qrsam|vshorads?|lch|luh|alhs?|bmd|ecm|c-uas|cuas|uavs?|ucavs?|fpv|loitering munition|military|army|navy|air force|armed forces|warship|corvette|frigate|destroyer|submarine|tejas|amca|rafale|zorawar|brahmos|pinaka|s-400|prachand|aircraft carrier|tri-service|theat(?:er|re) command|missile|artillery|howitzers?|infantry|electronic warfare|sigint|counter-drone|stealth|hypersonic|standoff strike|interceptor|dap 2020|idex|tata advanced systems|kalyani strategic|l&t defence|solar industries|zen tech|adani defence|(?:ministry\s+of\s+defen[sc]e|defen[sc]e\s+(?:ministry|minister|forces?|budget|exports?|production|procurement|acquisition|corridor|psus?|equipment|personnel|ties|cooperation|pact|deal|supplies|industry|moderni[sz]ation|preparedness|r&d|expo|indigeni[sz]ation|electronics|sector|contract|systems?|secretary|staff|chief|base|installations?|academy|establishment|research|capability|capabilities|spending|aviation|aerospace|readiness|partnership|agreements?|strategy|dialogue)|(?:air|border|homeland|coastal|maritime|cyber|national|missile|naval|infantry|electronic|integrated|strategic)\s+defen[sc]e)|(?:defence|defense|military|arms|weapons?|capital|iaf|drdo|navy|army|mod)\s+procurement|procurement\s+(?:of|for)\s+(?:defence|defense|military|arms|weapons?|missiles?|aircraft|tanks?|howitzers?|ammunition|radars?|warships?|drones?)|capital\s+acquisition|defence\s+acquisition|(?:atmanirbhar|indigenous)\s+(?:defence|defense|weapon|missile|armou?r|security|military)|make\s+in\s+india\s+in\s+defence)\b/i;
+
+export const MILITARY_CORROBORATION_REGEX = /\b(military|iaf|drdo|hal|bel|bdl|mdl|navy|army|mod|weapon|weapons|arms|missile|missiles|warship|warships|procurement|border|borders|regiment|soldier|soldiers|battalion|combat|ammunition|artillery|air\s*force|armed\s*forces|warfare|security\s+forces|jawans?|troops?|corps|squadron|frontline|pentagon|pla|pakistan\s+army|plaaf|plan|warhead|ballistic|radar|radars|stealth|interceptor)\b/i;
 
 /**
  * Validates if an article item is strictly relevant to Indian defence & military affairs.
@@ -61,12 +64,17 @@ export function isDefenceRelevant(item: StorySourceItem, feed: FeedConfig): bool
     return true;
   }
 
-  // 3. Whole-word defence keywords check
+  // 4. Whole-word defence keywords check
   if (DEFENCE_WHOLE_WORD_REGEX.test(fullText)) {
     return true;
   }
 
-  // 4. Official & Specialized tier pass-through if not blacklisted
+  // 5. Solitary defence/defense co-occurrence gate: require military corroboration
+  if (/\bdefen[sc]e\b/i.test(fullText) && MILITARY_CORROBORATION_REGEX.test(fullText)) {
+    return true;
+  }
+
+  // 6. Official & Specialized tier pass-through if not blacklisted
   if (feed.tier === SourceTier.TIER_1_OFFICIAL || feed.tier === SourceTier.TIER_3_SPECIALIZED) {
     return true;
   }

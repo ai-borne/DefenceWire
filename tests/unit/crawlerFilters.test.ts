@@ -143,6 +143,27 @@ describe('Crawler Filters: Relevance & Negative Blacklisting', () => {
     expect(isDefenceRelevant(ceremonial, socialFeed)).toBe(false);
     expect(isDefenceRelevant(strategic, socialFeed)).toBe(true);
   });
+
+  it('rejects civilian crime and theft false positives even with figurative defence phrasing', () => {
+    const templeTheft = createMockItem(
+      'item-temple',
+      'SP urges temple management committees to arrange CCTV cameras as first line of defence against thieves in Markapuram'
+    );
+    const burglary = createMockItem('item-burglary', 'Police crack burglary and chain snatching case in residential colony');
+    const selfDefence = createMockItem('item-self-defence', 'College organizes self defence workshop for girls in youth festival');
+
+    expect(isDefenceRelevant(templeTheft, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(burglary, nationalFeed)).toBe(false);
+    expect(isDefenceRelevant(selfDefence, nationalFeed)).toBe(false);
+  });
+
+  it('accepts legitimate defence stories with compound defence terms and military corroboration', () => {
+    const pact = createMockItem('item-pact', 'India and France discuss defence ties and joint submarine cooperation');
+    const border = createMockItem('item-border', 'Defence Minister reviews operational readiness along LAC forward posts');
+
+    expect(isDefenceRelevant(pact, nationalFeed)).toBe(true);
+    expect(isDefenceRelevant(border, nationalFeed)).toBe(true);
+  });
 });
 
 describe('Crawler Filters: Article Freshness Window', () => {

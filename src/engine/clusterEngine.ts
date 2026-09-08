@@ -13,6 +13,7 @@ import { computeStableHash } from '../utils/stableId.js';
 import { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities, MilitaryEntityConfig } from '../data/militaryEntities.js';
 import { hasSharedActionSignature } from './actionSignatures.js';
 import { linkStoryToPrograms } from './programMatcher.js';
+import { isDefenseTag } from '../utils/hashtagUtils.js';
 
 export { KNOWN_MILITARY_ENTITIES, extractMilitaryEntities };
 export type { MilitaryEntityConfig };
@@ -253,11 +254,14 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
 
     const clusterTags = new Set<string>();
     for (const item of group) {
-      if (item.tags) {
-        for (const t of item.tags) clusterTags.add(t);
-      }
+      if (item.tags) for (const t of item.tags) if (isDefenseTag(t)) clusterTags.add(t);
     }
     const hashtags = clusterTags.size > 0 ? Array.from(clusterTags) : undefined;
+    const entityMatch = hashtags?.find(h => {
+      const normH = h.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      return entities.some(e => e.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === normH);
+    });
+    const primaryTag = entityMatch || hashtags?.[0];
 
     const baseCluster: StoryCluster = {
       id: `cluster-${computeStableHash(primary.url)}`,
@@ -269,7 +273,7 @@ export function clusterArticles(articles: StorySourceItem[], now: Date = new Dat
       entities,
       programTags: programTags.length > 0 ? programTags : undefined,
       hashtags,
-      primaryTag: hashtags?.[0],
+      primaryTag,
       defenceScore: 0,
       isLeadStory: false,
       createdAt: primary.publishedAt,

@@ -14,7 +14,7 @@ import { renderSSBDrawer } from './SSBDrawer.js';
 import { renderStorySourcesDrawer } from './StorySourcesDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
-import { canonicalizeTag, cleanHashtag, isNoiseTag } from '../utils/hashtagUtils.js';
+import { canonicalizeTag, cleanHashtag, isNoiseTag, isDefenseTag } from '../utils/hashtagUtils.js';
 
 interface StoryBadgeInfo {
   label: string;
@@ -39,7 +39,7 @@ function resolveStoryBadge(cluster: StoryCluster): StoryBadgeInfo | null {
     const isHashtag = trimmed.startsWith('#') || !/\s/.test(trimmed) || raw === cluster.primaryTag || (cluster.hashtags && cluster.hashtags.includes(raw));
     if (isHashtag) {
       const canonical = canonicalizeTag(trimmed) || cleanHashtag(trimmed) || trimmed.replace(/^#+/, '');
-      if (!canonical || isNoiseTag(canonical)) continue;
+      if (!canonical || isNoiseTag(canonical) || !isDefenseTag(canonical)) continue;
       return {
         label: `#${canonical}`,
         target: canonical

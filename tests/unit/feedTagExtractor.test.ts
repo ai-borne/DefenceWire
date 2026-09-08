@@ -91,5 +91,28 @@ describe('feedTagExtractor', () => {
       const tags = extractFeedTags(xml, 'Plain headline without tags', 'Plain description');
       expect(tags).toEqual([]);
     });
+
+    it('strictly drops non-defence publisher category tags like India News, idrwTeam, Andhra Pradesh, and Space', () => {
+      const xml = `
+        <item>
+          <category>India News</category>
+          <category>idrwTeam</category>
+          <category>Andhra Pradesh</category>
+          <category>Space</category>
+          <category>Trending</category>
+          <category>Su-57</category>
+          <category>TASL</category>
+        </item>
+      `;
+
+      const tags = extractFeedTags(xml);
+      expect(tags).toContain('#Su-57');
+      expect(tags).toContain('#TASL');
+      expect(tags).not.toContain('#IndiaNews');
+      expect(tags).not.toContain('#IdrwTeam');
+      expect(tags).not.toContain('#AndhraPradesh');
+      expect(tags).not.toContain('#Space');
+      expect(tags).not.toContain('#Trending');
+    });
   });
 });
