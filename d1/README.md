@@ -38,6 +38,14 @@ npm run d1:migrate:remote
 emulator via `wrangler d1 execute --local` — useful for testing changes to
 `d1/schema.sql` without touching the real database.)
 
+### 4b. Seed Living Storyline & Hashtag Threads
+
+```bash
+npm run d1:seed:remote
+```
+
+(`npm run d1:seed:local` seeds the local SQLite emulator with initial canonical threads from `d1/seeds/threads.sql`.)
+
 ## 5. Create a scoped API token for the crawler's write path
 
 GitHub Actions has no Workers/D1 binding, so the crawler writes to the

@@ -13,7 +13,8 @@ export const EDGE_CACHE_TAGS = {
   SUPPLIERS: 'dw-suppliers',
   PROGRAMS: 'dw-programs',
   AI_GROUNDING: 'dw-ai-grounding',
-  PATTERNS: 'dw-patterns'
+  PATTERNS: 'dw-patterns',
+  THREADS: 'dw-threads'
 } as const;
 
 export type EdgeCacheTag = (typeof EDGE_CACHE_TAGS)[keyof typeof EDGE_CACHE_TAGS];
@@ -55,7 +56,8 @@ export const EDGE_CACHE_URLS = {
   SITEMAP: 'https://www.defencewire.in/sitemap.xml',
   LLMS_TXT: 'https://www.defencewire.in/llms.txt',
   LLMS_FULL: 'https://www.defencewire.in/llms-full.txt',
-  PATTERNS: 'https://www.defencewire.in/api/patterns'
+  PATTERNS: 'https://www.defencewire.in/api/patterns',
+  THREADS: 'https://www.defencewire.in/api/threads/list'
 } as const;
 
 /**

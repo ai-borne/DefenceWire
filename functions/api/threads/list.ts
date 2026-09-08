@@ -76,6 +76,7 @@ export async function onRequestGet(context: PagesFunctionContext): Promise<Respo
 
   if (!result.error) {
     headers['Cache-Control'] = 'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
+    headers['Cache-Tag'] = 'dw-threads';
   } else {
     headers['Cache-Control'] = 'no-store';
   }
