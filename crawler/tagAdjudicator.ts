@@ -7,7 +7,7 @@
 
 import { StoryCluster } from '../src/types/news.js';
 import { calculateClusterEntitySalience } from './entitySalience.js';
-import { validateEntityAnchors, hasWordBoundary } from './entityDisambiguator.js';
+import { validateEntityAnchors, hasWordBoundary, disambiguateEntity, CONTEXTUAL_ANCHORS } from './entityDisambiguator.js';
 import { adjudicateContestedTag, CloudflareAIOptions } from './cloudflareAI.js';
 
 export type AdjudicationSource = 'tier1_pre_screen' | 'tier1_tier2_consensus' | 'tier3_cloudflare_ai' | 'deterministic_fallback';
@@ -101,3 +101,46 @@ export async function adjudicateCandidateTag(
       : (anchorResult.reason || `Insufficient salience score (${salience.score} < 0.60).`)
   };
 }
+
+/**
+ * Screens and filters cluster primary tag, hashtags, and entities through the 3-Tier Cascade.
+ */
+export async function screenClusterTags(
+  cluster: StoryCluster,
+  intel?: GeminiCounterCheckInput,
+  options: CloudflareAIOptions = {}
+): Promise<void> {
+  let finalPrimaryTag: string | undefined = undefined;
+  if (cluster.primaryTag) {
+    const v = await adjudicateCandidateTag(cluster, cluster.primaryTag, intel, options);
+    if (v.approved) finalPrimaryTag = v.tag;
+  }
+  if (!finalPrimaryTag && intel?.primaryTag && intel.primaryTag !== cluster.primaryTag) {
+    const v = await adjudicateCandidateTag(cluster, intel.primaryTag, intel, options);
+    if (v.approved) finalPrimaryTag = v.tag;
+  }
+  cluster.primaryTag = finalPrimaryTag;
+
+  const rawTags = new Set([...(cluster.hashtags || []), ...(intel?.hashtags || [])]);
+  const approvedTags: string[] = [];
+  for (const tag of rawTags) {
+    const clean = tag.replace(/^#+/, '').toUpperCase();
+    if (clean in CONTEXTUAL_ANCHORS) {
+      const v = await adjudicateCandidateTag(cluster, tag, intel, options);
+      if (v.approved) approvedTags.push(v.tag);
+    } else {
+      approvedTags.push(tag);
+    }
+  }
+  cluster.hashtags = approvedTags;
+
+  const fullText = `${cluster.synthesizedHeadline} ${cluster.primarySource?.snippet || ''}`;
+  cluster.entities = (cluster.entities || []).filter((ent) => {
+    const clean = ent.replace(/^#+/, '').toUpperCase();
+    if (clean in CONTEXTUAL_ANCHORS) {
+      return disambiguateEntity(clean, fullText);
+    }
+    return true;
+  });
+}
+

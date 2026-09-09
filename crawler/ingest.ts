@@ -27,6 +27,7 @@ import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBrea
 import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
+import { screenClusterTags } from './tagAdjudicator.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -107,19 +108,12 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   // Atomic Commit Guard: Preserve existing data on total failure
   if (rawArticles.length === 0 || freshArticles.length === 0) {
-    console.log(
-      `[ATOMIC COMMIT GUARD] Bailing out: raw=${rawArticles.length}, fresh=${freshArticles.length} across ${feeds.length} feeds. Preserving existing dataset untouched.`
-    );
+    console.log(`[ATOMIC COMMIT GUARD] Bailing out: raw=${rawArticles.length}, fresh=${freshArticles.length} across ${feeds.length} feeds. Preserving existing dataset.`);
     const fallbackClusters = existingClusters.length > 0 ? existingClusters : [...INITIAL_STORY_CLUSTERS];
     const fallbackRiver = existingRiver.length > 0 ? existingRiver : [...INITIAL_RIVER_ITEMS];
     return {
-      clusters: fallbackClusters,
-      river: fallbackRiver,
-      totalIngested: 0,
-      totalFiltered: 0,
-      activeFeedsCount: feeds.length,
-      durationMs: Date.now() - startTime,
-      generatedAt: new Date().toISOString()
+      clusters: fallbackClusters, river: fallbackRiver, totalIngested: 0, totalFiltered: 0,
+      activeFeedsCount: feeds.length, durationMs: Date.now() - startTime, generatedAt: new Date().toISOString()
     };
   }
 
@@ -201,13 +195,16 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
 
     cluster.ssbIntel = intel;
-    if (intel?.primaryTag && !cluster.primaryTag) {
-      cluster.primaryTag = intel.primaryTag;
-    }
-    if (intel?.hashtags && intel.hashtags.length > 0) {
-      const merged = new Set([...(cluster.hashtags || []), ...intel.hashtags]);
-      cluster.hashtags = Array.from(merged);
-    }
+    await screenClusterTags(
+      cluster,
+      intel ? {
+        primaryTag: intel.primaryTag,
+        focalEntity: intel.focalEntity,
+        operationalTheater: intel.operationalTheater,
+        hashtags: intel.hashtags
+      } : undefined,
+      { fetchFn }
+    );
   }
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';

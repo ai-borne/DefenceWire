@@ -33,6 +33,17 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function getEntityVariants(clean: string): string[] {
+  const spaced = clean.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ');
+  const variants = [clean, ...(ENTITY_EXPANSIONS[clean.toUpperCase()] || [])];
+  if (spaced !== clean) variants.push(spaced);
+  const prefix = ['HAL', 'INS', 'DAC', 'LAC', 'LOC'].find(
+    (p) => clean.toUpperCase().startsWith(p) && clean.length > p.length
+  );
+  if (prefix) variants.push(`${clean.slice(0, prefix.length)} ${clean.slice(prefix.length)}`);
+  return variants;
+}
+
 /**
  * Checks if entity exists as an exact discrete word token in text (never loose substring).
  */
@@ -40,8 +51,7 @@ export function hasWordBoundary(text: string, entity: string): boolean {
   if (!text || !entity) return false;
   const clean = entity.replace(/^#+/, '').replace(/^th[_-]/i, '').trim();
   if (!clean) return false;
-  const variants = [clean, ...(ENTITY_EXPANSIONS[clean.toUpperCase()] || [])];
-  return variants.some((v) => {
+  return getEntityVariants(clean).some((v) => {
     const escaped = escapeRegExp(v);
     return new RegExp(`(^|[^a-zA-Z0-9_-])${escaped}(?=[^a-zA-Z0-9_-]|$)`, 'i').test(text);
   });
@@ -54,9 +64,8 @@ export function countTokenOccurrences(text: string, entity: string): number {
   if (!text || !entity) return 0;
   const clean = entity.replace(/^#+/, '').replace(/^th[_-]/i, '').trim();
   if (!clean) return 0;
-  const variants = [clean, ...(ENTITY_EXPANSIONS[clean.toUpperCase()] || [])];
   let total = 0;
-  for (const v of variants) {
+  for (const v of getEntityVariants(clean)) {
     const escaped = escapeRegExp(v);
     const matches = text.match(new RegExp(`(^|[^a-zA-Z0-9_-])${escaped}(?=[^a-zA-Z0-9_-]|$)`, 'gi'));
     if (matches) total += matches.length;
