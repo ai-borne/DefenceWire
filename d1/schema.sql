@@ -324,6 +324,7 @@ CREATE TABLE IF NOT EXISTS story_threads (
   first_event_at TEXT NOT NULL,   -- ISO 8601
   last_event_at TEXT NOT NULL,    -- ISO 8601
   summary TEXT,                   -- short synthesis or description
+  fingerprint_json TEXT,          -- semantic fingerprint vocabulary tokens
   created_at TEXT NOT NULL,       -- ISO 8601
   updated_at TEXT NOT NULL        -- ISO 8601
 );

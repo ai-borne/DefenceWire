@@ -17,6 +17,7 @@ export interface StoryThread {
   firstEventAt: string;
   lastEventAt: string;
   summary?: string;
+  semanticFingerprint?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -46,6 +47,7 @@ export interface StoryThreadRow {
   first_event_at: string;
   last_event_at: string;
   summary: string | null;
+  fingerprint_json?: string | null;
   created_at: string;
   updated_at: string;
 }

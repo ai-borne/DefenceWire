@@ -15,6 +15,15 @@ import {
 } from '../types/threads.js';
 
 export function threadRowToStoryThread(row: StoryThreadRow): StoryThread {
+  let semanticFingerprint: string[] | undefined = undefined;
+  if (row.fingerprint_json) {
+    try {
+      semanticFingerprint = JSON.parse(row.fingerprint_json);
+    } catch {
+      semanticFingerprint = undefined;
+    }
+  }
+
   return {
     id: row.id,
     title: row.title,
@@ -25,6 +34,7 @@ export function threadRowToStoryThread(row: StoryThreadRow): StoryThread {
     firstEventAt: row.first_event_at,
     lastEventAt: row.last_event_at,
     summary: row.summary ?? undefined,
+    semanticFingerprint,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -58,8 +68,8 @@ export function buildUpsertThreadStatement(thread: StoryThread): D1Statement {
   return {
     sql: `INSERT INTO story_threads (
       id, title, canonical_entity, category, status, event_count,
-      first_event_at, last_event_at, summary, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      first_event_at, last_event_at, summary, fingerprint_json, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
       category = excluded.category,
@@ -68,6 +78,7 @@ export function buildUpsertThreadStatement(thread: StoryThread): D1Statement {
       first_event_at = excluded.first_event_at,
       last_event_at = excluded.last_event_at,
       summary = excluded.summary,
+      fingerprint_json = excluded.fingerprint_json,
       updated_at = excluded.updated_at`,
     params: [
       thread.id,
@@ -79,6 +90,7 @@ export function buildUpsertThreadStatement(thread: StoryThread): D1Statement {
       thread.firstEventAt,
       thread.lastEventAt,
       thread.summary ?? null,
+      thread.semanticFingerprint ? JSON.stringify(thread.semanticFingerprint) : null,
       thread.createdAt,
       thread.updatedAt
     ]

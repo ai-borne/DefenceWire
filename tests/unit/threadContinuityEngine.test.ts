@@ -1,7 +1,7 @@
 /**
- * Unit Tests for Story Thread Continuity Engine (Phase 1 & 2)
- * Verifies chronological lineage, sequence indexing (x1.1.1 -> x1.1.2),
- * category-calibrated titles, stop-tag suppression, and branch splitting.
+ * Unit Tests for Story Thread Continuity Engine (Phase 1 & 4)
+ * Verifies chronological lineage, sequence indexing, category-calibrated titles,
+ * semantic fingerprint matching, and intra-thread coherence outlier detection.
  * Hard limit: <= 300 LOC.
  */
 
@@ -11,7 +11,9 @@ import { SourceTier } from '../../src/types/source.js';
 import { StoryThread, StoryThreadEvent } from '../../src/types/threads.js';
 import {
   matchAndAdvanceThreads,
-  sortAndIndexEvents
+  sortAndIndexEvents,
+  scoreMatch,
+  auditThreadCoherence
 } from '../../crawler/threadContinuityEngine.js';
 
 function createMockCluster(overrides: Partial<StoryCluster> = {}): StoryCluster {
@@ -21,58 +23,28 @@ function createMockCluster(overrides: Partial<StoryCluster> = {}): StoryCluster 
     id,
     synthesizedHeadline: overrides.synthesizedHeadline ?? 'MoD signs contract for Tejas Mk1A fighters',
     primarySource: {
-      id: `src-${id}`,
-      title: 'PIB Release',
-      url: `https://pib.gov.in/${id}`,
-      sourceName: 'PIB MoD',
-      sourceDomain: 'pib.gov.in',
-      tier: SourceTier.TIER_1_OFFICIAL,
-      publishedAt
+      id: `src-${id}`, title: 'PIB Release', url: `https://pib.gov.in/${id}`,
+      sourceName: 'PIB MoD', sourceDomain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL, publishedAt
     },
-    relatedCoverage: [],
-    discussions: [],
-    categories: overrides.categories ?? ['airforce'],
-    entities: overrides.entities ?? ['Tejas Mk1A', 'HAL', 'IAF'],
-    programTags: overrides.programTags,
-    defenceScore: 85,
-    isLeadStory: false,
-    createdAt: publishedAt,
-    updatedAt: publishedAt,
-    ...overrides
+    relatedCoverage: [], discussions: [], categories: overrides.categories ?? ['airforce'],
+    entities: overrides.entities ?? ['Tejas Mk1A', 'HAL', 'IAF'], programTags: overrides.programTags,
+    defenceScore: 85, isLeadStory: false, createdAt: publishedAt, updatedAt: publishedAt, ...overrides
   };
 }
 
 function createMockThread(id: string, entity: string, overrides: Partial<StoryThread> = {}): StoryThread {
   return {
-    id,
-    title: `${entity} Track`,
-    canonicalEntity: entity,
-    category: 'airforce',
-    status: 'active',
-    eventCount: 1,
-    firstEventAt: '2026-07-01T00:00:00Z',
-    lastEventAt: '2026-07-01T00:00:00Z',
-    createdAt: '2026-07-01T00:00:00Z',
-    updatedAt: '2026-07-01T00:00:00Z',
-    ...overrides
+    id, title: `${entity} Track`, canonicalEntity: entity, category: 'airforce', status: 'active',
+    eventCount: 1, firstEventAt: '2026-07-01T00:00:00Z', lastEventAt: '2026-07-01T00:00:00Z',
+    createdAt: '2026-07-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z', ...overrides
   };
 }
 
 function createMockEvent(id: string, threadId: string, clusterId: string, overrides: Partial<StoryThreadEvent> = {}): StoryThreadEvent {
   return {
-    id,
-    threadId,
-    clusterId,
-    sequenceCode: 'x1.1.1',
-    sequenceIndex: 1,
-    headline: 'Headline',
-    deltaSummary: 'Delta',
-    primarySourceName: 'PIB MoD',
-    primarySourceUrl: 'https://pib.gov.in',
-    publishedAt: '2026-07-01T00:00:00Z',
-    entities: ['Tejas Mk1A'],
-    createdAt: '2026-07-01T00:00:00Z',
-    ...overrides
+    id, threadId, clusterId, sequenceCode: 'x1.1.1', sequenceIndex: 1, headline: 'Headline',
+    deltaSummary: 'Delta', primarySourceName: 'PIB MoD', primarySourceUrl: 'https://pib.gov.in',
+    publishedAt: '2026-07-01T00:00:00Z', entities: ['Tejas Mk1A'], createdAt: '2026-07-01T00:00:00Z', ...overrides
   };
 }
 
@@ -104,12 +76,8 @@ describe('Story Thread Continuity Engine', () => {
     const newCluster = createMockCluster({
       id: 'cluster-tejas-second',
       primarySource: {
-        id: 'src-2',
-        title: 'IAF Delivery',
-        url: 'https://pib.gov.in/tejas-delivery',
-        sourceName: 'PIB MoD',
-        sourceDomain: 'pib.gov.in',
-        tier: SourceTier.TIER_1_OFFICIAL,
+        id: 'src-2', title: 'IAF Delivery', url: 'https://pib.gov.in/tejas-delivery',
+        sourceName: 'PIB MoD', sourceDomain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL,
         publishedAt: '2026-08-15T12:00:00Z'
       },
       programTags: ['tejas-mk1a']
@@ -129,12 +97,8 @@ describe('Story Thread Continuity Engine', () => {
   });
 
   it('sorts out-of-order events strictly by ground-truth published date and assigns sequence codes', () => {
-    const evLate = createMockEvent('ev_late', 'th_amca', 'cluster_late', {
-      publishedAt: '2026-09-01T00:00:00Z'
-    });
-    const evEarly = createMockEvent('ev_early', 'th_amca', 'cluster_early', {
-      publishedAt: '2026-06-01T00:00:00Z'
-    });
+    const evLate = createMockEvent('ev_late', 'th_amca', 'cluster_late', { publishedAt: '2026-09-01T00:00:00Z' });
+    const evEarly = createMockEvent('ev_early', 'th_amca', 'cluster_early', { publishedAt: '2026-06-01T00:00:00Z' });
 
     const indexed = sortAndIndexEvents([evLate, evEarly]);
     expect(indexed[0]?.id).toBe('ev_early');
@@ -147,22 +111,13 @@ describe('Story Thread Continuity Engine', () => {
 
   it('reactivates dormant threads after 60+ days of silence when matching cluster arrives', () => {
     const dormantThread = createMockThread('th_pinaka-er', 'pinaka-er', {
-      category: 'army',
-      status: 'dormant',
-      firstEventAt: '2026-01-01T00:00:00Z',
-      lastEventAt: '2026-02-01T00:00:00Z'
+      category: 'army', status: 'dormant', firstEventAt: '2026-01-01T00:00:00Z', lastEventAt: '2026-02-01T00:00:00Z'
     });
     const newCluster = createMockCluster({
-      id: 'cluster-pinaka-new',
-      entities: ['Pinaka-ER', 'DRDO'],
-      programTags: ['pinaka-er'],
+      id: 'cluster-pinaka-new', entities: ['Pinaka-ER', 'DRDO'], programTags: ['pinaka-er'],
       primarySource: {
-        id: 'src-pinaka',
-        title: 'Pinaka Order',
-        url: 'https://mod.gov.in/pinaka',
-        sourceName: 'PIB MoD',
-        sourceDomain: 'mod.gov.in',
-        tier: SourceTier.TIER_1_OFFICIAL,
+        id: 'src-pinaka', title: 'Pinaka Order', url: 'https://mod.gov.in/pinaka',
+        sourceName: 'PIB MoD', sourceDomain: 'mod.gov.in', tier: SourceTier.TIER_1_OFFICIAL,
         publishedAt: '2026-09-01T10:00:00Z'
       }
     });
@@ -178,23 +133,16 @@ describe('Story Thread Continuity Engine', () => {
     const thread1 = createMockThread('th_tejas-mk1a', 'tejas-mk1a');
     const thread2 = createMockThread('th_amca-stealth', 'amca-stealth');
     const jointCluster = createMockCluster({
-      id: 'cluster-joint-iaf',
-      entities: ['Tejas Mk1A', 'AMCA'],
-      programTags: ['tejas-mk1a', 'amca-stealth'],
+      id: 'cluster-joint-iaf', entities: ['Tejas Mk1A', 'AMCA'], programTags: ['tejas-mk1a', 'amca-stealth'],
       primarySource: {
-        id: 'src-joint',
-        title: 'DAC Package',
-        url: 'https://pib.gov.in/dac',
-        sourceName: 'PIB MoD',
-        sourceDomain: 'pib.gov.in',
-        tier: SourceTier.TIER_1_OFFICIAL,
+        id: 'src-joint', title: 'DAC Package', url: 'https://pib.gov.in/dac',
+        sourceName: 'PIB MoD', sourceDomain: 'pib.gov.in', tier: SourceTier.TIER_1_OFFICIAL,
         publishedAt: '2026-09-05T08:00:00Z'
       }
     });
 
     const result = matchAndAdvanceThreads([jointCluster], [thread1, thread2], []);
     expect(result.attachedCount).toBe(2);
-
     const ev1 = result.events.find((e) => e.threadId === 'th_tejas-mk1a');
     const ev2 = result.events.find((e) => e.threadId === 'th_amca-stealth');
     expect(ev1?.sequenceCode).toBe('x1.1.1');
@@ -204,10 +152,7 @@ describe('Story Thread Continuity Engine', () => {
   it('prevents attaching duplicate events for the same clusterId', () => {
     const thread = createMockThread('th_rudram-ii', 'rudram-ii');
     const existingEvent = createMockEvent('ev_existing', 'th_rudram-ii', 'cluster-rudram-1');
-    const duplicateCluster = createMockCluster({
-      id: 'cluster-rudram-1',
-      programTags: ['rudram-ii']
-    });
+    const duplicateCluster = createMockCluster({ id: 'cluster-rudram-1', programTags: ['rudram-ii'] });
 
     const result = matchAndAdvanceThreads([duplicateCluster], [thread], [existingEvent]);
     expect(result.attachedCount).toBe(0);
@@ -215,71 +160,99 @@ describe('Story Thread Continuity Engine', () => {
   });
 
   it('spawns separate threads with category-calibrated titles for #Su57, #Apache, #TASL, and #EOS05', () => {
-    const su57Cluster = createMockCluster({
-      id: 'cluster-su57',
-      primaryTag: '#Su57',
-      hashtags: ['#Su57'],
-      categories: ['airforce'],
-      entities: []
-    });
-    const apacheCluster = createMockCluster({
-      id: 'cluster-apache',
-      primaryTag: '#Apache',
-      hashtags: ['#Apache'],
-      categories: ['army'],
-      entities: []
-    });
-    const taslCluster = createMockCluster({
-      id: 'cluster-tasl',
-      primaryTag: '#TASL',
-      hashtags: ['#TASL'],
-      categories: ['procurement'],
-      entities: []
-    });
-    const eos05Cluster = createMockCluster({
-      id: 'cluster-eos05',
-      primaryTag: '#EOS05',
-      hashtags: ['#EOS05'],
-      categories: ['tech'],
-      entities: []
-    });
+    const su57Cluster = createMockCluster({ id: 'cluster-su57', primaryTag: '#Su57', hashtags: ['#Su57'], categories: ['airforce'], entities: [] });
+    const apacheCluster = createMockCluster({ id: 'cluster-apache', primaryTag: '#Apache', hashtags: ['#Apache'], categories: ['army'], entities: [] });
+    const taslCluster = createMockCluster({ id: 'cluster-tasl', primaryTag: '#TASL', hashtags: ['#TASL'], categories: ['procurement'], entities: [] });
+    const eos05Cluster = createMockCluster({ id: 'cluster-eos05', primaryTag: '#EOS05', hashtags: ['#EOS05'], categories: ['tech'], entities: [] });
 
     const res = matchAndAdvanceThreads([su57Cluster, apacheCluster, taslCluster, eos05Cluster], [], []);
     expect(res.newlySpawnedCount).toBe(4);
 
     const su57 = res.threads.find((t) => t.id === 'th_su-57');
-    expect(su57).toBeDefined();
     expect(su57?.title).toBe('Su57 Operational & Strategic Arc');
     expect(su57?.category).toBe('airforce');
 
     const apache = res.threads.find((t) => t.id === 'th_apache');
-    expect(apache).toBeDefined();
     expect(apache?.title).toBe('Apache Operational & Strategic Arc');
     expect(apache?.category).toBe('army');
 
     const tasl = res.threads.find((t) => t.id === 'th_tasl');
-    expect(tasl).toBeDefined();
     expect(tasl?.title).toBe('TASL Acquisition & Delivery Arc');
     expect(tasl?.category).toBe('procurement');
 
     const eos05 = res.threads.find((t) => t.id === 'th_eos-05');
-    expect(eos05).toBeDefined();
     expect(eos05?.title).toBe('EOS05 Technology & Systems Arc');
     expect(eos05?.category).toBe('tech');
   });
 
   it('rejects generic news and defence stop-tags from spawning threads', () => {
     const genericCluster = createMockCluster({
-      id: 'cluster-generic-noise',
-      primaryTag: '#News',
+      id: 'cluster-generic-noise', primaryTag: '#News',
       hashtags: ['#Defence', '#India', '#Security', '#Update'],
-      entities: ['India', 'Defence'],
-      programTags: []
+      entities: ['India', 'Defence'], programTags: []
     });
 
     const res = matchAndAdvanceThreads([genericCluster], [], []);
     expect(res.newlySpawnedCount).toBe(0);
     expect(res.threads).toHaveLength(0);
     expect(res.events).toHaveLength(0);
+  });
+
+  it('verifies Black Jet scores 0 against #LAC thread', () => {
+    const lacThread = createMockThread('th_lac', 'LAC', { title: 'LAC Operational & Strategic Arc' });
+    const blackJetCluster = createMockCluster({
+      id: 'cluster-black-jet',
+      synthesizedHeadline: 'India unveils Black Jet fifth-generation stealth platform at aero show',
+      primaryTag: '#BlackJet',
+      hashtags: ['#BlackJet'],
+      entities: ['Black Jet']
+    });
+    expect(scoreMatch(blackJetCluster, lacThread)).toBe(0);
+  });
+
+  it('verifies HAL LUH scores 0 against #LAC thread', () => {
+    const lacThread = createMockThread('th_lac', 'LAC', { title: 'LAC Operational & Strategic Arc' });
+    const halLuhCluster = createMockCluster({
+      id: 'cluster-hal-luh',
+      synthesizedHeadline: 'HAL conducts high-altitude trials of LUH in Ladakh',
+      primaryTag: '#HALLUH',
+      hashtags: ['#HALLUH'],
+      entities: ['HAL LUH', 'LUH', 'HAL']
+    });
+    expect(scoreMatch(halLuhCluster, lacThread)).toBe(0);
+  });
+
+  it('verifies genuine India-China border talks score >= 0.9 against #LAC thread', () => {
+    const lacThread = createMockThread('th_lac', 'LAC', { title: 'LAC Operational & Strategic Arc' });
+    const borderTalksCluster = createMockCluster({
+      id: 'cluster-lac-talks',
+      synthesizedHeadline: 'Indian, Chinese armies hold talks focusing on maintaining peace along LAC',
+      primaryTag: '#LAC',
+      hashtags: ['#LAC'],
+      entities: ['LAC']
+    });
+    expect(scoreMatch(borderTalksCluster, lacThread)).toBeGreaterThanOrEqual(0.9);
+  });
+
+  it('verifies intra-thread coherence outlier detection flags extraneous events', () => {
+    const ev1 = createMockEvent('ev_lac_1', 'th_lac', 'c1', {
+      headline: 'India, China Hold First Corps Commander-Level Talks in Arunachal',
+      entities: ['LAC']
+    });
+    const ev2 = createMockEvent('ev_lac_2', 'th_lac', 'c2', {
+      headline: 'Indian, Chinese armies hold talks focusing on maintaining peace along LAC',
+      entities: ['LAC']
+    });
+    const evOutlier = createMockEvent('ev_black_jet', 'th_lac', 'c3', {
+      headline: 'Fifth-generation Black Jet prototype unveiled at Bengaluru aero show',
+      entities: ['Black Jet']
+    });
+
+    const audit = auditThreadCoherence([ev1, ev2, evOutlier]);
+    expect(audit.coherent).toBe(false);
+    expect(audit.flaggedIds).toEqual(['ev_black_jet']);
+    expect(audit.outlierEvents).toHaveLength(1);
+    expect(audit.outlierEvents[0]?.id).toBe('ev_black_jet');
+    expect(audit.validEvents.map((e) => e.id)).toEqual(['ev_lac_1', 'ev_lac_2']);
   });
 });
