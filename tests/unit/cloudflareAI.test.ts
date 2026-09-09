@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  adjudicateContestedTag,
   clearCFAIMemoryCache,
   computeCFAICacheHash,
   DEFAULT_CF_AI_MODEL,
@@ -260,5 +261,36 @@ describe('Cloudflare Workers AI Client Adapter', () => {
     expect(res?.discoveredEntities).toContain('Rudram-II');
     expect(res?.discoveredEntities).toContain('Valid Entity Name');
     expect(res?.discoveredEntities).not.toContain('a'); // filtered too short
+  });
+
+  it('adjudicates contested tags and caches results', async () => {
+    const mockPayload = {
+      result: {
+        response: JSON.stringify({
+          approved: true,
+          confidence: 0.95,
+          canonicalTag: '#Rudram2',
+          rationale: 'Core focus is Rudram-II missile testing.'
+        })
+      }
+    };
+
+    let fetchCount = 0;
+    const customFetch = async () => {
+      fetchCount++;
+      return new Response(JSON.stringify(mockPayload), { status: 200 });
+    };
+
+    const options = { accountId: 'acc-1', apiToken: 'tok-1', fetchFn: customFetch as typeof fetch };
+    const res = await adjudicateContestedTag(MOCK_CLUSTER, '#Rudram2', options);
+    expect(res).not.toBeNull();
+    expect(res?.approved).toBe(true);
+    expect(res?.canonicalTag).toBe('#Rudram2');
+    expect(fetchCount).toBe(1);
+
+    // Cache hit
+    const cached = await adjudicateContestedTag(MOCK_CLUSTER, '#Rudram2', options);
+    expect(cached).toEqual(res);
+    expect(fetchCount).toBe(1);
   });
 });
