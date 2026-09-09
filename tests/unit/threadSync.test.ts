@@ -168,5 +168,72 @@ describe('runThreadContinuity', () => {
     expect(result.continuity.threads[0]?.canonicalEntity).toBe('Su-57');
     expect(result.continuity.threads[0]?.id).toBe('th_su-57');
   });
+
+  it('auto-migrates remote D1 table when fingerprint_json column is missing', async () => {
+    const config = { accountId: 'acc-1', databaseId: 'db-1', apiToken: 'tok-1' };
+    let altered = false;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, opts: RequestInit) => {
+      const body = JSON.parse(opts.body as string) as { sql: string };
+      if (body.sql.includes('ALTER TABLE story_threads')) {
+        altered = true;
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{}') });
+      }
+      if (body.sql.includes('SELECT * FROM')) {
+        return Promise.resolve({
+          ok: true, status: 200,
+          text: () => Promise.resolve(JSON.stringify({ result: [{ results: [] }] }))
+        });
+      }
+      return Promise.resolve({
+        ok: true, status: 200,
+        text: () => Promise.resolve(JSON.stringify({ result: [{ meta: { changes: 1 } }] }))
+      });
+    });
+
+    const cluster = makeCluster('c4', 'Tejas');
+    const result = await runThreadContinuity([cluster], config, { fetchFn: mockFetch });
+    expect(altered).toBe(true);
+    expect(result.syncedThreads).toBe(1);
+    expect(result.failed).toBe(0);
+  });
+
+  it('falls back to legacy upsert without fingerprint_json if remote D1 rejects ALTER TABLE', async () => {
+    const config = { accountId: 'acc-1', databaseId: 'db-1', apiToken: 'tok-1' };
+    let legacyFallbackUsed = false;
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, opts: RequestInit) => {
+      const body = JSON.parse(opts.body as string) as { sql: string };
+      if (body.sql.includes('ALTER TABLE story_threads')) {
+        return Promise.resolve({
+          ok: false, status: 403,
+          text: () => Promise.resolve('{"errors":[{"message":"not authorized"}]}')
+        });
+      }
+      if (body.sql.includes('SELECT * FROM')) {
+        return Promise.resolve({
+          ok: true, status: 200,
+          text: () => Promise.resolve(JSON.stringify({ result: [{ results: [] }] }))
+        });
+      }
+      if (body.sql.includes('fingerprint_json')) {
+        return Promise.resolve({
+          ok: false, status: 400,
+          text: () => Promise.resolve('{"errors":[{"message":"table story_threads has no column named fingerprint_json: SQLITE_ERROR"}]}')
+        });
+      }
+      legacyFallbackUsed = true;
+      return Promise.resolve({
+        ok: true, status: 200,
+        text: () => Promise.resolve(JSON.stringify({ result: [{ meta: { changes: 1 } }] }))
+      });
+    });
+
+    const cluster = makeCluster('c5', 'Zorawar');
+    const result = await runThreadContinuity([cluster], config, { fetchFn: mockFetch });
+    expect(legacyFallbackUsed).toBe(true);
+    expect(result.syncedThreads).toBe(1);
+    expect(result.failed).toBe(0);
+  });
 });
 

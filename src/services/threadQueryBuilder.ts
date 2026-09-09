@@ -64,7 +64,38 @@ export function eventRowToStoryThreadEvent(row: StoryThreadEventRow): StoryThrea
   };
 }
 
-export function buildUpsertThreadStatement(thread: StoryThread): D1Statement {
+export function buildUpsertThreadStatement(thread: StoryThread, includeFingerprint: boolean = true): D1Statement {
+  if (!includeFingerprint) {
+    return {
+      sql: `INSERT INTO story_threads (
+        id, title, canonical_entity, category, status, event_count,
+        first_event_at, last_event_at, summary, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        title = excluded.title,
+        category = excluded.category,
+        status = excluded.status,
+        event_count = excluded.event_count,
+        first_event_at = excluded.first_event_at,
+        last_event_at = excluded.last_event_at,
+        summary = excluded.summary,
+        updated_at = excluded.updated_at`,
+      params: [
+        thread.id,
+        thread.title,
+        thread.canonicalEntity,
+        thread.category,
+        thread.status,
+        thread.eventCount,
+        thread.firstEventAt,
+        thread.lastEventAt,
+        thread.summary ?? null,
+        thread.createdAt,
+        thread.updatedAt
+      ]
+    };
+  }
+
   return {
     sql: `INSERT INTO story_threads (
       id, title, canonical_entity, category, status, event_count,

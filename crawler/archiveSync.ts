@@ -60,7 +60,7 @@ export async function executeD1Query(
   statement: D1Statement,
   config: D1RestConfig,
   fetchFn: typeof fetch
-): Promise<{ ok: boolean; status?: number; rows: Record<string, unknown>[] }> {
+): Promise<{ ok: boolean; status?: number; rows: Record<string, unknown>[]; error?: string }> {
   const response = await fetchFn(d1RestEndpoint(config), {
     method: 'POST',
     headers: {
@@ -70,9 +70,11 @@ export async function executeD1Query(
     body: JSON.stringify(statement)
   });
   let rows: Record<string, unknown>[] = [];
+  let errorText: string | undefined = undefined;
   try {
     const bodyText = await response.text();
     if (!response.ok) {
+      errorText = bodyText;
       console.error(`[D1 REST] HTTP ${response.status} for statement "${statement.sql}": ${bodyText}`);
     } else {
       const body = JSON.parse(bodyText) as { result?: Array<{ results?: Record<string, unknown>[] }> };
@@ -81,7 +83,7 @@ export async function executeD1Query(
   } catch {
     // No JSON body worth reading (e.g. insert/delete responses) — leave rows empty.
   }
-  return { ok: response.ok, status: response.status, rows };
+  return { ok: response.ok, status: response.status, rows, error: errorText };
 }
 
 export async function archivePoppedClusters(

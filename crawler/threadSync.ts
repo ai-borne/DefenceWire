@@ -62,6 +62,29 @@ export async function fetchExistingThreadsAndEvents(
   }
 }
 
+/**
+ * Checks and auto-migrates remote D1 table schema to ensure fingerprint_json column exists.
+ */
+export async function ensureThreadSchema(
+  config: D1RestConfig,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<boolean> {
+  try {
+    const res = await executeD1Query(
+      { sql: 'ALTER TABLE story_threads ADD COLUMN fingerprint_json TEXT;', params: [] },
+      config,
+      fetchFn
+    );
+    if (res.ok) {
+      console.log('[THREAD SYNC] Auto-migrated remote D1: added fingerprint_json column to story_threads.');
+      return true;
+    }
+    return Boolean(res.error?.includes('duplicate column name'));
+  } catch {
+    return false;
+  }
+}
+
 export async function syncThreadsToD1(
   continuity: ThreadContinuityResult,
   config: D1RestConfig,
@@ -70,11 +93,23 @@ export async function syncThreadsToD1(
   let syncedThreads = 0;
   let syncedEvents = 0;
   let failed = 0;
+  let supportsFingerprint = true;
 
   for (const thread of continuity.threads) {
-    const stmt = buildUpsertThreadStatement(thread);
+    let stmt = buildUpsertThreadStatement(thread, supportsFingerprint);
     try {
-      const res = await executeD1Query(stmt, config, fetchFn);
+      let res = await executeD1Query(stmt, config, fetchFn);
+      if (!res.ok && res.error?.includes('no column named fingerprint_json')) {
+        const migrated = await ensureThreadSchema(config, fetchFn);
+        if (migrated) {
+          res = await executeD1Query(stmt, config, fetchFn);
+        } else {
+          supportsFingerprint = false;
+          stmt = buildUpsertThreadStatement(thread, false);
+          res = await executeD1Query(stmt, config, fetchFn);
+        }
+      }
+
       if (res.ok) {
         syncedThreads++;
       } else {
@@ -133,6 +168,9 @@ export async function runThreadContinuity(
   }
 
   try {
+    // Proactive auto-migration for remote D1 schema
+    await ensureThreadSchema(config, fetchFn);
+
     const { threads: existingThreads, events: existingEvents } = await fetchExistingThreadsAndEvents(
       config,
       fetchFn
