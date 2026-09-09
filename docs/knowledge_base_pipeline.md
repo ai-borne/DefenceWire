@@ -17,11 +17,15 @@ Standard news aggregators and social feeds treat defense news as disposable stre
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-| DUAL-ENGINE HARVESTING & AI ENRICHMENT                                            |
+| DUAL-ENGINE HARVESTING & 3-TIER ZERO-COST TAG SCREENING CASCADE                   |
 | 1. Feed Extractor (feedTagExtractor.ts): Extracts <category>, <dc:subject>, #tags |
-| 2. LLM Ingestion (summarizerPrompt.ts): Structured output for primaryTag, hashtags|
-| 3. AI Salvage (geminiSalvage.ts): Sanitizes & preserves tags on validation retry  |
-| 4. Noise Filter (hashtagUtils.ts): Drops #News, #India, #Defence, #Security       |
+| 2. Tier 1 Code Gate (entitySalience.ts, entityDisambiguator.ts): Contextual anchor|
+|    verification for short acronyms (#LAC, #HAL, #INS, #DAC) & salience scoring    |
+| 3. Tier 2 Gemini Counter-Check (summarizerPrompt.ts): Piggybacked dual-output     |
+|    structured JSON (summary + focalEntity/primaryTag) at $0.00 added cost         |
+| 4. Tier 3 Workers AI Edge Second-Guess (tagAdjudicator.ts, cloudflareAI.ts):      |
+|    Llama 3.2 3B edge tie-breaker for contested/ambiguous tags                    |
+| 5. Noise Filter (hashtagUtils.ts): Suppresses #News, #India, #Defence, #Security  |
 +-----------------------------------------------------------------------------------+
                                          |
                                          v
@@ -37,16 +41,22 @@ Standard news aggregators and social feeds treat defense news as disposable stre
 +---------------------------+                             +-------------------------+
 | TEMPORAL STORY THREADING  |                             | SEMANTIC GRAPH ENGINE   |
 | (threadContinuityEngine)  |                             | (tripletExtractor.ts)   |
-| - Matches existing thread |                             | - Graph Stop-Nodes      |
-|   or spawns dynamic arc   |                             | - Relational Predicates |
-| - Git-style x1.1.1 Arcs   |                             |   (DEPLOYED_TO, etc.)   |
-| - Jaccard Similarity (0.35|                             | - Epistemic Truth State |
-| - Key Delta Synthesis     |                             | - Weight Incrementing   |
-+---------------------------+                             +-------------------------+
+| - Distinctive Noun Match  |                             | - Graph Stop-Nodes      |
+|   (GENERIC_DEFENCE_NOUNS) |                             | - Relational Predicates |
+| - Compounding Fingerprint |                             |   (DEPLOYED_TO, etc.)   |
+|   in D1 (fingerprint_json)|                             | - Epistemic Truth State |
+| - Git-style x1.1.1 Arcs   |                             | - Weight Incrementing   |
+| - Intra-Thread Coherence  |                             +-------------------------+
+|   (threadCoherence.ts)    |                                         |
+| - Active D1 Outlier Purge |                                         v
+|   (syncThreadsToD1)       |                                   [graph_nodes]
++---------------------------+                                   [graph_edges]
             |                                                         |
-            v                                                         v
-    [story_threads]                                             [graph_nodes]
-  [story_thread_events]                                         [graph_edges]
+            v                                                         |
+    [story_threads]                                                   |
+  [story_thread_events]                                               |
+            |                                                         |
+            +----------------------------+----------------------------+
             |                                                         |
             +----------------------------+----------------------------+
                                          |
@@ -79,14 +89,30 @@ Standard news aggregators and social feeds treat defense news as disposable stre
 
 * **Primary Modules**:
   - `crawler/feedTagExtractor.ts`: Parses XML feeds for `<category>`, `<dc:subject>`, and inline `#hashtag` occurrences.
-  - `crawler/summarizerPrompt.ts`: Guides Gemini to return structured `primaryTag` and `hashtags` properties.
-  - `crawler/geminiSalvage.ts`: Sanitizes Gemini structured output, drops invalid entries, and enforces clean `#Tag` tokens.
+  - `crawler/entitySalience.ts`: Tier 1 code pre-screen scoring entity position (headline 1.0, lede 0.6, body 0.2) to drop incidental mentions.
+  - `crawler/entityDisambiguator.ts`: Contextual anchor enforcement (`CONTEXTUAL_ANCHORS`) for short acronyms (`LAC`, `HAL`, `INS`, `DAC`, `TASL`).
+  - `crawler/summarizerPrompt.ts`: Tier 2 piggybacked Gemini counter-check returning dual-output (`whyItMatters` + `focalEntity`/`primaryTag`) in one payload at $0.00 extra cost.
+  - `crawler/tagAdjudicator.ts` & `crawler/cloudflareAI.ts`: Tier 3 edge tie-breaker using Cloudflare Workers AI (`@cf/meta/llama-3.2-3b-instruct`) on free edge neurons.
+  - `crawler/geminiSalvage.ts`: Sanitizes structured output and preserves valid `#Tag` tokens.
   - `src/utils/hashtagUtils.ts`: SSOT for noise tag filtering, slug generation, and canonical entity formatting.
   - `src/engine/clusterEngine.ts`: Aggregates feed tags across clustered articles into `cluster.hashtags` and `cluster.primaryTag`.
 
+### The 3-Tier Zero-Cost Tag Screening Cascade
+To prevent spurious tags (such as `#LAC` on a helicopter story or a US stealth jet), every cluster passes through a 3-tier cascade before reaching D1:
+
+1. **Tier 1: Code Pre-Screen Gate (0 API calls, 0ms latency)**:
+   - Evaluates **Entity Salience**: Tags appearing only in body text receive low salience and are dropped.
+   - Enforces **Contextual Anchors**: Short acronyms require co-occurring thematic anchors. For example, `#LAC` requires border/theater anchors (`border`, `disengagement`, `corps commander`, `galwan`, `arunachal`, `tawang`, `pangong`). Without an anchor, the acronym is rejected.
+2. **Tier 2: Piggybacked Gemini Counter-Check ($0.00 added cost)**:
+   - Rather than making separate categorization calls, Gemini Flash returns structured `focalEntity` and `primaryTag` inside the existing summary call.
+   - If Tier 1 and Tier 2 agree, the tag is approved immediately.
+3. **Tier 3: Cloudflare Workers AI Edge Second-Guess (Free Tier Neurons)**:
+   - If Tier 1 and Tier 2 disagree, or if an acronym is contested, `@cf/meta/llama-3.2-3b-instruct` acts as an edge tie-breaker.
+   - Consumes Cloudflare's free daily allocation (10,000 neurons/day) with zero Google quota consumed.
+
 ### Noise Suppression & Stop-Tag Filtering (`isNoiseTag`)
 To prevent feed polluters and generic labels from collapsing disparate stories into single meaningless threads (e.g. `th_news`, `th_defence`), generic keywords are filtered at ingestion:
-- **Noise Blocklist**: `news`, `india`, `indian`, `defence`, `defense`, `security`, `update`, `updates`, `topnews`, `breakingnews`, `national`, `international`, `general`, `latest`, `article`, `articles`, `pressrelease`, `world`, `asia`, `mod`, `briefing`, `analysis`, `exclusive`.
+- **Noise Blocklist**: `news`, `india`, `indian`, `defence`, `defense`, `security`, `update`, `updates`, `topnews`, `breakingnews`, `national`, `international`, `general`, `latest`, `latestnews`, `article`, `articles`, `pressrelease`, `world`, `asia`, `mod`, `briefing`, `analysis`, `exclusive`.
 - **Length Filter**: Any tag with normalized length $\le 1$ is immediately rejected.
 
 ### Canonical Normalization (`canonicalizeTag`, `hashtagToSlug`)
@@ -109,23 +135,38 @@ Unifies disparate naming conventions across feeds, news outlets, and user querie
 1. **Candidate Extraction (`extractCanonicalEntities`)**:
    - Inspects `cluster.primaryTag`, `cluster.hashtags`, `cluster.programTags`, `cluster.ssbIntel.defenceTechTakeaway.platformOrSystem`, and `cluster.entities`.
    - Filters candidates through `isNoiseTag()`.
-2. **Thread Matching & Dynamic Creation (`scoreMatch`, `generateThreadTitle`)**:
-   - Computes Jaccard similarity and exact entity overlaps against existing active/dormant D1 threads.
-   - If Jaccard score $\ge 0.35$, links to existing thread.
+2. **Thread Matching & Distinctive Scoring (`scoreMatch`, `generateThreadTitle`)**:
+   - Matches clusters against active/dormant D1 threads via:
+     1. Exact canonical entity equality (`1.0`).
+     2. Distinctive token matching: Filters out generic domain nouns (`GENERIC_DEFENCE_NOUNS`: `missile`, `navy`, `defence`, `systems`, etc.) so that multi-word entities require distinctive Jaccard similarity $\ge 0.5$ (preventing BrahMos or Javelin from colliding with Pralay on the word "missile").
+     3. Compounding semantic fingerprint overlap ($\ge 0.40$).
    - If no match is found, **dynamically births a new thread** with domain-adaptive naming:
      - Procurement / Tenders: `"${displayEntity} Acquisition & Delivery Arc"`
      - Air Force / Army / Navy / Strategic: `"${displayEntity} Operational & Strategic Arc"`
      - Tech / Space: `"${displayEntity} Technology & Systems Arc"`
      - General / Geopolitics: `"${displayEntity} Intelligence & Strategic Arc"`
-3. **Chronological Sorting & Git-Style Indexing (`sortAndIndexEvents`)**:
-   - Events are sorted chronologically by `publishedAt`.
+3. **Compounding Semantic Fingerprints (`fingerprint_json`)**:
+   - Maintains an accumulated vocabulary profile of distinctive tokens in `story_threads.fingerprint_json`.
+   - Over time, threads become self-sharpening, allowing future clusters to attach accurately through thematic overlap rather than brittle string equality.
+4. **Intra-Thread Coherence & Outlier Detection (`src/services/threadCoherence.ts`)**:
+   - `auditThreadCoherence(events, context)` acts as the SSOT coherence engine across the crawler and API handlers.
+   - Evaluates each milestone against the thread's **canonical anchor** (`canonicalEntity`, `title`, `id`) and peer consensus across the thread:
+     - Checks direct entity match or anchor tokens (`lac`, `line of actual control`, `arunachal`, `galwan`).
+     - Uses **whole-word token containment** (`cur.has(at)`) rather than loose substring matching, permanently preventing short acronym collisions (e.g. `"lac"` matching inside `"bLACk"`).
+     - Checks consensus similarity across all peer events in the thread to prevent rogue pairs from mutually validating each other.
+     - Outlier events are flagged and quarantined.
+5. **Active Outlier Deletion Pipeline (`crawler/threadSync.ts`)**:
+   - Flagged outliers are returned in `ThreadContinuityResult.purgedEventIds`.
+   - `syncThreadsToD1` issues `DELETE FROM story_thread_events WHERE id = ?` to permanently remove invalid rows from Cloudflare D1.
+6. **Chronological Sorting & Git-Style Indexing (`sortAndIndexEvents`)**:
+   - Valid, coherent events are sorted chronologically by `publishedAt`.
    - Milestone sequence codes:
      - First sighting: `x1.1.1`
      - Subsequent updates: `x1.1.2`, `x1.1.3`
      - Branch / Program split: `x1.2.1`
-4. **Key Delta Extraction**:
+7. **Key Delta Extraction**:
    - Synthesizes what changed in the latest event relative to previous milestones.
-5. **Lifecycle State Machine**:
+8. **Lifecycle State Machine**:
    - `active`: Event observed within the last 60 days.
    - `dormant`: No event for $\ge 60$ days. Reactivates to `active` automatically when a new cluster matches.
    - `concluded`: Formally closed program or milestone sequence.
@@ -192,8 +233,8 @@ Unifies disparate naming conventions across feeds, news outlets, and user querie
 
 | Endpoint | Method | Backend Handler | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/threads/list` | `GET` | `threadHandler.ts` | Filterable list of story threads with status, pagination, and search. |
-| `/api/threads/[id]` | `GET` | `threadHandler.ts` | Complete chronological event evolution branch for a thread, resolving IDs, hashtags, or canonical labels. |
+| `/api/threads/list` | `GET` | `threadHandler.ts` | Filterable list of story threads with status, pagination, and search. Suppresses ghost threads with `eventCount === 0`. |
+| `/api/threads/[id]` | `GET` | `threadHandler.ts` | Complete chronological event evolution branch for a thread, resolving IDs, hashtags, or canonical labels. Enforces read-time defense-in-depth via `auditThreadCoherence` to filter any corrupt or outlier milestones before returning. |
 | `/api/graph/subgraph` | `GET` | `graphQueryHandler.ts` | 1-hop / 2-hop graph neighborhood traversal with date bounds and filters. |
 | `/api/curator/patterns` | `GET/POST` | `curatorPatternHandler.ts` | Review, approve, edit, or reject emergent pattern candidates. |
 | `/api/curator/knowledge-base`| `GET` | `curatorKnowledgeBaseHandler.ts`| Read-only paginated table viewer for all underlying D1 data. |
@@ -227,6 +268,7 @@ CREATE TABLE IF NOT EXISTS story_threads (
   first_event_at TEXT NOT NULL,
   last_event_at TEXT NOT NULL,
   summary TEXT,
+  fingerprint_json TEXT,           -- accumulated distinctive vocabulary tokens JSON array
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -296,9 +338,14 @@ CREATE TABLE IF NOT EXISTS emergent_patterns (
 
 ## 8. Hard Architectural Invariants
 
-1. **Strict Line Limit ($\le 300$ LOC)**: Every module must stay under 300 lines of code. Sub-helpers (`feedTagExtractor.ts`, `graphStopNodes.ts`, `hashtagUtils.ts`) are used to protect main crawlers and parsers.
+1. **Strict Line Limit ($\le 300$ LOC)**: Every module must stay under 300 lines of code. Sub-helpers (`feedTagExtractor.ts`, `graphStopNodes.ts`, `hashtagUtils.ts`, `threadCoherence.ts`) protect main crawlers and parsers.
 2. **Zero Inlined Resources**: UI copy, tab titles, and badges must come from SSOT resource files (`src/resources/threadStrings.ts`, `graphStrings.ts`, `strings.ts`). Colors must strictly consume CSS variables.
 3. **Non-Blocking Crawl Fault Isolation**: Failures in thread sync, triplet extraction, or pattern detection must never crash the core news feed crawl in `crawler/ingest.ts`.
 4. **Strict SQL Parameterization**: Every D1 statement must use parameterized `?` bindings via query builder utilities (`threadQueryBuilder.ts`). String interpolation in SQL is strictly prohibited.
-5. **Client Performance & Micro-Bundle Budget**: The force-directed graph canvas and thread explorer are lazily loaded on demand to keep the initial client bundle light (< 100 KB gzip).
+5. **Client Performance & Micro-Bundle Budget**: The force-directed graph canvas and thread explorer are lazily loaded on demand to keep the initial client bundle light (< 100 KB gzip, currently ~40.5 KB gzip).
+6. **Zero-Cost Intelligence Cascade**: Classification, salience, and second-guessing strictly operate within Gemini Free Tier and Cloudflare Workers AI free edge neurons ($0.00 infrastructure cost).
+7. **Canonical Anchor Integrity & Zero-Spurious Guarantee**:
+   - Short acronym matching strictly enforces whole-word token containment (`cur.has(at)`). Substring `.includes()` on acronyms like `"lac"` is strictly prohibited to prevent matching inside words like `"black"`.
+   - Generic domain nouns (`GENERIC_DEFENCE_NOUNS`: `missile`, `navy`, `defence`, `system`, etc.) cannot trigger single-token entity matches.
+   - Outliers flagged by `auditThreadCoherence` are actively deleted from Cloudflare D1 during crawl sync and filtered on read before serving client modals.
 
