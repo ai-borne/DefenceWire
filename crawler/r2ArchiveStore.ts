@@ -43,8 +43,8 @@ function amzDateNow(): string {
   return new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
 }
 
-/** AWS Signature V4 for a single PUT request against R2's S3-compatible API (region "auto", service "s3"). */
-function signPut(config: R2Config, host: string, objectPath: string, body: string, amzDate: string): {
+/** AWS Signature V4 for a single request against R2's S3-compatible API (region "auto", service "s3"). */
+function signRequest(method: string, config: R2Config, host: string, objectPath: string, body: string, amzDate: string): {
   authorization: string;
   contentSha256: string;
 } {
@@ -55,7 +55,7 @@ function signPut(config: R2Config, host: string, objectPath: string, body: strin
 
   const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${contentSha256}\nx-amz-date:${amzDate}\n`;
   const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
-  const canonicalRequest = ['PUT', objectPath, '', canonicalHeaders, signedHeaders, contentSha256].join('\n');
+  const canonicalRequest = [method, objectPath, '', canonicalHeaders, signedHeaders, contentSha256].join('\n');
 
   const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
   const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256Hex(canonicalRequest)].join('\n');
@@ -79,7 +79,7 @@ export async function putClusterJson(
   const objectPath = `/${config.bucketName}/${id}.json`;
   const host = `${config.accountId}.r2.cloudflarestorage.com`;
   const amzDate = amzDateNow();
-  const { authorization, contentSha256 } = signPut(config, host, objectPath, json, amzDate);
+  const { authorization, contentSha256 } = signRequest('PUT', config, host, objectPath, json, amzDate);
 
   try {
     const response = await fetchFn(`https://${host}${objectPath}`, {
@@ -96,5 +96,39 @@ export async function putClusterJson(
     return { ok: response.ok, status: response.status };
   } catch {
     return { ok: false };
+  }
+}
+
+export interface R2GetResult {
+  ok: boolean;
+  status?: number;
+  body: string | null;
+}
+
+/** Fetches a previously archived cluster's full JSON payload back out of R2 by cluster id. */
+export async function getClusterJson(
+  id: string,
+  config: R2Config,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<R2GetResult> {
+  const objectPath = `/${config.bucketName}/${id}.json`;
+  const host = `${config.accountId}.r2.cloudflarestorage.com`;
+  const amzDate = amzDateNow();
+  const { authorization, contentSha256 } = signRequest('GET', config, host, objectPath, '', amzDate);
+
+  try {
+    const response = await fetchFn(`https://${host}${objectPath}`, {
+      method: 'GET',
+      headers: {
+        Host: host,
+        'x-amz-content-sha256': contentSha256,
+        'x-amz-date': amzDate,
+        Authorization: authorization
+      }
+    });
+    if (!response.ok) return { ok: false, status: response.status, body: null };
+    return { ok: true, status: response.status, body: await response.text() };
+  } catch {
+    return { ok: false, body: null };
   }
 }

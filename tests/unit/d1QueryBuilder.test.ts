@@ -14,6 +14,7 @@ import {
   buildBrowseArchiveStatement,
   buildDeleteArchivedStoriesStatement,
   buildEntityRelatedStoriesStatement,
+  buildSelectUnthreadedArchivedStatement,
   sanitizeFtsQuery
 } from '../../src/archive/d1QueryBuilder.js';
 
@@ -175,5 +176,15 @@ describe('buildDeleteArchivedStoriesStatement', () => {
   it('never interpolates ids directly into the SQL string', () => {
     const stmt = buildDeleteArchivedStoriesStatement(['cluster-a']);
     expect(stmt.sql).not.toContain('cluster-a');
+  });
+});
+
+describe('buildSelectUnthreadedArchivedStatement', () => {
+  it('left-joins story_thread_events and filters to rows with no matching cluster_id', () => {
+    const stmt = buildSelectUnthreadedArchivedStatement(25);
+    expect(stmt.sql).toContain('LEFT JOIN story_thread_events e ON e.cluster_id = a.id');
+    expect(stmt.sql).toContain('WHERE e.cluster_id IS NULL');
+    expect(stmt.sql).toContain('ORDER BY a.archived_at DESC');
+    expect(stmt.params).toEqual([25]);
   });
 });

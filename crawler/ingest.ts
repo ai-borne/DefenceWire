@@ -15,6 +15,8 @@ import { FeedConfig, getActiveFeeds } from './feeds.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
+import { findClustersToArchive } from '../src/archive/archiveDiff.js';
+import { backfillUnthreadedArchive } from './threadBackfill.js';
 import { preserveCuratorOverrides, fetchCuratorOverridesFromD1, applyD1CuratorOverrides } from './curatorOverrideSync.js';
 import { buildR2ConfigFromEnv } from './r2ArchiveStore.js';
 import {
@@ -240,10 +242,13 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, r2Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
-
-  // Temporal story threading & lineage engine (Phase 1)
-  const threadResult = await runThreadContinuity(finalClusters, d1Config, { fetchFn });
+  // Temporal story threading & lineage engine (Phase 1). Popped clusters get a final pass before archival (issue #3).
+  const poppedClusters = findClustersToArchive(existingClusters, finalClusters);
+  const threadResult = await runThreadContinuity([...finalClusters, ...poppedClusters], d1Config, { fetchFn });
   console.log(`[D1 THREAD SYNC] ${threadResult.syncedThreads} threads, ${threadResult.syncedEvents} events synced`);
+
+  const backfillResult = await backfillUnthreadedArchive(d1Config, r2Config, { fetchFn }); // pre-fix archived clusters, never threaded
+  console.log(`[D1 THREAD BACKFILL] ${backfillResult.threaded} threaded, ${backfillResult.failed} failed, ${backfillResult.scanned} scanned`);
 
   // Semantic triplet & knowledge graph extraction (Phase 2)
   const graphResult = await runGraphExtractionAndSync(finalClusters, d1Config, { fetchFn });

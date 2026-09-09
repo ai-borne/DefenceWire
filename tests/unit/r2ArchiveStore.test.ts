@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { buildR2ConfigFromEnv, putClusterJson } from '../../crawler/r2ArchiveStore.js';
+import { buildR2ConfigFromEnv, putClusterJson, getClusterJson } from '../../crawler/r2ArchiveStore.js';
 
 const config = {
   accountId: 'acct-1',
@@ -65,5 +65,36 @@ describe('putClusterJson', () => {
     const result = await putClusterJson('story-1', '{}', config, fetchFn);
 
     expect(result).toEqual({ ok: false });
+  });
+});
+
+describe('getClusterJson', () => {
+  it('GETs the account/bucket-keyed R2 endpoint with a signed request and returns the body', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '{"id":"story-1"}' });
+    const result = await getClusterJson('story-1', config, fetchFn);
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://acct-1.r2.cloudflarestorage.com/defencewire-archive-blobs/story-1.json');
+    expect(init.method).toBe('GET');
+
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toContain('AWS4-HMAC-SHA256 Credential=key-1/');
+
+    expect(result).toEqual({ ok: true, status: 200, body: '{"id":"story-1"}' });
+  });
+
+  it('reports a non-2xx response as a failure without throwing', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    const result = await getClusterJson('missing-story', config, fetchFn);
+
+    expect(result).toEqual({ ok: false, status: 404, body: null });
+  });
+
+  it('reports a network error as a failure without throwing', async () => {
+    const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
+    const result = await getClusterJson('story-1', config, fetchFn);
+
+    expect(result).toEqual({ ok: false, body: null });
   });
 });

@@ -120,6 +120,24 @@ export function buildSelectClusterJsonBackfillStatement(limit: number): D1Statem
   };
 }
 
+/**
+ * Finds archived clusters with no matching story_thread_events row — i.e.
+ * clusters that aged out of the live feed before ever being threaded (see
+ * docs/knowledge_base_issues.md#3). Bounded LIMIT keeps each crawl run's
+ * backfill pass cheap; the query is naturally resumable since threaded rows
+ * drop out of the LEFT JOIN gap on their own.
+ */
+export function buildSelectUnthreadedArchivedStatement(limit: number): D1Statement {
+  return {
+    sql: `SELECT a.id FROM archived_stories a
+          LEFT JOIN story_thread_events e ON e.cluster_id = a.id
+          WHERE e.cluster_id IS NULL
+          ORDER BY a.archived_at DESC
+          LIMIT ?`,
+    params: [limit]
+  };
+}
+
 /** Clears cluster_json for one row once its payload is confirmed written to R2. */
 export function buildNullClusterJsonStatement(id: string): D1Statement {
   return {
