@@ -23,6 +23,7 @@ import {
   threadRowToStoryThread
 } from './threadQueryBuilder.js';
 import { cleanHashtag, hashtagToSlug, canonicalizeTag } from '../utils/hashtagUtils.js';
+import { auditThreadCoherence } from './threadCoherence.js';
 
 export interface ThreadHandlerDeps {
   runQuery: (sql: string, params: unknown[]) => Promise<unknown[]>;
@@ -106,7 +107,10 @@ export async function handleGetThreadDetail(
     const thread = threadRowToStoryThread(threadRows[0]);
     const eventsStmt = buildGetEventsByThreadIdStatement(thread.id);
     const eventRows = (await deps.runQuery(eventsStmt.sql, eventsStmt.params)) as StoryThreadEventRow[];
-    const events: StoryThreadEvent[] = eventRows.map(eventRowToStoryThreadEvent);
+    const rawEvents: StoryThreadEvent[] = eventRows.map(eventRowToStoryThreadEvent);
+    const audit = auditThreadCoherence(rawEvents);
+    const events = audit.validEvents;
+    thread.eventCount = events.length;
 
     return { thread, events };
   } catch (err) {

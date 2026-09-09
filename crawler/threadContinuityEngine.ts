@@ -9,6 +9,21 @@
 import { DomainCategory, StoryCluster } from '../src/types/news.js';
 import { StoryThread, StoryThreadEvent, ThreadContinuityResult } from '../src/types/threads.js';
 import { cleanHashtag, hashtagToSlug, isNoiseTag } from '../src/utils/hashtagUtils.js';
+import {
+  normalizeEntity,
+  calculateJaccard,
+  extractEventTokens,
+  auditThreadCoherence,
+  ThreadCoherenceAuditResult
+} from '../src/services/threadCoherence.js';
+
+export {
+  normalizeEntity,
+  calculateJaccard,
+  extractEventTokens,
+  auditThreadCoherence
+};
+export type { ThreadCoherenceAuditResult };
 
 const DORMANT_DAYS = 60;
 const DORMANT_MS = DORMANT_DAYS * 24 * 60 * 60 * 1000;
@@ -51,18 +66,6 @@ export function generateThreadTitle(entity: string, category?: DomainCategory | 
   return `${name} ${suffix}`;
 }
 
-export function calculateJaccard(a: Set<string>, b: Set<string>): number {
-  if (a.size === 0 || b.size === 0) return 0;
-  let inter = 0;
-  for (const x of a) if (b.has(x)) inter++;
-  const union = a.size + b.size - inter;
-  return union === 0 ? 0 : inter / union;
-}
-
-export function normalizeEntity(e: string): string {
-  return e.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
 export function extractClusterTokens(c: StoryCluster): string[] {
   const tokenSet = new Set<string>();
   for (const ent of extractCanonicalEntities(c)) {
@@ -70,16 +73,6 @@ export function extractClusterTokens(c: StoryCluster): string[] {
     for (const p of ent.toLowerCase().split(/[^a-z0-9]+/)) if (p.length >= 2 && !isNoiseTag(p)) tokenSet.add(p);
   }
   return Array.from(tokenSet);
-}
-
-export function extractEventTokens(e: StoryThreadEvent): Set<string> {
-  const tokens = new Set<string>();
-  for (const ent of e.entities) {
-    tokens.add(normalizeEntity(ent));
-    for (const p of ent.toLowerCase().split(/[^a-z0-9]+/)) if (p.length >= 2 && !isNoiseTag(p)) tokens.add(p);
-  }
-  for (const w of e.headline.toLowerCase().split(/[^a-z0-9]+/)) if (w.length >= 3 && !isNoiseTag(w)) tokens.add(w);
-  return tokens;
 }
 
 export function scoreMatch(cluster: StoryCluster, thread: StoryThread): number {
@@ -123,41 +116,6 @@ export function sortAndIndexEvents(events: StoryThreadEvent[]): StoryThreadEvent
     counters[branch] = nextIdx;
     return { ...event, sequenceIndex: nextIdx, sequenceCode: `${branch}.${nextIdx}` };
   });
-}
-
-export interface ThreadCoherenceAuditResult {
-  coherent: boolean;
-  validEvents: StoryThreadEvent[];
-  outlierEvents: StoryThreadEvent[];
-  flaggedIds: string[];
-}
-
-export function auditThreadCoherence(events: StoryThreadEvent[]): ThreadCoherenceAuditResult {
-  if (events.length <= 1) return { coherent: true, validEvents: [...events], outlierEvents: [], flaggedIds: [] };
-  const tokenSets = events.map(extractEventTokens);
-  const anchor = events[0]?.threadId ? normalizeEntity(events[0].threadId.replace(/^th[-_]/, '')) : '';
-  const validEvents: StoryThreadEvent[] = [], outlierEvents: StoryThreadEvent[] = [], flaggedIds: string[] = [];
-
-  for (let i = 0; i < events.length; i++) {
-    const cur = tokenSets[i]!;
-    if (cur.size === 0) { outlierEvents.push(events[i]!); flaggedIds.push(events[i]!.id); continue; }
-    const centroid = new Set<string>();
-    let maxPair = 0;
-    for (let j = 0; j < events.length; j++) {
-      if (j !== i) {
-        for (const t of tokenSets[j]!) centroid.add(t);
-        const sim = calculateJaccard(cur, tokenSets[j]!);
-        if (sim > maxPair) maxPair = sim;
-      }
-    }
-    if (anchor && anchor.length >= 2 && !isNoiseTag(anchor)) centroid.add(anchor);
-    let shared = 0;
-    for (const t of cur) if (centroid.has(t)) shared++;
-    const similarity = Math.max(maxPair, shared / cur.size);
-    if (similarity >= 0.15) validEvents.push(events[i]!);
-    else { outlierEvents.push(events[i]!); flaggedIds.push(events[i]!.id); }
-  }
-  return { coherent: outlierEvents.length === 0, validEvents, outlierEvents, flaggedIds };
 }
 
 export interface ContinuityEngineOptions {
@@ -253,11 +211,15 @@ export function matchAndAdvanceThreads(
   }
 
   const finalThreads: StoryThread[] = [], finalEvents: StoryThreadEvent[] = [];
+  const purgedEventIds: string[] = [];
   for (const thread of threadMap.values()) {
     const raw = eventsByThread.get(thread.id) ?? [];
     if (raw.length === 0) continue;
 
     const audit = auditThreadCoherence(raw);
+    if (audit.flaggedIds.length > 0) {
+      purgedEventIds.push(...audit.flaggedIds);
+    }
     const coherent = audit.validEvents.length > 0 ? audit.validEvents : raw;
     const indexed = sortAndIndexEvents(coherent);
     eventsByThread.set(thread.id, indexed);
@@ -270,5 +232,5 @@ export function matchAndAdvanceThreads(
     finalThreads.push(thread);
   }
 
-  return { threads: finalThreads, events: finalEvents, newlySpawnedCount, attachedCount, reactivatedCount };
+  return { threads: finalThreads, events: finalEvents, newlySpawnedCount, attachedCount, reactivatedCount, purgedEventIds };
 }

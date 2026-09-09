@@ -93,4 +93,5 @@ export interface ThreadContinuityResult {
   newlySpawnedCount: number;
   attachedCount: number;
   reactivatedCount: number;
+  purgedEventIds?: string[];
 }

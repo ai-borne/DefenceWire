@@ -18,7 +18,8 @@ export const DEFAULT_PURGE_URLS: readonly string[] = Object.freeze([
   EDGE_CACHE_URLS.LLMS_FULL,
   EDGE_CACHE_URLS.SITEMAP,
   EDGE_CACHE_URLS.NEWS_FEED,
-  EDGE_CACHE_URLS.THREADS
+  EDGE_CACHE_URLS.THREADS,
+  EDGE_CACHE_URLS.THREAD_LAC
 ]);
 
 export interface CuratorPurgeCacheRequest {

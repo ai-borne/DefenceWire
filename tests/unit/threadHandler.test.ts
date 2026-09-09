@@ -169,5 +169,83 @@ describe('handleGetThreadDetail', () => {
       expect(res.error).toBeUndefined();
     }
   });
+
+  it('actively filters out incoherent or outlier events from returned timeline (e.g. Black Jet in #LAC thread)', async () => {
+    const lacThreadRow: StoryThreadRow = {
+      id: 'th_lac',
+      title: 'LAC Operational & Strategic Arc',
+      canonical_entity: 'LAC',
+      category: 'strategic',
+      status: 'active',
+      event_count: 3,
+      first_event_at: '2026-09-06T18:06:36Z',
+      last_event_at: '2026-09-08T03:07:07Z',
+      summary: 'Border talks along LAC',
+      created_at: '2026-09-08T00:00:00Z',
+      updated_at: '2026-09-08T03:07:07Z'
+    };
+
+    const ev1: StoryThreadEventRow = {
+      id: 'ev_cluster-69b57dc5_th_lac',
+      thread_id: 'th_lac',
+      cluster_id: 'cluster-69b57dc5',
+      sequence_code: 'x1.1.1',
+      sequence_index: 1,
+      headline: 'India, China Hold First Corps Commander-Level Talks in Arunachal',
+      delta_summary: 'Corps commander talks along border',
+      primary_source_name: 'The Wire',
+      primary_source_url: 'https://thewire.in/talks',
+      published_at: '2026-09-08T02:30:54Z',
+      entities: JSON.stringify(['LAC']),
+      created_at: '2026-09-08T11:49:23Z'
+    };
+
+    const evSpurious: StoryThreadEventRow = {
+      id: 'ev_cluster-9e899a54_th_lac',
+      thread_id: 'th_lac',
+      cluster_id: 'cluster-9e899a54',
+      sequence_code: 'x1.1.2',
+      sequence_index: 2,
+      headline: 'Mysterious Black Jet That Emerged At Long Beach Airport Identified',
+      delta_summary: 'Clandestine aerospace development programs in the United States',
+      primary_source_name: 'The War Zone (TWZ)',
+      primary_source_url: 'https://twz.com/black-jet',
+      published_at: '2026-09-06T18:06:36Z',
+      entities: JSON.stringify([]),
+      created_at: '2026-09-08T11:49:23Z'
+    };
+
+    const ev2: StoryThreadEventRow = {
+      id: 'ev_cluster-58fc361b_th_lac',
+      thread_id: 'th_lac',
+      cluster_id: 'cluster-58fc361b',
+      sequence_code: 'x1.1.3',
+      sequence_index: 3,
+      headline: 'Indian, Chinese armies hold talks focusing on maintaining peace along LAC',
+      delta_summary: 'Peace along LAC',
+      primary_source_name: 'Hindustan Times',
+      primary_source_url: 'https://hindustantimes.com/peace-lac',
+      published_at: '2026-09-08T03:07:07Z',
+      entities: JSON.stringify(['LAC']),
+      created_at: '2026-09-08T11:49:23Z'
+    };
+
+    const runQuery = vi.fn().mockImplementation((sql: string) => {
+      if (sql.includes('FROM story_threads')) {
+        return Promise.resolve([lacThreadRow]);
+      }
+      return Promise.resolve([ev1, evSpurious, ev2]);
+    });
+
+    const result = await handleGetThreadDetail('th_lac', { runQuery });
+
+    expect(result.thread).not.toBeNull();
+    expect(result.events).toHaveLength(2);
+    expect(result.events.map((e) => e.id)).toEqual([
+      'ev_cluster-69b57dc5_th_lac',
+      'ev_cluster-58fc361b_th_lac'
+    ]);
+    expect(result.thread?.eventCount).toBe(2);
+  });
 });
 

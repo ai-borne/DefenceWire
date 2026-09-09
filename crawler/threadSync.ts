@@ -77,9 +77,17 @@ export async function ensureThreadSchema(
     );
     if (res.ok) {
       console.log('[THREAD SYNC] Auto-migrated remote D1: added fingerprint_json column to story_threads.');
-      return true;
     }
-    return Boolean(res.error?.includes('duplicate column name'));
+    // Defensive cleanup: purge known historical false-positive attachments from remote D1
+    await executeD1Query(
+      {
+        sql: "DELETE FROM story_thread_events WHERE thread_id = 'th_lac' AND (cluster_id = 'cluster-9e899a54' OR headline LIKE '%Black Jet%');",
+        params: []
+      },
+      config,
+      fetchFn
+    );
+    return res.ok || Boolean(res.error?.includes('duplicate column name'));
   } catch {
     return false;
   }
@@ -135,6 +143,20 @@ export async function syncThreadsToD1(
     } catch (err) {
       failed++;
       console.error(`[THREAD SYNC] Error upserting event ${event.id}:`, err);
+    }
+  }
+
+  if (continuity.purgedEventIds && continuity.purgedEventIds.length > 0) {
+    for (const eventId of continuity.purgedEventIds) {
+      try {
+        const stmt = { sql: 'DELETE FROM story_thread_events WHERE id = ?', params: [eventId] };
+        const res = await executeD1Query(stmt, config, fetchFn);
+        if (res.ok) {
+          console.log(`[THREAD SYNC] Purged incoherent event from D1: ${eventId}`);
+        }
+      } catch (err) {
+        console.error(`[THREAD SYNC] Error purging event ${eventId}:`, err);
+      }
     }
   }
 

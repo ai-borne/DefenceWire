@@ -57,7 +57,8 @@ export const EDGE_CACHE_URLS = {
   LLMS_TXT: 'https://www.defencewire.in/llms.txt',
   LLMS_FULL: 'https://www.defencewire.in/llms-full.txt',
   PATTERNS: 'https://www.defencewire.in/api/patterns',
-  THREADS: 'https://www.defencewire.in/api/threads/list'
+  THREADS: 'https://www.defencewire.in/api/threads/list',
+  THREAD_LAC: 'https://www.defencewire.in/api/threads/th_lac'
 } as const;
 
 /**

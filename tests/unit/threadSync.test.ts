@@ -235,5 +235,51 @@ describe('runThreadContinuity', () => {
     expect(result.syncedThreads).toBe(1);
     expect(result.failed).toBe(0);
   });
+
+  it('deletes purged/outlier events from D1 when continuity detects outlier events', async () => {
+    const config = { accountId: 'acc-1', databaseId: 'db-1', apiToken: 'tok-1' };
+    const deletedEventIds: string[] = [];
+
+    const mockFetch = vi.fn().mockImplementation((_url: string, opts: RequestInit) => {
+      const body = JSON.parse(opts.body as string) as { sql: string; params: unknown[] };
+      if (body.sql.includes('DELETE FROM story_thread_events WHERE id = ?')) {
+        deletedEventIds.push(body.params[0] as string);
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{"result":[{"meta":{"changes":1}}]}') });
+      }
+      if (body.sql.includes('SELECT * FROM story_threads')) {
+        const lacThread = {
+          id: 'th_lac', title: 'LAC Operational Arc', canonical_entity: 'LAC', category: 'strategic',
+          status: 'active', event_count: 3, first_event_at: '2026-09-06T00:00:00Z', last_event_at: '2026-09-08T00:00:00Z',
+          created_at: '2026-09-08T00:00:00Z', updated_at: '2026-09-08T00:00:00Z'
+        };
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify({ result: [{ results: [lacThread] }] })) });
+      }
+      if (body.sql.includes('SELECT * FROM story_thread_events')) {
+        const ev1 = {
+          id: 'ev_1', thread_id: 'th_lac', cluster_id: 'c1', sequence_code: 'x1.1.1', sequence_index: 1,
+          headline: 'India, China Hold Talks in Arunachal', delta_summary: 'Talks', primary_source_name: 'Wire',
+          primary_source_url: 'https://wire.in', published_at: '2026-09-08T02:00:00Z', entities: '["LAC"]', created_at: '2026-09-08T00:00:00Z'
+        };
+        const evSpurious = {
+          id: 'ev_black_jet', thread_id: 'th_lac', cluster_id: 'c99', sequence_code: 'x1.1.2', sequence_index: 2,
+          headline: 'Mysterious Black Jet at Long Beach Airport', delta_summary: 'Black jet', primary_source_name: 'TWZ',
+          primary_source_url: 'https://twz.com', published_at: '2026-09-06T18:00:00Z', entities: '[]', created_at: '2026-09-08T00:00:00Z'
+        };
+        const ev2 = {
+          id: 'ev_2', thread_id: 'th_lac', cluster_id: 'c2', sequence_code: 'x1.1.3', sequence_index: 3,
+          headline: 'Armies hold talks maintaining peace along LAC', delta_summary: 'Peace', primary_source_name: 'HT',
+          primary_source_url: 'https://ht.com', published_at: '2026-09-08T03:00:00Z', entities: '["LAC"]', created_at: '2026-09-08T00:00:00Z'
+        };
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify({ result: [{ results: [ev1, evSpurious, ev2] }] })) });
+      }
+      return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{"result":[{"meta":{"changes":1}}]}') });
+    });
+
+    const cluster = makeCluster('c1', 'Border Talks');
+    cluster.programTags = ['lac'];
+    const result = await runThreadContinuity([cluster], config, { fetchFn: mockFetch });
+    expect(result.continuity.purgedEventIds).toContain('ev_black_jet');
+    expect(deletedEventIds).toContain('ev_black_jet');
+  });
 });
 
