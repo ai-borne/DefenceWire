@@ -70,6 +70,8 @@ export interface SSBIntelligence {
   provenance?: 'gemini' | 'cloudflare-ai' | 'extractive';
   primaryTag?: string;
   hashtags?: string[];
+  focalEntity?: string;
+  operationalTheater?: string;
 }
 
 export type DomainCategory =
@@ -97,6 +99,8 @@ export interface StoryCluster {
   programTags?: string[];
   primaryTag?: string;
   hashtags?: string[];
+  focalEntity?: string;
+  operationalTheater?: string;
   defenceScore: number;
   isLeadStory: boolean;
   isEditorPromoted?: boolean;

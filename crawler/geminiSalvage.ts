@@ -15,6 +15,8 @@ export interface GeminiSalvageResult {
   droppedFields: string[];
   primaryTag?: string;
   hashtags?: string[];
+  focalEntity?: string;
+  operationalTheater?: string;
 }
 
 function sanitizeDefenceTechTakeaway(value: unknown, dropped: string[]): DefenceTechTakeaway | null {
@@ -182,11 +184,45 @@ export function sanitizeGeminiSSBIntelligence(data: unknown, requireChain = true
     }
   }
 
+  let focalEntity: string | undefined;
+  if (obj.focalEntity !== undefined && obj.focalEntity !== null) {
+    if (typeof obj.focalEntity === 'string' && obj.focalEntity.trim() && obj.focalEntity.length <= 200) {
+      const cleaned = sanitizeGeminiOutput(obj.focalEntity) || obj.focalEntity.trim();
+      const lower = cleaned.toLowerCase();
+      if (cleaned.length > 0 && lower !== 'null' && lower !== 'none' && lower !== 'n/a') {
+        focalEntity = cleaned;
+        intel.focalEntity = focalEntity;
+      } else if (cleaned.length === 0) {
+        dropped.push('focalEntity');
+      }
+    } else {
+      dropped.push('focalEntity');
+    }
+  }
+
+  let operationalTheater: string | undefined;
+  if (obj.operationalTheater !== undefined && obj.operationalTheater !== null) {
+    if (typeof obj.operationalTheater === 'string' && obj.operationalTheater.trim() && obj.operationalTheater.length <= 200) {
+      const cleaned = sanitizeGeminiOutput(obj.operationalTheater) || obj.operationalTheater.trim();
+      const lower = cleaned.toLowerCase();
+      if (cleaned.length > 0 && lower !== 'null' && lower !== 'none' && lower !== 'n/a') {
+        operationalTheater = cleaned;
+        intel.operationalTheater = operationalTheater;
+      } else if (cleaned.length === 0) {
+        dropped.push('operationalTheater');
+      }
+    } else {
+      dropped.push('operationalTheater');
+    }
+  }
+
   return {
     intel,
     hardErrors: [],
     droppedFields: dropped,
     ...(primaryTag ? { primaryTag } : {}),
-    ...(hashtags ? { hashtags } : {})
+    ...(hashtags ? { hashtags } : {}),
+    ...(focalEntity ? { focalEntity } : {}),
+    ...(operationalTheater ? { operationalTheater } : {})
   };
 }

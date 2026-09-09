@@ -6,6 +6,8 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import { clearSummaryMemoryCache, summarizeWithGemini } from '../../crawler/summarizer.js';
+import { buildGeminiPrompt, buildGeminiResponseSchema } from '../../crawler/summarizerPrompt.js';
+import { sanitizeGeminiSSBIntelligence } from '../../crawler/geminiSalvage.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 
@@ -169,5 +171,65 @@ describe('Gemini partial-salvage validation', () => {
     expect(result).not.toBeNull();
     expect(result?.primaryTag).toBeUndefined();
     expect(result?.hashtags).toEqual(['#Pinaka']);
+  });
+
+  it('salvages and extracts focalEntity and operationalTheater from Gemini response', async () => {
+    const dualOutputFetch = async () => new Response(JSON.stringify({
+      candidates: [{
+        content: {
+          parts: [{
+            text: JSON.stringify({
+              whyItMatters: 'Rafale deployment -> Secures northern sector air dominance -> Deterrence against PLA.',
+              primaryTag: '#Rafale',
+              focalEntity: 'Dassault Rafale',
+              operationalTheater: 'Northern Sector / Ladakh',
+              hashtags: ['#Rafale', '#IAF'],
+              defenceTechTakeaway: {
+                platformOrSystem: 'Rafale',
+                specifications: ['Meteor BVRAAM', 'SCALP cruise missile'],
+                keySignificance: 'Air superiority and deep precision strike capability.'
+              }
+            })
+          }]
+        }
+      }]
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+    const result = await summarizeWithGemini(MOCK_CLUSTER, 'mock-key', dualOutputFetch as typeof fetch);
+    expect(result).not.toBeNull();
+    expect(result?.focalEntity).toBe('Dassault Rafale');
+    expect(result?.operationalTheater).toBe('Northern Sector / Ladakh');
+    expect(result?.primaryTag).toBe('#Rafale');
+  });
+
+  it('gracefully drops malformed focalEntity and filters pseudo-null operationalTheater strings', () => {
+    const raw = {
+      whyItMatters: 'Pinaka regiment deployment -> Saturates area defence -> Bolsters artillery fire support.',
+      focalEntity: 42, // invalid type
+      operationalTheater: 'null', // string 'null' should be ignored
+      primaryTag: '   #Pinaka   '
+    };
+
+    const parsed = sanitizeGeminiSSBIntelligence(raw, true);
+    expect(parsed.intel).not.toBeNull();
+    expect(parsed.intel?.focalEntity).toBeUndefined();
+    expect(parsed.intel?.operationalTheater).toBeUndefined();
+    expect(parsed.intel?.primaryTag).toBe('#Pinaka');
+    expect(parsed.droppedFields).toContain('focalEntity');
+  });
+
+  it('enforces negative prompt constraints against #LAC and provides updated canonical examples in schema', () => {
+    const prompt = buildGeminiPrompt(MOCK_CLUSTER);
+    expect(prompt).toContain('Never output #LAC unless the article explicitly reports on the India-China border.');
+    expect(prompt).toContain('"primaryTag": "#PrimaryEntity (e.g. #Su57, #TejasMk1A, #Pinaka, #BrahMos)"');
+    expect(prompt).not.toContain('(e.g. #Su57, #TejasMk1A, #TASL, #LAC)');
+
+    const schema = buildGeminiResponseSchema(false, true) as {
+      properties?: Record<string, { description?: string }>;
+    };
+    expect(schema.properties?.focalEntity).toBeDefined();
+    expect(schema.properties?.operationalTheater).toBeDefined();
+    expect(schema.properties?.primaryTag?.description).toContain('#BrahMos');
+    expect(schema.properties?.primaryTag?.description).not.toContain('#LAC');
   });
 });
