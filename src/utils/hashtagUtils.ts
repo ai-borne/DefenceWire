@@ -12,7 +12,9 @@ const NOISE_TAGS = new Set([
   'article', 'articles', 'pressrelease', 'pressreleases', 'world', 'asia',
   'southasia', 'mod', 'ministryofdefence', 'editorial', 'opinion', 'report', 'reports',
   'alert', 'alerts', 'brief', 'briefing', 'analysis', 'exclusive', 'indianews',
-  'idrwteam', 'idrw', 'andhrapradesh', 'space', 'trending'
+  'idrwteam', 'idrw', 'andhrapradesh', 'space', 'trending',
+  // Strategic title boilerplate words
+  'operational', 'strategic', 'acquisition', 'modernization', 'systems', 'arc', 'delivery'
 ]);
 
 export const KNOWN_ACRONYMS = new Set([

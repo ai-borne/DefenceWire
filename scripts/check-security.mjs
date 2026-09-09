@@ -14,7 +14,7 @@ const RETRY_DELAY_MS = 3000;
 
 function runAudit() {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    const result = spawnSync('npm', ['audit', '--audit-level=high'], {
+    const result = spawnSync('npm', ['audit', '--audit-level=high', '--omit=dev'], {
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 30000 // 30s timeout to prevent hanging on registry outages

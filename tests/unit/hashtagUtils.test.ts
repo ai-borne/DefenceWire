@@ -25,6 +25,13 @@ describe('isNoiseTag', () => {
     expect(isNoiseTag('Top News')).toBe(true);
     expect(isNoiseTag('Breaking News')).toBe(true);
     expect(isNoiseTag('Press Release')).toBe(true);
+    expect(isNoiseTag('Operational')).toBe(true);
+    expect(isNoiseTag('Strategic')).toBe(true);
+    expect(isNoiseTag('Acquisition')).toBe(true);
+    expect(isNoiseTag('Modernization')).toBe(true);
+    expect(isNoiseTag('Systems')).toBe(true);
+    expect(isNoiseTag('Arc')).toBe(true);
+    expect(isNoiseTag('Delivery')).toBe(true);
     expect(isNoiseTag('')).toBe(true);
     expect(isNoiseTag('x')).toBe(true);
   });
