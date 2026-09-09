@@ -78,15 +78,16 @@ export async function ensureThreadSchema(
     if (res.ok) {
       console.log('[THREAD SYNC] Auto-migrated remote D1: added fingerprint_json column to story_threads.');
     }
-    // Defensive cleanup: purge known historical false-positive attachments from remote D1
-    await executeD1Query(
-      {
-        sql: "DELETE FROM story_thread_events WHERE thread_id = 'th_lac' AND (cluster_id = 'cluster-9e899a54' OR headline LIKE '%Black Jet%');",
-        params: []
-      },
-      config,
-      fetchFn
-    );
+    // Defensive cleanup: purge known historical false-positive attachments and ghost threads from remote D1
+    const purges = [
+      "DELETE FROM story_thread_events WHERE thread_id = 'th_lac' AND (cluster_id IN ('cluster-9e899a54', 'cluster-69e1644b', 'cluster-d34c84a1') OR headline LIKE '%Black Jet%' OR headline LIKE '%FREMM%');",
+      "DELETE FROM story_thread_events WHERE thread_id = 'th_pralay-missile' AND (headline LIKE '%BrahMos%' OR headline LIKE '%Javelin%');",
+      "DELETE FROM story_threads WHERE id IN ('th_latest-news', 'th_netra-aewc', 'th_indian-navy', 'th_indian-defence-procurement-framework', 'th_indian-defence-procurement-ecosystem') OR event_count = 0;",
+      "UPDATE story_threads SET fingerprint_json = '[\"lac\",\"line\",\"actual\",\"control\",\"arunachal\",\"china\",\"border\",\"talks\",\"corps\",\"commander\",\"galwan\"]' WHERE id = 'th_lac';"
+    ];
+    for (const sql of purges) {
+      await executeD1Query({ sql, params: [] }, config, fetchFn);
+    }
     return res.ok || Boolean(res.error?.includes('duplicate column name'));
   } catch {
     return false;

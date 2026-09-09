@@ -54,10 +54,10 @@ export async function handleListThreads(
   try {
     const stmt = buildListThreadsStatement(sanitizedOptions);
     const rows = (await deps.runQuery(stmt.sql, stmt.params)) as StoryThreadRow[];
-    const threads: StoryThread[] = rows.map(threadRowToStoryThread);
+    const threads: StoryThread[] = rows.map(threadRowToStoryThread).filter((t) => t.eventCount > 0);
 
     let nextCursor: string | null = null;
-    if (threads.length === limit && threads.length > 0) {
+    if (threads.length >= limit && threads.length > 0) {
       nextCursor = threads[threads.length - 1]!.lastEventAt;
     }
 
@@ -108,7 +108,11 @@ export async function handleGetThreadDetail(
     const eventsStmt = buildGetEventsByThreadIdStatement(thread.id);
     const eventRows = (await deps.runQuery(eventsStmt.sql, eventsStmt.params)) as StoryThreadEventRow[];
     const rawEvents: StoryThreadEvent[] = eventRows.map(eventRowToStoryThreadEvent);
-    const audit = auditThreadCoherence(rawEvents);
+    const audit = auditThreadCoherence(rawEvents, {
+      id: thread.id,
+      canonicalEntity: thread.canonicalEntity,
+      title: thread.title
+    });
     const events = audit.validEvents;
     thread.eventCount = events.length;
 

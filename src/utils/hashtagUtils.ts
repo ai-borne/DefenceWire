@@ -11,7 +11,7 @@ const NOISE_TAGS = new Set([
   'topnews', 'breakingnews', 'national', 'international', 'general', 'latest',
   'article', 'articles', 'pressrelease', 'pressreleases', 'world', 'asia',
   'southasia', 'mod', 'ministryofdefence', 'editorial', 'opinion', 'report', 'reports',
-  'alert', 'alerts', 'brief', 'briefing', 'analysis', 'exclusive', 'indianews',
+  'alert', 'alerts', 'brief', 'briefing', 'analysis', 'exclusive', 'indianews', 'latestnews',
   'idrwteam', 'idrw', 'andhrapradesh', 'space', 'trending',
   // Strategic title boilerplate words
   'operational', 'strategic', 'acquisition', 'modernization', 'systems', 'arc', 'delivery'

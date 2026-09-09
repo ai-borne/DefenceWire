@@ -14,6 +14,7 @@ import {
   calculateJaccard,
   extractEventTokens,
   auditThreadCoherence,
+  isDistinctiveToken,
   ThreadCoherenceAuditResult
 } from '../src/services/threadCoherence.js';
 
@@ -21,7 +22,8 @@ export {
   normalizeEntity,
   calculateJaccard,
   extractEventTokens,
-  auditThreadCoherence
+  auditThreadCoherence,
+  isDistinctiveToken
 };
 export type { ThreadCoherenceAuditResult };
 
@@ -80,14 +82,23 @@ export function scoreMatch(cluster: StoryCluster, thread: StoryThread): number {
   const threadNorm = normalizeEntity(thread.canonicalEntity);
   if (clusterNorm.has(threadNorm)) return 1.0;
 
-  const threadTokens = thread.canonicalEntity.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !isNoiseTag(t));
+  const threadTokens = thread.canonicalEntity.toLowerCase().split(/[^a-z0-9]+/).filter(isDistinctiveToken);
   for (const ent of extractCanonicalEntities(cluster)) {
-    const entTokens = ent.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !isNoiseTag(t));
-    if (threadTokens.some((tt) => entTokens.includes(tt))) return 0.9;
+    const entTokens = ent.toLowerCase().split(/[^a-z0-9]+/).filter(isDistinctiveToken);
+    if (threadTokens.length > 0 && entTokens.length > 0) {
+      const setA = new Set(threadTokens);
+      const setB = new Set(entTokens);
+      const jaccard = calculateJaccard(setA, setB);
+      if (jaccard >= 0.5) return 0.9;
+    }
   }
 
-  const threadFp = new Set(thread.semanticFingerprint?.length ? thread.semanticFingerprint : thread.title.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 2 && !isNoiseTag(t)));
-  const jaccard = calculateJaccard(new Set(extractClusterTokens(cluster)), threadFp);
+  const threadFp = new Set(
+    (thread.semanticFingerprint?.length ? thread.semanticFingerprint : thread.title.toLowerCase().split(/[^a-z0-9]+/))
+      .filter(isDistinctiveToken)
+  );
+  const clusterTokens = new Set(extractClusterTokens(cluster).filter(isDistinctiveToken));
+  const jaccard = calculateJaccard(clusterTokens, threadFp);
   return jaccard >= 0.4 ? jaccard : 0;
 }
 
@@ -216,7 +227,11 @@ export function matchAndAdvanceThreads(
     const raw = eventsByThread.get(thread.id) ?? [];
     if (raw.length === 0) continue;
 
-    const audit = auditThreadCoherence(raw);
+    const audit = auditThreadCoherence(raw, {
+      id: thread.id,
+      canonicalEntity: thread.canonicalEntity,
+      title: thread.title
+    });
     if (audit.flaggedIds.length > 0) {
       purgedEventIds.push(...audit.flaggedIds);
     }
