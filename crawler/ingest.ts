@@ -30,6 +30,7 @@ import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
 import { fetchCanonicalRegistry, screenClusterTagsWithCanonicalLearning, syncCanonicalRegistryToD1 } from './canonicalEntityResolver.js';
+import { mergeDuplicateClusterTags } from './clusterTagMerge.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -203,6 +204,13 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';
   console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
+
+  // Cross-cluster tag merge pass (issue #1): reconciles same-event clusters that
+  // clustering itself missed (paraphrased headlines) but independently converged
+  // on the same/aliased canonical tag, so they share one hashtag set.
+  const tagMergeResult = mergeDuplicateClusterTags(lockedProtectedClusters, canonicalRegistry, now.toISOString());
+  lockedProtectedClusters = tagMergeResult.clusters;
+  canonicalRegistry = tagMergeResult.registry;
 
   // Closed-loop dynamic entity harvesting
   const r2Config = buildR2ConfigFromEnv(process.env);
