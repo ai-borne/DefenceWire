@@ -45,8 +45,10 @@ export function clearCFAIMemoryCache(): void {
   CF_AI_MEMORY_CACHE.clear();
 }
 
-export function extractJsonFromText(rawText: string): unknown {
+export function extractJsonFromText(rawText: unknown): unknown {
   if (!rawText) return null;
+  if (typeof rawText === 'object') return rawText;
+  if (typeof rawText !== 'string') return null;
   let cleaned = rawText.trim();
   const jsonMatch = /```(?:json)?\s*([\s\S]*?)\s*```/i.exec(cleaned);
   if (jsonMatch?.[1]) cleaned = jsonMatch[1].trim();
@@ -100,8 +102,10 @@ export async function runCloudflareAIInference(
       console.error('[CF AI ERROR]', `status=${response.status} body=${errText.slice(0, 150)}`);
       return null;
     }
-    const data = (await response.json()) as { result?: { response?: string }; success?: boolean };
-    return data.result?.response || null;
+    const data = (await response.json()) as { result?: { response?: unknown } | unknown; success?: boolean };
+    const resVal = (data?.result as { response?: unknown })?.response ?? data?.result;
+    if (resVal == null) return null;
+    return typeof resVal === 'string' ? resVal : JSON.stringify(resVal);
   } catch (err) {
     console.error('[CF AI NETWORK ERROR]', err instanceof Error ? err.message : String(err));
     return null;

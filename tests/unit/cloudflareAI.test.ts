@@ -68,9 +68,12 @@ describe('Cloudflare Workers AI Client Adapter', () => {
     expect(h1).not.toBe(hDiff);
   });
 
-  it('extracts JSON objects embedded in markdown code fences or plain text', () => {
+  it('extracts JSON objects embedded in markdown code fences, plain text, or direct objects', () => {
     expect(extractJsonFromText('')).toBeNull();
     expect(extractJsonFromText('invalid json string')).toBeNull();
+    expect(extractJsonFromText(null)).toBeNull();
+    expect(extractJsonFromText(undefined)).toBeNull();
+    expect(extractJsonFromText({ key: 'object' })).toEqual({ key: 'object' });
 
     const plain = '{"key": "value"}';
     expect(extractJsonFromText(plain)).toEqual({ key: 'value' });
@@ -239,39 +242,35 @@ describe('Cloudflare Workers AI Client Adapter', () => {
     const invalidCategoryPayload = {
       result: {
         response: JSON.stringify({
-          isMilitaryDefence: true,
-          confidence: 'high', // non-number
-          category: 'invalid_domain',
-          strategicBonus: 100, // exceeds 20
-          discoveredEntities: ['Rudram-II', 'a', 123, 'Valid Entity Name']
+          isMilitaryDefence: true, confidence: 'high', category: 'invalid_domain',
+          strategicBonus: 100, discoveredEntities: ['Rudram-II', 'a', 123, 'Valid Entity Name']
         })
       }
     };
-
     const options = {
-      accountId: 'acc-123',
-      apiToken: 'tok-123',
+      accountId: 'acc-123', apiToken: 'tok-123',
       fetchFn: (async () => new Response(JSON.stringify(invalidCategoryPayload), { status: 200 })) as typeof fetch
     };
 
     const res = await screenItemWithCloudflareAI(MOCK_SOURCE_ITEM, options);
     expect(res).not.toBeNull();
-    expect(res?.category).toBe('strategic'); // safe fallback
-    expect(res?.strategicBonus).toBe(20); // clamped to max 20
+    expect(res?.category).toBe('strategic');
+    expect(res?.strategicBonus).toBe(20);
     expect(res?.discoveredEntities).toContain('Rudram-II');
     expect(res?.discoveredEntities).toContain('Valid Entity Name');
-    expect(res?.discoveredEntities).not.toContain('a'); // filtered too short
+    expect(res?.discoveredEntities).not.toContain('a');
   });
 
-  it('adjudicates contested tags and caches results', async () => {
+  it('adjudicates contested tags when CF AI returns direct object response and caches results', async () => {
+    // Simulates Cloudflare AI returning parsed object in result.response (reproducing CI condition)
     const mockPayload = {
       result: {
-        response: JSON.stringify({
+        response: {
           approved: true,
           confidence: 0.95,
           canonicalTag: '#Rudram2',
           rationale: 'Core focus is Rudram-II missile testing.'
-        })
+        }
       }
     };
 

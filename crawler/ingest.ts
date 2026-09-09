@@ -195,16 +195,20 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
 
     cluster.ssbIntel = intel;
-    await screenClusterTags(
-      cluster,
-      intel ? {
-        primaryTag: intel.primaryTag,
-        focalEntity: intel.focalEntity,
-        operationalTheater: intel.operationalTheater,
-        hashtags: intel.hashtags
-      } : undefined,
-      { fetchFn }
-    );
+    try {
+      await screenClusterTags(
+        cluster,
+        intel ? {
+          primaryTag: intel.primaryTag,
+          focalEntity: intel.focalEntity,
+          operationalTheater: intel.operationalTheater,
+          hashtags: intel.hashtags
+        } : undefined,
+        { fetchFn }
+      );
+    } catch (err) {
+      console.error(`[TAG SCREENING ERROR] Failed for cluster ${cluster.id}:`, err);
+    }
   }
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';

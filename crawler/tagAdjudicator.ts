@@ -79,14 +79,18 @@ export async function adjudicateCandidateTag(
     (cleanUpper === 'LAC' && anchorResult.matchedAnchors.length === 0);
 
   if (isContested) {
-    const cfVerdict = await adjudicateContestedTag(cluster, tag, options);
-    if (cfVerdict) {
-      const finalApproved = cleanUpper === 'LAC' && anchorResult.matchedAnchors.length === 0 ? false : cfVerdict.approved;
-      return {
-        approved: finalApproved, tag: cfVerdict.canonicalTag || tag, source: 'tier3_cloudflare_ai',
-        confidence: cfVerdict.confidence, salienceScore: salience.score, matchedAnchors: anchorResult.matchedAnchors,
-        rationale: cfVerdict.rationale || 'Adjudicated by Cloudflare Workers AI edge model.'
-      };
+    try {
+      const cfVerdict = await adjudicateContestedTag(cluster, tag, options);
+      if (cfVerdict) {
+        const finalApproved = cleanUpper === 'LAC' && anchorResult.matchedAnchors.length === 0 ? false : cfVerdict.approved;
+        return {
+          approved: finalApproved, tag: cfVerdict.canonicalTag || tag, source: 'tier3_cloudflare_ai',
+          confidence: cfVerdict.confidence, salienceScore: salience.score, matchedAnchors: anchorResult.matchedAnchors,
+          rationale: cfVerdict.rationale || 'Adjudicated by Cloudflare Workers AI edge model.'
+        };
+      }
+    } catch (err) {
+      console.error('[CF AI ADJUDICATE ERROR]', err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -110,37 +114,41 @@ export async function screenClusterTags(
   intel?: GeminiCounterCheckInput,
   options: CloudflareAIOptions = {}
 ): Promise<void> {
-  let finalPrimaryTag: string | undefined = undefined;
-  if (cluster.primaryTag) {
-    const v = await adjudicateCandidateTag(cluster, cluster.primaryTag, intel, options);
-    if (v.approved) finalPrimaryTag = v.tag;
-  }
-  if (!finalPrimaryTag && intel?.primaryTag && intel.primaryTag !== cluster.primaryTag) {
-    const v = await adjudicateCandidateTag(cluster, intel.primaryTag, intel, options);
-    if (v.approved) finalPrimaryTag = v.tag;
-  }
-  cluster.primaryTag = finalPrimaryTag;
-
-  const rawTags = new Set([...(cluster.hashtags || []), ...(intel?.hashtags || [])]);
-  const approvedTags: string[] = [];
-  for (const tag of rawTags) {
-    const clean = tag.replace(/^#+/, '').toUpperCase();
-    if (clean in CONTEXTUAL_ANCHORS) {
-      const v = await adjudicateCandidateTag(cluster, tag, intel, options);
-      if (v.approved) approvedTags.push(v.tag);
-    } else {
-      approvedTags.push(tag);
+  try {
+    let finalPrimaryTag: string | undefined = undefined;
+    if (cluster.primaryTag) {
+      const v = await adjudicateCandidateTag(cluster, cluster.primaryTag, intel, options);
+      if (v.approved) finalPrimaryTag = v.tag;
     }
-  }
-  cluster.hashtags = approvedTags;
-
-  const fullText = `${cluster.synthesizedHeadline} ${cluster.primarySource?.snippet || ''}`;
-  cluster.entities = (cluster.entities || []).filter((ent) => {
-    const clean = ent.replace(/^#+/, '').toUpperCase();
-    if (clean in CONTEXTUAL_ANCHORS) {
-      return disambiguateEntity(clean, fullText);
+    if (!finalPrimaryTag && intel?.primaryTag && intel.primaryTag !== cluster.primaryTag) {
+      const v = await adjudicateCandidateTag(cluster, intel.primaryTag, intel, options);
+      if (v.approved) finalPrimaryTag = v.tag;
     }
-    return true;
-  });
+    cluster.primaryTag = finalPrimaryTag;
+
+    const rawTags = new Set([...(cluster.hashtags || []), ...(intel?.hashtags || [])]);
+    const approvedTags: string[] = [];
+    for (const tag of rawTags) {
+      const clean = tag.replace(/^#+/, '').toUpperCase();
+      if (clean in CONTEXTUAL_ANCHORS) {
+        const v = await adjudicateCandidateTag(cluster, tag, intel, options);
+        if (v.approved) approvedTags.push(v.tag);
+      } else {
+        approvedTags.push(tag);
+      }
+    }
+    cluster.hashtags = approvedTags;
+
+    const fullText = `${cluster.synthesizedHeadline} ${cluster.primarySource?.snippet || ''}`;
+    cluster.entities = (cluster.entities || []).filter((ent) => {
+      const clean = ent.replace(/^#+/, '').toUpperCase();
+      if (clean in CONTEXTUAL_ANCHORS) {
+        return disambiguateEntity(clean, fullText);
+      }
+      return true;
+    });
+  } catch (err) {
+    console.error(`[SCREEN CLUSTER TAGS ERROR] cluster=${cluster.id}:`, err);
+  }
 }
 
