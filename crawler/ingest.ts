@@ -29,7 +29,7 @@ import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBrea
 import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
-import { screenClusterTags } from './tagAdjudicator.js';
+import { fetchCanonicalRegistry, screenClusterTagsWithCanonicalLearning, syncCanonicalRegistryToD1 } from './canonicalEntityResolver.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -161,6 +161,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   let heuristicCount = 0;
   let preservedCount = 0;
   const entityCandidates: EntityHarvestCandidate[] = [];
+  let canonicalRegistry = await fetchCanonicalRegistry(d1Config, fetchFn); // Issue 2: durable tag SSOT, checked before minting new tags
 
   for (const cluster of lockedProtectedClusters) {
     if (!cluster) continue;
@@ -197,20 +198,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
 
     cluster.ssbIntel = intel;
-    try {
-      await screenClusterTags(
-        cluster,
-        intel ? {
-          primaryTag: intel.primaryTag,
-          focalEntity: intel.focalEntity,
-          operationalTheater: intel.operationalTheater,
-          hashtags: intel.hashtags
-        } : undefined,
-        { fetchFn }
-      );
-    } catch (err) {
-      console.error(`[TAG SCREENING ERROR] Failed for cluster ${cluster.id}:`, err);
-    }
+    canonicalRegistry = await screenClusterTagsWithCanonicalLearning(cluster, canonicalRegistry, intel, { fetchFn }, now.toISOString());
   }
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';
@@ -226,6 +214,9 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   }
   const entitySyncResult = await syncDiscoveredEntitiesToD1(aggregatedEntities, d1Config, { fetchFn });
   console.log(`[D1 ENTITY SYNC] ${entitySyncResult.synced} synced, ${entitySyncResult.promotedCount} promoted`);
+
+  const canonicalSyncResult = await syncCanonicalRegistryToD1(canonicalRegistry, d1Config, fetchFn);
+  console.log(`[D1 CANONICAL TAG SYNC] ${canonicalSyncResult.synced} synced, ${canonicalRegistry.length} known entities`);
 
   // Autonomous supplier growth pipeline (Phase 2.6): draft new_link candidates
   // from supplier x program co-mentions — never writes to suppliers/program_suppliers.

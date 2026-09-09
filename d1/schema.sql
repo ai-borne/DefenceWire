@@ -95,6 +95,22 @@ CREATE TABLE IF NOT EXISTS discovered_entities (
 CREATE INDEX IF NOT EXISTS idx_discovered_entities_promoted ON discovered_entities (is_promoted, mention_count DESC);
 CREATE INDEX IF NOT EXISTS idx_discovered_entities_last_seen ON discovered_entities (last_seen_at DESC);
 
+-- Durable Canonical-Entity Resolution Table (docs/knowledge_base_issues.md#2)
+-- Self-learning SSOT for tag canonicalization: the Tier 0 check the tag
+-- screening cascade (crawler/canonicalEntityResolver.ts) runs before minting
+-- a new tag, so the same real-world entity resolves to the same primaryTag
+-- across independently-run cascades instead of drifting per cluster.
+CREATE TABLE IF NOT EXISTS canonical_entities (
+  id TEXT PRIMARY KEY,            -- canonical slug (hashtagToSlug minus its 'th_' prefix), e.g. 's-400'
+  canonical_tag TEXT NOT NULL,    -- display tag, e.g. '#S-400'
+  alias_slugs_json TEXT NOT NULL DEFAULT '[]', -- JSON array of other raw slugs learned to resolve here
+  mention_count INTEGER DEFAULT 1,
+  first_seen_at TEXT NOT NULL,    -- ISO 8601
+  last_seen_at TEXT NOT NULL      -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_canonical_entities_last_seen ON canonical_entities (last_seen_at DESC);
+
 -- Dynamic Source Reputation & Scoop Velocity Table
 -- Tracks rolling metrics for each news source domain: scoop frequency, corroboration accuracy,
 -- and signal-to-noise ratio to compute dynamic ranking weights (0.7x - 1.3x).

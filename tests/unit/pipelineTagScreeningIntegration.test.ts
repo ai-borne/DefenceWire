@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { StoryThread, StoryThreadEvent } from '../../src/types/threads.js';
-import { screenClusterTags } from '../../crawler/tagAdjudicator.js';
+import { screenClusterTags } from '../../crawler/tagScreening.js';
 import { clearCFAIMemoryCache } from '../../crawler/cloudflareAI.js';
 import {
   matchAndAdvanceThreads,

@@ -22,7 +22,7 @@ Legend: `[ ]` open · `[~]` in progress · `[x]` done
 
 ## Issue 2 — Regex-based SSOT vs. LLM generalization to new entities
 
-**Status:** `[ ]` open
+**Status:** `[x]` done — implemented and tested
 
 **Symptom:** Perceived tradeoff between a regex/dictionary approach (stable but blind to new entities) and the LLM cascade (generalizes but is less consistent).
 
@@ -31,6 +31,20 @@ Legend: `[ ]` open · `[~]` in progress · `[x]` done
 **Proposed fix:** Introduce a D1 canonical-entity table. Cascade checks it first (exact match, then fuzzy/alias match) before minting a new canonical tag. Regex/dictionary becomes the fast-path cache for known entities; the LLM cascade is only invoked for genuinely new entities, and its resolution gets written back into the table (self-learning SSOT).
 
 **Tradeoffs:** New table + read/write path in the crawl hot path (must stay non-blocking per architectural invariant #3). Needs a fuzzy-match strategy (edit distance / embedding) — pick the cheapest one that's good enough before reaching for embeddings.
+
+**Implementation:** New `canonical_entities` D1 table (`d1/schema.sql`), checked by a genuine Tier 0 step ahead of the existing Tier1-3 cascade:
+
+- `crawler/canonicalEntityResolver.ts` — `resolveCanonicalTag` (pure: exact slug/alias match, then fuzzy token-Jaccard match at a conservative 0.6 threshold, reusing `computeJaccardSimilarity` from `src/engine/clusterEngine.ts` — no embeddings needed), `recordCanonicalResolution` (pure, functional write-back with alias learning), `fetchCanonicalRegistry`/`syncCanonicalRegistryToD1` (one bounded D1 read + one write per crawl run, not per cluster, via the shared `executeD1Query`), and the per-cluster orchestrator `screenClusterTagsWithCanonicalLearning` wired into `crawler/ingest.ts`.
+- `crawler/tagAdjudicator.ts` was split: it now holds only the pure Tier1-3 `adjudicateCandidateTag` cascade (back under its own documented 120 LOC budget). The orchestration function `screenClusterTags` moved to a new `crawler/tagScreening.ts`, which gained one optional `resolveCanonical` parameter — a canonical hit is used directly as the final `primaryTag`, skipping Tiers 1-3 (including the paid/rate-limited Tier 3 Cloudflare AI dispatch) entirely for entities already known to the table.
+- Tests: `tests/unit/canonicalEntityResolver.test.ts`, `tests/unit/tagScreening.test.ts`; `tests/unit/tagAdjudicator.test.ts` unaffected (tests only the untouched cascade).
+
+**Known gaps / follow-ups (Rule 12 — surfaced, not silently dropped):**
+
+- Scope: only `cluster.primaryTag` is resolved through the canonical table. `cluster.hashtags[]` entries still run the per-cluster Tier1-3 cascade independently with no canonical short-circuit — a deliberate MVP scope cut (primaryTag is the identity-bearing tag referenced throughout Issues 1 & 2), not an oversight, but worth revisiting if hashtag drift across a single cluster's own tag list turns out to matter in practice.
+- **Deployment step required:** `d1/schema.sql`'s new `canonical_entities` table must be applied to the remote D1 database (`npx wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql`) before the next crawl run. Until then, `fetchCanonicalRegistry`/`syncCanonicalRegistryToD1` will log a loud `HTTP` failure every run and no-op (non-fatal, but the canonical table provides zero benefit until migrated — unlike Issue 3's `fingerprint_json`, there is no auto-migration path here since this is a brand-new table, not an added column).
+- The registry fetch is bounded to the 500 most-recently-seen entities per run (same bounded-window tradeoff `discovered_entities`/`story_threads` already accept) — an entity untouched for a very long time could theoretically age out of a single run's in-memory lookup and re-mint before falling back into the window. Not expected to matter in practice given crawl frequency, but worth knowing if canonical drift is ever reported for a long-dormant entity.
+- The 0.6 fuzzy-match threshold is a reasoned-but-unvalidated starting point (no historical mis-tagging corpus to tune against yet). If Issue 1's cross-cluster merge pass (which depends on this table) surfaces false merges or missed merges, this threshold is the first place to look.
+- Issue 1 itself (the cross-cluster hashtag merge pass) remains open — this issue was explicitly the foundation for it, not a substitute.
 
 ---
 
