@@ -55,10 +55,10 @@ Legend: `[ ]` open · `[~]` in progress · `[x]` done
 **Known gaps / follow-ups (Rule 12 — surfaced, not silently dropped):**
 
 - Scope: only `cluster.primaryTag` is resolved through the canonical table. `cluster.hashtags[]` entries still run the per-cluster Tier1-3 cascade independently with no canonical short-circuit — a deliberate MVP scope cut (primaryTag is the identity-bearing tag referenced throughout Issues 1 & 2), not an oversight, but worth revisiting if hashtag drift across a single cluster's own tag list turns out to matter in practice.
-- **Deployment step required:** `d1/schema.sql`'s new `canonical_entities` table must be applied to the remote D1 database (`npx wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql`) before the next crawl run. Until then, `fetchCanonicalRegistry`/`syncCanonicalRegistryToD1` will log a loud `HTTP` failure every run and no-op (non-fatal, but the canonical table provides zero benefit until migrated — unlike Issue 3's `fingerprint_json`, there is no auto-migration path here since this is a brand-new table, not an added column).
+- **Deployment step: done.** `d1/schema.sql`'s `canonical_entities` table has been applied to the remote D1 database (`defencewire-archive`, account `97697a2b...`) via `wrangler d1 execute --remote --file=d1/schema.sql` and confirmed present (`sqlite_master` lookup). `fetchCanonicalRegistry`/`syncCanonicalRegistryToD1` are live as of the next crawl run — no longer no-op'ing.
 - The registry fetch is bounded to the 500 most-recently-seen entities per run (same bounded-window tradeoff `discovered_entities`/`story_threads` already accept) — an entity untouched for a very long time could theoretically age out of a single run's in-memory lookup and re-mint before falling back into the window. Not expected to matter in practice given crawl frequency, but worth knowing if canonical drift is ever reported for a long-dormant entity.
-- The 0.6 fuzzy-match threshold is a reasoned-but-unvalidated starting point (no historical mis-tagging corpus to tune against yet). If Issue 1's cross-cluster merge pass (which depends on this table) surfaces false merges or missed merges, this threshold is the first place to look.
-- Issue 1 itself (the cross-cluster hashtag merge pass) remains open — this issue was explicitly the foundation for it, not a substitute.
+- The 0.6 fuzzy-match threshold is a reasoned-but-unvalidated starting point (no historical mis-tagging corpus to tune against yet). If Issue 1's cross-cluster merge pass surfaces false merges or missed merges, this threshold is the first place to look.
+- Issue 1 (the cross-cluster hashtag merge pass) has since been implemented on top of this table — see its entry above.
 
 ---
 
