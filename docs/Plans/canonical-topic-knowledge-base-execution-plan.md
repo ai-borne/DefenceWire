@@ -2126,6 +2126,122 @@ from the repository implementation or a passing mocked provider test.
 - Full suite, build, bundle, security checks, and the approved provider/D1
   smoke tests pass.
 
+#### Stage status
+
+Partially closed on 2026-09-13. Per Rule 12, this is recorded as a partial
+close, not a completed stage: the two validation items that require real
+spend or new infrastructure were explicitly declined by the user this
+session and are carried forward rather than silently skipped.
+
+**Checkpointed and declined (carried forward).** Before touching
+`TOPIC_MODEL_ENABLED` or spending any Gemini budget, checked with the user on
+sample size, the non-production D1 clone approach, and whether to proceed
+with real spend now that it was a live decision. The user chose to stop
+before any spend or new Cloudflare resource, and to have this session do the
+remaining non-spend validation work instead. As a result, the following
+Phase 4 gaps remain exactly as carried forward, unchanged from before this
+stage:
+
+- No authenticated provider run or production shadow sample exists yet;
+  precision, recall, disagreement, candidate rate, assignment churn, p95
+  latency, cache hit rate, and cost against the Phase 0 thresholds are still
+  unmeasured. `TOPIC_MODEL_ENABLED` remains unset in production.
+- No non-production D1 clone was created; the semantic-cache hit,
+  malformed-response cache, source outage, and atomic D1 batch drills have
+  not been exercised against a real authenticated D1 REST endpoint outside
+  production. (Local proof of the underlying SQL logic — see below — is not
+  a substitute for this.)
+
+**Validated locally this session (real proof, not new mocks).**
+`crawler/topicAssignmentService.ts`'s provisional-topic promotion rule (an
+`UPDATE topics ... WHERE status='provisional' ... AND (EXISTS (... official
+source) OR 2 <= COUNT(DISTINCT owner))`) had no test coverage at all before
+this stage — it existed only as inline SQL inside `appendDiscoveredConcepts`,
+unexercised by any test. Extracted it to an exported, directly testable
+`buildProvisionalPromotionStatement` function (same SQL, no behavior change)
+and added `tests/integration/topicCandidatePromotion.test.ts`, which runs
+the real statement against a real migrated SQLite database (the same
+`createMigratedDatabase` harness Stage 1/2 integration tests use) rather than
+a reimplementation. Five cases, all passing on the first run against the
+already-correct implementation:
+
+- A single owner with no authoritative source leaves the topic provisional.
+- Two independent owners (distinct `source_owner_key`) promote it to
+  active/published and bump `registry_version`.
+- Two mentions from the *same* owner do not promote it — proves "independent"
+  is enforced, not just "two mentions."
+- A single `official`-authority source promotes it immediately, without
+  needing a second owner.
+- A candidate a curator has since rejected (`resolved_topic_id` cleared) is
+  excluded from the promotion evidence count, even though its evidence rows
+  still exist.
+
+This satisfies "prove provisional-topic promotion using two independent
+owners and one reviewed authoritative source" at the SQL-logic level. It
+does not satisfy the same item's implied real-D1-transport proof, which is
+part of the declined D1-clone work above.
+
+**Candidate/shadow/rejected privacy re-verified.** Re-checked (in addition to
+Stage 2's structural review) `src/services/topicReadQueryBuilder.ts` and
+`src/services/topicReadHandler.ts` specifically for the states this stage
+names: `buildResolvePublicTopicStatement` does return non-published rows
+from SQL (it has to, to distinguish "not found" from "found but not yet
+published" for the redirect check), but `topicReadHandler.ts`'s `resolve()`
+gates on `status==='active' && verification_state==='published'` in
+application code before any row content reaches a caller, and the only
+fallback is a redirect-chain query that itself re-filters to
+`status='active' AND verification_state='published'`. `buildListPublicTopicsStatement`
+and `buildRelatedTopicsStatement` filter in SQL directly. No `suppressed`
+status literal exists in the schema — `topics.status` is one of
+`provisional/active/deprecated/merged` and `verification_state` one of
+`unverified/provisional/verified/published/rejected` — so "suppressed" in
+this stage's language is covered by the general non-published-state check,
+not a distinct code path that needed separate verification.
+
+**Found and not fixed (carried forward, flagged per Rule 12): no curator
+reject path for an already-promoted auto-created topic.**
+`src/services/topicGovernanceHandler.ts`'s `candidate` action refuses to act
+unless `topic_candidates.status === 'pending'` ("Only pending candidates can
+be reviewed"). But `topicAssignmentService.ts` inserts a candidate row with
+`status='approved'` (not `'pending'`) at creation time whenever
+`concept.createProvisional` is true — which is exactly the auto-created,
+naming-rule-established facility/exercise/operation path this stage is
+about. So once such a topic clears the promotion threshold above and goes
+public, there is no way for a curator to walk it back through the
+`candidate` governance action; `merge` (redirect to another topic) is the
+only available lever, and there is no direct demote-to-provisional or
+suppress action. This may be intentional — the whole point of restricting
+auto-creation to deterministically-named types is that they shouldn't need
+human review — but it was not stated as a deliberate design decision
+anywhere in Phase 4 or this stage's carried-forward limitations, so it is
+recorded here rather than silently assumed. Left unfixed: building a
+suppress/demote governance action is new scope this stage was not asked to
+add, and belongs with Stage 4's curator governance UI work if the user wants
+it.
+
+**Not attempted (require an explicit product policy decision, unchanged
+from Phase 4).** Additional auto-creatable concrete type validators (item 4)
+and the model-link publication threshold (item 5) both depend on a product
+decision — which additional types should be auto-creatable, and whether
+model-only links may ever go public — that has not been made. Per this
+stage's own exit criteria ("if product policy approves..."), building either
+without that decision would be exactly the kind of unreviewed inference this
+whole plan exists to prevent. Both remain exactly as carried forward from
+Phase 4.
+
+**Also observed, not part of this stage's scope:** `crawler/topicModelConfig.ts`
+has no per-run request cap or spend ceiling — `TOPIC_MODEL_ENABLED=true`
+would call the model for every uncached classification input with no
+fail-closed budget cap, which is short of Phase 0's own threshold ("enabling
+a paid provider requires an explicit configured per-run budget and
+fail-closed cap"). This has been true since Phase 4 and is not new to this
+stage, but it becomes directly relevant the moment a real budgeted shadow
+run is authorized — worth building before that session, not during it.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`),
+including the new integration test, run before committing per this
+project's own pre-commit-hook convention.
+
 ### Stage 4 — Curator governance UI and remote concurrency
 
 #### Goal

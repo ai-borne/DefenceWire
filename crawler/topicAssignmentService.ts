@@ -76,8 +76,13 @@ function appendDiscoveredConcepts(statements: D1Statement[], concepts: Discovere
     if (!concept.createProvisional) continue;
     provisional.push({ topicId, role: concept.role, confidence: concept.confidence, evidenceStart: concept.evidenceStart, evidenceEnd: concept.evidenceEnd, evidenceContentHash: concept.evidenceContentHash, mentionKind: 'exact' });
   }
-  if (concepts.length) statements.push({ sql: `UPDATE topics SET status='active', verification_state='published', registry_version=?, updated_at=? WHERE status='provisional' AND verification_state='provisional' AND (EXISTS (SELECT 1 FROM topic_candidate_evidence e JOIN cluster_sources cs ON cs.cluster_id=e.cluster_id AND cs.source_article_id=e.source_article_id WHERE e.candidate_id IN (SELECT id FROM topic_candidates WHERE resolved_topic_id=topics.id) AND cs.source_authority='official') OR 2 <= (SELECT COUNT(DISTINCT a.source_owner_key) FROM topic_candidate_evidence e JOIN source_articles a ON a.id=e.source_article_id WHERE e.candidate_id IN (SELECT id FROM topic_candidates WHERE resolved_topic_id=topics.id)))`, params: [registryVersion + 1, now] });
+  if (concepts.length) statements.push(buildProvisionalPromotionStatement(registryVersion, now));
   return provisional;
+}
+
+/** Promotes a provisional topic once it has one official-authority source or two independent owners. */
+export function buildProvisionalPromotionStatement(registryVersion: number, now: string): D1Statement {
+  return { sql: `UPDATE topics SET status='active', verification_state='published', registry_version=?, updated_at=? WHERE status='provisional' AND verification_state='provisional' AND (EXISTS (SELECT 1 FROM topic_candidate_evidence e JOIN cluster_sources cs ON cs.cluster_id=e.cluster_id AND cs.source_article_id=e.source_article_id WHERE e.candidate_id IN (SELECT id FROM topic_candidates WHERE resolved_topic_id=topics.id) AND cs.source_authority='official') OR 2 <= (SELECT COUNT(DISTINCT a.source_owner_key) FROM topic_candidate_evidence e JOIN source_articles a ON a.id=e.source_article_id WHERE e.candidate_id IN (SELECT id FROM topic_candidates WHERE resolved_topic_id=topics.id)))`, params: [registryVersion + 1, now] };
 }
 
 function appendCandidateEvidence(statements: D1Statement[], id: string, candidate: Candidate, clusterId: string, now: string): void {
