@@ -244,8 +244,11 @@ async function executeStrictBatch(
       method: 'POST', headers: d1Headers(config), body: JSON.stringify({ batch })
     });
     const body = await response.json().catch(() => null) as D1BatchResponse | null;
-    const failed = body?.result?.some((item) => item.success === false);
-    if (!response.ok || !body?.success || failed) throw new Error(`D1 transactional batch failed: HTTP ${response.status}`);
+    const failedItem = body?.result?.find((item) => item.success === false);
+    if (!response.ok || !body?.success || failedItem) {
+      const detail = failedItem?.error ?? body?.errors?.map((item) => item.message).filter(Boolean).join('; ') ?? 'no error detail returned';
+      throw new Error(`D1 transactional batch failed: HTTP ${response.status} (${detail})`);
+    }
   }
 }
 
@@ -264,5 +267,6 @@ function atOrBefore(current: IngestionStage | undefined, stage: IngestionStage):
 
 interface D1BatchResponse {
   success?: boolean;
-  result?: Array<{ success?: boolean }>;
+  result?: Array<{ success?: boolean; error?: string }>;
+  errors?: Array<{ code?: number; message?: string }>;
 }

@@ -90,6 +90,21 @@ describe('durable ingestion service', () => {
     expect(harness.getStatus()).toBe('failed_retryable');
   });
 
+  it('surfaces the D1 error detail instead of just the HTTP status when a batch is rejected', async () => {
+    const data = fixture();
+    const fetchFn = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.batch?.some((item: { sql: string }) => item.sql.includes('ingestion_cluster_manifest'))) {
+        return new Response(JSON.stringify({ success: false, errors: [{ code: 7500, message: 'too many SQL variables' }] }), { status: 400 });
+      }
+      if (body.sql?.includes('SELECT id, status, retry_count')) return d1Rows([]);
+      return d1Rows([]);
+    });
+    await expect(persistDurableInput(data.articles, data.clusters, config, {
+      fetchFn: fetchFn as unknown as typeof fetch, putClusterJsonFn: vi.fn(), mintUuid: () => '00000000-0000-4000-8000-000000000004'
+    })).rejects.toThrow('too many SQL variables');
+  });
+
   it('blocks D1 cluster visibility when R2 fails', async () => {
     const harness = d1Harness();
     const data = fixture();
