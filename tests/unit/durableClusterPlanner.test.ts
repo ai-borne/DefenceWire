@@ -38,6 +38,13 @@ describe('durable cluster planning', () => {
     expect(plan.clusters[30]?.cluster.synthesizedHeadline).toContain('30');
   });
 
+  it('mints a real UUID via the default crypto.randomUUID binding when no mintUuid override is supplied', async () => {
+    const item = article(0);
+    const prepared = await prepareDurableInputs([item], [cluster(0, item)]);
+
+    expect(prepared.clusters[0]?.id).toMatch(/^cluster_[0-9a-f-]{36}$/);
+  });
+
   it('deduplicates equivalent tracked URLs and reuses a durable cluster when primary changes', async () => {
     const original = article(1, 'https://EXAMPLE.com/report/?utm_source=feed');
     const equivalent = article(2, 'https://example.com/report');

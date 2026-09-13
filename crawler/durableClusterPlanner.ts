@@ -7,7 +7,7 @@ import {
 } from './durableIngestTypes.js';
 
 export async function prepareDurableInputs(
-  articles: StorySourceItem[], clusters: StoryCluster[], mintUuid: () => string = crypto.randomUUID
+  articles: StorySourceItem[], clusters: StoryCluster[], mintUuid: () => string = () => crypto.randomUUID()
 ): Promise<Omit<DurableIngestPlan, 'runId' | 'inputFingerprint'>> {
   const durableArticles = await Promise.all(articles.map(toDurableArticle));
   const byUrl = new Map(durableArticles.flatMap((article) =>
