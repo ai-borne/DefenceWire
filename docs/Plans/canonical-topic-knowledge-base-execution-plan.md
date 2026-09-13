@@ -944,6 +944,17 @@ Components consume curator ViewModels only. ViewModels call authenticated topic-
 - No candidate, ambiguous alias, merge, abstract theme, or implication rule requires direct database editing.
 - Full build, security checks, and test suite pass.
 
+### Phase status
+
+Repository governance foundations completed on 2026-09-13: authenticated,
+no-store curator endpoints now provide preview and audited mutations for
+candidate approval/rejection, topic rename, aliases, implication rules,
+merge/reversal, and curator cluster assignments. Mutations use an optimistic
+governance-version resource, bounded targeted queueing, and the existing
+immutable decision/audit ledger. Phase 16 records the remaining human-facing
+review workflow and remote-D1 proof work under Rule 12; neither is claimed as
+complete merely because the underlying mutation endpoint exists.
+
 ## Phase 6 — Topic read API and knowledge-base query model
 
 ### Goal
@@ -1518,3 +1529,47 @@ from the repository implementation or a passing mocked provider test.
   oscillating assignments.
 - Full suite, build, bundle, security checks, and the approved provider/D1
   smoke tests pass.
+
+## Phase 16 — Phase 5 curator-workflow completion and remote concurrency closure
+
+### Goal
+
+Close the Phase 5 capabilities that cannot truthfully be represented by the
+repository’s new endpoint-only governance foundation.
+
+### Carried-forward Phase 5 limitations
+
+- The Curator Desk does not yet expose a dedicated Topic Governance ViewModel
+  and UI for listing/filtering provisional topics, candidates, alias
+  collisions, near duplicates, and assignment disagreements, or for invoking
+  every governed action without an API client.
+- Supporting-source inspection (bounded evidence span, source-independence
+  calculation, classifier version, assignment diff) is not yet surfaced in a
+  curator-safe read model.
+- The endpoint's optimistic-version precheck and D1 batch are unit-tested, but
+  stale-write rejection has not been exercised against concurrent requests on
+  an authenticated remote D1 instance.
+- Assignment preview does not yet show every historical cluster/API URL before
+  a rule change; it currently bounds affected effective assignments to 500.
+
+### Validation work
+
+- Build the authenticated Topic Governance curator panel using MVVM, resource
+  strings, safe rendering, and explicit confirmation/preview for every
+  mutation.
+- Add indexed curator read models for all review queues and supporting evidence
+  without exposing evidence or decisions through public APIs.
+- Run concurrent stale-write, merge/reversal, lock preservation, and bounded
+  reclassification drills against an authenticated non-production D1 clone.
+- Verify every supported mutation and recovery operation produces exactly one
+  immutable audit record and only the affected queue entries.
+
+### Exit criteria
+
+- A curator can complete every Phase 5 review path through the authenticated UI
+  without direct database editing.
+- Source evidence, independence, version, and diff previews are available only
+  to curators and are bounded.
+- Remote D1 concurrency and recovery drills pass with no silent overwrite,
+  unqueued affected cluster, or lost provenance.
+- Full suite, build, bundle, and security checks pass.

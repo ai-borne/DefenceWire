@@ -26,6 +26,7 @@ describe('Phase 1 D1 migrations', () => {
       'topic_semantic_cache', 'topic_candidate_evidence']) {
       expect(names.has(name), `missing ${name}`).toBe(true);
     }
+    expect(names.has('topic_governance_versions')).toBe(true);
     expect(db.prepare('SELECT COUNT(*) AS count FROM topics').get()!.count).toBe(29);
     expect(db.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
   });
