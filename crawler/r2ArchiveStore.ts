@@ -76,7 +76,18 @@ export async function putClusterJson(
   config: R2Config,
   fetchFn: typeof fetch = globalThis.fetch
 ): Promise<R2PutResult> {
-  const objectPath = `/${config.bucketName}/${id}.json`;
+  return putJsonObject(`${id}.json`, json, config, fetchFn);
+}
+
+/** Writes an explicitly keyed JSON object for resumable ingestion payloads. */
+export async function putJsonObject(
+  key: string,
+  json: string,
+  config: R2Config,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<R2PutResult> {
+  const safeKey = key.split('/').map(encodeURIComponent).join('/');
+  const objectPath = `/${config.bucketName}/${safeKey}`;
   const host = `${config.accountId}.r2.cloudflarestorage.com`;
   const amzDate = amzDateNow();
   const { authorization, contentSha256 } = signRequest('PUT', config, host, objectPath, json, amzDate);

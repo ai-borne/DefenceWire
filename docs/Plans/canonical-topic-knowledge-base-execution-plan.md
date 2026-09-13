@@ -659,6 +659,13 @@ D1 metadata writes for a bounded batch are transactional. R2 blobs are written w
 - Existing archive search continues working.
 - Full build and test suite pass.
 
+### Phase status
+
+Complete as of 2026-09-13. The durable path, deep completion audit,
+verification evidence, tech-debt sweep, resolutions, and fail-loud
+cross-phase/production validations are recorded in
+`docs/Plans/canonical-topic-phase-2-summary.md`.
+
 ## Phase 3 — Registry-driven deterministic multi-topic classification
 
 ### Goal
@@ -1332,3 +1339,63 @@ without exposing credentials or disrupting ingestion.
   behavior remain unchanged until their planned cutover phases.
 - No credentials or source payloads are committed in verification evidence.
 - Full suite, build, bundle, and security checks pass after rollout.
+
+## Phase 13 — Phase 2 production activation and cross-phase acceptance closure
+
+### Goal
+
+Close the Phase 2 checks that require authenticated production D1/R2 state or
+the later canonical-topic publication path, without pretending repository-only
+verification exercised those external systems.
+
+### Carried-forward Phase 2 limitations
+
+- Migration `0007_durable_ingestion.sql` and its generated schema snapshot are
+  locally verified but are not applied to production without explicit
+  production deployment authority.
+- Real R2-success/D1-failure orphan adoption and interrupted-run recovery are
+  covered with deterministic unit/integration tests, but have not been drilled
+  against production credentials and production objects.
+- A rank-31 cluster is durably persisted, fully enriched, and inserted into the
+  existing searchable archive in Phase 2. Its appearance in a canonical public
+  topic page cannot be exercised until Phases 3 and 8 create and expose
+  validated `cluster_topics`; treating that later UI as already live here would
+  conflict with the plan's shadow-data boundary.
+- Arbitrary HTTP redirects cannot be learned without fetching the article URL.
+  Phase 2 applies the reviewed deterministic URL rules (tracking removal,
+  encoding, ports, fragments, query ordering, and explicit scheme handling),
+  but production redirect aliases must be recorded during the later full-text
+  acquisition path rather than guessed.
+
+### Validation work
+
+- Apply all pending numbered migrations after backup and verify the migration
+  ledger is clean on a repeated run.
+- Run one controlled 50-cluster ingestion and reconcile the run ledger's
+  eligible article count, eligible cluster count, and homepage count to 50,
+  50, and 30 respectively.
+- Inject a controlled R2-success/D1-failure, confirm the orphan candidate is
+  detectable, retry the same fingerprint, and prove the manifest adopts the
+  same randomly minted cluster ID and payload key.
+- Interrupt runs after `articles_persisted`, `clusters_persisted`, and
+  `publishable`; verify each resumes from its checkpoint and no incomplete run
+  becomes the current homepage snapshot.
+- After canonical topic publication is enabled, prove the stored rank-31
+  cluster appears on its public topic page and remains searchable in Archive.
+- During full-text acquisition, capture safe final response URLs, persist
+  reviewed redirect aliases, and prove redirected/equivalent URLs converge
+  without merging content-significant URLs or blindly collapsing HTTP/HTTPS.
+- Verify cluster merges and splits preserve production lineage, redirects,
+  topic decisions, curator locks, thread references, and R2 payload access.
+
+### Exit criteria
+
+- Production D1 contains migration `0007_durable_ingestion.sql` exactly once
+  and D1/R2 reconciliation reports no unexplained orphan.
+- Controlled failure and interruption drills recover without duplicate
+  articles, clusters, archive rows, or payload objects.
+- The rank-31 public topic-page scenario passes after topic publication is live.
+- Learned redirect aliases pass SSRF, canonicalization, identity, and collision
+  checks and are covered by production-safe tests.
+- All Phase 2 production counters and identity invariants reconcile exactly.
+- Full suite, build, bundle, security checks, and deployment smoke tests pass.

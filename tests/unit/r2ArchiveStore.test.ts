@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { buildR2ConfigFromEnv, putClusterJson, getClusterJson } from '../../crawler/r2ArchiveStore.js';
+import { buildR2ConfigFromEnv, putClusterJson, putJsonObject, getClusterJson } from '../../crawler/r2ArchiveStore.js';
 
 const config = {
   accountId: 'acct-1',
@@ -65,6 +65,16 @@ describe('putClusterJson', () => {
     const result = await putClusterJson('story-1', '{}', config, fetchFn);
 
     expect(result).toEqual({ ok: false });
+  });
+});
+
+describe('putJsonObject', () => {
+  it('preserves deterministic nested keys while encoding unsafe path segments', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    await putJsonObject('ingestion/run one/cluster.json', '{}', config, fetchFn);
+    expect(fetchFn.mock.calls[0]?.[0]).toBe(
+      'https://acct-1.r2.cloudflarestorage.com/defencewire-archive-blobs/ingestion/run%20one/cluster.json'
+    );
   });
 });
 

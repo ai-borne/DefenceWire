@@ -85,6 +85,17 @@ describe('archivePoppedClusters', () => {
     expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 0 });
   });
 
+  it('treats an HTTP 200 D1 statement failure as a failed archive write', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({
+      ok: true, status: 200,
+      text: async () => JSON.stringify({ success: true, result: [{ success: false }], errors: [{ message: 'SQL failed' }] })
+    });
+    const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const result = await archivePoppedClusters([makeCluster('a')], [], config, r2Config, { fetchFn, putClusterJsonFn });
+
+    expect(result).toEqual({ archived: 0, failed: 1, r2Failed: 0 });
+  });
+
   it('counts a network error without throwing', async () => {
     const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
     const putClusterJsonFn = vi.fn().mockResolvedValue({ ok: true, status: 200 });

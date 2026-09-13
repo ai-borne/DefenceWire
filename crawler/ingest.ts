@@ -1,9 +1,4 @@
-/**
- * 24/7 Autonomous Defence News Ingestion Pipeline
- * Fetches 40+ RSS/Atom feeds, filters, clusters, scores, and generates SSB intel.
- * Enforces whole-word matching, negative blacklists, curator override locks & atomic commit guards.
- * Hard limit: <= 300 LOC.
- */
+/** Autonomous feed ingestion orchestrator. Hard limit: <= 300 LOC. */
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -11,7 +6,7 @@ import { clusterArticles } from '../src/engine/clusterEngine.js';
 import { INITIAL_STORY_CLUSTERS } from '../src/data/initialNews.js';
 import { INITIAL_RIVER_ITEMS } from '../src/data/riverNews.js';
 import { StoryCluster, StorySourceItem } from '../src/types/news.js';
-import { FeedConfig, getActiveFeeds } from './feeds.js';
+import { getActiveFeeds } from './feeds.js';
 import { generateHeuristicSSBIntel, summarizeWithGemini } from './summarizer.js';
 import { summarizeWithCloudflareAI } from './cloudflareAI.js';
 import { archivePoppedClusters, reconcileArchiveWithLiveFeed, buildD1ConfigFromEnv } from './archiveSync.js';
@@ -31,6 +26,13 @@ import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
 import { fetchCanonicalRegistry, screenClusterTagsWithCanonicalLearning, syncCanonicalRegistryToD1 } from './canonicalEntityResolver.js';
 import { mergeDuplicateClusterTags } from './clusterTagMerge.js';
+import {
+  advanceDurableRun, buildDurableIngestConfigFromEnv, failDurableRun, markDurableClassified,
+  persistDurableInput
+} from './durableIngestService.js';
+import { DurablePersistResult } from './durableIngestTypes.js';
+import { IngestOptions, IngestResult } from './ingestTypes.js';
+import { writeSnapshotAtomically } from './snapshotWriter.js';
 
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
@@ -38,29 +40,7 @@ export {
 } from './filters.js';
 import { isDefenceRelevant, filterFreshArticles } from './filters.js';
 
-export interface IngestOptions {
-  feeds?: FeedConfig[];
-  maxAgeHours?: number;
-  maxClusters?: number;
-  outputPath?: string | null;
-  geminiApiKey?: string;
-  fetchFn?: typeof fetch;
-  existingClusters?: StoryCluster[];
-  existingRiver?: StorySourceItem[];
-  includeSeedClusters?: boolean;
-  /** Reference clock for freshness/clustering; tests pin it to dodge fake-timer drift. */
-  now?: Date;
-}
-
-export interface IngestResult {
-  clusters: StoryCluster[];
-  river: StorySourceItem[];
-  totalIngested: number;
-  totalFiltered: number;
-  activeFeedsCount: number;
-  durationMs: number;
-  generatedAt: string;
-}
+export type { IngestOptions, IngestResult } from './ingestTypes.js';
 
 export async function runIngestionPipeline(options: IngestOptions = {}): Promise<IngestResult> {
   const startTime = Date.now();
@@ -70,7 +50,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const apiKey = options.geminiApiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? '';
   const fetchFn = options.fetchFn ?? globalThis.fetch;
   const now = options.now ?? new Date();
-  // Read existing dataset if present for curator protection and atomic guards
   let existingClusters: StoryCluster[] = options.existingClusters || [];
   let existingRiver: StorySourceItem[] = options.existingRiver || [];
 
@@ -88,7 +67,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
 
   const rawArticles: StorySourceItem[] = [];
 
-  // Concurrent batch fetching (batch size 6)
   const batchSize = 6;
   for (let i = 0; i < feeds.length; i += batchSize) {
     const batch = feeds.slice(i, i + batchSize);
@@ -120,18 +98,23 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     };
   }
 
-  // Chronological River items sorted by publishedAt descending
   const riverItems = [...freshArticles].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 
-  // Cluster articles into coherent story groups
-  const allClusters = clusterArticles(freshArticles, now);
-  const topClusters = allClusters.slice(0, maxClusters);
+  let allClusters = clusterArticles(freshArticles, now);
+  const d1Config = buildD1ConfigFromEnv(process.env);
+  const r2Config = buildR2ConfigFromEnv(process.env);
+  const durableConfig = options.enableDurableIngestion === false ? null :
+    buildDurableIngestConfigFromEnv(process.env);
+  let durableRun: DurablePersistResult | null = null;
+  if (durableConfig) {
+    durableRun = await persistDurableInput(freshArticles, allClusters, durableConfig, { fetchFn });
+    allClusters = durableRun.clusters;
+  }
 
-  // Optional manual seed inclusion (off by default in live runs to maintain rolling real-time wire)
   const shouldIncludeSeeds = options.includeSeedClusters ?? false;
-  const mergedWithSeeds = [...topClusters];
+  const mergedWithSeeds = [...allClusters];
   if (shouldIncludeSeeds) {
     for (const seed of INITIAL_STORY_CLUSTERS) {
       if (!mergedWithSeeds.some((m) => m.id === seed.id || m.primarySource.url === seed.primarySource.url)) {
@@ -140,10 +123,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
   }
 
-  // Disk-JSON heuristic first (can reconstruct a full cluster for reinsertion),
-  // then D1 curator_overrides overlaid as authoritative where reachable —
-  // see curatorOverrideSync.ts for why.
-  const d1Config = buildD1ConfigFromEnv(process.env);
   let lockedProtectedClusters = preserveCuratorOverrides(mergedWithSeeds, existingClusters);
   if (d1Config) {
     const overrideRows = await fetchCuratorOverridesFromD1(d1Config, fetchFn);
@@ -155,8 +134,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     console.log('[CURATOR OVERRIDES] D1 not configured; using disk-JSON override heuristic only.');
   }
 
-  // Enrich all clusters with SSB Intelligence using Dual-Engine Free Cascade
-  // (Gemini Flash -> Cloudflare Workers AI -> Heuristic)
   let geminiCount = 0;
   let cfAiCount = 0;
   let heuristicCount = 0;
@@ -211,9 +188,13 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const tagMergeResult = mergeDuplicateClusterTags(lockedProtectedClusters, canonicalRegistry, now.toISOString());
   lockedProtectedClusters = tagMergeResult.clusters;
   canonicalRegistry = tagMergeResult.registry;
+  if (durableRun && durableConfig) {
+    const byId = new Map(lockedProtectedClusters.map((cluster) => [cluster.id, cluster]));
+    for (const item of durableRun.plan.clusters) item.cluster = byId.get(item.id) ?? item.cluster;
+    await markDurableClassified(durableRun.plan, durableConfig, { fetchFn });
+  }
 
   // Closed-loop dynamic entity harvesting
-  const r2Config = buildR2ConfigFromEnv(process.env);
   const aggregatedEntities = aggregateEntityCandidates(entityCandidates);
   const promotedConfigs = getPromotedEntityConfigs(aggregatedEntities);
   if (promotedConfigs.length > 0) {
@@ -236,11 +217,18 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const repSyncResult = await syncSourceReputationToD1(sourceStatsMap, d1Config, { fetchFn });
   console.log(`[D1 REPUTATION SYNC] ${repSyncResult.syncedToD1} sources synced`);
 
-  const finalClusters = lockedProtectedClusters.length > 0 ? lockedProtectedClusters : [...INITIAL_STORY_CLUSTERS];
+  const rankedClusters = lockedProtectedClusters.slice(0, maxClusters);
+  const finalClusters = rankedClusters.length > 0 ? rankedClusters : [...INITIAL_STORY_CLUSTERS];
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
-  const archiveResult = await archivePoppedClusters(existingClusters, finalClusters, d1Config, r2Config, { fetchFn });
+  const archiveCandidates = [...new Map([...existingClusters, ...lockedProtectedClusters]
+    .map((cluster) => [cluster.id, cluster])).values()];
+  const archiveResult = await archivePoppedClusters(archiveCandidates, finalClusters, d1Config, r2Config, { fetchFn });
   const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
   console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
+  if (durableRun && (archiveResult.failed > 0 || reconcileResult.failed > 0)) {
+    if (durableConfig) await failDurableRun(durableRun.plan, 'classified', durableConfig, fetchFn);
+    throw new Error('Archive persistence failed; refusing to publish a partial homepage snapshot.');
+  }
   // Temporal story threading & lineage engine (Phase 1). Popped clusters get a final pass before archival (issue #3).
   const poppedClusters = findClustersToArchive(existingClusters, finalClusters);
   const threadResult = await runThreadContinuity([...finalClusters, ...poppedClusters], d1Config, { fetchFn });
@@ -269,18 +257,27 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     generatedAt
   };
 
+  if (durableRun && durableConfig) {
+    await advanceDurableRun(durableRun.plan, 'publishable', durableConfig, finalClusters.length, fetchFn);
+  }
+
   // Persist output atomically if specified or default to public/data/news.json
   if (options.outputPath !== null) {
     const defaultDir = path.resolve(process.cwd(), 'public/data');
     const targetPath = options.outputPath ?? path.join(defaultDir, 'news.json');
 
     try {
-      const dir = path.dirname(targetPath);
-      await fs.mkdir(dir, { recursive: true });
-      await fs.writeFile(targetPath, JSON.stringify(result, null, 2), 'utf-8');
-    } catch {
-      // Non-fatal if filesystem is mock/read-only
+      await writeSnapshotAtomically(targetPath, result);
+    } catch (error) {
+      if (durableRun && durableConfig) {
+        await failDurableRun(durableRun.plan, 'publishable', durableConfig, fetchFn);
+        throw new Error('Homepage snapshot write failed after durable ingestion.', { cause: error });
+      }
     }
+  }
+
+  if (durableRun && durableConfig) {
+    await advanceDurableRun(durableRun.plan, 'published', durableConfig, finalClusters.length, fetchFn);
   }
 
   return result;
@@ -294,5 +291,8 @@ if (shouldRunAsCli()) {
   console.log('[DEFENCEWIRE CRAWLER] Starting 24/7 ingestion pipeline across 40+ feeds...');
   runIngestionPipeline()
     .then((res) => console.log(`[CRAWLER COMPLETE] Ingested: ${res.totalIngested} | Filtered: ${res.totalFiltered} | Clusters: ${res.clusters.length} | River: ${res.river.length} | Time: ${res.durationMs}ms`))
-    .catch((err) => console.error('[CRAWLER ERROR]', err));
+    .catch((err) => {
+      console.error('[CRAWLER ERROR]', err);
+      process.exitCode = 1;
+    });
 }

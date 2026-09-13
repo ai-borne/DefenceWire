@@ -71,19 +71,29 @@ export async function executeD1Query(
   });
   let rows: Record<string, unknown>[] = [];
   let errorText: string | undefined = undefined;
+  let apiSucceeded: boolean | undefined;
   try {
     const bodyText = await response.text();
     if (!response.ok) {
       errorText = bodyText;
       console.error(`[D1 REST] HTTP ${response.status} for statement "${statement.sql}": ${bodyText}`);
     } else {
-      const body = JSON.parse(bodyText) as { result?: Array<{ results?: Record<string, unknown>[] }> };
+      const body = JSON.parse(bodyText) as {
+        success?: boolean;
+        errors?: Array<{ message?: string }>;
+        result?: Array<{ success?: boolean; results?: Record<string, unknown>[] }>;
+      };
       rows = body.result?.[0]?.results ?? [];
+      apiSucceeded = body.success !== false && !body.result?.some((result) => result.success === false);
+      if (!apiSucceeded) {
+        errorText = body.errors?.map((error) => error.message).filter(Boolean).join('; ') ||
+          'D1 API reported a failed statement.';
+      }
     }
   } catch {
     // No JSON body worth reading (e.g. insert/delete responses) — leave rows empty.
   }
-  return { ok: response.ok, status: response.status, rows, error: errorText };
+  return { ok: response.ok && apiSucceeded !== false, status: response.status, rows, error: errorText };
 }
 
 export async function archivePoppedClusters(

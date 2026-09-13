@@ -61,7 +61,16 @@ archive over Cloudflare's D1 REST API using a token instead.
    your account (and ideally just the `defencewire-archive` database).
 3. Copy the token — Cloudflare only shows it once.
 
-## 6. Add three GitHub Actions secrets
+## 6. Create R2 payload storage and add crawler secrets
+
+Create the bucket configured in `wrangler.toml`, then create an R2 token scoped
+to Object Read & Write for that bucket. Durable ingestion is fail-closed: once
+either D1 or R2 is configured, both configurations must be complete before a
+new homepage snapshot can publish.
+
+```bash
+npx wrangler r2 bucket create defencewire-archive-blobs
+```
 
 In the repo's GitHub Settings → Secrets and variables → Actions, add:
 
@@ -70,6 +79,9 @@ In the repo's GitHub Settings → Secrets and variables → Actions, add:
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID (dashboard right sidebar) |
 | `CLOUDFLARE_D1_DATABASE_ID` | The `database_id` from step 2 |
 | `CLOUDFLARE_API_TOKEN` | The token from step 5 |
+| `R2_ACCESS_KEY_ID` | R2 scoped token access-key ID |
+| `R2_SECRET_ACCESS_KEY` | R2 scoped token secret |
+| `R2_BUCKET_NAME` | `defencewire-archive-blobs` |
 
 Or via the CLI:
 
@@ -77,6 +89,9 @@ Or via the CLI:
 gh secret set CLOUDFLARE_ACCOUNT_ID
 gh secret set CLOUDFLARE_D1_DATABASE_ID
 gh secret set CLOUDFLARE_API_TOKEN
+gh secret set R2_ACCESS_KEY_ID
+gh secret set R2_SECRET_ACCESS_KEY
+gh secret set R2_BUCKET_NAME
 ```
 
 ## That's it

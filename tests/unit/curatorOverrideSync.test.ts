@@ -203,7 +203,10 @@ describe('runIngestionPipeline — D1 override survival through a full crawl', (
     Object.assign(process.env, D1_ENV);
     overrideRows[0]!.id = clusterId;
     const fetchStub = buildFetchStub(overrideRows);
-    const result = await runIngestionPipeline({ feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null, fetchFn: fetchStub as unknown as typeof fetch });
+    const result = await runIngestionPipeline({
+      feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null,
+      fetchFn: fetchStub as unknown as typeof fetch, enableDurableIngestion: false
+    });
 
     const overridden = result.clusters.find((c) => c.id === clusterId);
     expect(overridden?.isIgnored).toBe(true);
@@ -221,7 +224,10 @@ describe('runIngestionPipeline — D1 override survival through a full crawl', (
     Object.assign(process.env, D1_ENV);
     const overrideRows = [{ id: clusterId, override_type: 'delete', payload_json: '{}', updated_at: '2026-09-01T00:00:00Z' }];
     const fetchStub = buildFetchStub(overrideRows);
-    const result = await runIngestionPipeline({ feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null, fetchFn: fetchStub as unknown as typeof fetch });
+    const result = await runIngestionPipeline({
+      feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null,
+      fetchFn: fetchStub as unknown as typeof fetch, enableDurableIngestion: false
+    });
 
     expect(result.clusters.some((c) => c.id === clusterId)).toBe(false);
   });
@@ -236,7 +242,10 @@ describe('runIngestionPipeline — D1 override survival through a full crawl', (
       return new Response('', { status: 404 });
     });
 
-    const result = await runIngestionPipeline({ feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null, fetchFn: failingFetch as unknown as typeof fetch });
+    const result = await runIngestionPipeline({
+      feeds: [MOCK_FEED], maxAgeHours: 72, outputPath: null,
+      fetchFn: failingFetch as unknown as typeof fetch, enableDurableIngestion: false
+    });
 
     expect(result.clusters.length).toBeGreaterThan(0);
     expect(errorSpy.mock.calls.some((call) => String(call[0]).includes('[D1 CURATOR OVERRIDES]'))).toBe(true);
