@@ -2032,13 +2032,45 @@ never references `topic_candidates`, `cluster_topic_decisions`, or
 the crawler is `src/services/topicGovernanceHandler.ts`, which is the
 authenticated curator write path gated behind Stage 4, not a public read.
 
-**Not exercised in this stage:** an authenticated non-production clone and a
-controlled production D1 REST batch drill for the reconciliation logic
-above (there is no staging environment and no additional production D1
-mutation beyond migration 0015 was judged warranted here); this is the same
-class of accepted, documented gap as Stage 1's un-fault-injected recovery
-path, carried forward to the same closing phase as Stage 1's gaps rather
-than re-litigated stage by stage.
+**Live incident: cross-run manifest collision.** Pushing migration 0015 also
+triggered the next real production crawl (this repo has no staging; every
+push to `main` deploys and crawls live). That crawl failed with `D1
+transactional batch failed: HTTP 400` and no further detail — the first
+crawl to ever carry a Stage 1 cluster forward into a second run. Rather than
+guess, first fixed the observability gap itself: `executeStrictBatch` in
+`crawler/durableIngestService.ts` only reported the HTTP status, not D1's
+actual error body. With that fixed and pushed (triggering the retry), the
+real cause came back: `UNIQUE constraint failed:
+ingestion_cluster_manifest.cluster_id`. The manifest table's
+`UNIQUE(cluster_id)` was scoped to the whole table, not per run, so a
+durable cluster that legitimately persists across two crawl runs (same
+event fingerprint, new content/coverage, same cluster identity) collided
+with its own prior run's manifest row on the second run. This was invisible
+in every prior test and in Stage 1's activation because Stage 1 was the
+first-ever crawl against an empty manifest table.
+
+Checked with the user before changing schema (a new category of risk per
+this stage's own conventions): added migration
+`0016_phase13_stage2_manifest_uniqueness_fix.sql`, rebuilding the table with
+`UNIQUE(ingestion_run_id, cluster_id)` — still catches one run claiming the
+same `cluster_id` twice (a real planner bug), but allows the legitimate
+cross-run reuse that is the entire point of durable clustering. Applied to
+production D1: verified the 77 pre-existing rows survived with a clean
+`PRAGMA foreign_key_check`, and the ledger was reconciled. Added a
+regression test to `tests/integration/durableIngestionMigration.test.ts`
+proving the same `cluster_id` across two different runs' manifests now
+succeeds while a duplicate within one run still fails loud. Pushed once
+more; the resulting crawl (`ingest_ad5fbd1612b2adb60bbfdaddffb1947b`)
+published cleanly end to end — 72 articles, 71 clusters — while the prior
+failed attempt (`ingest_e025c0d0267ba23e1d67734dce9fd87b`) is preserved in
+`ingestion_runs` as `failed_retryable`, not silently dropped.
+
+This also closes the "not exercised" gap originally recorded here: two real
+production D1 REST batch executions (one failing, one succeeding after the
+fix) now exist against the live database for exactly this reconciliation
+path — a genuine production drill, not a synthetic one, though still not a
+deliberately authenticated non-production clone (none exists to run one
+against).
 
 ### Stage 3 — Model-assisted discovery shadow evaluation and promotion
 
