@@ -1657,6 +1657,83 @@ without exposing credentials or disrupting ingestion.
 - No credentials or source payloads are committed in verification evidence.
 - Full suite, build, bundle, and security checks pass after rollout.
 
+### Phase status
+
+Complete as of 2026-09-13. All 14 pending migrations
+(`0001_legacy_core.sql` through `0014_phase10_remove_legacy_canonical_entities.sql`)
+were applied to the authenticated production D1 database `defencewire-archive`
+after a verified backup, and production schema now matches the checked-in
+migration files exactly.
+
+### Phase 12 Summary
+
+Delivered: A verified pre-migration backup (Cloudflare Time Travel bookmark
+`00000183-00000000-000050e5-1018be70964380731b6414a23a35694a` plus a local SQL
+export of every non-FTS table, kept out of the repository); all 14 numbered
+migrations applied to production; the `d1_migrations` ledger reconciled to
+exactly one row per migration in order; and a read-only production parity
+pass covering foreign keys, table inventory, and pre-existing row counts.
+
+Verification: `wrangler d1 migrations list --remote` reports "No migrations to
+apply" (zero pending). `PRAGMA foreign_key_check` against production returned
+zero violations. `sqlite_master` now lists every new topic/ingestion table
+(`topics`, `topic_aliases`, `topic_relations`, `topic_implication_rules`,
+`topic_candidates`, `topic_candidate_evidence`, `topic_assignment_runs`,
+`cluster_topic_decisions`, `cluster_topics`, `article_topic_mentions`,
+`topic_curation_audit`, `topic_reclassification_queue`,
+`topic_governance_versions`, `topic_semantic_cache`, `ingestion_runs`,
+`source_articles`, `story_clusters`, `cluster_sources`, `cluster_lineage`,
+`ingestion_run_articles`, `ingestion_cluster_manifest`,
+`ingestion_orphan_candidates`, `topic_backfill_failures`, `thread_topics`) and
+no longer lists `canonical_entities` (removed by `0014`, as designed).
+Pre-existing legacy-table counts were re-measured and reconcile with the Phase
+11 baseline plus the live crawler's normal activity in the intervening ~35
+minutes — `archived_stories` unchanged at 299; `suppliers`,
+`supplier_candidates`, `curator_overrides`, `published_snapshots`,
+`emergent_patterns`, `program_suppliers`, `source_reputation`, `tenders`, and
+`tender_source_health` all unchanged; `story_threads` (218→222),
+`story_thread_events` (232→235), `graph_nodes` (1049→1056), and `graph_edges`
+(5557→5635) grew only by the amount consistent with ordinary live ingestion
+between the two measurements — no row was lost or altered by the additive
+migrations. `topics` contains exactly 29 rows, all `status = 'active'`,
+sourced only from the reviewed seed migrations (`0006`, `0008`); the imported
+legacy candidates sit in `topic_candidates` (191 rows, private/pending) and
+`discovered_entities` (40 rows, untouched) — none became a public topic from
+unreviewed data.
+
+Tech debt discovered: `wrangler d1 migrations apply --remote` mis-splits
+`0003_durable_identity.sql` (and would likely mis-split `0004` and `0005`,
+which also contain `CREATE TRIGGER ... BEGIN ... END` bodies with embedded
+semicolons and a nested `WITH RECURSIVE` subquery), failing with
+`incomplete input: SQLITE_ERROR` after cleanly applying `0001` and `0002`.
+Nothing was left partially applied — the failure was atomic and the ledger
+correctly showed only `0001`/`0002` before the fix.
+
+Resolution: Applied `0003` through `0014` via `wrangler d1 execute --file`
+instead, which uploads the whole file for import rather than splitting it
+client-side, and confirmed each file's statement count and row counts in the
+command output. Manually reconciled the `d1_migrations` ledger with one
+`INSERT` per migration so a future `migrations apply` run correctly reports
+zero pending. This is a Wrangler CLI limitation, not a defect in the migration
+files themselves; no repository-scope Phase 12 tech debt remains. Teams
+applying these migrations elsewhere should use `d1 execute --file` for any
+migration containing multi-statement triggers, not `migrations apply`.
+
+Known limitations: The full backup is a Time Travel bookmark plus a SQL
+export of every non-FTS table; `wrangler d1 export` cannot include the FTS5
+virtual tables (`archived_stories_fts`, `suppliers_fts`, `tenders_fts` and
+their shadow tables) at all — Time Travel remains the authoritative full
+restore path for those. No backup/rollback recovery drill was exercised in a
+non-production clone before this production rollout, since Phase 12 was
+scoped here to the migration application itself; that drill, along with the
+remaining Phase 2–10 production-activation work, is Phase 13's job and is not
+claimed as complete here.
+
+Build status: Passing (unchanged from Phase 11 — no repository code changed).
+
+Test status: 1,433/1,433 full-suite tests passing; no skipped or pending
+tests.
+
 ## Phase 13 — Production activation and cross-phase closure (Phases 2–10)
 
 ### Goal
@@ -2242,3 +2319,55 @@ measure production data that does not yet exist.
 - The Phase 14 Summary records zero unresolved release-blocking debt and
   lists any explicitly accepted non-blocking debt with owner and resolution
   date.
+
+## Phase 15 — Phase 12 backup/rollback recovery drill closure
+
+### Goal
+
+Close the one Phase 12 exit criterion deliberately left unattempted during the
+2026-09-13 production migration rollout: proving the backup can actually
+restore production, not just that a backup was taken. This phase exists under
+Rule 12 — Phase 12 must not be read as fully closed until this drill passes.
+
+### Carried-forward Phase 12 gap
+
+- Phase 12 took a verified pre-migration backup (Time Travel bookmark
+  `00000183-00000000-000050e5-1018be70964380731b6414a23a35694a` and a SQL
+  export of every non-FTS table) before applying all 14 migrations, but never
+  exercised "documented backup/rollback recovery in a non-production clone"
+  before declaring the rollout complete, as Phase 12's own exit criteria
+  require. The backup's existence is not evidence that a restore from it
+  actually works.
+- `wrangler d1 export` cannot include the FTS5 virtual tables
+  (`archived_stories_fts`, `suppliers_fts`, `tenders_fts` and their shadow
+  tables) at all, so the SQL export alone cannot fully reconstruct the
+  database; only Time Travel restores those. This asymmetry has not been
+  documented as the recovery runbook or tested end to end.
+
+### Validation work
+
+- Use `wrangler d1 time-travel restore` to fork or copy `defencewire-archive`
+  at the pre-migration bookmark into a separate, non-production database (D1
+  time-travel restore/fork does not have to target the same database name).
+- Verify the restored clone's schema and row counts match the pre-migration
+  state captured in the Phase 11/12 baselines (14 tables, no topic/ingestion
+  tables, `canonical_entities` still present).
+- Separately verify the SQL export file can be replayed into a fresh local
+  SQLite/D1 instance for the non-FTS tables it covers, and document that FTS
+  tables are excluded from that path by design.
+- Write a short recovery runbook (which mechanism to use, its limitations,
+  and the exact commands) so a future incident does not need to rediscover
+  this during an outage.
+- Delete the temporary non-production clone once the drill is verified, and
+  confirm production `defencewire-archive` was not affected by any step.
+
+### Exit criteria
+
+- A restore from the captured pre-migration bookmark is proven to work against
+  a non-production clone, with matching schema and row counts.
+- The FTS-export limitation and the Time-Travel-first recovery order are
+  documented in a runbook a future operator can follow without re-deriving it.
+- No production data was altered by the drill.
+- Full suite, build, and security checks remain green (no repository code
+  changes are expected for this phase).
+- The Phase 15 Summary records zero unresolved release-blocking debt.
