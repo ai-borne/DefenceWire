@@ -20,6 +20,7 @@
     "d1:size": "vite-node --script crawler/d1SizeCheck.ts",
     "baseline:topics": "node scripts/topic-baseline.mjs",
     "backfill:cluster-json": "vite-node --script crawler/scripts/backfillClusterJsonToR2.ts",
+    "backfill:topics": "vite-node --script crawler/scripts/backfillTopics.ts",
     "suppliers:review": "node scripts/review-supplier-candidates.mjs",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",

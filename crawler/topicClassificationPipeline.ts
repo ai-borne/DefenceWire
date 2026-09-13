@@ -14,6 +14,16 @@ export async function classifyDurableTopics(
 ): Promise<{ validated: number; reused: number }> {
   if (plan.clusters.every((cluster) => cluster.sourceArticleIds.length === 0)) return { validated: 0, reused: 0 };
   const registry = await fetchTopicRegistry(config, fetchFn);
+  return classifyDurableTopicsWithRegistry(plan, registry, config, fetchFn, now, modelConfig);
+}
+
+/** Reuses one immutable registry snapshot across a bounded classification job. */
+export async function classifyDurableTopicsWithRegistry(
+  plan: DurableIngestPlan, registry: Awaited<ReturnType<typeof fetchTopicRegistry>>,
+  config: D1RestConfig, fetchFn: typeof fetch, now: string, modelConfig: TopicModelConfig = {},
+  legacyTopicsByCluster: ReadonlyMap<string, string[]> = new Map()
+): Promise<{ validated: number; reused: number }> {
+  if (plan.clusters.every((cluster) => cluster.sourceArticleIds.length === 0)) return { validated: 0, reused: 0 };
   const articles = new Map(plan.articles.map((article) => [article.id, article]));
   const knownAliases = new Set(registry.aliases.map((alias) => alias.normalizedAlias));
   const publishedTopicIds = new Set(registry.topics.filter((topic) => topic.status === 'active' && topic.verificationState === 'published').map((topic) => topic.id));
@@ -54,7 +64,8 @@ export async function classifyDurableTopics(
       const article = articles.get(id); return article ? `${id}:${article.contentHash}` : id;
     }).sort().join('|'));
     const result = await reconcileTopicAssignments({ clusterId: cluster.id, fingerprint,
-      registryVersion: registry.registryVersion, publishedTopicIds, articleMentions, shadowArticleMentions, candidates, discoveredConcepts, now }, config, fetchFn);
+      registryVersion: registry.registryVersion, publishedTopicIds, articleMentions, shadowArticleMentions,
+      migrationTopicIds: legacyTopicsByCluster.get(cluster.id), candidates, discoveredConcepts, now }, config, fetchFn);
     if (result === 'reused') reused++; else validated++;
   }
   return { validated, reused };

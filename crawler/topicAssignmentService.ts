@@ -32,7 +32,7 @@ export async function fetchTopicRegistry(config: D1RestConfig, fetchFn: typeof f
     implicationRules: implicationRows.map((r) => ({ sourceTopicId: String(r.source_topic_id), impliedTopicId: String(r.implied_topic_id), requiredContextJson: String(r.required_context_json), maximumDepth: Number(r.maximum_depth), verificationState: r.verification_state as never })) };
 }
 
-export async function reconcileTopicAssignments(input: { clusterId: string; fingerprint: string; registryVersion: number; publishedTopicIds: Set<string>; articleMentions: ArticleMention[]; shadowArticleMentions: ArticleMention[]; candidates: Candidate[]; discoveredConcepts: DiscoveredConcept[]; now: string }, config: D1RestConfig, fetchFn: typeof fetch): Promise<'reused' | 'validated'> {
+export async function reconcileTopicAssignments(input: { clusterId: string; fingerprint: string; registryVersion: number; publishedTopicIds: Set<string>; articleMentions: ArticleMention[]; shadowArticleMentions: ArticleMention[]; migrationTopicIds?: string[]; candidates: Candidate[]; discoveredConcepts: DiscoveredConcept[]; now: string }, config: D1RestConfig, fetchFn: typeof fetch): Promise<'reused' | 'validated'> {
   const prior = await executeD1Query({ sql: `SELECT id FROM topic_assignment_runs WHERE cluster_id=? AND content_fingerprint=? AND registry_version=? AND classifier_version=? AND assignment_policy_version=? AND status IN ('validated','reused') LIMIT 1`, params: [input.clusterId, input.fingerprint, input.registryVersion, CLASSIFIER_VERSION, ASSIGNMENT_POLICY_VERSION] }, config, fetchFn);
   if (!prior.ok) throw new Error('Unable to check prior topic assignment.');
   if (prior.rows.length) return 'reused';
@@ -44,6 +44,7 @@ export async function reconcileTopicAssignments(input: { clusterId: string; fing
   appendArticleMentions(statements, input.shadowArticleMentions, input.clusterId, runId, input.now);
   appendDecisions(statements, effective, input.clusterId, runId, 'deterministic', input.publishedTopicIds, input.now, true);
   appendDecisions(statements, input.shadowArticleMentions.map((item) => item.mention), input.clusterId, runId, 'model', new Set<string>(), input.now, false);
+  appendDecisions(statements, (input.migrationTopicIds ?? []).map((topicId) => ({ topicId, role: 'context' as const, confidence: 0.5, evidenceStart: 0, evidenceEnd: 1, evidenceContentHash: input.fingerprint, mentionKind: 'contextual' as const })), input.clusterId, runId, 'migration', new Set<string>(), input.now, false);
   appendDecisions(statements, provisional, input.clusterId, runId, 'model', new Set<string>(), input.now, false);
   const desiredIds = effective.filter((item) => input.publishedTopicIds.has(item.topicId)).map((item) => item.topicId);
   statements.push({ sql: desiredIds.length ? `DELETE FROM cluster_topics WHERE cluster_id=? AND locked_by_curator=0 AND topic_id NOT IN (${desiredIds.map(() => '?').join(',')})` : 'DELETE FROM cluster_topics WHERE cluster_id=? AND locked_by_curator=0', params: [input.clusterId, ...desiredIds] });
@@ -83,7 +84,7 @@ function appendCandidateEvidence(statements: D1Statement[], id: string, candidat
   statements.push({ sql: `INSERT OR IGNORE INTO topic_candidate_evidence (candidate_id,source_article_id,cluster_id,evidence_start,evidence_end,evidence_content_hash,observed_at) VALUES (?,?,?,?,?,?,?)`, params: [id, candidate.sourceArticleId, clusterId, candidate.evidenceStart, candidate.evidenceEnd, candidate.evidenceContentHash, now] });
 }
 
-function appendDecisions(statements: D1Statement[], mentions: ClassifiedMention[], clusterId: string, runId: string, source: 'deterministic' | 'model', publishedTopicIds: Set<string>, now: string, materialize: boolean): void {
+function appendDecisions(statements: D1Statement[], mentions: ClassifiedMention[], clusterId: string, runId: string, source: 'deterministic' | 'model' | 'migration', publishedTopicIds: Set<string>, now: string, materialize: boolean): void {
   for (const mention of aggregateClusterMentions(mentions)) {
     const decisionId = `topicdecision_${randomUUID()}`; const accepted = materialize && publishedTopicIds.has(mention.topicId);
     statements.push({ sql: `INSERT INTO cluster_topic_decisions (id,assignment_run_id,cluster_id,topic_id,role,confidence,assignment_source,decision_state,decided_at) VALUES (?,?,?,?,?,?,?,?,?)`, params: [decisionId, runId, clusterId, mention.topicId, mention.role, mention.confidence, source, accepted ? 'accepted' : 'shadow', now] });

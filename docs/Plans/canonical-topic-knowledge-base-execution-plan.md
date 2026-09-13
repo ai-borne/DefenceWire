@@ -1120,6 +1120,49 @@ Make existing history part of the new topic knowledge base before public cutover
 - Repeated unchanged backfills produce zero effective assignment churn.
 - Full build and test suite pass.
 
+### Phase status
+
+Repository implementation completed on 2026-09-13. `npm run backfill:topics`
+drains bounded batches until the D1 selection is empty and fails loudly on the
+first retryable payload or classification failure. The worker reads and
+identity-validates archived R2 payloads, uses durable D1 source metadata for
+classification, reuses one registry snapshot per bounded batch, and sends all
+writes through desired-state reconciliation. Legacy `primaryTag` and
+`hashtags` resolve only through registered canonical aliases as `migration`
+shadow decisions; unknown legacy variants become private review candidates.
+The retry ledger preserves the cluster ID, attempt count, safe error message,
+and next availability so no bad payload can be treated as a completed batch.
+
+### Phase 7 Summary
+
+Delivered: Resumable historical topic backfill, a fail-loud draining command,
+R2 archived-payload validation, D1 source hydration, version-aware and
+targeted-queue selection, retry persistence, before/after effective-assignment
+counts, legacy-tag shadow migration, and private ambiguous-legacy review
+candidates.
+
+Verification: Focused tests cover archived R2 success, unavailable payload
+retry recording, legacy canonical and unknown-tag handling, and a second
+unchanged run with zero churn. Local D1 migration application and the complete
+`npm run check` suite pass.
+
+Tech debt discovered: The initial registry-snapshot refactor moved the empty
+durable-plan fast path after a D1 read, which broke the mocked empty-plan
+ingestion contract and was unnecessary work.
+
+Resolution: Restored the fast path before registry loading; the full suite
+passes with the original no-read behavior intact. No repository-scope Phase 7
+tech debt remains.
+
+Known limitations: No authenticated D1/R2 environment was authorized for
+running the real historical backlog, resolving any retry records, or measuring
+the before/after production counts. Those external completion checks are
+carried forward explicitly in Phase 18.
+
+Build status: Passing.
+
+Test status: 1,463/1,463 full-suite tests passing; no skipped or pending tests.
+
 ## Phase 8 — Feature-flagged multi-hashtag UI and topic knowledge-base view
 
 ### Goal
@@ -1662,3 +1705,50 @@ indexes at real data volume.
   classifier detail is exposed through the public responses.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass.
+
+## Phase 18 — Phase 7 historical-backfill execution and reconciliation closure
+
+### Goal
+
+Close the Phase 7 checks that require authenticated D1 and R2 data rather than
+mistaking a locally tested worker for a completed historical migration.
+
+### Carried-forward Phase 7 limitations
+
+- No authenticated run has drained the real historical backlog, so its final
+  zero-backlog and zero-failure state is not established by repository tests.
+- Production before/after counts, assignment-row reconciliation, and unchanged
+  rerun churn have not been measured against the real D1 registry and R2
+  archive.
+- Legacy tags can be read from archived R2 cluster payloads. Any legacy live
+  snapshot that was never durably persisted cannot be responsibly inferred;
+  its recovery requires an approved data-source inventory rather than guessed
+  hashtags.
+
+### Validation work
+
+- Back up D1, apply migration `0012_phase7_topic_backfill.sql`, and verify the
+  migration ledger and retry-ledger index in an authenticated non-production
+  clone before production.
+- Run `npm run backfill:topics` with the approved D1/R2 credentials; resolve
+  every retry record through corrected payload access or curator review, then
+  rerun until the command reports a zero backlog and zero failures.
+- Record sanitized before/after `cluster_topics`, assignment-run, shadow
+  migration-decision, private-candidate, and retry counts; reconcile effective
+  topic totals to assignment rows without exposing source payloads or secrets.
+- Repeat the unchanged run and prove zero effective-membership churn. Exercise
+  one alias, topic, and verified implication-rule update to prove bounded
+  historical queueing and curator-lock preservation on remote D1.
+- Inventory any pre-durable live snapshot source approved for recovery; import
+  it only through the same registry-resolved shadow-migration path, or record
+  it as unrecoverable rather than inventing tags.
+
+### Exit criteria
+
+- The authenticated backlog is zero and `topic_backfill_failures` is empty.
+- Production counts reconcile and a repeated unchanged run has zero effective
+  assignment churn.
+- Every legacy variant is either a canonical shadow decision, a private review
+  candidate, or an explicitly documented unrecoverable record.
+- Remote D1/R2 failure, retry, queueing, lock-preservation, and reconciliation
+  drills pass, with full suite, build, bundle, and security checks green.
