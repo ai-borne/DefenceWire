@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { classifyTopicText, contentFingerprint } from '../../crawler/deterministicTopicClassifier.js';
-import { TopicRegistrySnapshot } from '../../src/types/topics.js';
+import { TopicAliasRecord, TopicRegistrySnapshot } from '../../src/types/topics.js';
 
 const registry: TopicRegistrySnapshot = {
   registryVersion: 7,
@@ -12,7 +12,9 @@ const registry: TopicRegistrySnapshot = {
     description: null, status: 'active', verificationState: 'published', displayPriority: 0, registryVersion: 7, replacedByTopicId: null })),
   aliases: [
     ['india', 'india'], ['indian', 'india'], ['china', 'china'], ['chinese', 'china'], ['usa', 'united-states'], ['us', 'united-states'], ['united states', 'united-states'], ['iran', 'iran'], ['jordan', 'jordan'], ['jordanian', 'jordan'], ['lac', 'lac'], ['line of actual control', 'lac'], ['su57', 'su-57'], ['su 57', 'su-57'], ['sukhoi su 57', 'su-57'], ['muwaffaq salti air base', 'muwaffaq-salti-air-base'], ['akash ng', 'akash-ng'], ['akas ng', 'akash-ng']
-  ].map(([normalizedAlias, topicId]) => ({ normalizedAlias: normalizedAlias!, topicId: topicId!, aliasType: 'canonical' as const, requiresContext: false, contextRuleJson: null, verificationState: 'published' as const })),
+  ].map(([normalizedAlias, topicId]): TopicAliasRecord => ({ normalizedAlias: normalizedAlias!, topicId: topicId!, aliasType: 'canonical', requiresContext: false, contextRuleJson: null, verificationState: 'published' }))
+    .concat([{ normalizedAlias: 'nsa', topicId: 'lac', aliasType: 'acronym', requiresContext: true,
+      contextRuleJson: '{"requiredTerms":["china","border","doval"]}', verificationState: 'published' }]),
   relations: [],
   implicationRules: [
     { sourceTopicId: 'lac', impliedTopicId: 'india-china', requiredContextJson: '{"materialActors":["india","china"],"eventTypes":["military","diplomatic"]}', maximumDepth: 1, verificationState: 'published' }
@@ -34,6 +36,12 @@ describe('deterministic topic classification', () => {
   it('applies only explicit bounded implication rules and rejects incidental history', () => {
     expect(ids('Indian and Chinese armies hold military talks along the LAC.')).toEqual(['china', 'india', 'india-china', 'lac']);
     expect(ids('Officials referenced Iran only as historical background.')).toEqual([]);
+  });
+
+  it('resolves the NSA acronym to LAC only in an India-China border context', () => {
+    expect(ids('NSA Ajit Doval meets Chinese counterpart to advance border negotiations.'))
+      .toEqual(expect.arrayContaining(['lac']));
+    expect(ids('NSA leak exposes surveillance programme, US officials confirm.')).not.toContain('lac');
   });
 
   it('is stable and surfaces a source-grounded unknown facility candidate without assigning it', () => {

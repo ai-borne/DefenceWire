@@ -45,10 +45,18 @@
       "expectedTopics": [
         { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "Indian", "importance": "core" },
         { "topicId": "china", "role": "actor", "evidenceKind": "exact", "evidence": "Chinese", "importance": "core" },
-        { "topicId": "lac", "role": "context", "evidenceKind": "inferred", "evidence": "rule:india-china-current-border-negotiation", "importance": "core" },
+        { "topicId": "lac", "role": "location", "evidenceKind": "exact", "evidence": "NSA", "importance": "core" },
         { "topicId": "india-china", "role": "context", "evidenceKind": "inferred", "evidence": "rule:bilateral-material-actors", "importance": "core" }
       ],
       "rejectedTopicIds": []
+    },
+    {
+      "id": "lac-nsa-unrelated-agency-negative",
+      "headline": "NSA leak exposes surveillance programme, US officials confirm",
+      "snippet": "The National Security Agency is reviewing how classified material reached reporters.",
+      "eligible": true,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["lac"]
     },
     {
       "id": "lac-black-substring-negative",

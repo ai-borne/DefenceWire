@@ -1969,6 +1969,77 @@ are present.
 - Candidate discovery remains private until Phase 4's validation gates are met.
 - Full suite, build, bundle, and security checks pass.
 
+#### Stage status
+
+Closed in production on 2026-09-13, with one exit-criteria item carried
+forward rather than silently marked done (see below).
+
+**NSA/LAC gap.** Investigated the existing `kibithu → lac`
+`topic_implication_rules` row first, since it is the closest reviewed
+precedent: it proved that implication rules (not just aliases) already
+support the same `required_context_json` gating as aliases do. But "NSA" is
+not analogous to "Kibithu" — Kibithu is an unambiguous place name, while NSA
+is a genuinely ambiguous acronym (India's National Security Advisor vs. the
+US National Security Agency vs. other countries' NSAs). Modeling it as its
+own topic plus an implication rule (the Kibithu pattern) would have created a
+new public topic entity for an acronym that is never itself the subject —
+only ever a contextual pointer to LAC coverage. Checked with the user, who
+chose the simpler of two reviewed options: a single `topic_aliases` row
+(`nsa` → `lac`, `alias_type='acronym'`) gated with
+`requires_context=1` and `context_rule_json:
+{"requiredTerms":["china","border","doval"]}`, so the acronym only resolves
+when the article text also names China, a border, or Ajit Doval by name —
+added as migration `0015_phase13_stage2_nsa_lac_alias.sql` and applied to
+production D1 (verified via `d1 migrations list`: "No migrations to apply").
+The Phase 0 gold corpus (`tests/fixtures/topics/classification-corpus.json`,
+case `lac-nsa-negotiations`) was corrected to match this real mechanism —
+it previously described a nonexistent inferred implication rule
+(`rule:india-china-current-border-negotiation`); the case now expects a
+direct `exact`-evidence alias mention with role `location`, matching how
+`operational_theatre`-typed topics resolve elsewhere in the classifier. A
+negative case (`lac-nsa-unrelated-agency-negative`, an NSA-the-US-agency
+surveillance story with no India/China/border/Doval terms) was added
+alongside it, and both are now exercised for real — not just as fixture
+shape — by two new assertions in
+`tests/unit/deterministicTopicClassifier.test.ts` that run the actual
+classifier against the alias.
+
+**D1 reconciliation validation.** `crawler/topicAssignmentService.ts`
+already implements every reconciliation property the exit criteria call
+for — unchanged-fingerprint reuse (`SELECT ... status IN ('validated',
+'reused')` short-circuits to `'reused'` without writing a new batch),
+multi-article cluster aggregation (`aggregateClusterMentions` keeps only the
+highest-confidence mention per topic across every article in a cluster),
+desired-state removal (`DELETE FROM cluster_topics WHERE ... topic_id NOT IN
+(...)`), and curator-lock preservation (every delete and upsert is gated on
+`locked_by_curator=0`) — but only one of these four properties had unit
+coverage before this stage. Added three tests to
+`tests/unit/topicAssignmentService.test.ts` exercising the other three
+directly against the real `reconcileTopicAssignments` function (not a
+reimplementation): all three passed on the first run, confirming they were
+verifying already-correct behavior rather than newly bent code. Ran the
+existing `tests/integration/durableIngestionMigration.test.ts` curator-lock
+merge test again for confirmation against the now-migrated production
+schema; it already used a real migrated SQLite database and passed
+unchanged.
+
+**Candidate/shadow privacy.** Re-verified structurally rather than just by
+row count: every public read path in `src/services/topicReadQueryBuilder.ts`
+selects only from `topics`/`cluster_topics` filtered to `status='active' AND
+verification_state='published'`, and `src/services/topicReadHandler.ts`
+never references `topic_candidates`, `cluster_topic_decisions`, or
+`topic_assignment_runs`. The only code touching `topic_candidates` outside
+the crawler is `src/services/topicGovernanceHandler.ts`, which is the
+authenticated curator write path gated behind Stage 4, not a public read.
+
+**Not exercised in this stage:** an authenticated non-production clone and a
+controlled production D1 REST batch drill for the reconciliation logic
+above (there is no staging environment and no additional production D1
+mutation beyond migration 0015 was judged warranted here); this is the same
+class of accepted, documented gap as Stage 1's un-fault-injected recovery
+path, carried forward to the same closing phase as Stage 1's gaps rather
+than re-litigated stage by stage.
+
 ### Stage 3 — Model-assisted discovery shadow evaluation and promotion
 
 #### Goal

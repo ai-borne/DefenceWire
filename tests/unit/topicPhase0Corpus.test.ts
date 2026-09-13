@@ -69,6 +69,7 @@ describe('Phase 0 reviewed classification corpus', () => {
       'lac-explicit-talks',
       'lac-kibithu-context',
       'lac-nsa-negotiations',
+      'lac-nsa-unrelated-agency-negative',
       'lac-black-substring-negative',
       'lac-kibithu-tourism-negative',
       'iran-us-jordan-airbase-attack',
@@ -134,6 +135,7 @@ describe('Phase 0 reviewed classification corpus', () => {
   it('keeps incidental and substring matches out of effective topics', () => {
     expect(byId.get('lac-black-substring-negative')!.rejectedTopicIds).toContain('lac');
     expect(byId.get('lac-kibithu-tourism-negative')!.rejectedTopicIds).toContain('lac');
+    expect(byId.get('lac-nsa-unrelated-agency-negative')!.rejectedTopicIds).toContain('lac');
     expect(byId.get('iran-historical-background-negative')!.rejectedTopicIds).toContain('iran');
     expect(byId.get('loc-whole-word-negative')!.rejectedTopicIds).toContain('loc');
   });
