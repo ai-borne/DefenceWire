@@ -1,0 +1,1287 @@
+# Canonical Multi-Topic Knowledge Base — Phase-Wise Execution Plan
+
+The multi-hashtag requirement is the central design principle: each story cluster may belong to several canonical topics, normally 3–6, while story threads remain separate narrative timelines. The vocabulary is open for discovery but canonical at publication: the seed taxonomy bootstraps the system and never limits which new source-grounded entities can be discovered later.
+
+The implementation will proceed one phase at a time. After each phase, work must stop, all discovered debt must be resolved, the complete verification suite must pass, and the required Phase Summary must be provided before the next phase begins.
+
+## Target architecture
+
+```mermaid
+flowchart LR
+    A[All eligible source articles] --> B[Durable source store]
+    B --> C[Story clustering]
+    B --> D[Article topic mentions]
+    C --> E[Canonical topic classifier]
+    D --> E
+    E --> F[Effective cluster_topics membership]
+    F --> G[Homepage ranking]
+    F --> H[Topic knowledge bases]
+    C --> I[Event thread engine]
+    I --> J[Story timelines]
+```
+
+Hashtags will be presentation labels generated from canonical topic records:
+
+```text
+Topic SSOT: united-states
+Display:    #UnitedStates
+Aliases:    USA, US, U.S., America
+```
+
+An article can then receive:
+
+```text
+#Iran             actor
+#UnitedStates     target
+#Jordan           location
+#Airbases         asset class
+#MuwaffaqSaltiAB  facility
+#IranUSTensions   strategic theme
+```
+
+Three to six tags is the normal target, not an enforced maximum.
+
+## Sources of truth and cross-run stability
+
+The system has separate authoritative records for separate questions:
+
+- `topics` and `topic_aliases` are the SSOT for topic identity, canonical display, and alias resolution.
+- `article_topic_mentions` is the evidence ledger for what an individual source article explicitly or contextually mentions.
+- `cluster_topics` is the SSOT for the current validated topic membership of a story cluster.
+- `topic_assignment_runs` and `cluster_topic_decisions` are the immutable provenance ledger explaining proposed, accepted, suppressed, and removed assignments.
+- Story threads remain the SSOT for narrative continuity; they never define topic identity or membership.
+
+Model output, publisher hashtags, extracted entity strings, and compatibility fields such as `primaryTag` are inputs or projections, never sources of truth.
+
+Equivalent source phrasing must converge before storage:
+
+```text
+USA / U.S. / US / United States
+→ resolve registered alias
+→ topic_id = united-states
+→ render #UnitedStates
+```
+
+The same unchanged classification input must produce the same effective assignments across crawler runs. Every classification records a deterministic `content_fingerprint`, `registry_version`, `classifier_version`, and `assignment_policy_version`. If those values are unchanged, the prior validated result is reused rather than recomputed. Validated semantic adjudications are cached by an input hash; model sampling is never relied upon for determinism.
+
+Each run computes a complete desired assignment set and reconciles it with `cluster_topics` atomically. Runs must not accumulate a permanent union of all historical hashtags. Curator-locked assignments are preserved. Low-confidence additions or removals remain shadow decisions until they satisfy the publication policy, preventing public hashtags from oscillating between runs.
+
+A cluster retains a durable identity when its primary source changes. Cluster merges and splits are recorded through lineage and redirects so topic assignments, curator decisions, thread references, and public URLs remain traceable.
+
+## Open-world discovery and canonical publication
+
+The topic registry is a living database, not a hardcoded TypeScript allowlist. The crawler must discover new source-grounded concepts without requiring a code deployment while preventing unverified model strings from immediately fragmenting the public taxonomy.
+
+Classification therefore has two output channels:
+
+```json
+{
+  "existingTopics": [
+    {
+      "topicId": "iran",
+      "role": "actor",
+      "evidence": "Iran launched..."
+    }
+  ],
+  "discoveredConcepts": [
+    {
+      "name": "Muwaffaq Salti Air Base",
+      "type": "facility",
+      "role": "target",
+      "evidence": "the attack targeted Muwaffaq Salti Air Base"
+    }
+  ]
+}
+```
+
+The discovery path is:
+
+```text
+Extract concept
+→ validate exact source evidence
+→ normalize its name
+→ search canonical topics and aliases
+→ resolve an existing equivalent where possible
+→ create a provisional canonical topic when deterministic safety gates pass
+→ otherwise queue it for review
+→ assign the article to the resolved topic
+```
+
+The ontology is open-ended for concrete entities such as countries, people, offices, armed forces, units, organizations, companies, platforms, programmes, facilities, locations, exercises, operations, alliances, conflicts, technologies, and capabilities. Abstract thematic labels may also be proposed, but require stricter semantic deduplication or curator review because unconstrained themes are the main source of hashtag fragmentation.
+
+Concrete named entities may be created automatically with `provisional` status when their name is present as an exact span in trusted source text, their type is reliably established, they do not collide with an existing alias, and all security and quality checks pass. A provisional topic becomes `active` after corroboration by multiple independent sources, one authoritative official source, or a curator. Ambiguous entities, broad themes, aliases, and proposed merges require review.
+
+An exact text span proves only that the source used those words. It does not by itself prove entity type, factual truth, material relevance, or source independence. Those properties require separate deterministic checks or curator review. Provisional topics and shadow assignments are never returned by public endpoints until their publication state becomes `published`.
+
+## Rules applying to every phase
+
+Every phase must satisfy all of the following before closure:
+
+- All new business behavior is covered by meaningful unit tests.
+- Cross-layer behavior is covered by integration tests.
+- No skipped, pending, or quarantined tests.
+- MVVM boundaries remain intact.
+- Components do not call crawler, database, or API logic directly.
+- D1 access remains behind services and parameterized query builders.
+- All UI strings use resource files.
+- All colors use the established style variables.
+- No source file exceeds 300 lines unless an SRP justification is documented in that file.
+- No model-generated string is trusted as a topic ID, URL, HTML fragment, or database value.
+- Public APIs use input validation, bounded pagination, rate limiting, and safe error responses.
+- Curator mutations require the existing authentication controls.
+- No public topic is created automatically from an unreviewed model suggestion.
+- A concrete topic may be created provisionally only from validated source evidence and deterministic creation gates; a model suggestion by itself is insufficient.
+- Runtime topic recognition is driven by the D1 registry and learned aliases rather than a compiled source-code allowlist.
+- Canonical topic IDs, durable article IDs, and durable cluster IDs are stable and never derived from model output.
+- Unchanged content, registry, classifier, and policy versions produce identical effective assignments across repeated runs.
+- Assignment writes use desired-state reconciliation; cross-run hashtag union is forbidden.
+- Shadow, provisional, suppressed, and rejected decisions cannot leak through public APIs or compatibility fields.
+- Curator-locked decisions cannot be overwritten by ingestion, reclassification, or backfill.
+- Full verification runs through `npm run check`.
+- Relevant D1 migration tests and backfill tests pass separately.
+- The build and bundle budget pass.
+
+The Phase Summary will use this template:
+
+```text
+Phase N Summary
+
+Delivered:
+Verification:
+Tech debt discovered:
+Resolution:
+Known limitations:
+Build status:
+Test status:
+```
+
+A phase cannot be marked complete with unresolved release-blocking debt. Any accepted non-blocking debt must have a documented owner, reason, and target phase; planned later functionality is future scope rather than completed behavior.
+
+## Phase 0 — Baseline, invariants, and classification corpus
+
+### Goal
+
+Establish measurable current behavior and encode the product rules before modifying production logic.
+
+### Deliverables
+
+1. Document the architectural decision separating:
+
+   - Source articles
+   - Story clusters
+   - Canonical topics
+   - Article-topic mentions
+   - Effective cluster-topic assignments
+   - Narrative story threads
+   - Knowledge-graph relationships
+
+   The decision must also define ownership and migration boundaries for existing `canonical_entities`, `discovered_entities`, `graph_nodes`, programmes, suppliers, and story threads. `topics` represents public navigable concepts; it must not silently become a conflicting master record for every domain entity. `topic_relations` represents topic navigation and controlled assignment implications, while factual graph claims remain in the knowledge graph.
+
+2. Create a reviewed classification fixture containing positive and negative examples.
+
+3. Capture baseline statistics from the current repository dataset:
+
+   - Percentage of clusters with tags
+   - Number of generated tag variants
+   - Orphan cluster count
+   - Articles excluded by the top-30 cutoff
+   - Existing thread and event counts
+   - Existing canonical aliases
+
+4. Define canonical topic types:
+
+   - Country
+   - Bilateral relationship
+   - Person
+   - Office
+   - Military service
+   - Military unit
+   - Organization
+   - Company
+   - Platform
+   - Programme
+   - Location
+   - Facility
+   - Exercise
+   - Operation
+   - Alliance
+   - Operational theatre
+   - Conflict
+   - Technology
+   - Capability
+   - Strategic theme
+
+5. Define assignment roles:
+
+   - `subject`
+   - `actor`
+   - `target`
+   - `operator`
+   - `location`
+   - `facility`
+   - `platform`
+   - `programme`
+   - `context`
+
+6. Define stable identity and evolution rules:
+
+   - Canonical URL normalization and durable source article IDs
+   - Durable cluster IDs independent of whichever source is currently primary
+   - Event fingerprints and matching windows
+   - Article movement between clusters
+   - Cluster merge, split, lineage, and redirect behavior
+   - Preservation of curator decisions during cluster evolution
+
+7. Define evidence and corroboration rules:
+
+   - Evidence uses `source_article_id`, bounded offsets, and a content hash rather than an unaudited copied string alone.
+   - “Independent source” accounts for syndication and common ownership, not just distinct domains.
+   - Authoritative-source status is type-specific and comes from reviewed source metadata.
+   - The full-text acquisition policy states when classification uses a headline, feed snippet, official release, or fetched article body.
+
+8. Ratify measurable release thresholds:
+
+   - 100% canonical consistency for aliases in the gold corpus
+   - 100% assignment stability for unchanged versioned inputs
+   - At least 95% precision for public direct-topic assignments
+   - At least 90% recall for explicit material subjects
+   - No more than 2% incidental-topic false positives
+   - No more than 1% unresolved near-duplicate topic candidates
+   - Zero provisional or shadow topics exposed publicly
+   - Deterministic classification p95 at or below 50 ms per cluster in the local benchmark, excluding network I/O
+   - At most one bounded registry read operation per crawl and zero assignment mutations for unchanged inputs
+   - At most one model request per uncached classification input hash and zero model requests for unchanged cached inputs
+   - Topic classification keeps a 100-cluster crawl within five minutes under the configured model concurrency and timeout policy
+   - Paid model spend defaults to zero; enabling a paid provider requires an explicit configured per-run budget and fail-closed cap
+
+### Required test cases
+
+The gold corpus will include:
+
+- India-China talks explicitly mentioning LAC
+- India-China meeting at Kibithu
+- NSA meeting a Chinese counterpart about border negotiations
+- An unrelated article containing “black” that must not match LAC
+- Tourism in Kibithu that must not receive LAC
+- US airbase in Jordan attacked by Iran
+- US aircraft operating from a Jordanian airbase
+- An article mentioning Iran only as historical background
+- `USA`, `U.S.`, `US`, and `United States`
+- `Su57`, `Su-57`, and `Sukhoi Su-57`
+- Ambiguous aliases and homonyms such as Jaguar as a platform, company, or ordinary word
+- Syndicated copies that must count as one independent source
+- Transliteration, punctuation, capitalization, and renamed-programme variants
+- Corrections, retractions, cluster merges, cluster splits, and a changed primary source
+- Repeated identical crawler runs and repeated semantic adjudication
+
+### Exit criteria
+
+- Architecture decision is complete.
+- Taxonomy and relevance rules are unambiguous.
+- Identity, lineage, evidence, source independence, and ownership rules are unambiguous.
+- Numeric quality, stability, performance, and cost gates are approved and encoded in tests or fixtures.
+- Baseline tests and current full suite pass.
+- No production behavior changes.
+
+### Phase status
+
+Complete as of 2026-09-13. The deep completion audit, verification evidence, tech-debt sweep, resolutions, and fail-loud carried-forward limitations are recorded in `docs/Plans/canonical-topic-phase-0-summary.md`.
+
+## Phase 1 — Durable identity, canonical topic registry, and D1 schema
+
+### Goal
+
+Create the durable article, cluster, and topic foundation without changing production behavior or the public UI. The storage tables are created in this phase so every assignment foreign key has a valid parent before classification begins.
+
+### Schema
+
+Add versioned, additive D1 migrations for:
+
+```text
+ingestion_runs
+source_articles
+story_clusters
+cluster_sources
+cluster_lineage
+topics
+topic_aliases
+topic_relations
+topic_implication_rules
+topic_candidates
+topic_assignment_runs
+cluster_topic_decisions
+cluster_topics
+article_topic_mentions
+topic_curation_audit
+topic_reclassification_queue
+```
+
+Representative fields:
+
+```text
+ingestion_runs
+  id
+  input_fingerprint
+  status
+  started_at
+  completed_at
+  failure_stage
+  retry_count
+
+source_articles
+  id
+  canonical_url
+  source_domain
+  source_owner_key
+  title
+  snippet
+  published_at
+  content_hash
+  payload_key
+  first_seen_at
+  last_seen_at
+
+story_clusters
+  id
+  event_fingerprint
+  status
+  primary_source_article_id
+  first_observed_at
+  last_observed_at
+  merged_into_cluster_id
+  created_at
+  updated_at
+
+cluster_sources
+  cluster_id
+  source_article_id
+  coverage_role
+  source_authority
+  attached_at
+
+cluster_lineage
+  predecessor_cluster_id
+  successor_cluster_id
+  change_type
+  reason
+  changed_at
+
+topics
+  id
+  display_name
+  display_hashtag
+  topic_type
+  description
+  status
+  verification_state
+  display_priority
+  registry_version
+  replaced_by_topic_id
+  first_seen_at
+  last_seen_at
+  created_at
+  updated_at
+
+topic_aliases
+  normalized_alias
+  topic_id
+  alias_type
+  requires_context
+  context_rule_json
+  verification_state
+  created_at
+
+topic_relations
+  source_topic_id
+  relation_type
+  target_topic_id
+  confidence
+  evidence_source_article_id
+  evidence_start
+  evidence_end
+  evidence_content_hash
+  verification_state
+
+topic_implication_rules
+  source_topic_id
+  implied_topic_id
+  required_context_json
+  maximum_depth
+  verification_state
+
+topic_assignment_runs
+  id
+  cluster_id
+  content_fingerprint
+  registry_version
+  classifier_version
+  assignment_policy_version
+  model_cache_key
+  status
+  started_at
+  completed_at
+
+cluster_topic_decisions
+  id
+  assignment_run_id
+  cluster_id
+  topic_id
+  role
+  confidence
+  assignment_source
+  decision_state
+  supersedes_decision_id
+  decided_at
+
+cluster_topics
+  cluster_id
+  topic_id
+  role
+  confidence
+  assignment_source
+  source_decision_id
+  locked_by_curator
+  assignment_run_id
+  classifier_version
+  assigned_at
+  reviewed_at
+
+article_topic_mentions
+  topic_id
+  cluster_id
+  source_article_id
+  mention_kind
+  evidence_start
+  evidence_end
+  evidence_content_hash
+  extraction_run_id
+  observed_at
+
+topic_curation_audit
+  id
+  topic_id
+  cluster_id
+  action
+  before_json
+  after_json
+  curator_email
+  expected_version
+  created_at
+
+topic_reclassification_queue
+  id
+  trigger_type
+  trigger_id
+  cluster_id
+  status
+  attempts
+  available_at
+```
+
+Required constraints:
+
+- Unique topic ID
+- Unique canonical hashtag
+- Unique canonical article URL after normalization
+- Unique `(cluster_id, source_article_id)` membership
+- Unique `(normalized_alias, topic_id)` alias mapping
+- At most one unconditional mapping for a normalized alias; contextual aliases may map to multiple topics and must be disambiguated
+- Unique `(cluster_id, topic_id)`
+- Unique article mention for the same topic, evidence span, and extraction run
+- Unique directed topic relation and implication rule
+- Foreign keys for all topic references
+- Controlled values for type, role, lifecycle status, verification state, and assignment source
+- Redirect support for merged or deprecated topics
+- Redirect and lineage support for merged or split clusters
+- Lifecycle support for `provisional`, `active`, `deprecated`, and `merged` topics
+- Cycle prevention for topic redirects and bounded implication traversal
+- Database checks for confidence ranges, evidence offsets, publication states, and lifecycle transitions
+- Mention and independent-source counts are derived from evidence rows. Any cached counters are explicitly non-authoritative and have a reconciliation job.
+
+### Migration strategy
+
+- Adopt numbered migration files and a migration ledger; `d1/schema.sql` may remain a generated bootstrap snapshot but is not the deployment mechanism.
+- Test migrations from an empty database and from representative copies of every supported prior schema.
+- Enable and verify foreign-key enforcement in migration and application tests.
+- Do not use crawler startup as an implicit schema migration path.
+- Seed taxonomy records in an idempotent reviewed seed migration separate from runtime discovery.
+
+### Initial taxonomy
+
+Seed a small reviewed bootstrap taxonomy containing:
+
+- India
+- China
+- United States
+- Iran
+- Jordan
+- India-China
+- LAC
+- LOC
+- Indian Army
+- Indian Navy
+- Indian Air Force
+- Existing known platforms, programmes, and organizations
+- Approved operational theatres and facility classes
+
+These records only give the first crawl a reliable starting vocabulary. They are not an allowlist and do not define the boundary of what can be tagged. The D1 tables are the living runtime SSOT. Migration files provide version history; they do not become a second runtime registry. New verified topics and aliases must become available to subsequent classification runs without a code deployment.
+
+Existing `canonical_entities` and `discovered_entities` records are imported only as reviewable migration candidates. Existing graph nodes, programmes, and suppliers retain their current domain ownership and may reference a topic; they are not silently duplicated as competing master records.
+
+### Application structure
+
+Likely modules:
+
+```text
+src/types/topics.ts
+src/services/topicRegistryService.ts
+src/services/topicQueryBuilder.ts
+crawler/topicRegistryLoader.ts
+crawler/durableIngestService.ts
+crawler/topicAssignmentReconciler.ts
+```
+
+Each file receives one responsibility and remains below 300 lines.
+
+### Tests
+
+- Local migration from an empty database
+- Migration against a database containing existing thread and archive tables
+- Foreign-key enforcement
+- Duplicate unconditional alias rejection and contextual alias disambiguation
+- Redirect resolution
+- Redirect-cycle rejection
+- Alias normalization
+- Invalid topic type rejection
+- Topic lifecycle transition validation
+- Derived corroboration counts across genuinely independent sources
+- Prevention of alias collisions during automatic discovery
+- Stable article identity after URL normalization
+- Stable cluster identity when the primary source changes
+- Cluster merge and split lineage
+- Effective `cluster_topics` membership separated from shadow, provisional, suppressed, rejected, and superseded decision history
+- Repository contract and line-count tests
+
+### Exit criteria
+
+- Schema applies cleanly and repeatably.
+- Article, cluster, and topic registries can be read but do not affect current ingestion or hashtags.
+- Existing application behavior remains unchanged.
+- Full build and test suite pass.
+
+## Phase 2 — Complete durable article and cluster storage
+
+### Goal
+
+Ensure homepage ranking never determines which stories enter the knowledge base.
+
+### Pipeline change
+
+Current behavior truncates to the top 30 before downstream processing. It will become:
+
+```text
+Fetch all eligible sources
+→ persist source articles
+→ cluster all eligible stories
+→ persist every cluster
+→ classify every cluster
+→ rank/select top 30 for homepage
+```
+
+### Durable write path
+
+Use the Phase 1 `source_articles`, `story_clusters`, and `cluster_sources` records to preserve every publication while allowing the topic UI to group duplicate reporting under one event.
+
+`cluster_sources` identifies:
+
+- Primary source
+- Related coverage
+- Social discussion
+- Publication timestamp
+- Source authority
+
+R2 continues storing full cluster payloads. D1 stores indexed metadata and relationships.
+
+Every crawl advances an explicit ingestion state machine:
+
+```text
+started
+→ articles_persisted
+→ clusters_persisted
+→ classified
+→ publishable
+→ published
+
+Any stage → failed_retryable | failed_terminal
+```
+
+D1 metadata writes for a bounded batch are transactional. R2 blobs are written with deterministic keys before their corresponding D1 references become visible. A failed D1 commit leaves a detectable orphan candidate for cleanup; a missing R2 blob prevents the D1 record from becoming publishable. Retries use the ingestion run ID and content hashes rather than creating new records.
+
+### Behavioral requirements
+
+- Every accepted source article receives a durable ID.
+- Article IDs use canonicalized URLs with a documented fallback for genuinely URL-less sources.
+- Every eligible cluster is persisted before homepage truncation.
+- Existing durable clusters are matched before creating new clusters; changing the primary source does not change cluster identity.
+- Cluster merges and splits preserve lineage, redirects, topic decisions, and curator locks.
+- A story outside the top 30 remains available to topic classification and archive queries.
+- Repeated crawl runs are idempotent.
+- Re-entering the homepage does not delete the durable article record.
+- Failure policy is explicit: durable article or cluster persistence failure blocks that run from publishing a new homepage snapshot; optional downstream enrichment failures may degrade only according to their documented fallback.
+- Recovery resumes from the last completed run stage and never treats a partial write as successful ingestion.
+
+### Tests
+
+- A 50-cluster crawl persists all 50 but displays only 30.
+- A rank-31 story appears in topic results.
+- Duplicate source URLs remain deduplicated.
+- Tracking parameters, equivalent URL forms, redirects, and protocol variants resolve according to the canonical URL policy.
+- Multiple publications remain attached to their cluster.
+- The same event retains its cluster ID when a different source becomes primary.
+- Cluster merges and splits preserve lineage and do not orphan assignments.
+- R2 failure prevents an incomplete durable record.
+- Partial D1 failure is reported as a failed ingestion result and blocks snapshot publication.
+- An R2-success/D1-failure orphan is detected and cleaned or adopted safely on retry.
+- An interrupted ingestion resumes from its recorded stage.
+- Re-running the same crawl creates no duplicates.
+
+### Exit criteria
+
+- Zero eligible clusters are lost because of ranking.
+- No incomplete ingestion run is published as current data.
+- Homepage output remains compatible.
+- Existing archive search continues working.
+- Full build and test suite pass.
+
+## Phase 3 — Registry-driven deterministic multi-topic classification
+
+### Goal
+
+Assign known topics with no model dependency and extract safe candidates for previously unseen concrete entities.
+
+### Classification stages
+
+1. Load active and provisional topics, aliases, verified navigation relations, and verified implication rules from D1 once per bounded crawl operation.
+2. Normalize article and cluster text.
+3. Match runtime canonical aliases with word boundaries.
+4. Verify context-sensitive acronyms.
+5. Extract exact source spans that could represent new concrete entities.
+6. Resolve extracted spans against existing topic IDs and aliases.
+7. Persist article-level mentions with source IDs, offsets, and content hashes.
+8. Aggregate material article evidence into cluster-level assignments and roles.
+9. Apply only approved conditional implication rules.
+10. Compute the complete desired assignment set.
+11. Reuse the prior validated result when the content, registry, classifier, and policy versions are unchanged.
+12. Record immutable decisions, then atomically reconcile validated non-curator membership in `cluster_topics` without overwriting curator locks.
+
+Examples:
+
+```text
+"LAC" → #LAC
+"Line of Actual Control" → #LAC
+"U.S." → #UnitedStates
+"Tejas Mk1A" → #TejasMk1A
+```
+
+Contextual inference:
+
+```text
+Kibithu
++ India and China as material actors
++ military/diplomatic border event
+→ #LAC
+```
+
+Taxonomy implications:
+
+```text
+#LAC
+→ #India
+→ #China
+→ #IndiaChina
+```
+
+These implications must be explicit, verified, conditional implication rules, not free-form assumptions or generic graph traversal. A descriptive topic relation does not automatically imply story membership. Rules define direction, required context, maximum depth, and whether the result is eligible for automatic publication. Cycles and unbounded transitive expansion are rejected.
+
+### Tagging policy
+
+- Direct material subjects receive high confidence.
+- Incidental mentions are rejected.
+- Publisher tags are candidate signals only.
+- Generic topics such as `#Airbases` are assigned only when the facility materially affects the report.
+- A specific facility and its broad class may both be assigned.
+- No fixed tag maximum is enforced.
+- Topic order is determined separately for display.
+- New concrete candidates retain their exact source span and provenance.
+- Recognition behavior updates when the registry changes; it does not require recompiling a regex catalog.
+- Exact-span extraction alone may create a review candidate, but cannot establish type or materiality without an independent deterministic rule.
+- Deterministic matching operates over a bounded indexed registry lookup. Correctness must not depend on loading only the most recently seen topics.
+- Similar source articles in the same durable cluster share one effective cluster assignment set while retaining their distinct article-level evidence.
+- Similar articles in separate clusters may differ in secondary topics, but every directly evidenced canonical subject must resolve to the same topic ID.
+- Reconciliation removes stale non-curator assignments when justified; it never implements a permanent union of hashtags from prior runs.
+
+### Tests
+
+- All Phase 0 gold-corpus deterministic cases
+- Multi-topic assignments
+- Idempotent writes
+- Duplicate alias prevention
+- Role selection
+- Topic implication rules
+- Incidental-mention rejection
+- Whole-word acronym protection
+- Stable results regardless of publisher hashtag order
+- Identical assignments on repeated runs with unchanged fingerprints and versions
+- Reuse of a prior assignment without reclassification when inputs are unchanged
+- Removal of a stale non-curator assignment through desired-state reconciliation
+- Preservation of curator-locked assignments during reconciliation
+- Runtime recognition of a newly inserted D1 topic without a code change
+- Extraction of an unseen concrete named entity with exact evidence
+- Rejection of ordinary words, verbs, adjectives, and non-distinctive phrases as topics
+
+### Exit criteria
+
+- Known-topic classification works without Gemini or Workers AI.
+- The deterministic pipeline can surface previously unseen concrete candidates without publishing arbitrary hashtags.
+- One cluster can belong to multiple topics.
+- `cluster_topics` contains one stable effective assignment set rather than an accumulated history of classifier outputs.
+- Assignments remain shadow data and do not yet change public hashtag clicks.
+- Full build and test suite pass.
+
+## Phase 4 — Hybrid existing-topic linking and open-world concept discovery
+
+### Goal
+
+Use model judgment both to link semantic cases to existing topics and to discover previously unseen source-grounded concepts, while preventing uncontrolled hashtag creation.
+
+### Model contract
+
+The model receives:
+
+- Sanitized headline and available article text
+- Deterministic candidates
+- A retrieved, bounded set of likely existing topic IDs
+- Topic definitions
+- The open-world discovery schema
+- Required role, type, and evidence fields
+- An explicit instruction that source content is untrusted data and cannot modify the output contract
+
+It returns:
+
+```json
+{
+  "existingTopics": [
+    {
+      "topicId": "lac",
+      "role": "context",
+      "confidence": 0.91,
+      "evidence": "meeting at Kibithu concerning the India-China border"
+    }
+  ],
+  "discoveredConcepts": [
+    {
+      "name": "Muwaffaq Salti Air Base",
+      "type": "facility",
+      "role": "target",
+      "confidence": 0.96,
+      "evidence": "the attack targeted Muwaffaq Salti Air Base"
+    }
+  ]
+}
+```
+
+Every returned existing topic ID is checked against the loaded registry. Unknown IDs in `existingTopics` are rejected. Every discovered concept must cite an exact, validated source span; a model-proposed name without grounded evidence is rejected.
+
+The validated response is cached by a deterministic hash of sanitized evidence, retrieved candidate topic IDs, registry version, classifier version, and assignment-policy version. An unchanged hash reuses the validated decision. Model temperature or provider repeatability is not treated as a stability guarantee.
+
+### Automatic creation policy
+
+A discovered concrete entity may be normalized and created as a provisional topic when all deterministic gates pass:
+
+- The entity type is eligible for automatic creation.
+- The proposed name occurs exactly in trusted article content.
+- The name is distinctive and passes length and character constraints.
+- It does not resolve to, collide with, or closely duplicate an existing topic or alias.
+- Its slug is stable and collision-free.
+- Its evidence and source provenance are stored.
+
+Abstract themes, uncertain types, near-duplicates, aliases, merges, and indirect inferences go to `topic_candidates` for review. Provisional topics accumulate private evidence immediately but remain `shadow` or `suppressed`; public APIs and compatibility hashtag fields exclude them until promotion and publication criteria are met.
+
+Suggested new concepts enter `topic_candidates` with:
+
+- Suggested name
+- Normalized form
+- Evidence
+- Source clusters
+- Mention count
+- Distinct source count
+- Status
+- Reviewer metadata
+
+They never become active public topics from a model suggestion alone. Promotion requires deterministic corroboration or curator approval.
+
+### Effective-assignment stability
+
+- Model results first enter `cluster_topic_decisions` as shadow decisions and do not directly mutate validated `cluster_topics` membership.
+- A high-confidence addition becomes effective only after deterministic validation and the approved publication threshold.
+- Removing an effective topic requires deterministic contradictory evidence, repeated agreement across the configured number of runs, a successfully evaluated classifier-version migration, or curator approval.
+- Curator-locked additions and removals always win over automated decisions.
+- Registry or classifier changes create a new desired assignment set and an auditable diff; they do not silently rewrite history.
+- Similar clusters with conflicting core subjects are measured as a consistency failure and queued for review. Differences in materially supported secondary topics are allowed and retained with evidence.
+
+### Shadow evaluation
+
+Run old and new classification simultaneously and report:
+
+- New-system precision and recall against the gold corpus
+- Old/new disagreement rate
+- Unknown-topic candidate rate
+- New concrete concept discovery rate
+- Provisional-to-active promotion rate
+- Near-duplicate and alias-collision rate
+- Average topics per cluster
+- Untagged eligible cluster rate
+- Assignment source distribution
+- Repeated-run assignment stability
+- Core-topic consistency across near-duplicate clusters
+- Public assignment addition and removal churn
+- Model cache hit rate, latency, and cost per eligible cluster
+
+### Tests
+
+- Hallucinated topic IDs are rejected.
+- Malformed responses fail safely.
+- Prompt-injection text cannot alter the schema.
+- Evidence is length-limited and sanitized.
+- Model outage leaves deterministic assignments intact.
+- Candidate topics remain private.
+- Repeated candidates aggregate without duplication.
+- A new concrete entity can be provisionally created from an exact evidence span.
+- A new abstract theme cannot bypass review.
+- A provisional topic is promoted after the configured independent-source or authoritative-source threshold.
+- Near-duplicate discovered concepts resolve or enter review rather than fragmenting the taxonomy.
+- An unchanged semantic input reuses the cached validated result.
+- Different model responses for the same uncached input cannot directly oscillate public assignments.
+- Provisional and shadow assignments are absent from every public read path.
+
+### Exit criteria
+
+- Model output cannot directly create active public hashtags.
+- Previously unseen concrete entities can enter the living registry through validated provisional creation.
+- Deterministic fallback remains fully functional.
+- Phase 0 quality thresholds are met on the reviewed corpus and shadow production sample, including 100% canonical alias convergence and 100% unchanged-input assignment stability.
+- Full build and test suite pass.
+
+## Phase 5 — Curator topic governance and review workflow
+
+### Goal
+
+Provide the authenticated human-control surface required to govern candidates, ambiguous aliases, topic lifecycle, assignment exceptions, and merges before backfill or public cutover.
+
+### Curator capabilities
+
+- List and filter provisional topics, topic candidates, alias collisions, near-duplicates, and assignment disagreements.
+- Inspect every supporting source article, bounded evidence span, source-independence calculation, classifier version, and assignment diff.
+- Approve, reject, rename, promote, deprecate, merge, or redirect a topic.
+- Add contextual or unconditional aliases with collision checks.
+- Approve or reject topic implication rules separately from descriptive topic relations.
+- Add, remove, or lock a cluster-topic assignment.
+- Preview the affected assignments, historical clusters, API URLs, and redirects before a merge or rule change.
+- Use optimistic concurrency so one curator cannot silently overwrite another curator's newer decision.
+- Write an immutable audit record for every mutation.
+- Enqueue bounded targeted reclassification after an approved topic, alias, merge, or implication-rule change.
+- Reverse a mistaken merge or bulk decision through a tested recovery operation where data has not been irreversibly discarded.
+
+### MVVM and API boundaries
+
+Components consume curator ViewModels only. ViewModels call authenticated topic-governance services; services own validation, audit writes, and parameterized D1 operations. Existing curator authentication and safe error conventions remain mandatory.
+
+### Tests
+
+- Every mutation requires curator authentication and authorization.
+- Candidate approval and rejection are auditable.
+- Rename preserves canonical redirects.
+- Unconditional alias collisions are rejected; contextual ambiguity is represented safely.
+- Merge preview reports affected records before mutation.
+- Merge, redirect, and reversal preserve assignment provenance.
+- Optimistic concurrency rejects stale writes.
+- Curator-locked assignment survives ingestion and backfill.
+- Approved registry changes enqueue only affected historical clusters.
+- Model or source text cannot inject a curator action, SQL value, URL, or HTML fragment.
+
+### Exit criteria
+
+- Every review path referenced by earlier phases has an authenticated, auditable operation.
+- No candidate, ambiguous alias, merge, abstract theme, or implication rule requires direct database editing.
+- Full build, security checks, and test suite pass.
+
+## Phase 6 — Topic read API and knowledge-base query model
+
+### Goal
+
+Expose authoritative topic collections independently from story threads. Deploy the routes behind the same internal or staging feature gate as the topic UI until Phase 10 enables public access.
+
+### Endpoints
+
+```text
+GET /api/topics
+GET /api/topics/:id
+GET /api/topics/:id/articles
+GET /api/topics/:id/related
+```
+
+Article results include:
+
+- Cluster
+- Primary source
+- Related sources
+- Assignment role
+- Confidence and provenance where appropriate
+- Publication date
+- Related story thread IDs
+- Pagination cursor
+
+### Query behavior
+
+- Resolve canonical ID, display hashtag, or registered alias.
+- Follow deprecated-topic redirects.
+- Query validated rows through indexed `cluster_topics` and active topics only; shadow, provisional, suppressed, and rejected decisions remain in the decision ledger and are structurally excluded.
+- Use keyset pagination ordered by `(published_at DESC, cluster_id DESC)` with bounded, opaque, versioned cursors.
+- Apply strict limits.
+- Never scan the full archive per request.
+- Do not depend on the 100-thread or 500-event synchronization windows.
+- Return enough indexed D1 metadata to render collection cards without one R2 request per result. Fetch a full R2 payload only for detail that is not represented in D1.
+- Define cache keys and invalidation using canonical topic ID, registry version, assignment publication version, and cursor.
+
+### Security
+
+- Validate and length-limit topic identifiers.
+- Use parameterized SQL.
+- Rate-limit public endpoints.
+- Return safe errors.
+- Do not expose internal prompts or curator-only evidence.
+- Apply public caching only to successful read responses.
+- Reject cursors whose signature, version, length, or sort position is invalid.
+
+### Tests
+
+- Lookup by canonical ID and alias
+- Pagination without duplicates
+- Stable pagination when several clusters share a publication timestamp
+- Invalid and obsolete cursor handling
+- Deprecated-topic redirect
+- Unknown-topic 404
+- Injection attempts
+- Rate limiting
+- Archived and live cluster retrieval
+- One article appearing under every assigned topic
+- All corroborating sources included
+- Provisional, shadow, suppressed, and rejected records never returned
+- Collection rendering does not perform an N+1 R2 read pattern
+
+### Exit criteria
+
+- Topic APIs accurately return multi-topic membership.
+- Existing thread APIs remain operational.
+- Full build and test suite pass.
+
+## Phase 7 — Historical classification and backfill
+
+### Goal
+
+Make existing history part of the new topic knowledge base before public cutover.
+
+### Backfill behavior
+
+1. Read live clusters and archived R2 cluster payloads.
+2. Process bounded, resumable batches.
+3. Apply deterministic classification.
+4. Apply model adjudication only where needed.
+5. Store content fingerprint, registry version, classifier version, assignment-policy version, and run ID.
+6. Record failures for retry.
+7. Reprocess only missing or outdated assignments.
+8. Preserve curator decisions.
+9. Produce before-and-after counts.
+10. When a topic, alias, merge, or verified implication rule is added, enqueue affected historical clusters for targeted retroactive classification.
+11. Compute and atomically reconcile a desired assignment set for each cluster rather than unioning historical hashtags.
+12. Materialize no backfilled decision into `cluster_topics` until its topic is active and the decision satisfies the assignment acceptance policy.
+
+### Existing hashtag migration
+
+- Resolve current `primaryTag` and `hashtags` values through the new registry.
+- Treat them as migration evidence, not truth; convert only trusted matches into shadow assignments before validation.
+- Send ambiguous variants to review.
+- Map legacy aliases to canonical topics.
+- Create redirects for replaced hashtag URLs.
+- Do not blindly promote existing `canonical_entities` rows; that table may contain earlier classification mistakes.
+
+### Tests
+
+- Backfill is idempotent.
+- Interrupted batches resume safely.
+- One bad R2 payload does not corrupt the batch.
+- Failed records remain retryable.
+- Classifier-version changes trigger controlled reassignment.
+- Registry-version and assignment-policy changes trigger only the required reassignment.
+- Unchanged fingerprints and versions reuse prior validated assignments.
+- Curator-reviewed assignments cannot be overwritten.
+- Historical LAC examples converge correctly.
+- Aggregate counts remain stable on a second run.
+- Effective topic membership remains identical on a second unchanged run.
+- Stale non-curator assignments are removed without deleting assignment history.
+- Establishing a new topic or alias retroactively attaches matching historical clusters.
+- Establishing a new verified implication rule retroactively evaluates clusters affected by that rule.
+
+### Exit criteria
+
+- Backfill backlog reaches zero.
+- Failed records are zero or fully resolved before phase closure.
+- Topic counts reconcile with assignment rows.
+- Repeated unchanged backfills produce zero effective assignment churn.
+- Full build and test suite pass.
+
+## Phase 8 — Feature-flagged multi-hashtag UI and topic knowledge-base view
+
+### Goal
+
+Build hashtag-to-topic behavior behind an internal or staging feature flag. Do not change public hashtag routing until thread/topic decoupling and final cutover are complete.
+
+### MVVM structure
+
+```text
+src/services/topicService.ts
+src/viewmodels/TopicKnowledgeBaseViewModel.ts
+src/components/topics/TopicBadgeList.ts
+src/components/topics/TopicKnowledgeBaseView.ts
+src/components/topics/TopicArticleCard.ts
+```
+
+Components consume ViewModels and resource strings only.
+
+### Card behavior
+
+- Display the three highest-value topic badges.
+- Display `+N` when more topics are assigned.
+- Clicking a badge opens its canonical topic knowledge base.
+- Assignment order favors specific topics over broad structural topics.
+- Assignment order uses stored and tested display priority plus deterministic tie-breakers; it is not based on D1 row order or model output order.
+- All validated topics assigned to the cluster remain discoverable even when collapsed; decision-ledger states remain hidden.
+- Keyboard and screen-reader behavior matches existing accessibility conventions.
+
+### Topic page
+
+Display:
+
+- Canonical hashtag and definition
+- Total article or event count
+- First and latest observation
+- Chronological cluster list
+- Nested corroborating sources
+- Related topics
+- Associated story threads
+- Paginated loading
+- Empty, loading, unavailable, and error states
+
+All labels come from resource files, and all styling uses existing variables.
+
+### Tests
+
+- Three badges plus `+N`
+- Every badge resolves to the correct topic ID
+- Badge order remains identical across repeated renders and crawler runs with unchanged inputs
+- Alias URL redirects
+- Desktop and mobile rendering
+- Light and dark themes
+- Keyboard navigation
+- Loading, error, and empty states
+- Pagination
+- HTML and URL sanitization
+- Clicking `#India` returns all assigned Indian stories
+
+### Exit criteria
+
+- Feature-flagged hashtag clicks use topic APIs; production public routing remains unchanged.
+- Multi-topic cards work across screen sizes.
+- No hardcoded UI strings or colors.
+- Full build, CSS check, accessibility tests, and bundle budget pass.
+
+## Phase 9 — Separate narrative threads from topic membership
+
+### Goal
+
+Remove the remaining assumption that every hashtag is a story thread.
+
+### Changes
+
+- Stop creating thread identities directly from `primaryTag`.
+- Create or advance threads only for coherent evolving events or programmes.
+- Allow several threads to belong to one topic.
+- Allow one thread to reference several topics.
+- Add `thread_topics` as an explicit junction table.
+- Remove whole-database thread loading from matching.
+- Query likely thread candidates by indexed topics, time, and event fingerprints.
+- Use durable cluster identity and cluster lineage so a primary-source change, cluster merge, or cluster split cannot silently duplicate a thread event.
+- Eliminate the fixed 100-thread and 500-event correctness dependency.
+- Keep the Story Threads tab and timeline modal as separate product surfaces.
+
+### Tests
+
+- `#India` contains several unrelated threads without merging them.
+- One Iran-Jordan event appears under several topic pages.
+- An article can be in a topic without belonging to a thread.
+- Dormant thread reactivation works.
+- Old threads remain queryable.
+- Event counts remain accurate beyond 500 events.
+- No duplicate thread is created when the database exceeds 100 threads.
+- Coherence checks reject unrelated events.
+- Changing a cluster's primary source does not create a new thread or event.
+- Cluster merge and split lineage preserves valid thread references.
+
+### Exit criteria
+
+- Topic retrieval and thread continuity are fully independent.
+- Existing valid thread history is preserved.
+- Fixed-limit correctness bugs are eliminated.
+- Full build and test suite pass.
+
+## Phase 10 — Controlled cutover and legacy cleanup
+
+### Goal
+
+Make canonical topics the sole public hashtag system.
+
+### Cutover
+
+- Enable new topic assignments as the public source.
+- Expose only validated `cluster_topics` membership for active topics; decision-ledger and provisional records stay private.
+- Stop reading `cluster.primaryTag` and `cluster.hashtags` for knowledge-base membership.
+- Retain only a derived compatibility representation where an older consumer still requires it; generate that projection from published `cluster_topics` in deterministic display order.
+- Route legacy hashtag links through topic aliases and redirects.
+- Remove obsolete self-learning tag-generation paths.
+- Remove unused cross-cluster tag-union behavior.
+- Retain `canonical_entities` only if another entity-resolution feature still needs it; otherwise migrate and remove it safely.
+- Update documentation to match live code.
+
+### Operational monitoring
+
+Track:
+
+- Eligible clusters persisted
+- Untagged cluster rate
+- Average topics per cluster
+- Deterministic, model, and curator assignment counts
+- Unknown-topic candidates
+- Provisional topics awaiting corroboration
+- Provisional-to-active promotion latency
+- Newly discovered concrete entity rate
+- Near-duplicate topic score and alias collisions
+- Abandoned provisional topics
+- Classification failures
+- Topic-page 404s
+- Alias redirects
+- Backfill backlog
+- Duplicate assignment attempts
+- Effective-assignment churn between otherwise unchanged runs
+- Core-topic disagreement across near-duplicate clusters
+- Classification cache hit rate, latency, and model cost
+- Orphaned R2 blobs and incomplete ingestion runs
+- Per-topic volume spikes
+
+Alert on:
+
+- Any eligible cluster skipped
+- Registry load failure
+- Assignment write failure
+- Sudden untagged-rate increase
+- Unexpected new-topic volume
+- Provisional topics that never receive corroboration
+- A rise in near-duplicate or alias-collision detections
+- Topic count regression
+- Any public provisional topic or decision-ledger assignment
+- Any unchanged-input assignment drift
+- Any compatibility hashtag that does not resolve back to its stored topic ID
+
+### Final acceptance scenarios
+
+1. All three LAC examples appear under:
+
+   - `#LAC`
+   - `#India`
+   - `#China`
+   - `#IndiaChina`
+
+2. The Iran/Jordan example appears under every approved relevant topic.
+
+3. `#USA`, `#US`, and `#UnitedStates` resolve to one canonical knowledge base.
+
+4. A rank-31 story remains searchable and appears in its topic pages.
+
+5. Multiple publications covering one event are visible beneath the same cluster.
+
+6. Broad topic pages contain several independent threads without merging them.
+
+7. No unregistered hashtag appears publicly.
+
+8. Re-running ingestion or backfill creates no duplicate assignments.
+
+9. A previously unknown, explicitly named platform or facility can be discovered, provisionally registered, corroborated, promoted, and backfilled without a code deployment.
+
+10. Semantically equivalent discoveries converge on one canonical topic instead of producing multiple hashtags.
+
+11. Re-running an unchanged crawl with the same registry, classifier, and policy versions produces an identical effective topic set and performs no new model adjudication.
+
+12. Similar articles clustered into the same durable event share one effective topic set while retaining source-specific evidence.
+
+13. Near-duplicate clusters agree on directly evidenced core topics; justified secondary-topic differences retain their evidence and do not create new canonical spellings.
+
+14. Changing the primary source preserves cluster identity, topic membership, thread references, and public URLs.
+
+15. A low-confidence or inconsistent model response cannot add or remove a public hashtag without satisfying the publication policy.
+
+### Exit criteria
+
+- Legacy and new counts reconcile.
+- Canonical identity convergence is 100% for registered aliases, and unchanged-input effective assignment stability is 100%.
+- Public assignment churn, near-duplicate consistency, precision, recall, latency, and cost meet the Phase 0 thresholds.
+- No unresolved migration failures or temporary compatibility debt remains.
+- Documentation matches the implementation.
+- Full suite, build, security checks, and deployment smoke tests pass.
+- Phase 10 Summary records zero cutover-blocking debt and lists any explicitly accepted non-blocking debt for final validation.
+
+## Phase 11 — Production baseline closure and post-cutover validation
+
+### Goal
+
+Close the external-state measurements that Phase 0 could not truthfully obtain from the repository snapshot, and verify the completed system against real D1/R2 production state after controlled cutover.
+
+### Carried-forward Phase 0 gaps
+
+- The Phase 0 repository snapshot cannot recover the exact pre-truncation `allClusters` collection because the current output persists only retained clusters. Its baseline therefore reports the observable eligible river URLs absent from retained cluster sources.
+- The committed local D1 state does not contain the deployed `canonical_entities` table or learned production aliases.
+- Repository thread seed counts do not prove current remote D1 thread, event, archive, or orphan counts.
+- No Cloudflare credentials were available during Phase 0, so inventing or claiming remote values would violate fail-loud requirements.
+
+### Validation work
+
+- Capture exact eligible-article, pre-ranking cluster, retained homepage, and excluded-article counts from the durable ingestion run ledger introduced in Phase 2.
+- Capture authenticated read-only production counts for topics, aliases, cluster assignments, threads, events, archived clusters, reclassification backlog, and unresolved orphans.
+- Reconcile production D1 references with deterministic R2 object keys and resolve orphaned metadata or blobs.
+- Compare production canonical alias convergence, unchanged-input stability, near-duplicate consistency, precision, recall, latency, write volume, cache hit rate, and model cost with the Phase 0 thresholds.
+- Produce a dated, source-fingerprinted production baseline without overwriting the Phase 0 repository baseline.
+- Verify alerts, dashboards, rollback instructions, and recovery drills against observed production state.
+
+### Tests and evidence
+
+- Read-only measurement commands and their scopes are documented and reproducible.
+- Exact ingestion-ledger counts reconcile with durable articles and clusters.
+- D1/R2 reconciliation has zero unexplained records.
+- Re-running the production measurement produces stable counts absent intervening ingestion.
+- No secrets, credentials, source bodies, or curator-only evidence enter committed reports.
+
+### Exit criteria
+
+- Every Phase 0 measurement limitation is closed with production evidence or explicitly marked not applicable with a reviewed reason.
+- All Phase 10 operational alerts and rollback controls have been exercised successfully.
+- Documentation matches observed production behavior.
+- Full suite, build, security checks, and deployment smoke tests pass.
+- Final Phase Summary records zero unresolved release-blocking debt and lists any explicitly accepted non-blocking debt with owner and resolution date.

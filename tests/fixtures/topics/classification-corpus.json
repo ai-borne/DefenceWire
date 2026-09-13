@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "accepted-phase-0",
+  "reviewedAt": "2026-09-13",
+  "annotationRules": {
+    "materiality": "Assign a topic only when it performs or receives the action, materially changes, supplies the necessary event setting, or passes a verified conditional implication rule.",
+    "evidence": "Exact evidence must be a substring of normalized headline-plus-snippet text. Inferred evidence must name its reviewed rule.",
+    "incidental": "Historical background, boilerplate, navigation, publisher tags, quotations unrelated to the current event, and keyword substrings are rejected.",
+    "coreTopic": "A directly evidenced material subject that equivalent coverage must resolve to the same canonical topic ID.",
+    "secondaryTopic": "A materially supported topic that may differ across publications because of article emphasis."
+  },
+  "cases": [
+    {
+      "id": "lac-explicit-talks",
+      "headline": "Indian and Chinese armies hold talks to maintain peace along the LAC",
+      "snippet": "Senior commanders from India and China reviewed disengagement along the Line of Actual Control.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "lac", "role": "subject", "evidenceKind": "exact", "evidence": "LAC", "importance": "core" },
+        { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "India", "importance": "core" },
+        { "topicId": "china", "role": "actor", "evidenceKind": "exact", "evidence": "China", "importance": "core" },
+        { "topicId": "india-china", "role": "context", "evidenceKind": "inferred", "evidence": "rule:bilateral-material-actors", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "lac-kibithu-context",
+      "headline": "Indian and Chinese commanders meet at Kibithu for border talks",
+      "snippet": "The military meeting reviewed peace and disengagement along the India-China boundary in Arunachal Pradesh.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "Indian", "importance": "core" },
+        { "topicId": "china", "role": "actor", "evidenceKind": "exact", "evidence": "Chinese", "importance": "core" },
+        { "topicId": "kibithu", "role": "location", "evidenceKind": "exact", "evidence": "Kibithu", "importance": "secondary" },
+        { "topicId": "lac", "role": "context", "evidenceKind": "inferred", "evidence": "rule:kibithu-border-military-context", "importance": "core" },
+        { "topicId": "india-china", "role": "context", "evidenceKind": "inferred", "evidence": "rule:bilateral-material-actors", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "lac-nsa-negotiations",
+      "headline": "NSA meets Chinese counterpart to advance border negotiations",
+      "snippet": "The Indian and Chinese officials discussed military disengagement and boundary management.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "Indian", "importance": "core" },
+        { "topicId": "china", "role": "actor", "evidenceKind": "exact", "evidence": "Chinese", "importance": "core" },
+        { "topicId": "lac", "role": "context", "evidenceKind": "inferred", "evidence": "rule:india-china-current-border-negotiation", "importance": "core" },
+        { "topicId": "india-china", "role": "context", "evidenceKind": "inferred", "evidence": "rule:bilateral-material-actors", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "lac-black-substring-negative",
+      "headline": "Black Hawk helicopter completes naval trials",
+      "snippet": "The aircraft completed deck-landing tests in the Atlantic.",
+      "eligible": true,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["lac"]
+    },
+    {
+      "id": "lac-kibithu-tourism-negative",
+      "headline": "Tourism circuit opens near Kibithu",
+      "snippet": "Visitors can explore local culture and mountain trails in Arunachal Pradesh.",
+      "eligible": false,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["lac", "india-china"]
+    },
+    {
+      "id": "iran-us-jordan-airbase-attack",
+      "headline": "Iran-backed force attacks US airbase in Jordan",
+      "snippet": "The strike targeted American personnel at Muwaffaq Salti Air Base in Jordan.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "iran", "role": "actor", "evidenceKind": "exact", "evidence": "Iran", "importance": "core" },
+        { "topicId": "united-states", "role": "target", "evidenceKind": "exact", "evidence": "US", "importance": "core" },
+        { "topicId": "jordan", "role": "location", "evidenceKind": "exact", "evidence": "Jordan", "importance": "core" },
+        { "topicId": "muwaffaq-salti-air-base", "role": "facility", "evidenceKind": "exact", "evidence": "Muwaffaq Salti Air Base", "importance": "secondary" },
+        { "topicId": "airbases", "role": "context", "evidenceKind": "inferred", "evidence": "rule:material-facility-class", "importance": "secondary" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "us-aircraft-jordan-base-operation",
+      "headline": "US aircraft begin operations from Jordanian airbase",
+      "snippet": "American surveillance aircraft deployed to Muwaffaq Salti Air Base for regional missions.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "united-states", "role": "operator", "evidenceKind": "exact", "evidence": "US", "importance": "core" },
+        { "topicId": "jordan", "role": "location", "evidenceKind": "exact", "evidence": "Jordanian", "importance": "core" },
+        { "topicId": "muwaffaq-salti-air-base", "role": "facility", "evidenceKind": "exact", "evidence": "Muwaffaq Salti Air Base", "importance": "core" },
+        { "topicId": "airbases", "role": "context", "evidenceKind": "inferred", "evidence": "rule:material-facility-class", "importance": "secondary" }
+      ],
+      "rejectedTopicIds": ["iran"]
+    },
+    {
+      "id": "iran-historical-background-negative",
+      "headline": "Jordan expands counter-drone training with France",
+      "snippet": "Officials referenced a 2019 incident involving Iran only as historical background; the new exercise concerns French and Jordanian units.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "jordan", "role": "actor", "evidenceKind": "exact", "evidence": "Jordan", "importance": "core" },
+        { "topicId": "france", "role": "actor", "evidenceKind": "exact", "evidence": "France", "importance": "core" }
+      ],
+      "rejectedTopicIds": ["iran"]
+    },
+    {
+      "id": "us-alias-usa",
+      "headline": "USA approves air-defence deployment",
+      "snippet": "The deployment will begin next month.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "united-states", "role": "actor", "evidenceKind": "exact", "evidence": "USA", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "us-alias-dotted",
+      "headline": "U.S. approves air-defence deployment",
+      "snippet": "The deployment will begin next month.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "united-states", "role": "actor", "evidenceKind": "exact", "evidence": "U.S.", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "us-alias-short-contextual",
+      "headline": "US deploys an air-defence battery",
+      "snippet": "American forces confirmed the military deployment.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "united-states", "role": "actor", "evidenceKind": "exact", "evidence": "US", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "us-alias-full",
+      "headline": "United States deploys an air-defence battery",
+      "snippet": "The military deployment will begin next month.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "united-states", "role": "actor", "evidenceKind": "exact", "evidence": "United States", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "su57-alias-compact",
+      "headline": "Su57 begins flight trials",
+      "snippet": "The fighter completed a new weapons test.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "su-57", "role": "platform", "evidenceKind": "exact", "evidence": "Su57", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "su57-alias-hyphen",
+      "headline": "Su-57 begins flight trials",
+      "snippet": "The fighter completed a new weapons test.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "su-57", "role": "platform", "evidenceKind": "exact", "evidence": "Su-57", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "su57-alias-manufacturer",
+      "headline": "Sukhoi Su-57 begins flight trials",
+      "snippet": "The fighter completed a new weapons test.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "su-57", "role": "platform", "evidenceKind": "exact", "evidence": "Sukhoi Su-57", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "jaguar-aircraft-context",
+      "headline": "IAF Jaguar aircraft receives avionics upgrade",
+      "snippet": "The fighter fleet will receive new mission computers.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "sepecat-jaguar", "role": "platform", "evidenceKind": "exact", "evidence": "Jaguar aircraft", "importance": "core" },
+        { "topicId": "indian-air-force", "role": "operator", "evidenceKind": "exact", "evidence": "IAF", "importance": "core" }
+      ],
+      "rejectedTopicIds": ["jaguar-land-rover"]
+    },
+    {
+      "id": "jaguar-company-context",
+      "headline": "Jaguar Land Rover signs logistics contract",
+      "snippet": "The automotive company will supply civilian fleet services.",
+      "eligible": false,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["sepecat-jaguar"]
+    },
+    {
+      "id": "jaguar-ordinary-word-context",
+      "headline": "Jaguar population rises in protected forest",
+      "snippet": "Conservation teams recorded more wild cats during the annual survey.",
+      "eligible": false,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["sepecat-jaguar", "jaguar-land-rover"]
+    },
+    {
+      "id": "loc-whole-word-negative",
+      "headline": "Local shipyard opens new fabrication block",
+      "snippet": "The facility will manufacture commercial vessels.",
+      "eligible": false,
+      "expectedTopics": [],
+      "rejectedTopicIds": ["loc"]
+    },
+    {
+      "id": "akash-transliteration-diacritic",
+      "headline": "Ākāś-NG interceptor completes a developmental trial",
+      "snippet": "The Akash next-generation missile engaged the target successfully.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "akash-ng", "role": "platform", "evidenceKind": "exact", "evidence": "Ākāś-NG", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "renamed-programme-frcv",
+      "headline": "Future Ready Combat Vehicle programme advances to trials",
+      "snippet": "The programme previously reported as FRCV will retain one canonical acquisition history.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "future-ready-combat-vehicle", "role": "programme", "evidenceKind": "exact", "evidence": "Future Ready Combat Vehicle", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "syndicated-pralay-source-a",
+      "duplicateGroup": "pralay-export-report",
+      "sourceOwnerKey": "wire-example",
+      "headline": "India discusses Pralay missile export with the Philippines",
+      "snippet": "Officials held preliminary talks about the Indian ballistic missile.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "pralay", "role": "platform", "evidenceKind": "exact", "evidence": "Pralay", "importance": "core" },
+        { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "India", "importance": "core" },
+        { "topicId": "philippines", "role": "target", "evidenceKind": "exact", "evidence": "Philippines", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    },
+    {
+      "id": "syndicated-pralay-source-b",
+      "duplicateGroup": "pralay-export-report",
+      "sourceOwnerKey": "wire-example",
+      "headline": "Philippines in preliminary discussions for India's Pralay missile",
+      "snippet": "The syndicated report describes the same export talks.",
+      "eligible": true,
+      "expectedTopics": [
+        { "topicId": "pralay", "role": "platform", "evidenceKind": "exact", "evidence": "Pralay", "importance": "core" },
+        { "topicId": "india", "role": "actor", "evidenceKind": "exact", "evidence": "India", "importance": "core" },
+        { "topicId": "philippines", "role": "target", "evidenceKind": "exact", "evidence": "Philippines", "importance": "core" }
+      ],
+      "rejectedTopicIds": []
+    }
+  ],
+  "stabilityScenarios": [
+    {
+      "id": "unchanged-rerun",
+      "rule": "Identical content, registry, classifier, and policy versions reuse the prior validated assignment without a new model call."
+    },
+    {
+      "id": "primary-source-change",
+      "rule": "Changing the primary source preserves cluster ID, effective topics, thread references, curator locks, and public URLs."
+    },
+    {
+      "id": "cluster-merge",
+      "rule": "Merging duplicates preserves a surviving cluster, redirects predecessors, and reconciles rather than unions assignments."
+    },
+    {
+      "id": "cluster-split",
+      "rule": "Splitting a mixed cluster records lineage and reevaluates assignments for each successor without silently copying curator decisions."
+    },
+    {
+      "id": "correction-and-retraction",
+      "rule": "A correction or retraction creates an auditable desired-state diff; stale automated topics can be removed while history remains immutable."
+    },
+    {
+      "id": "model-output-disagreement",
+      "rule": "Different model output for the same uncached evidence cannot directly add or remove an effective public assignment."
+    }
+  ]
+}

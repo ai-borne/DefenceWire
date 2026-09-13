@@ -17,6 +17,7 @@
     "d1:seed:local": "wrangler d1 execute defencewire-archive --local --file=d1/seeds/threads.sql",
     "d1:seed:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/seeds/threads.sql",
     "d1:size": "vite-node --script crawler/d1SizeCheck.ts",
+    "baseline:topics": "node scripts/topic-baseline.mjs",
     "backfill:cluster-json": "vite-node --script crawler/scripts/backfillClusterJsonToR2.ts",
     "suppliers:review": "node scripts/review-supplier-candidates.mjs",
     "typecheck": "tsc --noEmit",
