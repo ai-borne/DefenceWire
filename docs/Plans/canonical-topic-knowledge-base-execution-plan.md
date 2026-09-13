@@ -1778,35 +1778,46 @@ combined Phase 13 Summary documents all nine.
 
 ### Stage 0 — Apply all pending production migrations
 
-Migrations `0007`, `0011`, `0012`, `0013`, and `0014` were each written during
-repository implementation of the phase they belong to (Phases 2, 6, 7, 9, and
-10 respectively) but never applied to production, since Phase 12 closed only
-the migration rollout for Phase 1. Rather than re-running "back up, apply,
-verify" once per stage below, this single step clears the entire backlog so
-every later stage can assume a schema-parity baseline and focus only on its
-own reconciliation and drill work.
+Migrations `0001` through `0014` were each written during repository
+implementation of the phase they belong to but never applied to production.
+Rather than re-running "back up, apply, verify" once per stage below, this
+single step clears the entire backlog so every later stage can assume a
+schema-parity baseline and focus only on its own reconciliation and drill
+work.
 
 #### Validation work
 
 - Take or verify a current D1 backup.
-- List pending production migrations and confirm the set is exactly
-  `0007_durable_ingestion.sql`, `0011_phase6_topic_read_indexes.sql`,
-  `0012_phase7_topic_backfill.sql`, `0013_phase9_thread_topic_separation.sql`,
-  and `0014_phase10_remove_legacy_canonical_entities.sql` — investigate rather
-  than skip if any other migration is also pending.
+- List pending production migrations and confirm the set, investigating
+  rather than skipping if the pending set is unexpected.
 - Apply all of them in order with the authenticated Wrangler production flow.
 - Verify the migration ledger reports no pending migrations on a second run.
 - Run `PRAGMA foreign_key_check` and table/index/trigger parity checks against
-  production once, covering all five migrations together.
+  production once, covering all migrations together.
 
 #### Exit criteria
 
-- Production D1 contains migrations `0007`, `0011`, `0012`, `0013`, and `0014`
-  exactly once each, and the ledger is clean on a repeated run.
+- Production D1 contains every numbered migration exactly once, and the
+  ledger is clean on a repeated run.
 - Foreign keys are valid and existing rows are unchanged by the additive
   migrations.
 - No later stage in this phase re-applies or re-backs-up for a migration
   already closed here; each references this stage instead.
+
+#### Stage status
+
+Satisfied by Phase 12 (2026-09-13), not repeated here. Phase 12 discovered
+that all 14 migrations — not just the five originally assumed — were pending
+in production (`0001_legacy_core.sql` through
+`0014_phase10_remove_legacy_canonical_entities.sql`), took a Time Travel
+backup plus a non-FTS SQL export, applied all 14, and verified `PRAGMA
+foreign_key_check` returns zero violations with a clean migration ledger.
+Re-verified immediately before starting Stage 1: `wrangler d1 migrations list
+--remote` reports "No migrations to apply." Phase 12's own exit criteria are
+not fully closed, however — the backup/rollback recovery drill in a
+non-production clone was not exercised and is carried forward as Phase 15;
+that gap does not block Stage 1 since Stage 0's own exit criteria (schema
+applied, ledger clean, foreign keys valid) are independently met.
 
 ### Stage 1 — Durable ingestion production activation
 
