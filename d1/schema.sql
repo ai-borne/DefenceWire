@@ -1092,3 +1092,8 @@ JOIN cluster_topics ct ON ct.cluster_id = e.cluster_id;
 -- changing its evidence-bearing cluster_id.
 CREATE INDEX idx_cluster_lineage_successor_predecessor
   ON cluster_lineage (successor_cluster_id, predecessor_cluster_id);
+
+-- Source migration: 0014_phase10_remove_legacy_canonical_entities.sql
+-- Phase 10: canonical topics are the sole public hashtag registry. The old
+-- self-learning canonical_entities table has no remaining entity-resolution use.
+DROP TABLE IF EXISTS canonical_entities;

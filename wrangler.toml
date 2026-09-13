@@ -3,8 +3,9 @@ pages_build_output_dir = "dist"
 compatibility_date = "2026-08-31"
 
 [vars]
-# Phase 6 remains staging/internal-only until the controlled Phase 10 cutover.
-TOPIC_API_ENABLED = "false"
+# Canonical topics are the public hashtag route. TOPIC_CURSOR_SECRET remains a
+# deployment secret and the endpoint fails closed until that secret is present.
+TOPIC_API_ENABLED = "true"
 
 # Story archive database — numbered migrations are the deployment SSOT;
 # d1/schema.sql is a generated bootstrap snapshot.

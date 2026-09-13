@@ -17,8 +17,3 @@ export async function fetchTopicPage(topicId: string, cursor?: string, fetchFn: 
   if (!articles?.topic) return { topic: { id: topicId, displayName: topicId, displayHashtag: `#${topicId}`, topicType: 'strategic_theme', description: null, registryVersion: 0 }, articles: [], related: [], nextCursor: null, totalCount: 0, firstObservedAt: null, latestObservedAt: null, error: articles?.error };
   return { topic: articles.topic, articles: articles.articles ?? [], related: related?.related ?? [], nextCursor: articles.nextCursor ?? null, totalCount: articles.totalCount ?? 0, firstObservedAt: articles.firstObservedAt ?? null, latestObservedAt: articles.latestObservedAt ?? null, error: articles.error };
 }
-
-export function isTopicUiEnabled(): boolean {
-  const runtime = globalThis as typeof globalThis & { __DW_ENABLE_TOPIC_UI__?: boolean };
-  return runtime.__DW_ENABLE_TOPIC_UI__ === true || import.meta.env.VITE_ENABLE_TOPIC_UI === 'true';
-}

@@ -23,8 +23,6 @@ import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBrea
 import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
-import { fetchCanonicalRegistry, screenClusterTagsWithCanonicalLearning, syncCanonicalRegistryToD1 } from './canonicalEntityResolver.js';
-import { mergeDuplicateClusterTags } from './clusterTagMerge.js';
 import {
   advanceDurableRun, buildDurableIngestConfigFromEnv, failDurableRun,
   persistDurableInput
@@ -34,6 +32,7 @@ import { classifyAndMarkDurableRun } from './topicClassificationPipeline.js';
 import { topicModelConfigFromEnv } from './topicModelConfig.js';
 import { IngestOptions, IngestResult } from './ingestTypes.js';
 import { writeSnapshotAtomically } from './snapshotWriter.js';
+import { hydratePublishedTopics } from './publicTopicProjection.js';
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
   NON_DEFENCE_BLACKLIST_REGEX, DEFENCE_WHOLE_WORD_REGEX
@@ -139,8 +138,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   let heuristicCount = 0;
   let preservedCount = 0;
   const entityCandidates: EntityHarvestCandidate[] = [];
-  let canonicalRegistry = await fetchCanonicalRegistry(d1Config, fetchFn); // Issue 2: durable tag SSOT, checked before minting new tags
-
   for (const cluster of lockedProtectedClusters) {
     if (!cluster) continue;
 
@@ -176,18 +173,11 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     }
 
     cluster.ssbIntel = intel;
-    canonicalRegistry = await screenClusterTagsWithCanonicalLearning(cluster, canonicalRegistry, intel, { fetchFn }, now.toISOString());
   }
 
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';
   console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
 
-  // Cross-cluster tag merge pass (issue #1): reconciles same-event clusters that
-  // clustering itself missed (paraphrased headlines) but independently converged
-  // on the same/aliased canonical tag, so they share one hashtag set.
-  const tagMergeResult = mergeDuplicateClusterTags(lockedProtectedClusters, canonicalRegistry, now.toISOString());
-  lockedProtectedClusters = tagMergeResult.clusters;
-  canonicalRegistry = tagMergeResult.registry;
   if (durableRun && durableConfig) {
     const byId = new Map(lockedProtectedClusters.map((cluster) => [cluster.id, cluster]));
     for (const item of durableRun.plan.clusters) item.cluster = byId.get(item.id) ?? item.cluster;
@@ -205,9 +195,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const entitySyncResult = await syncDiscoveredEntitiesToD1(aggregatedEntities, d1Config, { fetchFn });
   console.log(`[D1 ENTITY SYNC] ${entitySyncResult.synced} synced, ${entitySyncResult.promotedCount} promoted`);
 
-  const canonicalSyncResult = await syncCanonicalRegistryToD1(canonicalRegistry, d1Config, fetchFn);
-  console.log(`[D1 CANONICAL TAG SYNC] ${canonicalSyncResult.synced} synced, ${canonicalRegistry.length} known entities`);
-
   // Autonomous supplier growth pipeline (Phase 2.6): draft new_link candidates
   // from supplier x program co-mentions — never writes to suppliers/program_suppliers.
   const supplierCandidateResult = await runSupplierCandidateExtraction(riverItems, d1Config, { fetchFn });
@@ -219,7 +206,10 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   console.log(`[D1 REPUTATION SYNC] ${repSyncResult.syncedToD1} sources synced`);
 
   const rankedClusters = lockedProtectedClusters.slice(0, maxClusters);
-  const finalClusters = rankedClusters.length > 0 ? rankedClusters : [...INITIAL_STORY_CLUSTERS];
+  let finalClusters = rankedClusters.length > 0 ? rankedClusters : [...INITIAL_STORY_CLUSTERS];
+  if (durableRun && durableConfig) {
+    finalClusters = await hydratePublishedTopics(finalClusters, durableConfig.d1, fetchFn);
+  }
   const finalRiver = riverItems.length > 0 ? riverItems.slice(0, 100) : [...INITIAL_RIVER_ITEMS];
   const archiveCandidates = [...new Map([...existingClusters, ...lockedProtectedClusters]
     .map((cluster) => [cluster.id, cluster])).values()];

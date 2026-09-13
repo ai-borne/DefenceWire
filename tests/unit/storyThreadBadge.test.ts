@@ -102,45 +102,42 @@ describe('Story Cluster Thread Badge Placement', () => {
     expect(kickerRow).toBeNull();
   });
 
-  it('renders card badges with clean # prefix for hashtag entities (#Su-57, #Apache, #TASL)', () => {
+  it('does not derive a narrative thread badge from legacy public hashtags', () => {
     const clusterSu57: StoryCluster = {
       ...baseCluster,
       id: 'cluster-su57',
       primaryTag: '#Su57',
       hashtags: ['#Su57'],
-      programTags: undefined
+      programTags: undefined, ssbIntel: undefined
     };
     const cardSu57 = renderStoryCluster(clusterSu57, mockNewsVm, false);
     const badgeSu57 = cardSu57.querySelector('.dw-story-thread-badge');
-    expect(badgeSu57).not.toBeNull();
-    expect(badgeSu57?.textContent).toContain('#Su-57');
+    expect(badgeSu57).toBeNull();
 
     const clusterApache: StoryCluster = {
       ...baseCluster,
       id: 'cluster-apache',
       primaryTag: undefined,
       hashtags: ['#Apache'],
-      programTags: undefined
+      programTags: undefined, ssbIntel: undefined
     };
     const cardApache = renderStoryCluster(clusterApache, mockNewsVm, false);
     const badgeApache = cardApache.querySelector('.dw-story-thread-badge');
-    expect(badgeApache).not.toBeNull();
-    expect(badgeApache?.textContent).toContain('#Apache');
+    expect(badgeApache).toBeNull();
 
     const clusterTasl: StoryCluster = {
       ...baseCluster,
       id: 'cluster-tasl',
       primaryTag: undefined,
       hashtags: ['#TASL'],
-      programTags: undefined
+      programTags: undefined, ssbIntel: undefined
     };
     const cardTasl = renderStoryCluster(clusterTasl, mockNewsVm, false);
     const badgeTasl = cardTasl.querySelector('.dw-story-thread-badge');
-    expect(badgeTasl).not.toBeNull();
-    expect(badgeTasl?.textContent).toContain('#TASL');
+    expect(badgeTasl).toBeNull();
   });
 
-  it('follows selection hierarchy: primaryTag > hashtags > programTags > ssbIntel', () => {
+  it('follows the narrative hierarchy: programTags > ssbIntel', () => {
     const clusterHierarchy: StoryCluster = {
       ...baseCluster,
       id: 'cluster-hierarchy',
@@ -158,7 +155,7 @@ describe('Story Cluster Thread Badge Placement', () => {
     };
     const card = renderStoryCluster(clusterHierarchy, mockNewsVm, false);
     const badge = card.querySelector('.dw-story-thread-badge');
-    expect(badge?.textContent).toContain('#Su-57');
+    expect(badge?.textContent).toContain('Sukhoi-30');
   });
 
   it('suppresses placeholder tags and noise tags from rendering badges', () => {

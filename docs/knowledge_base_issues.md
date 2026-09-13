@@ -1,5 +1,10 @@
 # Knowledge Base — Open Issues & Fix Plan
 
+> Historical note: Phase 10 removed the self-learning hashtag registry and
+> cross-cluster tag-union paths described below. Public hashtag identity and
+> membership now come only from active, published D1 topics and validated
+> `cluster_topics`; this document is retained as pre-cutover incident history.
+
 Tracks the gaps between the pipeline described in `docs/knowledge_base_pipeline.md` and current behavior. Work through items one at a time — mark status as we go.
 
 Legend: `[ ]` open · `[~]` in progress · `[x]` done

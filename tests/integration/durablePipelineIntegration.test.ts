@@ -4,7 +4,7 @@ import { SourceTier } from '../../src/types/source.js';
 import { StoryCluster } from '../../src/types/news.js';
 
 const mocks = vi.hoisted(() => ({
-  persist: vi.fn(), classified: vi.fn(), advance: vi.fn(), archive: vi.fn(), reconcile: vi.fn()
+  persist: vi.fn(), classified: vi.fn(), advance: vi.fn(), archive: vi.fn(), reconcile: vi.fn(), query: vi.fn()
 }));
 
 vi.mock('../../src/engine/clusterEngine.js', () => ({
@@ -34,7 +34,7 @@ vi.mock('../../crawler/archiveSync.js', () => ({
   buildD1ConfigFromEnv: vi.fn(() => null),
   archivePoppedClusters: mocks.archive,
   reconcileArchiveWithLiveFeed: mocks.reconcile,
-  executeD1Query: vi.fn()
+  executeD1Query: mocks.query
 }));
 
 vi.mock('../../crawler/sourceTracker.js', () => ({
@@ -75,6 +75,7 @@ describe('durable pipeline ordering', () => {
     }));
     mocks.archive.mockResolvedValue({ archived: 20, failed: 0, r2Failed: 0 });
     mocks.reconcile.mockResolvedValue({ removed: 30, failed: 0 });
+    mocks.query.mockResolvedValue({ ok: true, rows: [] });
   });
 
   it('persists and enriches all 50 clusters, then projects only 30 to the homepage', async () => {
@@ -91,6 +92,7 @@ describe('durable pipeline ordering', () => {
     expect(mocks.archive.mock.calls[0]?.[0]).toHaveLength(50);
     expect(mocks.archive.mock.calls[0]?.[1]).toHaveLength(30);
     expect(result.clusters).toHaveLength(30);
+    expect(result.clusters.every((cluster) => Array.isArray(cluster.canonicalTopics))).toBe(true);
     expect(mocks.persist.mock.invocationCallOrder[0]).toBeLessThan(mocks.classified.mock.invocationCallOrder[0]!);
     expect(mocks.classified.mock.invocationCallOrder[0]).toBeLessThan(mocks.archive.mock.invocationCallOrder[0]!);
     expect(mocks.advance).toHaveBeenNthCalledWith(1, expect.anything(), 'publishable', expect.anything(), 30, expect.anything());

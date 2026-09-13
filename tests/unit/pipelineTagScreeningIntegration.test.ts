@@ -9,7 +9,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StoryCluster, StorySourceItem } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { StoryThread, StoryThreadEvent } from '../../src/types/threads.js';
-import { screenClusterTags } from '../../crawler/tagScreening.js';
 import { clearCFAIMemoryCache } from '../../crawler/cloudflareAI.js';
 import {
   matchAndAdvanceThreads,
@@ -101,12 +100,12 @@ const seedLacEvents: StoryThreadEvent[] = [
   }
 ];
 
-describe('Pipeline Tag Screening & Thread Continuity Integration', () => {
+describe('Topic-independent Thread Continuity Integration', () => {
   beforeEach(() => {
     clearCFAIMemoryCache();
   });
 
-  it('correctly filters tags and routes clusters through full continuity pipeline', async () => {
+  it('routes coherent events without using legacy hashtag membership', async () => {
     // 1. Black Jet: Substring "black" has no word-boundary LAC and no border anchors
     const clusterBlackJet = createMockCluster({
       id: 'cluster-black-jet',
@@ -117,12 +116,6 @@ describe('Pipeline Tag Screening & Thread Continuity Integration', () => {
       entities: ['Black Jet', 'LAC'],
       categories: ['airforce']
     });
-    const intelBlackJet = {
-      primaryTag: '#BlackJet',
-      focalEntity: 'Black Jet Prototype',
-      operationalTheater: 'Air Superiority',
-      hashtags: ['#BlackJet', '#IAF']
-    };
 
     // 2. HAL LUH: Ladakh helicopter trials with incidental geography, non-focal LAC
     const clusterHalLuh = createMockCluster({
@@ -134,12 +127,6 @@ describe('Pipeline Tag Screening & Thread Continuity Integration', () => {
       entities: ['HAL LUH', 'LUH'],
       categories: ['procurement']
     });
-    const intelHalLuh = {
-      primaryTag: '#HALLUH',
-      focalEntity: 'HAL LUH',
-      operationalTheater: 'High Altitude Support',
-      hashtags: ['#HALLUH']
-    };
 
     // 3. Genuine LAC Border Talks: True consensus and anchored Line of Actual Control
     const clusterLacTalks = createMockCluster({
@@ -152,34 +139,14 @@ describe('Pipeline Tag Screening & Thread Continuity Integration', () => {
       categories: ['strategic'],
       publishedAt: '2026-09-08T05:00:00Z'
     });
-    const intelLacTalks = {
-      primaryTag: '#LAC',
-      focalEntity: 'Line of Actual Control',
-      operationalTheater: 'Northern Border',
-      hashtags: ['#LAC', '#IndiaChina']
-    };
 
-    // --- STEP 1: SCREEN TAGS THROUGH CASCADE ---
-    await screenClusterTags(clusterBlackJet, intelBlackJet);
-    await screenClusterTags(clusterHalLuh, intelHalLuh);
-    await screenClusterTags(clusterLacTalks, intelLacTalks);
+    // Topic membership is D1-owned. Threads use source-grounded entities, so
+    // a legacy tag cannot create a narrative attachment.
+    clusterBlackJet.entities = ['Black Jet'];
+    clusterHalLuh.entities = ['HAL LUH', 'LUH'];
+    clusterLacTalks.entities = ['LAC', 'Indian Army', 'PLA'];
 
-    // Black Jet assertions: #LAC completely eliminated
-    expect(clusterBlackJet.primaryTag).toBe('#BlackJet');
-    expect(clusterBlackJet.hashtags).not.toContain('#LAC');
-    expect(clusterBlackJet.entities).not.toContain('LAC');
-
-    // HAL LUH assertions: #LAC rejected, primaryTag reflects LUH
-    expect(clusterHalLuh.primaryTag).toBe('#HALLUH');
-    expect(clusterHalLuh.hashtags).not.toContain('#LAC');
-    expect(clusterHalLuh.entities).not.toContain('LAC');
-
-    // Genuine LAC assertions: #LAC verified and preserved
-    expect(clusterLacTalks.primaryTag).toBe('#LAC');
-    expect(clusterLacTalks.hashtags).toContain('#LAC');
-    expect(clusterLacTalks.entities).toContain('LAC');
-
-    // --- STEP 2: FEED ALL 3 INTO CONTINUITY ENGINE ---
+    // --- FEED ALL 3 INTO CONTINUITY ENGINE ---
     const continuity = matchAndAdvanceThreads(
       [clusterBlackJet, clusterHalLuh, clusterLacTalks],
       [seedLacThread],

@@ -14,8 +14,7 @@ import { renderSSBDrawer } from './SSBDrawer.js';
 import { renderStorySourcesDrawer } from './StorySourcesDrawer.js';
 import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
-import { canonicalizeTag, cleanHashtag, isNoiseTag, isDefenseTag } from '../utils/hashtagUtils.js';
-import { isTopicUiEnabled } from '../services/topicService.js';
+import { isNoiseTag } from '../utils/hashtagUtils.js';
 import { renderTopicBadgeList } from './topics/TopicBadgeList.js';
 
 interface StoryBadgeInfo {
@@ -25,8 +24,6 @@ interface StoryBadgeInfo {
 
 function resolveStoryBadge(cluster: StoryCluster): StoryBadgeInfo | null {
   const candidates = [
-    cluster.primaryTag,
-    cluster.hashtags?.[0],
     cluster.programTags?.[0],
     cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem
   ];
@@ -37,16 +34,6 @@ function resolveStoryBadge(cluster: StoryCluster): StoryBadgeInfo | null {
     if (!trimmed || trimmed.length <= 1) continue;
     if (trimmed.toLowerCase() === 'strategic defence modernization') continue;
     if (isNoiseTag(trimmed)) continue;
-
-    const isHashtag = trimmed.startsWith('#') || !/\s/.test(trimmed) || raw === cluster.primaryTag || (cluster.hashtags && cluster.hashtags.includes(raw));
-    if (isHashtag) {
-      const canonical = canonicalizeTag(trimmed) || cleanHashtag(trimmed) || trimmed.replace(/^#+/, '');
-      if (!canonical || isNoiseTag(canonical) || !isDefenseTag(canonical)) continue;
-      return {
-        label: `#${canonical}`,
-        target: canonical
-      };
-    }
 
     return {
       label: trimmed,
@@ -97,14 +84,10 @@ export function renderStoryCluster(
     article.appendChild(kickerRow);
   }
 
-  // Canonical memberships are opt-in until the final routing cutover. The
-  // legacy thread badge above intentionally remains the public default.
-  if (isTopicUiEnabled()) {
-    const topics = renderTopicBadgeList(cluster.canonicalTopics ?? [], (topicId) => {
-      window.location.hash = `#/topic/${encodeURIComponent(topicId)}`;
-    });
-    if (topics) article.appendChild(topics);
-  }
+  const topics = renderTopicBadgeList(cluster.canonicalTopics ?? [], (topicId) => {
+    window.location.hash = `#/topic/${encodeURIComponent(topicId)}`;
+  });
+  if (topics) article.appendChild(topics);
 
   // 2. Synthesized Headline (Headline First Scannability)
   const headlineEl = document.createElement('h2');

@@ -1230,11 +1230,10 @@ All labels come from resource files, and all styling uses existing variables.
 
 ### Phase status
 
-Repository implementation completed on 2026-09-13. The internal/staging topic
-flag (`VITE_ENABLE_TOPIC_UI=true`, or the internal runtime flag) enables
-canonical-topic badges only when a feed cluster carries published
-`canonicalTopics`; the legacy thread badge and public hashtag routing remain
-unchanged. Topic pages use the Phase 6 public API only, preserve API ordering
+Repository implementation completed on 2026-09-13. Before Phase 10, the
+internal/staging topic flag enabled canonical-topic badges only when a feed
+cluster carried published `canonicalTopics`; legacy routing remained unchanged.
+Topic pages use the Phase 6 public API only, preserve API ordering
 through stored display priority and canonical-ID tie-breakers, paginate
 articles, and render the complete published topic read model.
 
@@ -1459,6 +1458,50 @@ Alert on:
 - Documentation matches the implementation.
 - Full suite, build, security checks, and deployment smoke tests pass.
 - Phase 10 Summary records zero cutover-blocking debt and lists any explicitly accepted non-blocking debt for final validation.
+
+### Phase status
+
+Repository implementation completed on 2026-09-13. The crawler now derives
+the reader feed's `canonicalTopics`, compatibility `primaryTag`, and
+compatibility `hashtags` in one bounded D1 read from active, published topics
+and validated `cluster_topics`, ordered by stored display priority and topic
+ID. The reader always renders only that canonical projection. Legacy tag
+generation, self-learning canonical-entity writes, fuzzy alias learning, and
+cross-cluster tag unions have been removed. Migration `0014` removes the
+now-unused `canonical_entities` table after its prior reviewed-candidate import.
+
+### Phase 10 Summary
+
+Delivered: Canonical topic cutover in repository code; published-only feed
+projection with deterministic compatibility fields; public topic UI enabled;
+legacy thread-badge routing no longer derives narrative identity from public
+hashtags; removal of obsolete self-learning/tag-union code and its tests; and
+an additive removal migration with regenerated bootstrap schema.
+
+Deep check: The projection joins only `cluster_topics` to active, published
+`topics`; decision-ledger, provisional, suppressed, and rejected states have
+no public read path. Alias and redirect routing remains registry-backed through
+the topic endpoint. Compatibility output is generated from the same ordered
+published topics, not legacy cluster fields. The retired `canonical_entities`
+table has no remaining runtime entity-resolution caller; historical backfill
+continues to preserve old payload tags as private review candidates only.
+
+Tech debt discovered: Deprecated tag generators, fuzzy alias learning,
+cross-cluster hashtag unioning, and tag-derived thread badges remained after
+Phase 9.
+
+Resolution: Removed all production paths and their obsolete tests, replaced
+their public result with one tested D1 projection, and regenerated the schema.
+No repository-scope Phase 10 tech debt remains.
+
+Known limitations: An authenticated deployment is still required to apply
+migration `0014`, provision `TOPIC_CURSOR_SECRET`, collect the required
+monitoring/alert measurements, and perform the controlled D1/R2 cutover and
+rollback drills. These are fail-loudly carried to Phase 21.
+
+Build status: Passing.
+
+Test status: 1,433/1,433 full-suite tests passing; no skipped or pending tests.
 
 ## Phase 11 — Production baseline closure and post-cutover validation
 
@@ -1853,9 +1896,9 @@ real D1 data.
 
 ### Carried-forward Phase 8 limitations
 
-- The reader feed payload currently has no bounded, published-only
-  `canonicalTopics` projection from `cluster_topics`; the completed UI safely
-  renders no canonical badges until that field exists.
+- Resolved by Phase 10: the reader feed now has a bounded, published-only
+  `canonicalTopics` projection from `cluster_topics` and derives compatibility
+  hashtags from that projection.
 - No authenticated staging Pages/D1 environment was available to set both the
   topic-read API and UI flag, exercise aliases against real records, or verify
   responsive/accessibility behavior in a browser with production-like data.
@@ -1869,7 +1912,7 @@ real D1 data.
 - Cover feed serialization, public-state exclusion, deterministic ordering,
   and the `#India` assigned-story path with integration tests.
 - In approved staging only, provision `TOPIC_CURSOR_SECRET`, enable the topic
-  API and `VITE_ENABLE_TOPIC_UI`, and verify desktop/mobile, light/dark,
+  API, and verify desktop/mobile, light/dark,
   keyboard navigation, aliases and redirects, empty/loading/unavailable/error
   states, pagination, URL/HTML sanitization, cache behavior, and no public
   routing regression.
@@ -1930,3 +1973,34 @@ historical continuity against the authenticated D1/R2 estate.
   public Story Threads/timeline behaviour.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass with no skipped checks.
+
+## Phase 21 — Phase 10 authenticated cutover, monitoring, and rollback closure
+
+### Goal
+
+Close the external-state work deliberately excluded from the repository change:
+apply the legacy-table removal safely, activate the secret-backed public route,
+and establish measured cutover safety rather than inferring it from mocks.
+
+### Validation work
+
+- Back up D1, apply `0014_phase10_remove_legacy_canonical_entities.sql` once,
+  verify schema parity and that historical candidate rows remain private.
+- Provision `TOPIC_CURSOR_SECRET` through the approved secret manager and run
+  the canonical feed/topic route in staging before production approval.
+- Record and alert on every Phase 10 monitoring signal, including skipped or
+  untagged clusters, assignment errors/churn, registry failures, candidate and
+  provisional-topic health, alias/404 rates, cache/model cost, orphaned blobs,
+  and per-topic spikes; retain sanitized evidence without source bodies.
+- Run the fifteen Phase 10 acceptance scenarios plus rollback from a captured
+  snapshot; investigate every count mismatch, public unpublished row, or
+  compatibility hashtag that fails to resolve to its stored topic ID.
+
+### Exit criteria
+
+- Remote migration, D1/R2 reconciliation, alert delivery, staging smoke tests,
+  production cutover, and rollback drill all pass with no unexplained records.
+- Measured quality, stability, latency, and cost satisfy the approved Phase 0
+  thresholds, or the public cutover is disabled with a corrective plan.
+- Full suite, build, bundle, and security checks remain green; no credentials,
+  source bodies, or curator evidence are committed.
