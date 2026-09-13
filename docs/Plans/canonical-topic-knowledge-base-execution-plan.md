@@ -2129,28 +2129,91 @@ from the repository implementation or a passing mocked provider test.
 #### Stage status
 
 Partially closed on 2026-09-13. Per Rule 12, this is recorded as a partial
-close, not a completed stage: the two validation items that require real
-spend or new infrastructure were explicitly declined by the user this
-session and are carried forward rather than silently skipped.
+close, not a completed stage: the D1-clone validation item still requires
+new infrastructure the user has not authorized, and the shadow-eval result
+itself is a fail against the Phase 0 thresholds, so the model stays
+disabled with a corrective plan rather than being turned on.
 
-**Checkpointed and declined (carried forward).** Before touching
-`TOPIC_MODEL_ENABLED` or spending any Gemini budget, checked with the user on
-sample size, the non-production D1 clone approach, and whether to proceed
-with real spend now that it was a live decision. The user chose to stop
-before any spend or new Cloudflare resource, and to have this session do the
-remaining non-spend validation work instead. As a result, the following
-Phase 4 gaps remain exactly as carried forward, unchanged from before this
-stage:
+**Checkpointed, then authorized for a bounded real run.** Before touching
+`TOPIC_MODEL_ENABLED` or spending any Gemini budget, checked with the user
+on sample size, the non-production D1 clone approach, and whether to
+proceed with real spend now that it was a live decision. The user first
+chose to stop before any spend, so the promotion-logic and privacy
+validation below was done first with zero spend. Later in the same session
+the user explicitly asked to set `TOPIC_MODEL_ENABLED` and run the 24-case
+gold-corpus shadow eval. Per the concern already on record in this stage's
+first pass — `topicModelConfig.ts` has no per-run spend cap — this was run
+as a local, one-off script calling the real `requestSemanticDecision`
+function directly against a read-only export of the production topic
+registry, rather than by setting the actual `TOPIC_MODEL_ENABLED` secret in
+GitHub/Cloudflare Pages (which would have enabled the model for every
+future hourly crawl indefinitely, not a bounded 24-call sample). Production
+`TOPIC_MODEL_ENABLED` remains unset. Total real spend across the whole
+session's iterations (including two bug-diagnosis reruns, below): under
+$0.01, tracked via Gemini's own `usageMetadata` token counts.
 
-- No authenticated provider run or production shadow sample exists yet;
-  precision, recall, disagreement, candidate rate, assignment churn, p95
-  latency, cache hit rate, and cost against the Phase 0 thresholds are still
-  unmeasured. `TOPIC_MODEL_ENABLED` remains unset in production.
-- No non-production D1 clone was created; the semantic-cache hit,
-  malformed-response cache, source outage, and atomic D1 batch drills have
-  not been exercised against a real authenticated D1 REST endpoint outside
-  production. (Local proof of the underlying SQL logic — see below — is not
-  a substitute for this.)
+**Shadow eval found two real prompt/parser contract bugs before it found
+any real quality signal.** The first full run scored 0% precision and 0%
+recall with 22/24 responses failing validation. Diagnosis (dumping raw
+model output) found the model was never told what JSON key to use for a
+linked topic ID — the prompt says "existing topic IDs must be from the
+supplied topics" but never states the key is `topicId`, so the model
+reasonably echoed `id` (the key name used in the topics list it was given),
+which `parseExisting` silently rejects, and `validateSemanticResponse`
+discards the *entire* response if any single item fails to parse. This bug
+had existed since the semantic adjudicator was written and was invisible to
+every mocked unit test, because those tests hand-construct already-correctly
+-shaped JSON and never exercise the real prompt-to-model-to-parser round
+trip — exactly the class of gap this stage's real-provider requirement
+exists to catch. Fixed by naming the field explicitly in the prompt
+(`crawler/topicSemanticAdjudicator.ts`). A second rerun then surfaced a
+second, related bug introduced by the first fix's wording: the rewrite
+scoped the role/confidence/evidence requirement to `existingTopics` only,
+so the model stopped including them on `discoveredConcepts`, again
+invalidating whole responses. Fixed by making role/confidence/evidence
+required for every item in both arrays, and by explicitly enumerating the
+allowed `role` and topic `type` values in the prompt (the model was also
+inventing plausible-but-unlisted roles like `objective`/`event` since
+nothing told it the fixed set of nine). Added a regression test,
+`tests/unit/topicSemanticAdjudicator.test.ts`'s "tells the model the exact
+field name and enumerated values the parser requires" case, asserting the
+literal prompt text contains `"topicId"` and every role/type token, so this
+class of bug cannot silently reappear.
+
+**Real shadow-eval result after both fixes: fails the Phase 0 thresholds.**
+Final 24-case run: 73.3% precision (11 true positives, 4 false positives),
+33.3% recall (11/33 expected core exact-evidence topics found), p95 latency
+1873ms, 14/24 cases produced discovered concepts, 9/24 responses still
+failed validation entirely. Phase 0 requires >=95% precision and >=90%
+recall. **Per this stage's own exit criteria, the correct outcome is:
+deployment stays disabled** (`TOPIC_MODEL_ENABLED` remains unset, unchanged)
+**with this corrective plan on record** rather than silently retried until a
+better number appears:
+- Most of the recall loss is not the model failing to recognize entities —
+  raw responses show it correctly identifying most expected topics — but
+  the all-or-nothing validation rule discarding an entire correct
+  `existingTopics` set whenever one unrelated `discoveredConcepts` item has
+  a paraphrased (non-verbatim) evidence span. That all-or-nothing design is
+  a deliberate safety choice (never partially trust a response that failed
+  its own evidence-integrity check anywhere), so loosening it is a decision
+  for the user, not something to change unilaterally here. The corrective
+  option worth evaluating next session: validate `existingTopics` and
+  `discoveredConcepts` independently so a `discoveredConcepts` evidence slip
+  no longer zeroes out valid, verbatim-evidenced topic links.
+- No cache hit rate was measured — this was a stateless local script making
+  no D1 writes by design (per the earlier decision not to touch production
+  D1 or create a clone this session), so every call was necessarily a cache
+  miss. Measuring real cache behavior still requires the declined D1-clone
+  work below.
+- No production-sample precision/recall exists yet, only the 24 reviewed
+  gold-corpus cases — the "independent production sample" half of this
+  validation item is still open.
+
+**Carried forward unchanged: no non-production D1 clone.** The
+semantic-cache hit, malformed-response cache, source outage, and atomic D1
+batch drills still have not been exercised against a real authenticated D1
+REST endpoint outside production. (Local proof of the underlying SQL
+logic — see below — is not a substitute for this.)
 
 **Validated locally this session (real proof, not new mocks).**
 `crawler/topicAssignmentService.ts`'s provisional-topic promotion rule (an

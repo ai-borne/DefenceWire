@@ -28,6 +28,20 @@ describe('guarded semantic topic adjudication', () => {
     expect(uncertainPerson?.discoveredConcepts[0]?.createProvisional).toBe(false);
   });
 
+  it('tells the model the exact field name and enumerated values the parser requires (Phase 13 Stage 3 regression)', async () => {
+    // A real shadow run against Gemini found the model reasonably emits {"id":...} (matching the topics
+    // list's own field name) unless told to use "topicId", and invents plausible-but-unlisted role/type
+    // values unless the allowed set is spelled out — either one silently zeroes every existingTopics link.
+    let sentPrompt = '';
+    await requestSemanticDecision(text, registry, { enabled: true, apiKey: 'test' }, async (_url, init) => {
+      sentPrompt = JSON.parse(String(init?.body)).contents[0].parts[0].text;
+      return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"existingTopics":[],"discoveredConcepts":[]}' }] } }] }), { status: 200 });
+    });
+    expect(sentPrompt).toContain('"topicId"');
+    for (const role of ['subject', 'actor', 'target', 'operator', 'location', 'facility', 'platform', 'programme', 'context']) expect(sentPrompt).toContain(role);
+    for (const type of ['country', 'facility', 'exercise', 'operation', 'strategic_theme']) expect(sentPrompt).toContain(type);
+  });
+
   it('is deterministic, bounded, and fails safely on model outage or malformed output', async () => {
     const ids = retrieveLikelyTopics(text, registry);
     expect(ids).toContain('jordan');
