@@ -81,4 +81,23 @@ describe('Phase 2 durable ingestion migration', () => {
     expect(db.prepare("SELECT merged_into_cluster_id FROM story_clusters WHERE id = 'cluster-a'").get()!.merged_into_cluster_id)
       .toBe('cluster-b');
   });
+
+  it('lets the same durable cluster appear in two different runs\' manifests (Phase 13 Stage 2)', () => {
+    const db = createMigratedDatabase();
+    databases.push(db);
+    db.prepare(`INSERT INTO ingestion_runs (id, input_fingerprint, status, started_at)
+      VALUES ('run-a', 'fingerprint-a', 'started', '2026-09-13T00:00:00Z')`).run();
+    db.prepare(`INSERT INTO ingestion_runs (id, input_fingerprint, status, started_at)
+      VALUES ('run-b', 'fingerprint-b', 'started', '2026-09-13T01:00:00Z')`).run();
+    db.prepare(`INSERT INTO ingestion_cluster_manifest
+      (ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key)
+      VALUES ('run-a', 'event-a', 'hash-1', 'cluster-a', 'cluster-a.json')`).run();
+    expect(() => db.prepare(`INSERT INTO ingestion_cluster_manifest
+      (ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key)
+      VALUES ('run-b', 'event-a', 'hash-2', 'cluster-a', 'cluster-a.json')`).run()).not.toThrow();
+    expect(() => db.prepare(`INSERT INTO ingestion_cluster_manifest
+      (ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key)
+      VALUES ('run-b', 'event-c', 'hash-3', 'cluster-a', 'cluster-a.json')`).run())
+      .toThrow(/UNIQUE constraint failed/);
+  });
 });

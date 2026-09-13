@@ -1097,3 +1097,43 @@ CREATE INDEX idx_cluster_lineage_successor_predecessor
 -- Phase 10: canonical topics are the sole public hashtag registry. The old
 -- self-learning canonical_entities table has no remaining entity-resolution use.
 DROP TABLE IF EXISTS canonical_entities;
+
+-- Source migration: 0015_phase13_stage2_nsa_lac_alias.sql
+-- Phase 13 Stage 2: reviewed contextual alias closing the "NSA meeting a Chinese counterpart
+-- about border negotiations" gold corpus gap. "NSA" is an ambiguous acronym (India's National
+-- Security Advisor vs. the US National Security Agency vs. other countries' NSAs), so unlike
+-- Kibithu it is not given its own topic — it resolves straight to lac, gated on India/China
+-- border-negotiation context so it never fires for unrelated NSA mentions.
+INSERT OR IGNORE INTO topic_aliases (normalized_alias, topic_id, alias_type, requires_context, context_rule_json, verification_state, created_at) VALUES
+  ('nsa', 'lac', 'acronym', 1, '{"requiredTerms":["china","border","doval"]}', 'published', '2026-09-13T00:00:00Z');
+
+-- Source migration: 0016_phase13_stage2_manifest_uniqueness_fix.sql
+-- Phase 13 Stage 2: fix ingestion_cluster_manifest's cluster_id uniqueness scope.
+-- The manifest is a per-run bookkeeping ledger, not a claim of permanent cluster
+-- ownership: the same durable cluster legitimately gets a new manifest row every
+-- time it is touched by a later crawl run (new coverage, updated content, same
+-- event identity). A table-wide UNIQUE(cluster_id) broke that on the very first
+-- crawl in which a Stage 1 cluster was carried forward, since two different
+-- runs' rows for the same cluster_id collide. Scoping uniqueness to
+-- (ingestion_run_id, cluster_id) still stops a single run from claiming the
+-- same cluster_id twice (a real planner bug), while allowing legitimate
+-- cross-run continuity.
+CREATE TABLE ingestion_cluster_manifest_new (
+  ingestion_run_id TEXT NOT NULL,
+  event_fingerprint TEXT NOT NULL,
+  payload_hash TEXT NOT NULL,
+  cluster_id TEXT NOT NULL,
+  payload_key TEXT NOT NULL,
+  PRIMARY KEY (ingestion_run_id, event_fingerprint, payload_hash),
+  UNIQUE (ingestion_run_id, cluster_id),
+  FOREIGN KEY (ingestion_run_id) REFERENCES ingestion_runs(id)
+);
+
+INSERT INTO ingestion_cluster_manifest_new
+  (ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key)
+  SELECT ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key
+  FROM ingestion_cluster_manifest;
+
+DROP TABLE ingestion_cluster_manifest;
+
+ALTER TABLE ingestion_cluster_manifest_new RENAME TO ingestion_cluster_manifest;
