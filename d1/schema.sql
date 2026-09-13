@@ -1046,3 +1046,9 @@ CREATE TABLE topic_governance_versions (
 
 CREATE INDEX idx_topic_candidates_review ON topic_candidates(status, proposed_topic_type, created_at DESC);
 CREATE INDEX idx_topic_queue_pending ON topic_reclassification_queue(status, available_at);
+
+-- Source migration: 0011_phase6_topic_read_indexes.sql
+-- Phase 6: public topic pages filter from effective membership, then join stable clusters.
+CREATE INDEX idx_cluster_topics_topic_cluster ON cluster_topics(topic_id, cluster_id);
+CREATE INDEX idx_cluster_topics_assigned_at ON cluster_topics(assigned_at DESC);
+CREATE INDEX idx_cluster_sources_cluster_role ON cluster_sources(cluster_id, coverage_role, source_article_id);

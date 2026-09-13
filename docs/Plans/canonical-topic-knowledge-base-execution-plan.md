@@ -1025,6 +1025,46 @@ Article results include:
 - Existing thread APIs remain operational.
 - Full build and test suite pass.
 
+### Phase status
+
+Repository implementation completed on 2026-09-13. The feature-gated public
+read routes use only effective `cluster_topics` membership, D1-backed source
+metadata, parameterized indexed reads, and signed versioned keyset cursors.
+They deliberately fail closed until both the staging gate and cursor secret are
+configured. Remote D1/staging deployment proof is carried forward explicitly
+in final Phase 17 rather than claimed from local verification.
+
+### Phase 6 Summary
+
+Delivered: Feature-gated `GET /api/topics`, `GET /api/topics/:id`,
+`GET /api/topics/:id/articles`, and `GET /api/topics/:id/related`, plus
+published-membership indexes, canonical/alias/display-hashtag resolution,
+deprecated redirects, D1-only card metadata, batched corroborating sources and
+thread IDs, signed opaque keyset cursors, bounded limits, cache version tags,
+and safe errors/rate limits.
+
+Verification: Focused handler and Pages-route tests cover aliases, display
+hashtags, redirects, signed/tampered cursors, tie-safe pagination, sources,
+thread IDs, feature gating, and cache tags. Local D1 migration application,
+topic migration/schema integration tests, and the complete `npm run check`
+suite pass.
+
+Tech debt discovered: The first implementation rebuilt a few immutable query
+statements twice and did not index the assignment-publication version lookup.
+
+Resolution: Query statements are now constructed once per use; migration 0011
+adds the `assigned_at` index in addition to topic-membership and source-hydration
+indexes. No repository-scope Phase 6 debt remains.
+
+Known limitations: Remote secret provisioning, staging-only enablement, remote
+D1 query plans, edge-isolate rate limits, and production-scale cache behavior
+cannot be proven locally. They are fail-closed and assigned to Phase 17.
+
+Build status: Passing.
+
+Test status: 1,461/1,461 full-suite tests passing; focused topic migration and
+schema tests pass with no skipped or pending tests.
+
 ## Phase 7 — Historical classification and backfill
 
 ### Goal
@@ -1573,3 +1613,52 @@ repository’s new endpoint-only governance foundation.
 - Remote D1 concurrency and recovery drills pass with no silent overwrite,
   unqueued affected cluster, or lost provenance.
 - Full suite, build, bundle, and security checks pass.
+
+## Phase 17 — Phase 6 staged-read deployment and remote query-plan closure
+
+### Goal
+
+Close the Phase 6 checks that require an authenticated staging/production D1
+environment and explicitly configured edge bindings. This phase is required by
+Rule 12: repository tests cannot establish that a secret was provisioned, a
+feature gate was enabled only in staging, or a remote D1 query uses the intended
+indexes at real data volume.
+
+### Carried-forward Phase 6 limitations
+
+- `TOPIC_CURSOR_SECRET` was intentionally not created or committed because it
+  is a deployment secret; without it, the endpoint safely returns 503.
+- `TOPIC_API_ENABLED` remains `false` in the production Pages configuration;
+  no authenticated staging deployment was available to prove the internal gate
+  and cache invalidation behavior.
+- Local migration and mocked handler tests cannot prove remote D1 query plans,
+  query latency, cache tags, rate-limit behavior across isolates, or published
+  assignment visibility against production-sized data.
+
+### Validation work
+
+- Provision a high-entropy `TOPIC_CURSOR_SECRET` through the approved secret
+  manager and set `TOPIC_API_ENABLED=true` only in the internal/staging
+  environment.
+- Apply migration `0011_phase6_topic_read_indexes.sql` after backup and verify
+  remote D1 schema parity plus `EXPLAIN QUERY PLAN` for topic collections,
+  corroborating-source hydration, and thread-ID hydration.
+- Run authenticated staging smoke tests for canonical ID, display hashtag,
+  alias, deprecated redirect, invalid/tampered/stale cursor, pagination ties,
+  rate limiting, cache tags, and the absence of provisional/shadow/suppressed/
+  rejected decisions.
+- Test a topic collection beyond the old thread/event synchronization windows
+  and verify it performs no R2 read per card and no archive-wide scan.
+- Document cache invalidation after a published assignment and registry change,
+  then keep the route gated until Phase 10 public cutover approval.
+
+### Exit criteria
+
+- The secret is managed outside source control and the production feature gate
+  remains disabled until approved cutover.
+- Staging demonstrates every Phase 6 endpoint and security behavior against
+  remote D1 with the intended indexes and bounded latency.
+- No unpublished topic, decision-ledger row, curator evidence, or internal
+  classifier detail is exposed through the public responses.
+- Full suite, build, bundle, security checks, remote migration checks, and
+  staging smoke tests pass.
