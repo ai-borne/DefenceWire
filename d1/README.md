@@ -28,15 +28,20 @@ with the id from step 2. Commit that change — it's not a secret, just an
 identifier, and Cloudflare Pages will read this file to bind the database
 automatically on the next deploy (no dashboard step needed).
 
-## 4. Apply the schema to the remote database
+## 4. Apply numbered migrations to the remote database
 
 ```bash
 npm run d1:migrate:remote
 ```
 
-(`npm run d1:migrate:local` runs the same schema against a local SQLite
-emulator via `wrangler d1 execute --local` — useful for testing changes to
-`d1/schema.sql` without touching the real database.)
+(`npm run d1:migrate:local` applies pending files from `d1/migrations/` to a
+local D1 emulator. Wrangler records applied migration names in its migration
+ledger, so reruns apply only new files.)
+
+Migration files are the deployment source of truth. `d1/schema.sql` is a
+generated empty-database bootstrap snapshot; regenerate it after migration
+edits with `npm run d1:schema`. Runtime services and crawler startup must never
+perform implicit schema changes.
 
 ### 4b. Seed Living Storyline & Hashtag Threads
 

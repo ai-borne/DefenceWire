@@ -1,0 +1,294 @@
+-- Legacy DefenceWire schema captured as migration 0001.
+-- SSOT for the persistent story archive: every cluster that ages out of the
+-- live 72-hour / top-30 feed window lands here instead of being discarded,
+-- so it stays searchable indefinitely via the Archive tab.
+-- Captures the supported pre-topic schema for clean installs and migration adoption.
+
+CREATE TABLE IF NOT EXISTS archived_stories (
+  id TEXT PRIMARY KEY,
+  synthesized_headline TEXT NOT NULL,
+  snippet TEXT,
+  primary_source_name TEXT NOT NULL,
+  primary_source_url TEXT NOT NULL,
+  primary_source_published_at TEXT NOT NULL,
+  categories TEXT NOT NULL,       -- JSON array of DomainCategory
+  entities TEXT NOT NULL,         -- JSON array of strings
+  defence_score INTEGER NOT NULL,
+  cluster_json TEXT,              -- nullable because R2 is the payload SSOT
+  archived_at TEXT NOT NULL       -- ISO 8601, when this story left the live feed
+);
+
+CREATE INDEX IF NOT EXISTS idx_archived_stories_archived_at ON archived_stories (archived_at DESC);
+
+-- Full-text search over headline, snippet, and entities.
+CREATE VIRTUAL TABLE IF NOT EXISTS archived_stories_fts USING fts5(
+  id UNINDEXED,
+  synthesized_headline,
+  snippet,
+  entities,
+  content='archived_stories',
+  content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS archived_stories_ai AFTER INSERT ON archived_stories BEGIN
+  INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
+  VALUES (new.rowid, new.id, new.synthesized_headline, new.snippet, new.entities);
+END;
+
+CREATE TRIGGER IF NOT EXISTS archived_stories_ad AFTER DELETE ON archived_stories BEGIN
+  INSERT INTO archived_stories_fts(archived_stories_fts, rowid, id, synthesized_headline, snippet, entities)
+  VALUES('delete', old.rowid, old.id, old.synthesized_headline, old.snippet, old.entities);
+END;
+
+CREATE TRIGGER IF NOT EXISTS archived_stories_au AFTER UPDATE ON archived_stories BEGIN
+  INSERT INTO archived_stories_fts(archived_stories_fts, rowid, id, synthesized_headline, snippet, entities)
+  VALUES('delete', old.rowid, old.id, old.synthesized_headline, old.snippet, old.entities);
+  INSERT INTO archived_stories_fts(rowid, id, synthesized_headline, snippet, entities)
+  VALUES (new.rowid, new.id, new.synthesized_headline, new.snippet, new.entities);
+END;
+
+-- Editorial Curator Overrides Table
+-- Stores human-in-the-loop promotions, demotions, custom headlines, and SSB brief edits
+-- directly in Cloudflare D1 instead of storing GitHub PATs in browser localStorage.
+CREATE TABLE IF NOT EXISTS curator_overrides (
+  id TEXT PRIMARY KEY,            -- story cluster ID
+  override_type TEXT NOT NULL,    -- 'promote' | 'demote' | 'headline' | 'ssb' | 'ignore' | 'delete' (permanent tombstone, Phase 3)
+  payload_json TEXT NOT NULL,     -- JSON representation of the override
+  updated_at TEXT NOT NULL,       -- ISO 8601 timestamp
+  curator_email TEXT NOT NULL DEFAULT 'curator@institutional.internal' -- Authenticated Zero Trust user identity for audit trail
+);
+
+CREATE INDEX IF NOT EXISTS idx_curator_overrides_updated_at ON curator_overrides (updated_at DESC);
+
+-- One-Push "Go Live" Publish History & Kill-Switch Audit Trail
+-- Each row is a full {clusters, river} snapshot at the moment a curator hit
+-- "Sync to Cloudflare D1". functions/data/news.json.ts serves the most recent
+-- via the NEWS_LIVE KV binding; the "Rollback Last Publish" action restores
+-- the second-most-recent row into KV. Pruned to the last 20 rows on insert
+-- (see curatorPublishHandler.ts) — no separate cron needed.
+CREATE TABLE IF NOT EXISTS published_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  snapshot_json TEXT NOT NULL,
+  published_at TEXT NOT NULL,
+  curator_email TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_published_snapshots_published_at ON published_snapshots (published_at DESC);
+
+-- Dynamic Discovered Military Entities Table
+-- Closed-loop knowledge base: stores newly discovered platforms, missiles, and codenames.
+-- When an entity crosses the corroboration threshold (>= 3 mentions across >= 2 sources),
+-- it is promoted to is_promoted = 1 and compiled into the crawler's active regex matcher.
+CREATE TABLE IF NOT EXISTS discovered_entities (
+  id TEXT PRIMARY KEY,            -- slug / canonical id (e.g. 'rudram-ii')
+  name TEXT NOT NULL,            -- display name (e.g. 'Rudram-II')
+  pattern TEXT NOT NULL,         -- generated regex pattern
+  category TEXT NOT NULL,        -- domain category (airforce, navy, army, tech, strategic, procurement)
+  source_count INTEGER DEFAULT 1,-- count of distinct publisher domains reporting this entity
+  mention_count INTEGER DEFAULT 1,-- total occurrences observed across articles
+  is_promoted INTEGER DEFAULT 0, -- 1 when promoted to active in-memory entity trie
+  first_seen_at TEXT NOT NULL,   -- ISO 8601 timestamp
+  last_seen_at TEXT NOT NULL     -- ISO 8601 timestamp
+);
+
+CREATE INDEX IF NOT EXISTS idx_discovered_entities_promoted ON discovered_entities (is_promoted, mention_count DESC);
+CREATE INDEX IF NOT EXISTS idx_discovered_entities_last_seen ON discovered_entities (last_seen_at DESC);
+
+-- Durable Canonical-Entity Resolution Table (docs/knowledge_base_issues.md#2)
+-- Self-learning SSOT for tag canonicalization: the Tier 0 check the tag
+-- screening cascade (crawler/canonicalEntityResolver.ts) runs before minting
+-- a new tag, so the same real-world entity resolves to the same primaryTag
+-- across independently-run cascades instead of drifting per cluster.
+CREATE TABLE IF NOT EXISTS canonical_entities (
+  id TEXT PRIMARY KEY,            -- canonical slug (hashtagToSlug minus its 'th_' prefix), e.g. 's-400'
+  canonical_tag TEXT NOT NULL,    -- display tag, e.g. '#S-400'
+  alias_slugs_json TEXT NOT NULL DEFAULT '[]', -- JSON array of other raw slugs learned to resolve here
+  mention_count INTEGER DEFAULT 1,
+  first_seen_at TEXT NOT NULL,    -- ISO 8601
+  last_seen_at TEXT NOT NULL      -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_canonical_entities_last_seen ON canonical_entities (last_seen_at DESC);
+
+-- Dynamic Source Reputation & Scoop Velocity Table
+-- Tracks rolling metrics for each news source domain: scoop frequency, corroboration accuracy,
+-- and signal-to-noise ratio to compute dynamic ranking weights (0.7x - 1.3x).
+CREATE TABLE IF NOT EXISTS source_reputation (
+  domain TEXT PRIMARY KEY,               -- e.g. 'livefistdefence.com'
+  source_name TEXT NOT NULL,             -- e.g. 'Livefist Defence'
+  total_items_ingested INTEGER DEFAULT 0,-- count of all items ingested
+  accepted_items_count INTEGER DEFAULT 0,-- items that passed relevance & quality gates
+  scoop_count INTEGER DEFAULT 0,         -- count of times this source broke a story first
+  corroboration_count INTEGER DEFAULT 0, -- times this source was corroborated by others
+  reputation_multiplier REAL DEFAULT 1.0,-- computed multiplier between 0.70 and 1.30
+  last_evaluated_at TEXT NOT NULL        -- ISO 8601 timestamp
+);
+
+CREATE INDEX IF NOT EXISTS idx_source_reputation_multiplier ON source_reputation (reputation_multiplier DESC);
+
+-- ============================================================================
+-- Pillar B: Verified Indian Defence MSME & Supplier Directory
+-- ============================================================================
+
+-- Verified supplier / vendor profiles (DPSUs, private primes, Tier-2 MSMEs,
+-- deep-tech iDEX/SRIJAN startups).
+CREATE TABLE IF NOT EXISTS suppliers (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  tier TEXT NOT NULL,             -- 'dpsu' | 'private_prime' | 'tier2_msme' | 'deep_tech_startup'
+  hq_city TEXT NOT NULL,
+  hq_state TEXT NOT NULL,
+  corridor TEXT,                  -- DefenceCorridor, nullable
+  website TEXT,
+  description TEXT NOT NULL,
+  srijan_id TEXT,
+  idex_winner INTEGER DEFAULT 0,
+  is_listed INTEGER DEFAULT 0,
+  stock_symbol TEXT,
+  created_at TEXT NOT NULL        -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_tier ON suppliers (tier);
+CREATE INDEX IF NOT EXISTS idx_suppliers_corridor ON suppliers (corridor);
+
+-- Capability-domain and certification tags per supplier (one row per domain).
+CREATE TABLE IF NOT EXISTS supplier_capabilities (
+  supplier_id TEXT NOT NULL,
+  capability_domain TEXT NOT NULL,
+  certifications TEXT NOT NULL,   -- JSON array of DefenceCertification
+  PRIMARY KEY (supplier_id, capability_domain),
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_capabilities_domain ON supplier_capabilities (capability_domain);
+
+-- Bidirectional program <-> subsystem <-> supplier cross-linking.
+-- Note: the 43 Strategic Programs are static TypeScript data, not a D1 table
+-- (see src/data/strategicPrograms.ts / src/types/programs.ts), so program_id
+-- is a plain string column matching StrategicProgram.id with no D1 FK --
+-- the same pattern idexProgramMapper.ts already uses for iDEX challenges.
+-- Validated instead via tests/unit/supplierContracts.test.ts.
+-- promoted_at is NULL for the original 31-supplier seed batch and set to the
+-- approval timestamp only for rows scripts/review-supplier-candidates.mjs
+-- promotes from supplier_candidates — this is what the Phase 2.7 coverage
+-- strip's "N new links this month" growth signal counts. If this table
+-- already exists on a previously-provisioned remote D1 database (re-running
+-- this file is a no-op for existing tables), add the column once manually:
+--   ALTER TABLE program_suppliers ADD COLUMN promoted_at TEXT;
+CREATE TABLE IF NOT EXISTS program_suppliers (
+  program_id TEXT NOT NULL,       -- matches StrategicProgram.id (no D1 FK)
+  subsystem_name TEXT NOT NULL,
+  supplier_id TEXT NOT NULL,
+  tier TEXT NOT NULL,
+  indigenisation_status TEXT NOT NULL,
+  promoted_at TEXT,               -- ISO 8601; set only when promoted via the candidate review pipeline
+  PRIMARY KEY (program_id, subsystem_name, supplier_id),
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_program_suppliers_supplier ON program_suppliers (supplier_id);
+CREATE INDEX IF NOT EXISTS idx_program_suppliers_program ON program_suppliers (program_id);
+
+-- Full-text search over supplier name, description, capabilities, products.
+CREATE VIRTUAL TABLE IF NOT EXISTS suppliers_fts USING fts5(
+  id UNINDEXED,
+  name,
+  description,
+  content='suppliers',
+  content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS suppliers_ai AFTER INSERT ON suppliers BEGIN
+  INSERT INTO suppliers_fts(rowid, id, name, description)
+  VALUES (new.rowid, new.id, new.name, new.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS suppliers_ad AFTER DELETE ON suppliers BEGIN
+  INSERT INTO suppliers_fts(suppliers_fts, rowid, id, name, description)
+  VALUES('delete', old.rowid, old.id, old.name, old.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS suppliers_au AFTER UPDATE ON suppliers BEGIN
+  INSERT INTO suppliers_fts(suppliers_fts, rowid, id, name, description)
+  VALUES('delete', old.rowid, old.id, old.name, old.description);
+  INSERT INTO suppliers_fts(rowid, id, name, description)
+  VALUES (new.rowid, new.id, new.name, new.description);
+END;
+
+-- ============================================================================
+-- Phase 2.6: Autonomous Growth Pipeline — Supplier Candidate Review Queue
+-- ============================================================================
+
+-- Draft candidates extracted from wire stories by crawler/supplierCandidateExtractor.ts.
+-- Never written to directly by the extractor into suppliers/program_suppliers/
+-- supplier_capabilities (Root CLAUDE.md Rule 5: LLM/extraction output requires
+-- human promotion before it becomes a "verified" claim). A human reviewer
+-- (scripts/review-supplier-candidates.mjs) approves or rejects each row;
+-- only 'approved' rows are promoted into the live tables.
+CREATE TABLE IF NOT EXISTS supplier_candidates (
+  id TEXT PRIMARY KEY,             -- deterministic: <candidate_type>:<supplier_id>:<program_id>[:<subsystem_slug>]
+  candidate_type TEXT NOT NULL,    -- 'new_link' (only type extracted as of Phase 2.6 — see extractor header)
+  supplier_id TEXT NOT NULL,       -- matches suppliers.id (no FK: candidate may reference a supplier not yet promoted)
+  supplier_name TEXT NOT NULL,     -- display name at extraction time, for reviewer legibility
+  program_id TEXT NOT NULL,        -- matches StrategicProgram.id (no D1 FK, same pattern as program_suppliers)
+  subsystem_name TEXT NOT NULL,
+  payload_json TEXT NOT NULL,      -- full draft ProgramSupplierLink fields for promotion
+  source_story_id TEXT,            -- one representative story id for reviewer citation
+  source_domains TEXT NOT NULL,    -- JSON array of distinct publisher domains that mentioned the pair
+  mention_count INTEGER NOT NULL DEFAULT 1,
+  source_count INTEGER NOT NULL DEFAULT 1,
+  confidence REAL NOT NULL,        -- 0.0 - 1.0, deterministic score (mention + source corroboration)
+  status TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected'
+  first_seen_at TEXT NOT NULL,
+  last_seen_at TEXT NOT NULL,
+  reviewed_at TEXT,
+  reviewed_by TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_supplier_candidates_status ON supplier_candidates (status, confidence DESC);
+
+-- ============================================================================
+-- Pillar C: Temporal Story Threading & Lineage Engine (Phase 1)
+-- ============================================================================
+
+-- Persistent story threads tracking evolving multi-month defence storylines.
+CREATE TABLE IF NOT EXISTS story_threads (
+  id TEXT PRIMARY KEY,             -- deterministic slug, e.g. 'th_lca-tejas-mk1a'
+  title TEXT NOT NULL,            -- display title, e.g. 'LCA Tejas Mk1A Delivery Arc'
+  canonical_entity TEXT NOT NULL, -- primary tracked entity, e.g. 'Tejas Mk1A'
+  category TEXT NOT NULL,         -- 'airforce' | 'navy' | 'army' | 'tech' | 'strategic' | 'procurement'
+  status TEXT NOT NULL DEFAULT 'active', -- 'active' | 'dormant' | 'concluded'
+  event_count INTEGER NOT NULL DEFAULT 1,
+  first_event_at TEXT NOT NULL,   -- ISO 8601
+  last_event_at TEXT NOT NULL,    -- ISO 8601
+  summary TEXT,                   -- short synthesis or description
+  fingerprint_json TEXT,          -- semantic fingerprint vocabulary tokens
+  created_at TEXT NOT NULL,       -- ISO 8601
+  updated_at TEXT NOT NULL        -- ISO 8601
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_threads_status_last_event ON story_threads (status, last_event_at DESC);
+CREATE INDEX IF NOT EXISTS idx_story_threads_canonical_entity ON story_threads (canonical_entity);
+CREATE INDEX IF NOT EXISTS idx_story_threads_last_event_at ON story_threads (last_event_at DESC);
+
+-- Individual chronological milestones / cluster events within a story thread.
+CREATE TABLE IF NOT EXISTS story_thread_events (
+  id TEXT PRIMARY KEY,             -- deterministic, e.g. 'ev_<cluster_id>' or '<thread_id>:<sequence_code>'
+  thread_id TEXT NOT NULL,         -- references story_threads(id)
+  cluster_id TEXT NOT NULL,        -- maps to StoryCluster.id
+  sequence_code TEXT NOT NULL,     -- e.g. 'x1.1.1', 'x1.1.2', 'x1.2.1'
+  sequence_index INTEGER NOT NULL, -- 1, 2, 3...
+  headline TEXT NOT NULL,
+  delta_summary TEXT NOT NULL,     -- what changed in this update
+  primary_source_name TEXT NOT NULL,
+  primary_source_url TEXT NOT NULL,
+  published_at TEXT NOT NULL,      -- ground-truth publish timestamp
+  entities TEXT NOT NULL,          -- JSON array of strings
+  created_at TEXT NOT NULL,        -- ISO 8601
+  FOREIGN KEY (thread_id) REFERENCES story_threads(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_thread_seq ON story_thread_events (thread_id, sequence_index ASC);
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_cluster ON story_thread_events (cluster_id);
+CREATE INDEX IF NOT EXISTS idx_story_thread_events_published ON story_thread_events (published_at ASC);

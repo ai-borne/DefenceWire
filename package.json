@@ -12,8 +12,9 @@
     "sitemap": "vite-node --script scripts/generate-sitemap.mjs",
     "llms": "vite-node --script scripts/generate-llms.mjs",
     "cache:purge": "vite-node --script scripts/purge-cache.mjs",
-    "d1:migrate:local": "wrangler d1 execute defencewire-archive --local --file=d1/schema.sql",
-    "d1:migrate:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/schema.sql",
+    "d1:schema": "node scripts/generate-d1-schema.mjs",
+    "d1:migrate:local": "wrangler d1 migrations apply defencewire-archive --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply defencewire-archive --remote",
     "d1:seed:local": "wrangler d1 execute defencewire-archive --local --file=d1/seeds/threads.sql",
     "d1:seed:remote": "wrangler d1 execute defencewire-archive --remote --file=d1/seeds/threads.sql",
     "d1:size": "vite-node --script crawler/d1SizeCheck.ts",
@@ -43,7 +44,8 @@
     "stylelint": "^17.14.1",
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
-    "vitest": "^3.0.7",
-    "wrangler": "^4.127.1"
+    "vite-node": "^3.2.4",
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.1"
   }
 }

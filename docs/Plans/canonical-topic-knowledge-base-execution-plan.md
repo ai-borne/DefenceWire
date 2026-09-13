@@ -569,6 +569,12 @@ Each file receives one responsibility and remains below 300 lines.
 - Existing application behavior remains unchanged.
 - Full build and test suite pass.
 
+### Phase status
+
+Complete as of 2026-09-13. The deep completion audit, verification evidence,
+tech-debt sweep, resolutions, and fail-loud carried-forward production rollout
+are recorded in `docs/Plans/canonical-topic-phase-1-summary.md`.
+
 ## Phase 2 — Complete durable article and cluster storage
 
 ### Goal
@@ -1285,3 +1291,44 @@ Close the external-state measurements that Phase 0 could not truthfully obtain f
 - Documentation matches observed production behavior.
 - Full suite, build, security checks, and deployment smoke tests pass.
 - Final Phase Summary records zero unresolved release-blocking debt and lists any explicitly accepted non-blocking debt with owner and resolution date.
+
+## Phase 12 — Production migration rollout and schema parity closure
+
+### Goal
+
+Close the external production-state action intentionally not performed during
+Phase 1 repository implementation: apply the reviewed numbered migrations to
+the authenticated production D1 database and prove production schema parity
+without exposing credentials or disrupting ingestion.
+
+### Carried-forward Phase 1 limitation
+
+- Phase 1 validated fresh and representative-prior-schema migrations with both
+  SQLite and Wrangler's local D1 emulator. It did not mutate the remote D1
+  database because repository implementation and commit did not grant separate
+  production deployment authority.
+
+### Validation work
+
+- Take or verify a current D1 backup before migration.
+- List pending production migrations and record their exact names.
+- Apply all pending migrations with the authenticated Wrangler production flow.
+- Verify the migration ledger reports no pending migrations on a second run.
+- Run read-only table, index, trigger, seed-count, foreign-key, and
+  `PRAGMA foreign_key_check` parity checks against production.
+- Confirm existing archive, thread, graph, supplier, curator, and pattern data
+  counts remain unchanged by the additive migration.
+- Confirm legacy `canonical_entities` and `discovered_entities` rows appear only
+  as pending private `topic_candidates`, never as public topics.
+- Exercise documented backup/rollback recovery in a non-production clone before
+  declaring the production rollout complete.
+
+### Exit criteria
+
+- Production contains every numbered migration exactly once.
+- Local, clean-bootstrap, representative-prior, and production schemas agree.
+- Existing production rows are preserved and all foreign keys are valid.
+- Seeded topic records are readable, while current ingestion and public hashtag
+  behavior remain unchanged until their planned cutover phases.
+- No credentials or source payloads are committed in verification evidence.
+- Full suite, build, bundle, and security checks pass after rollout.
