@@ -27,13 +27,13 @@ import { runPatternDetectionAndSync } from './patternSync.js';
 import { fetchCanonicalRegistry, screenClusterTagsWithCanonicalLearning, syncCanonicalRegistryToD1 } from './canonicalEntityResolver.js';
 import { mergeDuplicateClusterTags } from './clusterTagMerge.js';
 import {
-  advanceDurableRun, buildDurableIngestConfigFromEnv, failDurableRun, markDurableClassified,
+  advanceDurableRun, buildDurableIngestConfigFromEnv, failDurableRun,
   persistDurableInput
 } from './durableIngestService.js';
 import { DurablePersistResult } from './durableIngestTypes.js';
+import { classifyAndMarkDurableRun } from './topicClassificationPipeline.js';
 import { IngestOptions, IngestResult } from './ingestTypes.js';
 import { writeSnapshotAtomically } from './snapshotWriter.js';
-
 export {
   isDefenceRelevant, filterFreshArticles, NON_DEFENCE_BLACKLIST,
   NON_DEFENCE_BLACKLIST_REGEX, DEFENCE_WHOLE_WORD_REGEX
@@ -191,7 +191,8 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   if (durableRun && durableConfig) {
     const byId = new Map(lockedProtectedClusters.map((cluster) => [cluster.id, cluster]));
     for (const item of durableRun.plan.clusters) item.cluster = byId.get(item.id) ?? item.cluster;
-    await markDurableClassified(durableRun.plan, durableConfig, { fetchFn });
+    const topicResult = await classifyAndMarkDurableRun(durableRun, durableConfig, fetchFn, now.toISOString());
+    console.log(`[TOPIC CLASSIFICATION] ${topicResult.validated} validated, ${topicResult.reused} reused`);
   }
 
   // Closed-loop dynamic entity harvesting

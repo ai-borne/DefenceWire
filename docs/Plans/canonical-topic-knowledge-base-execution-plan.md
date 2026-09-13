@@ -761,6 +761,12 @@ These implications must be explicit, verified, conditional implication rules, no
 - Assignments remain shadow data and do not yet change public hashtag clicks.
 - Full build and test suite pass.
 
+### Phase status
+
+Repository implementation and its full verification suite completed on
+2026-09-13. Rule 12 carried-forward gaps are explicitly recorded as the final
+Phase 14; they are not represented as completed Phase 3 behavior.
+
 ## Phase 4 — Hybrid existing-topic linking and open-world concept discovery
 
 ### Goal
@@ -1399,3 +1405,52 @@ verification exercised those external systems.
   checks and are covered by production-safe tests.
 - All Phase 2 production counters and identity invariants reconcile exactly.
 - Full suite, build, bundle, security checks, and deployment smoke tests pass.
+
+## Phase 14 — Phase 3 corpus-completion and production reconciliation closure
+
+### Goal
+
+Close the Phase 3 gaps deliberately left outside the safe deterministic
+repository implementation. This phase exists under Rule 12: it must not be
+mistaken for completed behavior merely because the plumbing and unit coverage
+are present.
+
+### Carried-forward Phase 3 limitations
+
+- The reviewed corpus contains contextual cases (notably NSA/India-China border
+  negotiations) whose canonical recognition needs an additional reviewed,
+  acyclic implication rule and source-grounded aliases. It must not be filled
+  with a hardcoded heuristic or an unreviewed model inference.
+- The complete Phase 0 corpus has not yet been exercised against a production
+  D1 registry snapshot containing every reviewed topic and alias; only the
+  deterministic unit corpus slice and migration seed are verified locally.
+- Atomic assignment reconciliation, prior-result reuse, removal of stale
+  automated assignments, and curator-lock preservation require a D1 REST
+  integration fixture and a controlled authenticated production drill. No
+  production D1 mutation was authorized by this repository task.
+- Exact-span candidate extraction queues private review candidates with no
+  asserted type. Type validation, alias collision adjudication, corroboration,
+  and provisional-topic promotion remain Phase 4 work and must not be implied
+  by candidate creation.
+
+### Validation work
+
+- Add reviewed, acyclic registry records/rules for every remaining corpus case
+  and execute the full fixture as an integration test against the D1 schema.
+- Test multi-article cluster aggregation, unchanged fingerprint reuse,
+  desired-state removal, and curator locks through an atomic D1 REST batch
+  fixture, including batch-size and failure behavior.
+- Run the same checks against an authenticated non-production clone, then a
+  controlled production crawl after backup and migration parity verification.
+- Confirm provisional/shadow decisions and candidates never reach public APIs,
+  compatibility fields, archive output, or hashtag click paths.
+
+### Exit criteria
+
+- Every Phase 0 deterministic corpus case passes from D1 registry data alone.
+- No implication cycle, unbounded traversal, compiled alias allowlist, or
+  unreviewed semantic inference is introduced.
+- D1 atomic-reconciliation and lock invariants are proven locally and in the
+  approved production rollout environment.
+- Candidate discovery remains private until Phase 4's validation gates are met.
+- Full suite, build, bundle, and security checks pass.
