@@ -38,6 +38,7 @@ function d1Harness(clusterFailures = 0) {
       return Response.json({ success: true, result: body.batch.map(() => ({ success: true })) });
     }
     const sql = String(body.sql);
+    if (sql.includes('FROM story_clusters')) calls.push(sql);
     if (sql.includes('FROM ingestion_cluster_manifest')) return d1Rows([]);
     if (sql.includes('FROM story_clusters')) return d1Rows([]);
     if (sql.includes('INSERT INTO ingestion_runs')) status ??= 'started';
@@ -132,5 +133,32 @@ describe('durable ingestion service', () => {
     expect(put).toHaveBeenCalledOnce();
     expect(harness.calls.slice(callsAfterFirstRun)
       .some((call) => call.startsWith('d1-clusters'))).toBe(false);
+  });
+
+  it('chunks the existing-membership lookup so no single D1 statement exceeds the bound-parameter limit', async () => {
+    const harness = d1Harness();
+    const put = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const item = (index: number): StorySourceItem => ({
+      id: `feed-${index}`, title: `Army tests platform ${index}`, url: `https://example.com/story-${index}`,
+      sourceName: 'Example', sourceDomain: 'example.com', tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-09-13T08:00:00Z', snippet: `Defence report ${index}`
+    });
+    const articles = Array.from({ length: 95 }, (_, index) => item(index));
+    const clusters: StoryCluster[] = articles.map((article, index) => ({
+      id: `temporary-${index}`, synthesizedHeadline: article.title, primarySource: article,
+      relatedCoverage: [], discussions: [], categories: ['army'], entities: [],
+      defenceScore: 80, isLeadStory: index === 0, createdAt: article.publishedAt, updatedAt: article.publishedAt
+    }));
+
+    await persistDurableInput(articles, clusters, config, {
+      fetchFn: harness.fetchFn, putClusterJsonFn: put,
+      mintUuid: () => '00000000-0000-4000-8000-000000000006'
+    });
+
+    const lookupCalls = harness.calls.filter((sql) => sql.includes('FROM story_clusters'));
+    expect(lookupCalls.length).toBeGreaterThan(1);
+    for (const sql of lookupCalls) {
+      expect((sql.match(/\?/g) ?? []).length).toBeLessThanOrEqual(90);
+    }
   });
 });

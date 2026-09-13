@@ -67,15 +67,26 @@ export function buildFailRunStatement(runId: string, stage: IngestionStage, now:
   };
 }
 
-export function buildLookupClustersStatement(articleIds: string[], fingerprints: string[]): D1Statement {
-  const articleMarks = articleIds.map(() => '?').join(', ');
-  const fingerprintMarks = fingerprints.map(() => '?').join(', ');
+/** D1 rejects statements with more than ~100 bound parameters; keep well under that per IN-list. */
+export const D1_LOOKUP_CHUNK_SIZE = 90;
+
+export function buildLookupByArticleIdsStatement(articleIds: string[]): D1Statement {
+  const marks = articleIds.map(() => '?').join(', ');
   return {
     sql: `SELECT cs.source_article_id, sc.id AS cluster_id, sc.event_fingerprint
           FROM story_clusters sc LEFT JOIN cluster_sources cs ON cs.cluster_id = sc.id
-          WHERE sc.status = 'active' AND
-            (cs.source_article_id IN (${articleMarks}) OR sc.event_fingerprint IN (${fingerprintMarks}))`,
-    params: [...articleIds, ...fingerprints]
+          WHERE sc.status = 'active' AND cs.source_article_id IN (${marks})`,
+    params: articleIds
+  };
+}
+
+export function buildLookupByFingerprintsStatement(fingerprints: string[]): D1Statement {
+  const marks = fingerprints.map(() => '?').join(', ');
+  return {
+    sql: `SELECT cs.source_article_id, sc.id AS cluster_id, sc.event_fingerprint
+          FROM story_clusters sc LEFT JOIN cluster_sources cs ON cs.cluster_id = sc.id
+          WHERE sc.status = 'active' AND sc.event_fingerprint IN (${marks})`,
+    params: fingerprints
   };
 }
 

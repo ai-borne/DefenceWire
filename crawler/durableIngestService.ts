@@ -8,9 +8,9 @@ import {
   buildAdoptOrphanStatement, buildAdvanceRunStatement, buildAttachRunArticleStatement, buildAttachSourceStatement,
   buildDemotePrimaryStatement, buildFailRunStatement, buildFindRunStatement,
   buildFindManifestStatement,
-  buildInsertClusterStatement, buildLineageStatements, buildLookupClustersStatement,
+  buildInsertClusterStatement, buildLineageStatements, buildLookupByArticleIdsStatement, buildLookupByFingerprintsStatement,
   buildRecordOrphanStatement, buildResumeRunStatement, buildSelectPrimaryStatement, buildSetHomepageCountStatement,
-  buildStartRunStatement, buildUpsertArticleStatement, buildUpsertManifestStatement
+  buildStartRunStatement, buildUpsertArticleStatement, buildUpsertManifestStatement, D1_LOOKUP_CHUNK_SIZE
 } from './durableIngestQueryBuilder.js';
 import {
   DurableIngestConfig, DurableIngestDeps, DurableIngestPlan, DurableLookupRow, DurableManifestRow,
@@ -143,9 +143,23 @@ async function loadExistingMembership(
   const ids = prepared.articles.map((article) => article.id);
   const fingerprints = prepared.clusters.map((cluster) => cluster.eventFingerprint);
   if (ids.length === 0 || fingerprints.length === 0) return [];
-  const result = await executeD1Query(buildLookupClustersStatement(ids, fingerprints), config.d1, fetchFn);
-  if (!result.ok) throw new Error(`Durable cluster lookup failed: ${result.error ?? result.status ?? 'unknown error'}`);
-  return result.rows as DurableLookupRow[];
+  const statements = [
+    ...chunk(ids, D1_LOOKUP_CHUNK_SIZE).map(buildLookupByArticleIdsStatement),
+    ...chunk(fingerprints, D1_LOOKUP_CHUNK_SIZE).map(buildLookupByFingerprintsStatement)
+  ];
+  const rows: DurableLookupRow[] = [];
+  for (const statement of statements) {
+    const result = await executeD1Query(statement, config.d1, fetchFn);
+    if (!result.ok) throw new Error(`Durable cluster lookup failed: ${result.error ?? result.status ?? 'unknown error'}`);
+    rows.push(...(result.rows as DurableLookupRow[]));
+  }
+  return rows;
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
 }
 
 async function readRun(
