@@ -1541,6 +1541,81 @@ Close the external-state measurements that Phase 0 could not truthfully obtain f
 - Full suite, build, security checks, and deployment smoke tests pass.
 - Final Phase Summary records zero unresolved release-blocking debt and lists any explicitly accepted non-blocking debt with owner and resolution date.
 
+### Phase status
+
+Attempted as scoped on 2026-09-13. Read-only inspection of the authenticated
+production Cloudflare account (D1 database `defencewire-archive`, R2 bucket
+`defencewire-archive-blobs`, KV namespace `NEWS_LIVE`) found that none of the
+14 numbered migrations under `d1/migrations` have been applied to production —
+`wrangler d1 migrations list --remote` reports every migration from
+`0001_legacy_core.sql` through `0014_phase10_remove_legacy_canonical_entities.sql`
+as still pending. Production D1 therefore has no `topics`, `topic_aliases`,
+`cluster_topics`, `source_articles`, `story_clusters`, `ingestion_runs`,
+`topic_assignment_runs`, `cluster_topic_decisions`, `topic_candidates`, or
+`thread_topics` table at all; it only carries the pre-existing legacy schema
+(`archived_stories`, `story_threads`, `story_thread_events`,
+`canonical_entities`, `discovered_entities`, `graph_nodes`, `graph_edges`,
+`suppliers`, and related tables). Phase 11 is sequenced ahead of Phase 12
+(migration rollout) and Phase 13 (production activation/cutover) in this plan,
+so the topic-specific production counts, D1/R2 reconciliation, threshold
+comparisons, and alert/rollback drills Phase 11 calls for cannot be captured
+today — there is no production topic data yet to measure. Rather than infer or
+fabricate those numbers, this phase captures the read-only legacy production
+baseline that is available now (the pre-migration row counts Phase 12 itself
+needs to prove existing rows are preserved by the additive migrations),
+documents the exact blocking dependency, and carries the remainder forward as
+Phase 14 under Rule 12.
+
+### Phase 11 Summary
+
+Delivered: Read-only authenticated production reconnaissance: confirmed
+migration state (`wrangler d1 migrations list --remote` — all 14 migrations
+pending, zero applied); enumerated every existing production D1 table; and
+captured dated row counts for each one — `archived_stories` 299,
+`story_threads` 218, `story_thread_events` 232, `canonical_entities` 151,
+`discovered_entities` 40, `graph_nodes` 1049, `graph_edges` 5557, `suppliers`
+0, `supplier_candidates` 1, `curator_overrides` 13, `published_snapshots` 7,
+`emergent_patterns` 0, `program_suppliers` 0, `source_reputation` 31,
+`tenders` 1, `tender_source_health` 8. Confirmed the R2 bucket
+`defencewire-archive-blobs` exists (created 2026-08-31) but the installed
+Wrangler version exposes no read-only object-listing subcommand. Confirmed the
+`NEWS_LIVE` KV namespace holds zero keys, meaning the reader is currently
+served from the static `public/data/news.json` fallback rather than a
+published D1 snapshot.
+
+Verification: The full local suite was reconfirmed green against the
+unchanged Phase 10 repository state — `npm run check` (1,433/1,433 tests,
+typecheck, contracts/LOC, crawler validation, CSS, production build, bundle
+budget, security scan) — since Phase 11 made no repository code changes.
+
+Tech debt discovered: None in repository code. The gap discovered is
+sequencing debt in the plan's own execution order: Phase 11 depends on
+production state that only Phase 12 (migrations) and Phase 13
+(activation/cutover) can produce, so it was reached before its prerequisites
+were satisfied.
+
+Resolution: No repository code fix applies to a sequencing gap. It is resolved
+by explicit reordering guidance: Phase 12 and all of Phase 13 (Stage 0 through
+Stage 9) must complete before Phase 11's topic-specific validation work can be
+attempted again. The residual is carried forward as Phase 14 below rather than
+silently marked complete.
+
+Known limitations (fail-loud, Rule 12): every Phase 11 validation item that
+depends on migrated/activated production topic data remains unattempted —
+production topics/aliases/cluster-assignment/reclassification-backlog counts,
+ingestion-run-ledger reconciliation, D1/R2 orphan reconciliation for the new
+tables, comparison of production precision/recall/latency/cache-hit/cost
+against the Phase 0 thresholds, and verification of alerts, dashboards, and
+rollback/recovery drills (none of which are yet deployed — no monitoring
+runbook exists in this repository today). R2 object-level enumeration could
+not be performed with the available read-only Wrangler subcommands. Each item
+is enumerated in Phase 14 with its precondition and target.
+
+Build status: Passing (unchanged from Phase 10).
+
+Test status: 1,433/1,433 full-suite tests passing; no skipped or pending
+tests.
+
 ## Phase 12 — Production migration rollout and schema parity closure
 
 ### Goal
@@ -2082,3 +2157,88 @@ exit criteria and:
 - No stage was skipped, reordered, or partially verified to reach closure.
 - The full suite, build, bundle, and security checks remain green after the
   final stage.
+
+## Phase 14 — Phase 11 production baseline closure (carried-forward gaps)
+
+### Goal
+
+Close the Phase 11 validation work that could not be attempted because, as of
+2026-09-13, production D1 carried none of the 14 numbered migrations and no
+topic data existed when Phase 11 was reviewed. This phase exists under Rule
+12: no item listed here may be treated as complete merely because Phase 11
+attempted it or because Phase 12/13 plumbing exists.
+
+### Precondition
+
+This phase must not start until:
+
+- Phase 12 has applied all 14 pending migrations to production D1 and proven
+  schema parity, and
+- Phase 13 Stage 9 has completed authenticated cutover, monitoring, and
+  rollback activation.
+
+Attempting any item below earlier would repeat Phase 11's mistake of trying to
+measure production data that does not yet exist.
+
+### Carried-forward Phase 11 gaps
+
+- Production counts for topics, aliases, cluster assignments, threads,
+  events, archived clusters, reclassification backlog, and unresolved orphans
+  were not captured because none of those tables existed in production as of
+  2026-09-13 (all 14 migrations were pending).
+- The durable ingestion run ledger (Phase 2) has never recorded a production
+  run, so exact eligible-article, pre-ranking-cluster, retained-homepage, and
+  excluded-article counts have no production source yet.
+- D1/R2 reconciliation for the new topic/ingestion tables has not been
+  performed; R2 object-level listing could not even be attempted with the
+  available read-only Wrangler subcommands, since no S3-compatible
+  credentials were provisioned for this task.
+- Production canonical alias convergence, unchanged-input stability,
+  near-duplicate consistency, precision, recall, latency, write volume, cache
+  hit rate, and model cost have not been compared with the Phase 0 thresholds.
+- No monitoring runbook, dashboard, or alert exists yet in this repository or
+  its linked infrastructure for the Phase 10 operational-monitoring list; none
+  of the required alerts have been exercised.
+- No rollback or recovery drill has been run against real production state.
+
+### Validation work
+
+- Re-run `wrangler d1 migrations list --remote` and confirm zero pending
+  migrations before starting any measurement below.
+- Capture the exact eligible-article, pre-ranking cluster, retained homepage,
+  and excluded-article counts from the now-populated `ingestion_runs` ledger
+  for at least one controlled production run.
+- Capture authenticated read-only production counts for `topics`,
+  `topic_aliases`, `cluster_topics`, `story_threads`/`thread_topics`,
+  `story_thread_events`, archived clusters, `topic_reclassification_queue`,
+  and any orphan candidates.
+- Reconcile D1 references against deterministic R2 object keys — provisioning
+  read-only S3-compatible credentials for the archive bucket if the installed
+  Wrangler CLI still lacks a listing subcommand — and resolve or document
+  every orphan.
+- Compare the measured production canonical alias convergence, unchanged-input
+  stability, near-duplicate consistency, precision, recall, latency, write
+  volume, cache hit rate, and model cost against the Phase 0 thresholds;
+  record pass/fail per threshold.
+- Stand up the Phase 10 operational-monitoring dashboard/alerts (or document
+  the chosen external tool) and trigger each alert condition once under
+  controlled conditions to prove delivery.
+- Execute a rollback/recovery drill from a captured production snapshot and
+  record the result.
+- Produce a dated, source-fingerprinted production baseline report without
+  overwriting the Phase 0 repository baseline or the Phase 11 pre-migration
+  legacy-table baseline.
+
+### Exit criteria
+
+- Every Phase 0 measurement limitation and every Phase 11 carried-forward gap
+  above is closed with production evidence, or is explicitly marked not
+  applicable with a reviewed reason.
+- All Phase 10 operational alerts and rollback controls have been exercised
+  successfully at least once against real production state.
+- No secrets, credentials, source bodies, or curator-only evidence enter
+  committed reports.
+- Full suite, build, security checks, and deployment smoke tests pass.
+- The Phase 14 Summary records zero unresolved release-blocking debt and
+  lists any explicitly accepted non-blocking debt with owner and resolution
+  date.
