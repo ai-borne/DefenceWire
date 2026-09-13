@@ -15,11 +15,17 @@ import {
   ThreadContinuityResult
 } from '../src/types/threads.js';
 import {
-  threadRowToStoryThread,
-  eventRowToStoryThreadEvent,
+ threadRowToStoryThread,
+ eventRowToStoryThreadEvent,
   buildUpsertThreadStatement,
-  buildUpsertThreadEventStatement
+  buildUpsertThreadEventStatement,
+  buildThreadCandidatesStatement,
+  buildEventsForThreadsStatement,
+  buildClusterTopicLinksStatement,
+  buildClusterLineageStatement,
+  buildUpsertThreadTopicStatement
 } from '../src/services/threadQueryBuilder.js';
+import { ThreadTopicLink } from '../src/types/threads.js';
 import { matchAndAdvanceThreads, ContinuityEngineOptions } from './threadContinuityEngine.js';
 import { D1RestConfig, executeD1Query } from './archiveSync.js';
 
@@ -37,87 +43,61 @@ export interface ThreadSyncResult {
 
 export async function fetchExistingThreadsAndEvents(
   config: D1RestConfig,
-  fetchFn: typeof fetch
-): Promise<{ threads: StoryThread[]; events: StoryThreadEvent[] }> {
+  fetchFn: typeof fetch,
+  clusterIds: string[] = []
+): Promise<{ threads: StoryThread[]; events: StoryThreadEvent[]; topicsByCluster: Map<string, string[]>; lineageClusterIdsByCluster: Map<string, string[]> }> {
   try {
-    const threadRes = await executeD1Query(
-      { sql: 'SELECT * FROM story_threads ORDER BY last_event_at DESC LIMIT 100', params: [] },
-      config,
-      fetchFn
-    );
-
-    const eventRes = await executeD1Query(
-      { sql: 'SELECT * FROM story_thread_events ORDER BY sequence_index ASC LIMIT 500', params: [] },
-      config,
-      fetchFn
-    );
+    if (clusterIds.length === 0) return { threads: [], events: [], topicsByCluster: new Map(), lineageClusterIdsByCluster: new Map() };
+    const [threadRes, topicRes, lineageRes] = await Promise.all([
+      executeD1Query(buildThreadCandidatesStatement(clusterIds), config, fetchFn),
+      executeD1Query(buildClusterTopicLinksStatement(clusterIds), config, fetchFn),
+      executeD1Query(buildClusterLineageStatement(clusterIds), config, fetchFn)
+    ]);
 
     const threads = (threadRes.rows as unknown as StoryThreadRow[]).map(threadRowToStoryThread);
+    const eventRes = threads.length > 0
+      ? await executeD1Query(buildEventsForThreadsStatement(threads.map((thread) => thread.id)), config, fetchFn)
+      : { rows: [] };
     const events = (eventRes.rows as unknown as StoryThreadEventRow[]).map(eventRowToStoryThreadEvent);
+    const topicsByCluster = new Map<string, string[]>();
+    for (const row of topicRes.rows as { cluster_id?: string; topic_id?: string }[]) {
+      if (!row.cluster_id || !row.topic_id) continue;
+      topicsByCluster.set(row.cluster_id, [...(topicsByCluster.get(row.cluster_id) ?? []), row.topic_id]);
+    }
+    const lineageClusterIdsByCluster = new Map<string, string[]>();
+    for (const row of lineageRes.rows as { predecessor_cluster_id?: string; successor_cluster_id?: string }[]) {
+      if (!row.predecessor_cluster_id || !row.successor_cluster_id) continue;
+      const predecessor = row.predecessor_cluster_id;
+      const successor = row.successor_cluster_id;
+      if (clusterIds.includes(predecessor)) {
+        lineageClusterIdsByCluster.set(predecessor, [...(lineageClusterIdsByCluster.get(predecessor) ?? []), successor]);
+      }
+      if (clusterIds.includes(successor)) {
+        lineageClusterIdsByCluster.set(successor, [...(lineageClusterIdsByCluster.get(successor) ?? []), predecessor]);
+      }
+    }
 
-    return { threads, events };
+    return { threads, events, topicsByCluster, lineageClusterIdsByCluster };
   } catch (err) {
     console.error('[THREAD SYNC] Failed to fetch existing threads from D1:', err);
-    return { threads: [], events: [] };
-  }
-}
-
-/**
- * Checks and auto-migrates remote D1 table schema to ensure fingerprint_json column exists.
- */
-export async function ensureThreadSchema(
-  config: D1RestConfig,
-  fetchFn: typeof fetch = globalThis.fetch
-): Promise<boolean> {
-  try {
-    const res = await executeD1Query(
-      { sql: 'ALTER TABLE story_threads ADD COLUMN fingerprint_json TEXT;', params: [] },
-      config,
-      fetchFn
-    );
-    if (res.ok) {
-      console.log('[THREAD SYNC] Auto-migrated remote D1: added fingerprint_json column to story_threads.');
-    }
-    // Defensive cleanup: purge known historical false-positive attachments and ghost threads from remote D1
-    const purges = [
-      "DELETE FROM story_thread_events WHERE thread_id = 'th_lac' AND (cluster_id IN ('cluster-9e899a54', 'cluster-69e1644b', 'cluster-d34c84a1') OR headline LIKE '%Black Jet%' OR headline LIKE '%FREMM%');",
-      "DELETE FROM story_thread_events WHERE thread_id = 'th_pralay-missile' AND (headline LIKE '%BrahMos%' OR headline LIKE '%Javelin%');",
-      "DELETE FROM story_threads WHERE id IN ('th_latest-news', 'th_netra-aewc', 'th_indian-navy', 'th_indian-defence-procurement-framework', 'th_indian-defence-procurement-ecosystem') OR event_count = 0;",
-      "UPDATE story_threads SET fingerprint_json = '[\"lac\",\"line\",\"actual\",\"control\",\"arunachal\",\"china\",\"border\",\"talks\",\"corps\",\"commander\",\"galwan\"]' WHERE id = 'th_lac';"
-    ];
-    for (const sql of purges) {
-      await executeD1Query({ sql, params: [] }, config, fetchFn);
-    }
-    return res.ok || Boolean(res.error?.includes('duplicate column name'));
-  } catch {
-    return false;
+    return { threads: [], events: [], topicsByCluster: new Map(), lineageClusterIdsByCluster: new Map() };
   }
 }
 
 export async function syncThreadsToD1(
   continuity: ThreadContinuityResult,
   config: D1RestConfig,
-  fetchFn: typeof fetch
+  fetchFn: typeof fetch,
+  topicLinks: ThreadTopicLink[] = []
 ): Promise<{ syncedThreads: number; syncedEvents: number; failed: number }> {
   let syncedThreads = 0;
   let syncedEvents = 0;
   let failed = 0;
-  let supportsFingerprint = true;
 
   for (const thread of continuity.threads) {
-    let stmt = buildUpsertThreadStatement(thread, supportsFingerprint);
+    const stmt = buildUpsertThreadStatement(thread);
     try {
-      let res = await executeD1Query(stmt, config, fetchFn);
-      if (!res.ok && res.error?.includes('no column named fingerprint_json')) {
-        const migrated = await ensureThreadSchema(config, fetchFn);
-        if (migrated) {
-          res = await executeD1Query(stmt, config, fetchFn);
-        } else {
-          supportsFingerprint = false;
-          stmt = buildUpsertThreadStatement(thread, false);
-          res = await executeD1Query(stmt, config, fetchFn);
-        }
-      }
+      const res = await executeD1Query(stmt, config, fetchFn);
 
       if (res.ok) {
         syncedThreads++;
@@ -128,6 +108,15 @@ export async function syncThreadsToD1(
     } catch (err) {
       failed++;
       console.error(`[THREAD SYNC] Error upserting thread ${thread.id}:`, err);
+    }
+  }
+
+  for (const link of topicLinks) {
+    try {
+      const res = await executeD1Query(buildUpsertThreadTopicStatement(link), config, fetchFn);
+      if (!res.ok) failed++;
+    } catch {
+      failed++;
     }
   }
 
@@ -191,17 +180,18 @@ export async function runThreadContinuity(
   }
 
   try {
-    // Proactive auto-migration for remote D1 schema
-    await ensureThreadSchema(config, fetchFn);
-
-    const { threads: existingThreads, events: existingEvents } = await fetchExistingThreadsAndEvents(
+    const { threads: existingThreads, events: existingEvents, topicsByCluster, lineageClusterIdsByCluster } = await fetchExistingThreadsAndEvents(
       config,
-      fetchFn
+      fetchFn,
+      clusters.map((cluster) => cluster.id)
     );
 
-    const continuity = matchAndAdvanceThreads(clusters, existingThreads, existingEvents, options);
+    const continuity = matchAndAdvanceThreads(clusters, existingThreads, existingEvents, { ...options, lineageClusterIdsByCluster });
+    const topicLinks = continuity.events.flatMap((event) =>
+      (topicsByCluster.get(event.clusterId) ?? []).map((topicId) => ({ threadId: event.threadId, topicId, linkedAt: event.createdAt }))
+    );
 
-    const { syncedThreads, syncedEvents, failed } = await syncThreadsToD1(continuity, config, fetchFn);
+    const { syncedThreads, syncedEvents, failed } = await syncThreadsToD1(continuity, config, fetchFn, topicLinks);
 
     console.log(
       `[THREAD SYNC] ${syncedThreads} threads synced (${continuity.newlySpawnedCount} new, ${continuity.reactivatedCount} reactivated), ${syncedEvents} events synced (${continuity.attachedCount} attached), ${failed} failed.`

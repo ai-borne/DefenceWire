@@ -61,7 +61,7 @@ describe('Story Thread Continuity Engine', () => {
     const result = matchAndAdvanceThreads([cluster], [], []);
     expect(result.newlySpawnedCount).toBe(1);
     expect(result.threads).toHaveLength(1);
-    expect(result.threads[0]?.canonicalEntity).toBe('zorawar-tank');
+    expect(result.threads[0]?.canonicalEntity).toBe('Zorawar');
     expect(result.threads[0]?.status).toBe('active');
     expect(result.events).toHaveLength(1);
     expect(result.events[0]?.sequenceCode).toBe('x1.1.1');
@@ -159,30 +159,17 @@ describe('Story Thread Continuity Engine', () => {
     expect(result.events).toHaveLength(1);
   });
 
-  it('spawns separate threads with category-calibrated titles for #Su57, #Apache, #TASL, and #EOS05', () => {
-    const su57Cluster = createMockCluster({ id: 'cluster-su57', primaryTag: '#Su57', hashtags: ['#Su57'], categories: ['airforce'], entities: [] });
-    const apacheCluster = createMockCluster({ id: 'cluster-apache', primaryTag: '#Apache', hashtags: ['#Apache'], categories: ['army'], entities: [] });
-    const taslCluster = createMockCluster({ id: 'cluster-tasl', primaryTag: '#TASL', hashtags: ['#TASL'], categories: ['procurement'], entities: [] });
-    const eos05Cluster = createMockCluster({ id: 'cluster-eos05', primaryTag: '#EOS05', hashtags: ['#EOS05'], categories: ['tech'], entities: [] });
+  it('never creates a thread identity from a presentation hashtag', () => {
+    const tagOnly = createMockCluster({ id: 'cluster-su57', primaryTag: '#Su57', hashtags: ['#Su57'], entities: [], programTags: [] });
+    const res = matchAndAdvanceThreads([tagOnly], [], []);
+    expect(res.newlySpawnedCount).toBe(0);
+    expect(res.events).toHaveLength(0);
+  });
 
-    const res = matchAndAdvanceThreads([su57Cluster, apacheCluster, taslCluster, eos05Cluster], [], []);
-    expect(res.newlySpawnedCount).toBe(4);
-
-    const su57 = res.threads.find((t) => t.id === 'th_su-57');
-    expect(su57?.title).toBe('Su57 Operational & Strategic Arc');
-    expect(su57?.category).toBe('airforce');
-
-    const apache = res.threads.find((t) => t.id === 'th_apache');
-    expect(apache?.title).toBe('Apache Operational & Strategic Arc');
-    expect(apache?.category).toBe('army');
-
-    const tasl = res.threads.find((t) => t.id === 'th_tasl');
-    expect(tasl?.title).toBe('TASL Acquisition & Delivery Arc');
-    expect(tasl?.category).toBe('procurement');
-
-    const eos05 = res.threads.find((t) => t.id === 'th_eos-05');
-    expect(eos05?.title).toBe('EOS05 Technology & Systems Arc');
-    expect(eos05?.category).toBe('tech');
+  it('keeps a one-off named actor as topic evidence rather than inventing a narrative thread', () => {
+    const oneOff = createMockCluster({ id: 'cluster-india', entities: ['India'], programTags: [] });
+    const result = matchAndAdvanceThreads([oneOff], [], []);
+    expect(result.threads).toHaveLength(0);
   });
 
   it('rejects generic news and defence stop-tags from spawning threads', () => {
@@ -254,5 +241,15 @@ describe('Story Thread Continuity Engine', () => {
     expect(audit.outlierEvents).toHaveLength(1);
     expect(audit.outlierEvents[0]?.id).toBe('ev_black_jet');
     expect(audit.validEvents.map((e) => e.id)).toEqual(['ev_lac_1', 'ev_lac_2']);
+  });
+
+  it('preserves an existing event across a durable cluster merge or split lineage', () => {
+    const thread = createMockThread('th_tejas', 'Tejas');
+    const predecessor = createMockEvent('ev_original', 'th_tejas', 'cluster-before');
+    const successor = createMockCluster({ id: 'cluster-after', entities: ['Tejas'], programTags: ['tejas'] });
+    const lineage = new Map([['cluster-after', ['cluster-before'] as const]]);
+    const result = matchAndAdvanceThreads([successor], [thread], [predecessor], { lineageClusterIdsByCluster: lineage });
+    expect(result.events).toEqual([predecessor]);
+    expect(result.attachedCount).toBe(0);
   });
 });

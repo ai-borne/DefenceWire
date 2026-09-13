@@ -11,7 +11,8 @@ import {
   StoryThreadEvent,
   StoryThreadRow,
   StoryThreadEventRow,
-  ThreadQueryOptions
+  ThreadQueryOptions,
+  ThreadTopicLink
 } from '../types/threads.js';
 
 export function threadRowToStoryThread(row: StoryThreadRow): StoryThread {
@@ -228,4 +229,53 @@ export function buildGetEventsByThreadIdStatement(threadId: string): D1Statement
     sql: `SELECT * FROM story_thread_events WHERE thread_id = ? ORDER BY sequence_index ASC`,
     params: [threadId]
   };
+}
+
+/**
+ * Finds only threads plausibly related to the incoming clusters.  This is
+ * deliberately topic/lineage scoped: thread continuity must never depend on
+ * an arbitrary newest-N slice of the whole database.
+ */
+export function buildThreadCandidatesStatement(clusterIds: string[]): D1Statement {
+  const marks = clusterIds.map(() => '?').join(',');
+  return {
+    sql: `WITH incoming_clusters AS (
+        SELECT event_fingerprint, first_observed_at, last_observed_at FROM story_clusters WHERE id IN (${marks})
+      ), incoming_topics AS (
+        SELECT DISTINCT topic_id FROM cluster_topics WHERE cluster_id IN (${marks})
+      ), incoming_lineage AS (
+        SELECT predecessor_cluster_id AS cluster_id FROM cluster_lineage WHERE successor_cluster_id IN (${marks})
+        UNION SELECT successor_cluster_id FROM cluster_lineage WHERE predecessor_cluster_id IN (${marks})
+      ), candidate_ids AS (
+        SELECT DISTINCT tt.thread_id FROM thread_topics tt JOIN incoming_topics it ON it.topic_id=tt.topic_id
+        UNION SELECT DISTINCT e.thread_id FROM story_thread_events e JOIN story_clusters historical ON historical.id=e.cluster_id
+          JOIN incoming_clusters incoming ON incoming.event_fingerprint=historical.event_fingerprint
+          AND historical.last_observed_at BETWEEN datetime(incoming.first_observed_at, '-180 days') AND datetime(incoming.last_observed_at, '+180 days')
+        UNION SELECT DISTINCT e.thread_id FROM story_thread_events e
+          WHERE e.cluster_id IN (${marks}) OR e.cluster_id IN (SELECT cluster_id FROM incoming_lineage)
+      ) SELECT st.* FROM story_threads st JOIN candidate_ids c ON c.thread_id=st.id
+      ORDER BY st.last_event_at DESC`,
+    params: [...clusterIds, ...clusterIds, ...clusterIds, ...clusterIds, ...clusterIds]
+  };
+}
+
+export function buildEventsForThreadsStatement(threadIds: string[]): D1Statement {
+  const marks = threadIds.map(() => '?').join(',');
+  return { sql: `SELECT * FROM story_thread_events WHERE thread_id IN (${marks}) ORDER BY thread_id, sequence_index ASC`, params: threadIds };
+}
+
+export function buildClusterTopicLinksStatement(clusterIds: string[]): D1Statement {
+  const marks = clusterIds.map(() => '?').join(',');
+  return { sql: `SELECT cluster_id, topic_id FROM cluster_topics WHERE cluster_id IN (${marks})`, params: clusterIds };
+}
+
+export function buildClusterLineageStatement(clusterIds: string[]): D1Statement {
+  const marks = clusterIds.map(() => '?').join(',');
+  return { sql: `SELECT predecessor_cluster_id, successor_cluster_id FROM cluster_lineage
+    WHERE predecessor_cluster_id IN (${marks}) OR successor_cluster_id IN (${marks})`, params: [...clusterIds, ...clusterIds] };
+}
+
+export function buildUpsertThreadTopicStatement(link: ThreadTopicLink): D1Statement {
+  return { sql: `INSERT INTO thread_topics (thread_id, topic_id, linked_at) VALUES (?, ?, ?)
+    ON CONFLICT(thread_id, topic_id) DO NOTHING`, params: [link.threadId, link.topicId, link.linkedAt] };
 }

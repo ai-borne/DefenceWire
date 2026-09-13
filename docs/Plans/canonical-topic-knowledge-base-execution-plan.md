@@ -1309,6 +1309,53 @@ Remove the remaining assumption that every hashtag is a story thread.
 - Fixed-limit correctness bugs are eliminated.
 - Full build and test suite pass.
 
+### Phase status
+
+Repository implementation completed on 2026-09-13. Narrative continuity now
+starts only from a programme/system signal, or advances an already coherent
+thread; it never derives a new thread identity from `primaryTag` or hashtags.
+Migration `0013_phase9_thread_topic_separation.sql` adds `thread_topics`,
+backfills it from existing event-to-cluster topic memberships, and indexes
+topic-to-thread lookup. Synchronization uses indexed canonical-topic and
+cluster-lineage candidates, retrieves all events for those candidates, and no
+longer relies on the former 100-thread/500-event slices. It preserves the
+evidence-bearing predecessor event through a merge or split instead of creating
+a duplicate event. Story Threads and the timeline surfaces are unchanged.
+
+### Phase 9 Summary
+
+Delivered: Explicit many-to-many `thread_topics` membership; programme/event
+seeded narrative continuity separate from presentation hashtags; indexed topic
+and lineage candidate reads; unbounded per-candidate event retrieval; lineage
+duplicate prevention; upgrade backfill for valid historical thread/topic
+references; and removal of crawler-time schema mutation and hard-coded remote
+purges.
+
+Verification: Dedicated Phase 9 integration tests cover several unrelated
+threads under one topic, one thread linked to several topics, a 501-event
+thread without a fixed-window lookup, primary-source change preservation, and
+the thread engine's hashtag, dormant-reactivation, coherence, and merge/split
+behaviour. `npm run check` passed: 1,471/1,471 tests, type checks, contract/LOC
+checks, crawler validation, CSS, production build, bundle budget, and security
+scan. No skipped or pending tests.
+
+Tech debt discovered: The prior synchronizer mutated remote schema during a
+crawl, contained hard-coded production data deletions, and relied on newest-N
+global reads.
+
+Resolution: Replaced those paths with numbered migration `0013`, additive
+indexed reads, and fail-loud synchronization. No Phase 9 repository-scope tech
+debt remains.
+
+Known limitations: Applying the new migration and exercising topic/lineage
+candidate reads against authenticated staging or production D1 is external
+state work and was not claimed by local tests. It is carried forward in the
+final Phase 20 under Rule 12.
+
+Build status: Passing.
+
+Test status: 1,471/1,471 full-suite tests passing; no skipped or pending tests.
+
 ## Phase 10 — Controlled cutover and legacy cleanup
 
 ### Goal
@@ -1837,3 +1884,49 @@ real D1 data.
   reaches the reader payload or UI.
 - Full suite, build, bundle, CSS, security, migration, and staging smoke tests
   pass with no skipped checks.
+
+## Phase 20 — Phase 9 remote thread-continuity migration and reconciliation closure
+
+### Goal
+
+Close the Phase 9 evidence that cannot truthfully be established by local
+SQLite and mocked D1 tests: apply the `thread_topics` migration and reconcile
+historical continuity against the authenticated D1/R2 estate.
+
+### Carried-forward Phase 9 limitations
+
+- Migration `0013_phase9_thread_topic_separation.sql` has not been applied to
+  authenticated staging or production D1 in this repository task.
+- The historical `thread_topics` backfill is deterministic and locally tested,
+  but its production row count, foreign-key integrity, and topic/lineage query
+  plan have not been measured against real data.
+- A controlled merge and split drill using production lineage rows, plus a
+  dormant-thread reactivation beyond the former 100-thread/500-event windows,
+  requires approved non-production credentials and operational authority.
+
+### Validation work
+
+- Back up the approved D1 database, apply migration `0013` exactly once, and
+  confirm a repeat migration run is clean.
+- Reconcile `thread_topics` with the distinct published `cluster_topics` of
+  existing thread events; investigate every missing or extra mapping rather
+  than silently repairing data.
+- Run `PRAGMA foreign_key_check` and indexed `EXPLAIN QUERY PLAN` checks for
+  topic, event-fingerprint, and lineage candidate reads at production-like
+  volume.
+- In an approved non-production clone, exercise primary-source replacement,
+  merge, split, dormant reactivation, an event count above 500, and a database
+  containing more than 100 threads; prove no duplicate event/thread and no
+  lost historical reference.
+
+### Exit criteria
+
+- Migration `0013` is present exactly once and schema parity is verified.
+- Historical thread/topic mappings reconcile with no unexplained rows or
+  foreign-key failures.
+- Candidate reads use the intended indexes without global newest-N correctness
+  dependencies.
+- Controlled lineage and reactivation drills preserve event continuity and
+  public Story Threads/timeline behaviour.
+- Full suite, build, bundle, security checks, remote migration checks, and
+  staging smoke tests pass with no skipped checks.

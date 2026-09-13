@@ -169,7 +169,7 @@ describe('runThreadContinuity', () => {
     expect(result.continuity.threads[0]?.id).toBe('th_su-57');
   });
 
-  it('auto-migrates remote D1 table when fingerprint_json column is missing', async () => {
+  it('uses numbered migrations rather than mutating the remote schema during a crawl', async () => {
     const config = { accountId: 'acc-1', databaseId: 'db-1', apiToken: 'tok-1' };
     let altered = false;
 
@@ -193,18 +193,19 @@ describe('runThreadContinuity', () => {
 
     const cluster = makeCluster('c4', 'Tejas');
     const result = await runThreadContinuity([cluster], config, { fetchFn: mockFetch });
-    expect(altered).toBe(true);
+    expect(altered).toBe(false);
     expect(result.syncedThreads).toBe(1);
     expect(result.failed).toBe(0);
   });
 
-  it('falls back to legacy upsert without fingerprint_json if remote D1 rejects ALTER TABLE', async () => {
+  it('fails loudly when the required numbered migration has not been applied', async () => {
     const config = { accountId: 'acc-1', databaseId: 'db-1', apiToken: 'tok-1' };
-    let legacyFallbackUsed = false;
+    let schemaMutationAttempted = false;
 
     const mockFetch = vi.fn().mockImplementation((_url: string, opts: RequestInit) => {
       const body = JSON.parse(opts.body as string) as { sql: string };
       if (body.sql.includes('ALTER TABLE story_threads')) {
+        schemaMutationAttempted = true;
         return Promise.resolve({
           ok: false, status: 403,
           text: () => Promise.resolve('{"errors":[{"message":"not authorized"}]}')
@@ -222,7 +223,6 @@ describe('runThreadContinuity', () => {
           text: () => Promise.resolve('{"errors":[{"message":"table story_threads has no column named fingerprint_json: SQLITE_ERROR"}]}')
         });
       }
-      legacyFallbackUsed = true;
       return Promise.resolve({
         ok: true, status: 200,
         text: () => Promise.resolve(JSON.stringify({ result: [{ meta: { changes: 1 } }] }))
@@ -231,9 +231,9 @@ describe('runThreadContinuity', () => {
 
     const cluster = makeCluster('c5', 'Zorawar');
     const result = await runThreadContinuity([cluster], config, { fetchFn: mockFetch });
-    expect(legacyFallbackUsed).toBe(true);
-    expect(result.syncedThreads).toBe(1);
-    expect(result.failed).toBe(0);
+    expect(schemaMutationAttempted).toBe(false);
+    expect(result.syncedThreads).toBe(0);
+    expect(result.failed).toBeGreaterThan(0);
   });
 
   it('deletes purged/outlier events from D1 when continuity detects outlier events', async () => {
@@ -246,7 +246,7 @@ describe('runThreadContinuity', () => {
         deletedEventIds.push(body.params[0] as string);
         return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{"result":[{"meta":{"changes":1}}]}') });
       }
-      if (body.sql.includes('SELECT * FROM story_threads')) {
+      if (body.sql.includes('FROM story_threads st JOIN')) {
         const lacThread = {
           id: 'th_lac', title: 'LAC Operational Arc', canonical_entity: 'LAC', category: 'strategic',
           status: 'active', event_count: 3, first_event_at: '2026-09-06T00:00:00Z', last_event_at: '2026-09-08T00:00:00Z',
@@ -282,4 +282,3 @@ describe('runThreadContinuity', () => {
     expect(deletedEventIds).toContain('ev_black_jet');
   });
 });
-

@@ -37,8 +37,6 @@ export function slugify(text: string): string {
 
 export function extractCanonicalEntities(cluster: StoryCluster): string[] {
   const raw = [
-    cluster.primaryTag,
-    ...(cluster.hashtags ?? []),
     ...(cluster.programTags ?? []),
     cluster.ssbIntel?.defenceTechTakeaway?.platformOrSystem,
     ...(cluster.entities ?? [])
@@ -56,6 +54,21 @@ export function extractCanonicalEntities(cluster: StoryCluster): string[] {
     }
   }
   return candidates;
+}
+
+const NON_THREAD_ENTITIES = new Set([
+  'india', 'china', 'iran', 'united states', 'usa', 'us', 'jordan',
+  'defence', 'defense', 'security', 'news', 'update', 'military'
+]);
+
+/** A thread starts from a named programme/system or a non-generic named entity,
+ * never from a presentation hashtag. */
+export function extractThreadSeeds(cluster: StoryCluster): string[] {
+  const programmeSeeds = (cluster.programTags ?? []).filter((item) => !isNoiseTag(item));
+  const entitySeeds = (cluster.entities ?? []).filter((item) =>
+    !NON_THREAD_ENTITIES.has(item.trim().toLowerCase()) && !isNoiseTag(item)
+  );
+  return [...new Set([...entitySeeds, ...programmeSeeds].map((item) => item.trim()).filter(Boolean))];
 }
 
 export function generateThreadTitle(entity: string, category?: DomainCategory | string): string {
@@ -132,6 +145,8 @@ export function sortAndIndexEvents(events: StoryThreadEvent[]): StoryThreadEvent
 export interface ContinuityEngineOptions {
   now?: () => Date;
   dormantThresholdMs?: number;
+  /** Durable merge/split neighbours keyed by the incoming cluster ID. */
+  lineageClusterIdsByCluster?: ReadonlyMap<string, readonly string[]>;
 }
 
 export function matchAndAdvanceThreads(
@@ -165,8 +180,10 @@ export function matchAndAdvanceThreads(
   let newlySpawnedCount = 0, attachedCount = 0, reactivatedCount = 0;
 
   for (const cluster of clusters) {
-    const canonicalEntities = extractCanonicalEntities(cluster);
+    const canonicalEntities = extractThreadSeeds(cluster);
     if (canonicalEntities.length === 0) continue;
+
+    const equivalentClusterIds = options.lineageClusterIdsByCluster?.get(cluster.id) ?? [];
 
     const matched: { thread: StoryThread; score: number }[] = [];
     for (const thread of threadMap.values()) {
@@ -175,6 +192,10 @@ export function matchAndAdvanceThreads(
     }
 
     if (matched.length === 0) {
+      // A one-off named actor is topic evidence, not proof of a narrative arc.
+      // New threads require a programme/system signal; existing coherent threads
+      // can still receive a later event through the match path above.
+      if (!(cluster.programTags ?? []).some((item) => !isNoiseTag(item))) continue;
       const primaryEntity = canonicalEntities[0]!;
       const threadId = hashtagToSlug(primaryEntity) || `th_${slugify(primaryEntity)}`;
       if (threadMap.has(threadId)) continue;
@@ -202,7 +223,7 @@ export function matchAndAdvanceThreads(
     const multi = matched.length > 1;
     matched.forEach(({ thread }, idx) => {
       const curEvents = eventsByThread.get(thread.id) ?? [];
-      if (curEvents.some((e) => e.clusterId === cluster.id)) return;
+      if (curEvents.some((e) => e.clusterId === cluster.id || equivalentClusterIds.includes(e.clusterId))) return;
 
       const lastPublished = new Date(thread.lastEventAt).getTime();
       if (thread.status === 'dormant' || (now.getTime() - lastPublished > dormantMs && thread.status !== 'concluded')) {

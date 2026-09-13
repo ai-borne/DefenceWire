@@ -95,3 +95,9 @@ export interface ThreadContinuityResult {
   reactivatedCount: number;
   purgedEventIds?: string[];
 }
+
+export interface ThreadTopicLink {
+  threadId: string;
+  topicId: string;
+  linkedAt: string;
+}

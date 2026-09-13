@@ -80,9 +80,14 @@ export async function backfillUnthreadedArchive(
     const { clusters, scanned, failed: loadFailed } = await loadUnthreadedClusters(config, r2Config, fetchFn);
     if (clusters.length === 0) return { scanned, threaded: 0, failed: loadFailed };
 
-    const { threads: existingThreads, events: existingEvents } = await fetchExistingThreadsAndEvents(config, fetchFn);
-    const continuity = matchAndAdvanceThreads(clusters, existingThreads, existingEvents, { now: deps.now });
-    const { syncedEvents, failed: syncFailed } = await syncThreadsToD1(continuity, config, fetchFn);
+    const { threads: existingThreads, events: existingEvents, topicsByCluster, lineageClusterIdsByCluster } = await fetchExistingThreadsAndEvents(
+      config, fetchFn, clusters.map((cluster) => cluster.id)
+    );
+    const continuity = matchAndAdvanceThreads(clusters, existingThreads, existingEvents, { now: deps.now, lineageClusterIdsByCluster });
+    const topicLinks = continuity.events.flatMap((event) =>
+      (topicsByCluster.get(event.clusterId) ?? []).map((topicId) => ({ threadId: event.threadId, topicId, linkedAt: event.createdAt }))
+    );
+    const { syncedEvents, failed: syncFailed } = await syncThreadsToD1(continuity, config, fetchFn, topicLinks);
 
     return { scanned, threaded: syncedEvents, failed: loadFailed + syncFailed };
   } catch (err) {
