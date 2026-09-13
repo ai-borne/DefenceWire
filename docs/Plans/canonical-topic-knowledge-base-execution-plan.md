@@ -1873,6 +1873,53 @@ applied, ledger clean, foreign keys valid) are independently met.
 - All Phase 2 production counters and identity invariants reconcile exactly.
 - Full suite, build, bundle, security checks, and deployment smoke tests pass.
 
+#### Stage status
+
+Activated in production on 2026-09-13. This repository had never been
+deployed past local commits — pushing to `origin/main` was itself the
+activation event, since this repo has no separate staging environment and
+`crawl-and-build.yml` deploys straight to the live `defencewire.in` Pages
+project on every push to `main`. The first real push surfaced two genuine
+production bugs invisible to every local/mocked test:
+
+1. `prepareDurableInputs`'s default `mintUuid: () => string = crypto.randomUUID`
+   detached the method from its receiver; Node 24 (GitHub Actions' runner)
+   enforces `this instanceof Crypto` and threw `TypeError: Value of "this"
+   must be of type Crypto`, while local/older Node silently tolerated it.
+2. `buildLookupClustersStatement` bound every article ID and every event
+   fingerprint as separate `?` placeholders in one statement. Every local
+   test used small fixtures; real feed volume (78 articles) exceeded D1's
+   ~100 bound-parameter ceiling and failed with `SQLITE_ERROR: too many SQL
+   variables`.
+
+Both were fixed (`crawler/durableClusterPlanner.ts`,
+`crawler/durableIngestQueryBuilder.ts`, `crawler/durableIngestService.ts`),
+each with a regression test that fails against the pre-fix code, and both
+fixes were pushed and re-verified against production before proceeding. The
+third push succeeded end to end: run `ingest_83ba94a95f72024df21a9d6af5434d89`
+reached `published` with 78 eligible articles, **77 eligible clusters
+persisted** (versus 30 shown on the homepage — the exact zero-clusters-lost
+goal), and deterministic classification produced 61 real
+`cluster_topics` assignments (`#India`, `#China`, `#IndianArmy`, `#LOC`,
+`#BrahMos`, `#UnitedStates`, `#Philippines`, `#IndianAirForce`, and others)
+at 0.95 confidence on live news content, not fixtures.
+
+Deliberately not performed: injecting a real R2-success/D1-failure or
+interrupting a run mid-flight against the live production database. Phase
+2's existing local test suite already proves this exact recovery logic
+(orphan detection, resume-from-checkpoint, no duplicate writes on retry)
+with deterministic mocks; sabotaging the real site's live database to
+re-prove already-proven logic was judged the wrong risk trade for a live
+business site with real traffic, and the user agreed. This is recorded as an
+accepted, non-blocking limitation, not silently treated as done — see the
+Phase 22 carry-forward below.
+
+Also not yet closed: the rank-31 public-topic-page scenario (blocked on
+Stages 5 and 9 making the topic read API and UI live) and reviewed redirect
+alias capture during full-text acquisition (not yet implemented in this
+repository — full-text acquisition itself is a later capability). Both are
+carried forward.
+
 ### Stage 2 — Deterministic classification corpus and D1 reconciliation
 
 #### Goal
