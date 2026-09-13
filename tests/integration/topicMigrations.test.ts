@@ -22,7 +22,8 @@ describe('Phase 1 D1 migrations', () => {
     for (const name of ['ingestion_runs', 'source_articles', 'story_clusters', 'cluster_sources',
       'cluster_lineage', 'topics', 'topic_aliases', 'topic_relations', 'topic_implication_rules',
       'topic_candidates', 'topic_assignment_runs', 'cluster_topic_decisions', 'cluster_topics',
-      'article_topic_mentions', 'topic_curation_audit', 'topic_reclassification_queue']) {
+      'article_topic_mentions', 'topic_curation_audit', 'topic_reclassification_queue',
+      'topic_semantic_cache', 'topic_candidate_evidence']) {
       expect(names.has(name), `missing ${name}`).toBe(true);
     }
     expect(db.prepare('SELECT COUNT(*) AS count FROM topics').get()!.count).toBe(29);
@@ -41,7 +42,7 @@ describe('Phase 1 D1 migrations', () => {
       VALUES ('legacy-x', '#LegacyX', '2026-01-01', '2026-01-01')`).run();
     for (const name of ['0003_durable_identity.sql', '0004_topic_registry.sql',
       '0005_topic_assignments.sql', '0006_seed_topic_taxonomy.sql', '0007_durable_ingestion.sql',
-      '0008_phase3_topic_corpus_seed.sql']) {
+      '0008_phase3_topic_corpus_seed.sql', '0009_phase4_semantic_discovery.sql']) {
       db.exec(readFileSync(resolve(root, `d1/migrations/${name}`), 'utf8'));
     }
     expect(db.prepare("SELECT canonical_tag FROM canonical_entities WHERE id='legacy-x'").get()!.canonical_tag).toBe('#LegacyX');

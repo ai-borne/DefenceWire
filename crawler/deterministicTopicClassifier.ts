@@ -2,8 +2,8 @@
 import { createHash } from 'node:crypto';
 import { TopicAliasRecord, TopicAssignmentRole, TopicRecord, TopicRegistrySnapshot } from '../src/types/topics.js';
 
-export const CLASSIFIER_VERSION = 'deterministic-topic-v1';
-export const ASSIGNMENT_POLICY_VERSION = 'material-direct-v1';
+export const CLASSIFIER_VERSION = 'hybrid-topic-v1';
+export const ASSIGNMENT_POLICY_VERSION = 'semantic-shadow-v1';
 
 export interface ClassifiedMention {
   topicId: string; role: TopicAssignmentRole; confidence: number;

@@ -1,5 +1,4 @@
 /** Autonomous feed ingestion orchestrator. Hard limit: <= 300 LOC. */
-
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { clusterArticles } from '../src/engine/clusterEngine.js';
@@ -32,6 +31,7 @@ import {
 } from './durableIngestService.js';
 import { DurablePersistResult } from './durableIngestTypes.js';
 import { classifyAndMarkDurableRun } from './topicClassificationPipeline.js';
+import { topicModelConfigFromEnv } from './topicModelConfig.js';
 import { IngestOptions, IngestResult } from './ingestTypes.js';
 import { writeSnapshotAtomically } from './snapshotWriter.js';
 export {
@@ -191,7 +191,7 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   if (durableRun && durableConfig) {
     const byId = new Map(lockedProtectedClusters.map((cluster) => [cluster.id, cluster]));
     for (const item of durableRun.plan.clusters) item.cluster = byId.get(item.id) ?? item.cluster;
-    const topicResult = await classifyAndMarkDurableRun(durableRun, durableConfig, fetchFn, now.toISOString());
+    const topicResult = await classifyAndMarkDurableRun(durableRun, durableConfig, fetchFn, now.toISOString(), topicModelConfigFromEnv());
     console.log(`[TOPIC CLASSIFICATION] ${topicResult.validated} validated, ${topicResult.reused} reused`);
   }
 

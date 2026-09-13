@@ -891,6 +891,16 @@ Run old and new classification simultaneously and report:
 - Phase 0 quality thresholds are met on the reviewed corpus and shadow production sample, including 100% canonical alias convergence and 100% unchanged-input assignment stability.
 - Full build and test suite pass.
 
+### Phase status
+
+Repository implementation completed on 2026-09-13. The guarded semantic path
+is opt-in, cached by versioned input hash, source-span validated, and writes
+model links/discoveries as shadow decisions only. Automatic provisional creation
+is limited to entity types with deterministic naming evidence; other proposals
+remain private review candidates. The external/provider measurements and broader
+reviewed type validators that cannot truthfully be claimed from local fixtures
+are carried forward explicitly in final Phase 15.
+
 ## Phase 5 — Curator topic governance and review workflow
 
 ### Goal
@@ -1454,3 +1464,57 @@ are present.
   approved production rollout environment.
 - Candidate discovery remains private until Phase 4's validation gates are met.
 - Full suite, build, bundle, and security checks pass.
+
+## Phase 15 — Phase 4 provider-shadow and discovery-promotion closure
+
+### Goal
+
+Close the Phase 4 evidence that cannot be established solely with local,
+synthetic fixtures. This phase is required by Rule 12; it must not be inferred
+from the repository implementation or a passing mocked provider test.
+
+### Carried-forward Phase 4 limitations
+
+- No authenticated provider run or production shadow sample was available to
+  measure model precision, recall, disagreement, latency, cache hit rate, or
+  cost against the Phase 0 thresholds.
+- The local suite proves cache, validation, shadow-only writes, candidate
+  aggregation, and promotion SQL construction, but has not executed the
+  complete D1 REST batch against a production-like remote database with a
+  real provider response.
+- Automatic creation is deliberately restricted to facilities, exercises, and
+  operations whose type is established by deterministic naming rules. Additional
+  concrete types require reviewed deterministic type validators or authenticated
+  curator approval; they remain private candidates until then.
+- No calibrated publication threshold has been approved for model-only links.
+  They remain shadow decisions, never effective public membership, until such a
+  policy is ratified and tested.
+
+### Validation work
+
+- Run a bounded, explicitly budgeted provider shadow evaluation over the gold
+  corpus and independent production sample; record precision, recall,
+  disagreement, candidate rate, assignment churn, p95 latency, cache hit rate,
+  and cost without committing source bodies or credentials.
+- Exercise semantic-cache hit, malformed-response cache, source outage, and
+  atomic D1 batch behavior against an authenticated non-production D1 clone.
+- Prove provisional-topic promotion using two independent owners and one
+  reviewed authoritative source; prove provisional, shadow, suppressed, and
+  rejected rows remain absent from all available public and compatibility paths.
+- Add reviewed type validators for any additional auto-creatable concrete types,
+  with homonym, collision, transliteration, and source-independence tests.
+- If product policy approves model-link publication, encode a bounded,
+  deterministic acceptance/removal threshold and verify curator locks, desired
+  state reconciliation, and repeated-run stability before enabling it.
+
+### Exit criteria
+
+- Phase 0 semantic quality, stability, latency, and cost thresholds are met on
+  the reviewed shadow sample, or deployment remains disabled with an explicit
+  corrective plan.
+- Every automatic promotion has source-grounded evidence and no unreviewed
+  model string reaches a public topic or effective membership row.
+- Remote D1 batch, cache, promotion, and outage drills pass without orphaned or
+  oscillating assignments.
+- Full suite, build, bundle, security checks, and the approved provider/D1
+  smoke tests pass.
