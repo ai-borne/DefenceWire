@@ -7,6 +7,7 @@
  */
 
 import { STRINGS } from '../resources/strings.js';
+import topicStrings from '../resources/topicStrings.js';
 import { NewsViewModel } from '../viewmodels/NewsViewModel.js';
 import { renderStoryCluster } from './StoryClusterView.js';
 import { renderRiverView } from './RiverView.js';
@@ -230,6 +231,16 @@ export function renderMainFeedContent(
       () => Promise.all([loadThreadExplorerVm(), loadThreadExplorerView()]),
       ([threadsVm, { renderThreadExplorerView }]) => renderThreadExplorerView(threadsVm)
     );
+  } else if (activeCat === 'topic') {
+    const match = window.location.hash.match(/^#\/?topic\/([^/?#]+)/);
+    const topicId = match?.[1] ? decodeURIComponent(match[1]) : '';
+    const placeholder = document.createElement('p');
+    placeholder.className = 'dw-snippet';
+    placeholder.textContent = topicId ? topicStrings.loading : STRINGS.errors.emptyCluster;
+    mainFeed.appendChild(placeholder);
+    if (topicId) import('../viewmodels/TopicKnowledgeBaseViewModel.js').then(({ TopicKnowledgeBaseViewModel }) => import('./topics/TopicKnowledgeBaseView.js').then(({ renderTopicKnowledgeBaseView }) => {
+      if (newsVm.getActiveCategory() === 'topic' && mainFeed.contains(placeholder)) { placeholder.replaceWith(renderTopicKnowledgeBaseView(new TopicKnowledgeBaseViewModel(topicId))); }
+    })).catch(() => { placeholder.textContent = STRINGS.errors.feedLoadFailed; });
   } else if (activeCat === 'curator' || activeCat === 'editor') {
     const curatorContainer = document.createElement('div');
     curatorContainer.className = 'dw-curator-route-container';

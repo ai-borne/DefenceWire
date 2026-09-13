@@ -1228,6 +1228,48 @@ All labels come from resource files, and all styling uses existing variables.
 - No hardcoded UI strings or colors.
 - Full build, CSS check, accessibility tests, and bundle budget pass.
 
+### Phase status
+
+Repository implementation completed on 2026-09-13. The internal/staging topic
+flag (`VITE_ENABLE_TOPIC_UI=true`, or the internal runtime flag) enables
+canonical-topic badges only when a feed cluster carries published
+`canonicalTopics`; the legacy thread badge and public hashtag routing remain
+unchanged. Topic pages use the Phase 6 public API only, preserve API ordering
+through stored display priority and canonical-ID tie-breakers, paginate
+articles, and render the complete published topic read model.
+
+### Phase 8 Summary
+
+Delivered: Feature-flagged canonical-topic badges with the three highest
+priority topics and `+N`, internal topic navigation, a lazy MVVM topic
+knowledge-base view, safe public API client, chronological article cards with
+corroborating sources, related topics, associated thread IDs, accurate total
+counts and observation bounds, pagination, resource strings, theme-variable
+styling, and responsive layout.
+
+Verification: Dedicated UI tests cover badge collapse, canonical-ID routing,
+deterministic repeated ordering, loading/article/pagination behavior. The
+complete `npm run check` suite passed: 1,466/1,466 tests, contracts/LOC,
+crawler validation, CSS, production build, bundle budget, and security scan.
+
+Tech debt discovered: The first page implementation derived total count and
+observation dates from its current page, which would become wrong after
+pagination.
+
+Resolution: Added deterministic full-collection aggregates to the bounded
+topic-article query and returned them through the existing public contract.
+No Phase 8 repository-scope tech debt remains.
+
+Known limitations: The production feed serializer does not yet hydrate the new
+`canonicalTopics` field from published `cluster_topics`. The feature is safely
+off by default and therefore cannot show real-topic badges until that durable
+feed bridge and an authenticated staging validation are completed. This is
+explicitly carried forward in Phase 19 under Rule 12.
+
+Build status: Passing.
+
+Test status: 1,466/1,466 full-suite tests passing; no skipped or pending tests.
+
 ## Phase 9 — Separate narrative threads from topic membership
 
 ### Goal
@@ -1752,3 +1794,46 @@ mistaking a locally tested worker for a completed historical migration.
   candidate, or an explicitly documented unrecoverable record.
 - Remote D1/R2 failure, retry, queueing, lock-preservation, and reconciliation
   drills pass, with full suite, build, bundle, and security checks green.
+
+## Phase 19 — Phase 8 durable feed bridge and staged topic-UI closure
+
+### Goal
+
+Close the two Phase 8 requirements that cannot be claimed from a client-only,
+feature-disabled repository implementation: hydrate published canonical
+memberships into the reader feed and validate the internal/staging flag against
+real D1 data.
+
+### Carried-forward Phase 8 limitations
+
+- The reader feed payload currently has no bounded, published-only
+  `canonicalTopics` projection from `cluster_topics`; the completed UI safely
+  renders no canonical badges until that field exists.
+- No authenticated staging Pages/D1 environment was available to set both the
+  topic-read API and UI flag, exercise aliases against real records, or verify
+  responsive/accessibility behavior in a browser with production-like data.
+
+### Validation work
+
+- Add a bounded durable-feed projection joining only active, published topics
+  with accepted effective cluster memberships. It must preserve stored display
+  priority plus canonical-ID ordering, omit all decision-ledger states, and
+  add no per-card D1 query.
+- Cover feed serialization, public-state exclusion, deterministic ordering,
+  and the `#India` assigned-story path with integration tests.
+- In approved staging only, provision `TOPIC_CURSOR_SECRET`, enable the topic
+  API and `VITE_ENABLE_TOPIC_UI`, and verify desktop/mobile, light/dark,
+  keyboard navigation, aliases and redirects, empty/loading/unavailable/error
+  states, pagination, URL/HTML sanitization, cache behavior, and no public
+  routing regression.
+
+### Exit criteria
+
+- Staging cards show exactly the published canonical memberships from D1 and
+  every displayed badge opens the matching topic collection.
+- Production public hashtag routing remains unchanged until the approved final
+  cutover phase.
+- No provisional, shadow, suppressed, rejected, or curator-only topic state
+  reaches the reader payload or UI.
+- Full suite, build, bundle, CSS, security, migration, and staging smoke tests
+  pass with no skipped checks.

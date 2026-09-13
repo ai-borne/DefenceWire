@@ -1,0 +1,8 @@
+/* Canonical topic badges and knowledge-base view. */
+.dw-topic-badge-list { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+.dw-topic-badge { border:1px solid var(--dw-border-primary); border-radius:var(--dw-radius-sm); background:var(--dw-badge-bg); color:var(--dw-badge-text); font:600 .72rem var(--dw-font-sans); padding:3px 7px; }
+button.dw-topic-badge { cursor:pointer; } button.dw-topic-badge:hover, button.dw-topic-badge:focus-visible { background:var(--dw-bg-hover); outline:2px solid var(--dw-link); outline-offset:2px; }
+.dw-topic-badge--more { cursor:default; }
+.dw-topic-knowledge-base { display:grid; gap:12px; color:var(--dw-text-primary); }.dw-topic-knowledge-base h2 { margin:0; }.dw-topic-article-card { border:1px solid var(--dw-border-primary); background:var(--dw-bg-card); padding:14px; }.dw-topic-article-card h3 { margin:0 0 6px; font-size:1rem; }.dw-topic-article-card p { color:var(--dw-text-secondary); }.dw-topic-sources { color:var(--dw-text-muted); font-size:.8rem; padding-left:18px; }.dw-topic-error { color:var(--dw-text-accent); }
+.dw-topic-stats { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; margin:0; }.dw-topic-stats dt { color:var(--dw-text-muted); }.dw-topic-stats dd { margin:0; }.dw-topic-observed-at { color:var(--dw-text-muted); font-size:.78rem; }
+@media (max-width: 640px) { .dw-topic-badge-list { gap:4px; }.dw-topic-badge { font-size:.68rem; }.dw-topic-article-card { padding:10px; } }

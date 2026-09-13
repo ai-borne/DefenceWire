@@ -218,6 +218,10 @@ export function initializeApp(): void {
       newsVm.setActiveCategory('graph');
       return;
     }
+    if (/^#\/?topic\/[^/?#]+/.test(hash)) {
+      newsVm.setActiveCategory('topic');
+      return;
+    }
     const path = window.location.pathname;
     const progMatch = hash.match(/^#\/?program\/([^/?#]+)/) || path.match(/^\/program\/([^/?#]+)/);
     if (progMatch?.[1]) {

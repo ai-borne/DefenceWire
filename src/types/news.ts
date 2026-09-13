@@ -4,6 +4,7 @@
  */
 
 import { SourceTier } from './source.js';
+import type { PublicTopic } from '../services/topicReadHandler.js';
 
 export interface ParliamentQuestionMeta {
   house: 'Lok Sabha' | 'Rajya Sabha';
@@ -99,6 +100,8 @@ export interface StoryCluster {
   programTags?: string[];
   primaryTag?: string;
   hashtags?: string[];
+  /** Published canonical memberships supplied by the durable feed payload. */
+  canonicalTopics?: PublicTopic[];
   focalEntity?: string;
   operationalTheater?: string;
   defenceScore: number;
@@ -109,4 +112,3 @@ export interface StoryCluster {
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
-

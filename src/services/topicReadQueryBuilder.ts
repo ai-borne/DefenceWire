@@ -31,14 +31,16 @@ export function buildListPublicTopicsStatement(limit: number, cursor?: { priorit
 
 export function buildTopicArticleStatement(topicId: string, limit: number, cursor?: { publishedAt: string; clusterId: string }): D1Statement {
   const clause = cursor ? 'AND (p.published_at < ? OR (p.published_at = ? AND c.id < ?))' : '';
-  const params: unknown[] = cursor ? [topicId, cursor.publishedAt, cursor.publishedAt, cursor.clusterId, limit] : [topicId, limit];
   return { sql: `SELECT c.id AS cluster_id, ct.role, ct.confidence, ct.assignment_source, ct.assigned_at,
       p.published_at, p.id AS primary_source_id, p.title AS primary_title, p.snippet AS primary_snippet,
-      p.canonical_url AS primary_url, p.source_domain AS primary_domain, p.source_owner_key AS primary_owner_key
+      p.canonical_url AS primary_url, p.source_domain AS primary_domain, p.source_owner_key AS primary_owner_key,
+      (SELECT COUNT(*) FROM cluster_topics counted JOIN story_clusters counted_cluster ON counted_cluster.id=counted.cluster_id AND counted_cluster.status='active' WHERE counted.topic_id=?) AS total_count,
+      (SELECT MIN(observed.published_at) FROM cluster_topics observed_topic JOIN story_clusters observed_cluster ON observed_cluster.id=observed_topic.cluster_id AND observed_cluster.status='active' JOIN source_articles observed ON observed.id=observed_cluster.primary_source_article_id WHERE observed_topic.topic_id=?) AS first_observed_at,
+      (SELECT MAX(observed.published_at) FROM cluster_topics observed_topic JOIN story_clusters observed_cluster ON observed_cluster.id=observed_topic.cluster_id AND observed_cluster.status='active' JOIN source_articles observed ON observed.id=observed_cluster.primary_source_article_id WHERE observed_topic.topic_id=?) AS latest_observed_at
     FROM cluster_topics ct JOIN story_clusters c ON c.id=ct.cluster_id AND c.status='active'
       JOIN source_articles p ON p.id=c.primary_source_article_id
     WHERE ct.topic_id=? ${clause}
-    ORDER BY p.published_at DESC, c.id DESC LIMIT ?`, params };
+    ORDER BY p.published_at DESC, c.id DESC LIMIT ?`, params: cursor ? [topicId, topicId, topicId, topicId, cursor.publishedAt, cursor.publishedAt, cursor.clusterId, limit] : [topicId, topicId, topicId, topicId, limit] };
 }
 
 export function buildClusterSourcesStatement(clusterIds: string[]): D1Statement {

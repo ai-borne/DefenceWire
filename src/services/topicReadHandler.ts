@@ -19,14 +19,15 @@ interface ArticleRow extends Record<string, unknown> {
   cluster_id: string; role: TopicAssignmentRole; confidence: number; assignment_source: string; assigned_at: string;
   published_at: string; primary_source_id: string; primary_title: string; primary_snippet: string | null;
   primary_url: string | null; primary_domain: string; primary_owner_key: string;
+  total_count?: number; first_observed_at?: string; latest_observed_at?: string;
 }
 interface SourceRow extends Record<string, unknown> { cluster_id: string; id: string; title: string; snippet: string | null; canonical_url: string | null; source_domain: string; coverage_role: 'primary' | 'related' | 'social'; }
 
 export interface TopicReadDependencies { runQuery(sql: string, params: unknown[]): Promise<Record<string, unknown>[]>; }
 export interface TopicReadRequest { resource: 'list' | 'detail' | 'articles' | 'related'; rawTopic?: string; limit?: number; cursor?: string; }
 export interface TopicReadOptions { cursorSecret?: string; }
-export interface PublicTopic { id: string; displayName: string; displayHashtag: string; topicType: TopicType; description: string | null; registryVersion: number; }
-export interface TopicReadResult { status: number; data?: { topic?: PublicTopic; topics?: PublicTopic[]; articles?: PublicTopicArticle[]; related?: Array<PublicTopic & { relationType: string }>; nextCursor?: string | null; registryVersion?: number; assignmentVersion?: string; }; error?: string; redirectTopicId?: string; }
+export interface PublicTopic { id: string; displayName: string; displayHashtag: string; topicType: TopicType; description: string | null; registryVersion: number; displayPriority?: number; }
+export interface TopicReadResult { status: number; data?: { topic?: PublicTopic; topics?: PublicTopic[]; articles?: PublicTopicArticle[]; related?: Array<PublicTopic & { relationType: string }>; nextCursor?: string | null; totalCount?: number; firstObservedAt?: string | null; latestObservedAt?: string | null; registryVersion?: number; assignmentVersion?: string; }; error?: string; redirectTopicId?: string; }
 export interface PublicTopicArticle { clusterId: string; role: TopicAssignmentRole; confidence: number; assignmentSource: string; assignedAt: string; publishedAt: string; primarySource: PublicSource; sources: PublicSource[]; relatedThreadIds: string[]; }
 export interface PublicSource { id: string; title: string; snippet: string | null; canonicalUrl: string | null; sourceDomain: string; coverageRole: 'primary' | 'related' | 'social'; }
 
@@ -41,7 +42,7 @@ function cleanLookup(raw: string | undefined): { id: string; alias: string; disp
 }
 
 function topic(row: TopicRow): PublicTopic {
-  return { id: row.id, displayName: row.display_name, displayHashtag: row.display_hashtag, topicType: row.topic_type, description: row.description, registryVersion: row.registry_version };
+  return { id: row.id, displayName: row.display_name, displayHashtag: row.display_hashtag, topicType: row.topic_type, description: row.description, registryVersion: row.registry_version, displayPriority: row.display_priority ?? 0 };
 }
 
 function limit(value: number | undefined): number { return Math.min(MAX_LIMIT, Math.max(1, Math.trunc(value ?? DEFAULT_LIMIT) || DEFAULT_LIMIT)); }
@@ -112,7 +113,7 @@ async function articles(request: TopicReadRequest, current: TopicRow, deps: Topi
   for (const item of threadRows) threads.set(item.cluster_id, [...(threads.get(item.cluster_id) ?? []), item.thread_id]);
   const result = rows.map((row) => ({ clusterId: row.cluster_id, role: row.role, confidence: row.confidence, assignmentSource: row.assignment_source, assignedAt: row.assigned_at, publishedAt: row.published_at, primarySource: { id: row.primary_source_id, title: row.primary_title, snippet: row.primary_snippet, canonicalUrl: row.primary_url, sourceDomain: row.primary_domain, coverageRole: 'primary' as const }, sources: sources.get(row.cluster_id) ?? [], relatedThreadIds: threads.get(row.cluster_id) ?? [] }));
   const last = rows[rows.length - 1];
-  return { status: 200, data: { topic: topic(current), articles: result, registryVersion: current.registry_version, assignmentVersion: current.assigned_version, nextCursor: last && rows.length === requestedLimit ? await encodeTopicCursor({ v: 1, kind: 'articles', registryVersion: current.registry_version, assignmentVersion: current.assigned_version, publishedAt: last.published_at, clusterId: last.cluster_id }, secret) : null } };
+  return { status: 200, data: { topic: topic(current), articles: result, totalCount: rows[0]?.total_count ?? 0, firstObservedAt: rows[0]?.first_observed_at ?? null, latestObservedAt: rows[0]?.latest_observed_at ?? null, registryVersion: current.registry_version, assignmentVersion: current.assigned_version, nextCursor: last && rows.length === requestedLimit ? await encodeTopicCursor({ v: 1, kind: 'articles', registryVersion: current.registry_version, assignmentVersion: current.assigned_version, publishedAt: last.published_at, clusterId: last.cluster_id }, secret) : null } };
 }
 
 async function related(current: TopicRow, deps: TopicReadDependencies): Promise<TopicReadResult> {

@@ -5,7 +5,7 @@
 
 import { DomainCategory, StoryCluster } from './news.js';
 
-export type FilterCategory = 'all' | DomainCategory | 'river' | 'archive' | 'suppliers' | 'graph' | 'threads';
+export type FilterCategory = 'all' | DomainCategory | 'river' | 'archive' | 'suppliers' | 'graph' | 'threads' | 'topic';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
