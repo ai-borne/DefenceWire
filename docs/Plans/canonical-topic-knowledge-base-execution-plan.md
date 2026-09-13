@@ -1582,15 +1582,83 @@ without exposing credentials or disrupting ingestion.
 - No credentials or source payloads are committed in verification evidence.
 - Full suite, build, bundle, and security checks pass after rollout.
 
-## Phase 13 — Phase 2 production activation and cross-phase acceptance closure
+## Phase 13 — Production activation and cross-phase closure (Phases 2–10)
 
 ### Goal
 
-Close the Phase 2 checks that require authenticated production D1/R2 state or
-the later canonical-topic publication path, without pretending repository-only
-verification exercised those external systems.
+Close every remaining external-state check deliberately excluded from the
+Phase 1–10 repository implementation — production migration activation,
+deterministic and model-assisted classification reconciliation, curator
+workflow completion, staged read/UI deployment, historical backfill,
+thread-continuity migration, and final authenticated cutover with monitoring —
+as one coordinated production rollout track, since Phase 11 already closes
+Phase 0's baseline gaps and Phase 12 already closes Phase 1's migration
+rollout foundation.
 
-### Carried-forward Phase 2 limitations
+Every stage below shares the same root blocker: no authenticated production
+D1/R2 credentials or deployment authority were available during repository
+implementation, so none of this work may be inferred from local or mocked
+verification alone (Rule 12).
+
+### Execution order
+
+The stages must run in this order. Each stage must reach a clean, verified
+state — its own build/tests green, its own drills passed, no unresolved
+failures — before the next stage begins. Collapsing nine phase numbers into
+one does not collapse this sequencing: later stages genuinely depend on
+earlier ones (for example, Stage 9's cutover depends on Stage 5's staged read
+API and Stage 7's feed bridge already being live in staging).
+
+0. Stage 0 — Apply all pending production migrations (once, up front)
+1. Stage 1 — Durable ingestion production activation (closes former Phase 2)
+2. Stage 2 — Deterministic classification corpus and D1 reconciliation (closes former Phase 3)
+3. Stage 3 — Model-assisted discovery shadow evaluation and promotion (closes former Phase 4)
+4. Stage 4 — Curator governance UI and remote concurrency (closes former Phase 5)
+5. Stage 5 — Topic read API staged deployment (closes former Phase 6)
+6. Stage 6 — Historical backfill execution (closes former Phase 7)
+7. Stage 7 — Durable feed bridge and staged topic UI (closes former Phase 8)
+8. Stage 8 — Thread-continuity migration and reconciliation (closes former Phase 9)
+9. Stage 9 — Authenticated cutover, monitoring, and rollback (closes former Phase 10)
+
+Each stage below records its own Phase-Summary-style evidence; the phase as a
+whole is not closed until every stage's exit criteria are met and a single
+combined Phase 13 Summary documents all nine.
+
+### Stage 0 — Apply all pending production migrations
+
+Migrations `0007`, `0011`, `0012`, `0013`, and `0014` were each written during
+repository implementation of the phase they belong to (Phases 2, 6, 7, 9, and
+10 respectively) but never applied to production, since Phase 12 closed only
+the migration rollout for Phase 1. Rather than re-running "back up, apply,
+verify" once per stage below, this single step clears the entire backlog so
+every later stage can assume a schema-parity baseline and focus only on its
+own reconciliation and drill work.
+
+#### Validation work
+
+- Take or verify a current D1 backup.
+- List pending production migrations and confirm the set is exactly
+  `0007_durable_ingestion.sql`, `0011_phase6_topic_read_indexes.sql`,
+  `0012_phase7_topic_backfill.sql`, `0013_phase9_thread_topic_separation.sql`,
+  and `0014_phase10_remove_legacy_canonical_entities.sql` — investigate rather
+  than skip if any other migration is also pending.
+- Apply all of them in order with the authenticated Wrangler production flow.
+- Verify the migration ledger reports no pending migrations on a second run.
+- Run `PRAGMA foreign_key_check` and table/index/trigger parity checks against
+  production once, covering all five migrations together.
+
+#### Exit criteria
+
+- Production D1 contains migrations `0007`, `0011`, `0012`, `0013`, and `0014`
+  exactly once each, and the ledger is clean on a repeated run.
+- Foreign keys are valid and existing rows are unchanged by the additive
+  migrations.
+- No later stage in this phase re-applies or re-backs-up for a migration
+  already closed here; each references this stage instead.
+
+### Stage 1 — Durable ingestion production activation
+
+#### Carried-forward Phase 2 limitations
 
 - Migration `0007_durable_ingestion.sql` and its generated schema snapshot are
   locally verified but are not applied to production without explicit
@@ -1609,10 +1677,10 @@ verification exercised those external systems.
   but production redirect aliases must be recorded during the later full-text
   acquisition path rather than guessed.
 
-### Validation work
+#### Validation work
 
-- Apply all pending numbered migrations after backup and verify the migration
-  ledger is clean on a repeated run.
+- Migration `0007_durable_ingestion.sql` is applied and verified in Stage 0;
+  do not re-apply or re-back-up here.
 - Run one controlled 50-cluster ingestion and reconcile the run ledger's
   eligible article count, eligible cluster count, and homepage count to 50,
   50, and 30 respectively.
@@ -1630,10 +1698,10 @@ verification exercised those external systems.
 - Verify cluster merges and splits preserve production lineage, redirects,
   topic decisions, curator locks, thread references, and R2 payload access.
 
-### Exit criteria
+#### Exit criteria
 
-- Production D1 contains migration `0007_durable_ingestion.sql` exactly once
-  and D1/R2 reconciliation reports no unexplained orphan.
+- D1/R2 reconciliation reports no unexplained orphan (migration parity for
+  `0007` is already established in Stage 0).
 - Controlled failure and interruption drills recover without duplicate
   articles, clusters, archive rows, or payload objects.
 - The rank-31 public topic-page scenario passes after topic publication is live.
@@ -1642,16 +1710,16 @@ verification exercised those external systems.
 - All Phase 2 production counters and identity invariants reconcile exactly.
 - Full suite, build, bundle, security checks, and deployment smoke tests pass.
 
-## Phase 14 — Phase 3 corpus-completion and production reconciliation closure
+### Stage 2 — Deterministic classification corpus and D1 reconciliation
 
-### Goal
+#### Goal
 
 Close the Phase 3 gaps deliberately left outside the safe deterministic
-repository implementation. This phase exists under Rule 12: it must not be
+repository implementation. This stage exists under Rule 12: it must not be
 mistaken for completed behavior merely because the plumbing and unit coverage
 are present.
 
-### Carried-forward Phase 3 limitations
+#### Carried-forward Phase 3 limitations
 
 - The reviewed corpus contains contextual cases (notably NSA/India-China border
   negotiations) whose canonical recognition needs an additional reviewed,
@@ -1669,7 +1737,7 @@ are present.
   and provisional-topic promotion remain Phase 4 work and must not be implied
   by candidate creation.
 
-### Validation work
+#### Validation work
 
 - Add reviewed, acyclic registry records/rules for every remaining corpus case
   and execute the full fixture as an integration test against the D1 schema.
@@ -1681,7 +1749,7 @@ are present.
 - Confirm provisional/shadow decisions and candidates never reach public APIs,
   compatibility fields, archive output, or hashtag click paths.
 
-### Exit criteria
+#### Exit criteria
 
 - Every Phase 0 deterministic corpus case passes from D1 registry data alone.
 - No implication cycle, unbounded traversal, compiled alias allowlist, or
@@ -1691,15 +1759,15 @@ are present.
 - Candidate discovery remains private until Phase 4's validation gates are met.
 - Full suite, build, bundle, and security checks pass.
 
-## Phase 15 — Phase 4 provider-shadow and discovery-promotion closure
+### Stage 3 — Model-assisted discovery shadow evaluation and promotion
 
-### Goal
+#### Goal
 
 Close the Phase 4 evidence that cannot be established solely with local,
-synthetic fixtures. This phase is required by Rule 12; it must not be inferred
+synthetic fixtures. This stage is required by Rule 12; it must not be inferred
 from the repository implementation or a passing mocked provider test.
 
-### Carried-forward Phase 4 limitations
+#### Carried-forward Phase 4 limitations
 
 - No authenticated provider run or production shadow sample was available to
   measure model precision, recall, disagreement, latency, cache hit rate, or
@@ -1716,7 +1784,7 @@ from the repository implementation or a passing mocked provider test.
   They remain shadow decisions, never effective public membership, until such a
   policy is ratified and tested.
 
-### Validation work
+#### Validation work
 
 - Run a bounded, explicitly budgeted provider shadow evaluation over the gold
   corpus and independent production sample; record precision, recall,
@@ -1733,7 +1801,7 @@ from the repository implementation or a passing mocked provider test.
   deterministic acceptance/removal threshold and verify curator locks, desired
   state reconciliation, and repeated-run stability before enabling it.
 
-### Exit criteria
+#### Exit criteria
 
 - Phase 0 semantic quality, stability, latency, and cost thresholds are met on
   the reviewed shadow sample, or deployment remains disabled with an explicit
@@ -1745,14 +1813,14 @@ from the repository implementation or a passing mocked provider test.
 - Full suite, build, bundle, security checks, and the approved provider/D1
   smoke tests pass.
 
-## Phase 16 — Phase 5 curator-workflow completion and remote concurrency closure
+### Stage 4 — Curator governance UI and remote concurrency
 
-### Goal
+#### Goal
 
 Close the Phase 5 capabilities that cannot truthfully be represented by the
 repository’s new endpoint-only governance foundation.
 
-### Carried-forward Phase 5 limitations
+#### Carried-forward Phase 5 limitations
 
 - The Curator Desk does not yet expose a dedicated Topic Governance ViewModel
   and UI for listing/filtering provisional topics, candidates, alias
@@ -1767,7 +1835,7 @@ repository’s new endpoint-only governance foundation.
 - Assignment preview does not yet show every historical cluster/API URL before
   a rule change; it currently bounds affected effective assignments to 500.
 
-### Validation work
+#### Validation work
 
 - Build the authenticated Topic Governance curator panel using MVVM, resource
   strings, safe rendering, and explicit confirmation/preview for every
@@ -1779,7 +1847,7 @@ repository’s new endpoint-only governance foundation.
 - Verify every supported mutation and recovery operation produces exactly one
   immutable audit record and only the affected queue entries.
 
-### Exit criteria
+#### Exit criteria
 
 - A curator can complete every Phase 5 review path through the authenticated UI
   without direct database editing.
@@ -1789,17 +1857,17 @@ repository’s new endpoint-only governance foundation.
   unqueued affected cluster, or lost provenance.
 - Full suite, build, bundle, and security checks pass.
 
-## Phase 17 — Phase 6 staged-read deployment and remote query-plan closure
+### Stage 5 — Topic read API staged deployment
 
-### Goal
+#### Goal
 
 Close the Phase 6 checks that require an authenticated staging/production D1
-environment and explicitly configured edge bindings. This phase is required by
+environment and explicitly configured edge bindings. This stage is required by
 Rule 12: repository tests cannot establish that a secret was provisioned, a
 feature gate was enabled only in staging, or a remote D1 query uses the intended
 indexes at real data volume.
 
-### Carried-forward Phase 6 limitations
+#### Carried-forward Phase 6 limitations
 
 - `TOPIC_CURSOR_SECRET` was intentionally not created or committed because it
   is a deployment secret; without it, the endpoint safely returns 503.
@@ -1810,14 +1878,14 @@ indexes at real data volume.
   query latency, cache tags, rate-limit behavior across isolates, or published
   assignment visibility against production-sized data.
 
-### Validation work
+#### Validation work
 
 - Provision a high-entropy `TOPIC_CURSOR_SECRET` through the approved secret
   manager and set `TOPIC_API_ENABLED=true` only in the internal/staging
   environment.
-- Apply migration `0011_phase6_topic_read_indexes.sql` after backup and verify
-  remote D1 schema parity plus `EXPLAIN QUERY PLAN` for topic collections,
-  corroborating-source hydration, and thread-ID hydration.
+- Migration `0011_phase6_topic_read_indexes.sql` is applied in Stage 0; here,
+  verify `EXPLAIN QUERY PLAN` for topic collections, corroborating-source
+  hydration, and thread-ID hydration uses those indexes.
 - Run authenticated staging smoke tests for canonical ID, display hashtag,
   alias, deprecated redirect, invalid/tampered/stale cursor, pagination ties,
   rate limiting, cache tags, and the absence of provisional/shadow/suppressed/
@@ -1827,7 +1895,7 @@ indexes at real data volume.
 - Document cache invalidation after a published assignment and registry change,
   then keep the route gated until Phase 10 public cutover approval.
 
-### Exit criteria
+#### Exit criteria
 
 - The secret is managed outside source control and the production feature gate
   remains disabled until approved cutover.
@@ -1838,14 +1906,14 @@ indexes at real data volume.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass.
 
-## Phase 18 — Phase 7 historical-backfill execution and reconciliation closure
+### Stage 6 — Historical backfill execution
 
-### Goal
+#### Goal
 
 Close the Phase 7 checks that require authenticated D1 and R2 data rather than
 mistaking a locally tested worker for a completed historical migration.
 
-### Carried-forward Phase 7 limitations
+#### Carried-forward Phase 7 limitations
 
 - No authenticated run has drained the real historical backlog, so its final
   zero-backlog and zero-failure state is not established by repository tests.
@@ -1857,11 +1925,11 @@ mistaking a locally tested worker for a completed historical migration.
   its recovery requires an approved data-source inventory rather than guessed
   hashtags.
 
-### Validation work
+#### Validation work
 
-- Back up D1, apply migration `0012_phase7_topic_backfill.sql`, and verify the
-  migration ledger and retry-ledger index in an authenticated non-production
-  clone before production.
+- Migration `0012_phase7_topic_backfill.sql` is applied in Stage 0; here,
+  verify the retry-ledger index in an authenticated non-production clone
+  before production before running the backfill.
 - Run `npm run backfill:topics` with the approved D1/R2 credentials; resolve
   every retry record through corrected payload access or curator review, then
   rerun until the command reports a zero backlog and zero failures.
@@ -1875,7 +1943,7 @@ mistaking a locally tested worker for a completed historical migration.
   it only through the same registry-resolved shadow-migration path, or record
   it as unrecoverable rather than inventing tags.
 
-### Exit criteria
+#### Exit criteria
 
 - The authenticated backlog is zero and `topic_backfill_failures` is empty.
 - Production counts reconcile and a repeated unchanged run has zero effective
@@ -1885,16 +1953,16 @@ mistaking a locally tested worker for a completed historical migration.
 - Remote D1/R2 failure, retry, queueing, lock-preservation, and reconciliation
   drills pass, with full suite, build, bundle, and security checks green.
 
-## Phase 19 — Phase 8 durable feed bridge and staged topic-UI closure
+### Stage 7 — Durable feed bridge and staged topic UI
 
-### Goal
+#### Goal
 
 Close the two Phase 8 requirements that cannot be claimed from a client-only,
 feature-disabled repository implementation: hydrate published canonical
 memberships into the reader feed and validate the internal/staging flag against
 real D1 data.
 
-### Carried-forward Phase 8 limitations
+#### Carried-forward Phase 8 limitations
 
 - Resolved by Phase 10: the reader feed now has a bounded, published-only
   `canonicalTopics` projection from `cluster_topics` and derives compatibility
@@ -1903,7 +1971,7 @@ real D1 data.
   topic-read API and UI flag, exercise aliases against real records, or verify
   responsive/accessibility behavior in a browser with production-like data.
 
-### Validation work
+#### Validation work
 
 - Add a bounded durable-feed projection joining only active, published topics
   with accepted effective cluster memberships. It must preserve stored display
@@ -1917,7 +1985,7 @@ real D1 data.
   states, pagination, URL/HTML sanitization, cache behavior, and no public
   routing regression.
 
-### Exit criteria
+#### Exit criteria
 
 - Staging cards show exactly the published canonical memberships from D1 and
   every displayed badge opens the matching topic collection.
@@ -1928,15 +1996,15 @@ real D1 data.
 - Full suite, build, bundle, CSS, security, migration, and staging smoke tests
   pass with no skipped checks.
 
-## Phase 20 — Phase 9 remote thread-continuity migration and reconciliation closure
+### Stage 8 — Thread-continuity migration and reconciliation
 
-### Goal
+#### Goal
 
 Close the Phase 9 evidence that cannot truthfully be established by local
 SQLite and mocked D1 tests: apply the `thread_topics` migration and reconcile
 historical continuity against the authenticated D1/R2 estate.
 
-### Carried-forward Phase 9 limitations
+#### Carried-forward Phase 9 limitations
 
 - Migration `0013_phase9_thread_topic_separation.sql` has not been applied to
   authenticated staging or production D1 in this repository task.
@@ -1947,10 +2015,10 @@ historical continuity against the authenticated D1/R2 estate.
   dormant-thread reactivation beyond the former 100-thread/500-event windows,
   requires approved non-production credentials and operational authority.
 
-### Validation work
+#### Validation work
 
-- Back up the approved D1 database, apply migration `0013` exactly once, and
-  confirm a repeat migration run is clean.
+- Migration `0013_phase9_thread_topic_separation.sql` is applied in Stage 0;
+  do not re-apply or re-back-up here.
 - Reconcile `thread_topics` with the distinct published `cluster_topics` of
   existing thread events; investigate every missing or extra mapping rather
   than silently repairing data.
@@ -1962,9 +2030,8 @@ historical continuity against the authenticated D1/R2 estate.
   containing more than 100 threads; prove no duplicate event/thread and no
   lost historical reference.
 
-### Exit criteria
+#### Exit criteria
 
-- Migration `0013` is present exactly once and schema parity is verified.
 - Historical thread/topic mappings reconcile with no unexplained rows or
   foreign-key failures.
 - Candidate reads use the intended indexes without global newest-N correctness
@@ -1974,18 +2041,18 @@ historical continuity against the authenticated D1/R2 estate.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass with no skipped checks.
 
-## Phase 21 — Phase 10 authenticated cutover, monitoring, and rollback closure
+### Stage 9 — Authenticated cutover, monitoring, and rollback
 
-### Goal
+#### Goal
 
 Close the external-state work deliberately excluded from the repository change:
 apply the legacy-table removal safely, activate the secret-backed public route,
 and establish measured cutover safety rather than inferring it from mocks.
 
-### Validation work
+#### Validation work
 
-- Back up D1, apply `0014_phase10_remove_legacy_canonical_entities.sql` once,
-  verify schema parity and that historical candidate rows remain private.
+- Migration `0014_phase10_remove_legacy_canonical_entities.sql` is applied in
+  Stage 0; here, verify historical candidate rows remain private.
 - Provision `TOPIC_CURSOR_SECRET` through the approved secret manager and run
   the canonical feed/topic route in staging before production approval.
 - Record and alert on every Phase 10 monitoring signal, including skipped or
@@ -1996,11 +2063,22 @@ and establish measured cutover safety rather than inferring it from mocks.
   snapshot; investigate every count mismatch, public unpublished row, or
   compatibility hashtag that fails to resolve to its stored topic ID.
 
-### Exit criteria
+#### Exit criteria
 
-- Remote migration, D1/R2 reconciliation, alert delivery, staging smoke tests,
-  production cutover, and rollback drill all pass with no unexplained records.
+- D1/R2 reconciliation, alert delivery, staging smoke tests, production
+  cutover, and rollback drill all pass with no unexplained records.
 - Measured quality, stability, latency, and cost satisfy the approved Phase 0
   thresholds, or the public cutover is disabled with a corrective plan.
 - Full suite, build, bundle, and security checks remain green; no credentials,
   source bodies, or curator evidence are committed.
+
+### Phase 13 exit criteria
+
+Phase 13 as a whole is not closed until every stage above has met its own
+exit criteria and:
+
+- A single combined Phase 13 Summary documents all nine stages using the
+  standard template, including tech debt discovered and resolved per stage.
+- No stage was skipped, reordered, or partially verified to reach closure.
+- The full suite, build, bundle, and security checks remain green after the
+  final stage.
