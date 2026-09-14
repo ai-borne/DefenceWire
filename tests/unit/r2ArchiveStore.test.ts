@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { buildR2ConfigFromEnv, putClusterJson, putJsonObject, getClusterJson, listObjectKeys } from '../../crawler/r2ArchiveStore.js';
+import { buildR2ConfigFromEnv, putClusterJson, putJsonObject, getClusterJson, listObjectKeys, deleteObject } from '../../crawler/r2ArchiveStore.js';
 
 const config = {
   accountId: 'acct-1',
@@ -106,6 +106,43 @@ describe('getClusterJson', () => {
     const result = await getClusterJson('story-1', config, fetchFn);
 
     expect(result).toEqual({ ok: false, body: null });
+  });
+});
+
+describe('deleteObject', () => {
+  it('DELETEs the account/bucket-keyed R2 endpoint with a signed request', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+    const result = await deleteObject('story-1.json', config, fetchFn);
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://acct-1.r2.cloudflarestorage.com/defencewire-archive-blobs/story-1.json');
+    expect(init.method).toBe('DELETE');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toContain('AWS4-HMAC-SHA256 Credential=key-1/');
+
+    expect(result).toEqual({ ok: true, status: 204 });
+  });
+
+  it('treats a 404 (already gone) as success, since the goal is "does not exist" either way', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    const result = await deleteObject('missing.json', config, fetchFn);
+
+    expect(result).toEqual({ ok: true, status: 404 });
+  });
+
+  it('reports a non-2xx/404 response as a failure without throwing', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    const result = await deleteObject('story-1.json', config, fetchFn);
+
+    expect(result).toEqual({ ok: false, status: 500 });
+  });
+
+  it('reports a network error as a failure without throwing', async () => {
+    const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
+    const result = await deleteObject('story-1.json', config, fetchFn);
+
+    expect(result).toEqual({ ok: false });
   });
 });
 

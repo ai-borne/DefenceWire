@@ -26,6 +26,7 @@
     "monitor:phase10": "vite-node --script crawler/scripts/phase10MonitoringReport.ts",
     "drill:rollback": "vite-node --script crawler/scripts/rollbackDrill.ts",
     "reconcile:r2": "vite-node --script crawler/scripts/r2Reconciliation.ts",
+    "cleanup:r2-test-probe": "vite-node --script crawler/scripts/deleteR2TestProbeObject.ts",
     "suppliers:review": "node scripts/review-supplier-candidates.mjs",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",

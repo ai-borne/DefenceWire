@@ -74,7 +74,7 @@ describe('durable pipeline ordering', () => {
       }
     }));
     mocks.archive.mockResolvedValue({ archived: 20, failed: 0, r2Failed: 0 });
-    mocks.reconcile.mockResolvedValue({ removed: 30, failed: 0 });
+    mocks.reconcile.mockResolvedValue({ removed: 30, failed: 0, r2Failed: 0 });
     mocks.query.mockResolvedValue({ ok: true, rows: [] });
   });
 

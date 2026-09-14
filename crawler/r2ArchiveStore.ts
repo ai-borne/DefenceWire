@@ -110,6 +110,34 @@ export async function putJsonObject(
   }
 }
 
+/** Deletes one object by key. Used when an archived cluster returns to the live feed, so its R2 blob does not outlive the D1 row that referenced it. */
+export async function deleteObject(
+  key: string,
+  config: R2Config,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<R2PutResult> {
+  const safeKey = key.split('/').map(encodeURIComponent).join('/');
+  const objectPath = `/${config.bucketName}/${safeKey}`;
+  const host = `${config.accountId}.r2.cloudflarestorage.com`;
+  const amzDate = amzDateNow();
+  const { authorization, contentSha256 } = signRequest('DELETE', config, host, objectPath, '', amzDate);
+
+  try {
+    const response = await fetchFn(`https://${host}${objectPath}`, {
+      method: 'DELETE',
+      headers: {
+        Host: host,
+        'x-amz-content-sha256': contentSha256,
+        'x-amz-date': amzDate,
+        Authorization: authorization
+      }
+    });
+    return { ok: response.ok || response.status === 404, status: response.status };
+  } catch {
+    return { ok: false };
+  }
+}
+
 /**
  * Lists every object key in the bucket via R2's S3-compatible ListObjectsV2,
  * paging on IsTruncated/NextContinuationToken. Read-only; used only by the

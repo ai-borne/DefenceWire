@@ -12,7 +12,7 @@ import { StoryCluster } from '../src/types/news.js';
 import { findClustersToArchive } from '../src/archive/archiveDiff.js';
 import { toArchivedStoryRow } from '../src/archive/archiveRow.js';
 import { buildInsertArchivedStoryStatement, buildDeleteArchivedStoriesStatement, D1Statement } from '../src/archive/d1QueryBuilder.js';
-import { putClusterJson, R2Config } from './r2ArchiveStore.js';
+import { putClusterJson, deleteObject, R2Config } from './r2ArchiveStore.js';
 
 export interface D1RestConfig {
   accountId: string;
@@ -24,6 +24,7 @@ export interface ArchiveSyncDeps {
   fetchFn?: typeof fetch;
   now?: () => Date;
   putClusterJsonFn?: typeof putClusterJson;
+  deleteObjectFn?: typeof deleteObject;
 }
 
 export interface ArchiveSyncResult {
@@ -35,6 +36,7 @@ export interface ArchiveSyncResult {
 export interface ArchiveReconcileResult {
   removed: number;
   failed: number;
+  r2Failed: number;
 }
 
 export function buildD1ConfigFromEnv(env: NodeJS.ProcessEnv | Record<string, string | undefined>): D1RestConfig | null {
@@ -160,27 +162,44 @@ export async function archivePoppedClusters(
  * A cluster can drop out of the top-N/72h window on one run and re-enter
  * on a later one (its source article is still fresh) — without this, it
  * would stay permanently archived while also showing live, i.e. the same
- * story appearing in both Top Stories and the Archive at once.
+ * story appearing in both Top Stories and the Archive at once. Also deletes
+ * each re-entered cluster's R2 blob (best-effort, non-fatal): without this,
+ * every archive/un-archive cycle would leak a permanent orphaned object,
+ * since archiving is the only path that writes one and nothing else ever
+ * deleted it (found via the Phase 14 D1/R2 reconciliation report).
  */
 export async function reconcileArchiveWithLiveFeed(
   liveClusters: StoryCluster[],
   config: D1RestConfig | null,
+  r2Config: R2Config | null = null,
   deps: ArchiveSyncDeps = {}
 ): Promise<ArchiveReconcileResult> {
-  if (!config || liveClusters.length === 0) return { removed: 0, failed: 0 };
+  if (!config || liveClusters.length === 0) return { removed: 0, failed: 0, r2Failed: 0 };
 
   const fetchFn = deps.fetchFn ?? globalThis.fetch;
+  const deleteObjectFn = deps.deleteObjectFn ?? deleteObject;
   const ids = liveClusters.map((c) => c.id);
   console.log(`[ARCHIVE RECONCILE] live=${ids.length} ids=${ids.join('|')}`);
-  const statement = buildDeleteArchivedStoriesStatement(ids);
 
+  let r2Failed = 0;
+  if (r2Config) {
+    for (const id of ids) {
+      const result = await deleteObjectFn(`${id}.json`, r2Config, fetchFn);
+      if (!result.ok) {
+        r2Failed++;
+        console.error(`[ARCHIVE RECONCILE] R2 blob delete failed for ${id}: HTTP ${result.status ?? 'network error'}`);
+      }
+    }
+  }
+
+  const statement = buildDeleteArchivedStoriesStatement(ids);
   try {
     const { ok, status } = await executeD1Query(statement, config, fetchFn);
-    if (ok) return { removed: liveClusters.length, failed: 0 };
+    if (ok) return { removed: liveClusters.length, failed: 0, r2Failed };
     console.error(`[ARCHIVE RECONCILE] D1 delete failed: HTTP ${status}`);
-    return { removed: 0, failed: 1 };
+    return { removed: 0, failed: 1, r2Failed };
   } catch (err) {
     console.error('[ARCHIVE RECONCILE] D1 delete error:', err);
-    return { removed: 0, failed: 1 };
+    return { removed: 0, failed: 1, r2Failed };
   }
 }

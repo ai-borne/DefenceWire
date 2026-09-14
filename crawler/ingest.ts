@@ -214,8 +214,8 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
   const archiveCandidates = [...new Map([...existingClusters, ...lockedProtectedClusters]
     .map((cluster) => [cluster.id, cluster])).values()];
   const archiveResult = await archivePoppedClusters(archiveCandidates, finalClusters, d1Config, r2Config, { fetchFn });
-  const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, { fetchFn });
-  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed`);
+  const reconcileResult = await reconcileArchiveWithLiveFeed(finalClusters, d1Config, r2Config, { fetchFn });
+  console.log(`[ARCHIVE SYNC] ${archiveResult.archived} archived, ${archiveResult.failed} failed, ${archiveResult.r2Failed} R2 failed | [RECONCILE] ${reconcileResult.failed} failed, ${reconcileResult.r2Failed} R2 failed`);
   if (durableRun && (archiveResult.failed > 0 || reconcileResult.failed > 0)) {
     if (durableConfig) await failDurableRun(durableRun.plan, 'classified', durableConfig, fetchFn);
     throw new Error('Archive persistence failed; refusing to publish a partial homepage snapshot.');
