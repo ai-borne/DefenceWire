@@ -6,7 +6,20 @@ interface Statement { bind(...params: unknown[]): Statement; all<T>(): Promise<{
 interface DB { prepare(sql: string): Statement; }
 export interface TopicContext { request: Request; env: { DB?: DB; TOPIC_CURSOR_SECRET?: string; TOPIC_API_ENABLED?: string; }; }
 
+/**
+ * Cloudflare Pages Functions does not URL-decode dynamic route params — a
+ * hashtag lookup like /api/topics/%23Jordan otherwise arrives as the literal
+ * "%23Jordan" and fails every downstream check. Decode once at this shared
+ * boundary; a malformed sequence falls through unchanged and is rejected by
+ * handleTopicRead's own input validation rather than throwing here.
+ */
+function decodeRawTopic(rawTopic: string | undefined): string | undefined {
+  if (rawTopic === undefined) return undefined;
+  try { return decodeURIComponent(rawTopic); } catch { return rawTopic; }
+}
+
 export async function topicResponse(context: TopicContext, request: TopicReadRequest): Promise<Response> {
+  request = { ...request, rawTopic: decodeRawTopic(request.rawTopic) };
   if (context.env.TOPIC_API_ENABLED !== 'true') {
     return new Response(JSON.stringify({ error: 'Topic endpoint not found.' }), { status: 404, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Type': 'application/json' } });
   }

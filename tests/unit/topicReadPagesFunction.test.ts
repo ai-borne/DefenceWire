@@ -18,4 +18,10 @@ describe('public topic Pages route', () => {
     expect(response.headers.get('Cache-Tag')).toContain('dw-topic-india-r1');
     expect((await response.json() as { topic: { id: string } }).topic.id).toBe('india');
   });
+
+  it('resolves a percent-encoded hashtag param, which Pages Functions delivers undecoded', async () => {
+    const response = await onRequestGet({ request: new Request('https://example.test/api/topics/%23India', { headers: { 'cf-connecting-ip': '203.0.113.9' } }), params: { id: '%23India' }, env: { DB: db, TOPIC_API_ENABLED: 'true', TOPIC_CURSOR_SECRET: 'test-secret-is-long-enough' } });
+    expect(response.status).toBe(200);
+    expect((await response.json() as { topic: { id: string } }).topic.id).toBe('india');
+  });
 });
