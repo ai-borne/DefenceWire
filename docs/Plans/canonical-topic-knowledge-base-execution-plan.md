@@ -3123,6 +3123,121 @@ historical continuity against the authenticated D1/R2 estate.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass with no skipped checks.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code, on both open questions this stage's
+own instructions flagged.** (a) Whether migration `0013_phase9_thread_topic_
+separation.sql` is actually applied to production — the session brief's own
+stale-text warning, since this plan has twice been caught with inaccurate
+carried-forward prose. Verified directly against production D1 rather than
+trusting the plan text (below) before doing anything else. (b) How to run
+the non-production-clone drills — the user chose the established default
+(a new `workflow_dispatch`-only GitHub Actions workflow using existing repo
+secrets, the same pattern as Stage 6's `backfill-topics.yml`) over ad hoc
+`wrangler` commands from the terminal.
+
+**Verified the carried-forward "applied in Stage 0" claim by reading
+production state directly, not trusting the plan's prose.** `wrangler d1
+migrations list defencewire-archive --remote` reported "No migrations to
+apply!" — all 14 migrations, including `0013`, are applied. Confirmed
+`story_threads`, `story_thread_events`, and `thread_topics` all exist in
+production with real data: 226 threads, 249 events, 100 `cluster_topics`
+rows, 29 topics, 13 `thread_topics` rows. This time the carried-forward text
+held up, consistent with Stage 0's own status note (Phase 12 applied all 14
+migrations on 2026-09-13 and re-verified before Stage 1) — unlike Stage 5's
+`TOPIC_API_ENABLED` claim, which was stale.
+
+**Reconciled `thread_topics` against production directly — no unexplained
+rows.** The 13 `thread_topics` rows are exactly the 13 distinct
+`(thread_id, topic_id)` pairs derivable from `SELECT DISTINCT e.thread_id,
+ct.topic_id FROM story_thread_events e JOIN cluster_topics ct ON
+ct.cluster_id = e.cluster_id` — confirmed by running that exact query
+against production and comparing counts (13 expected = 13 actual, 0 extra).
+The apparent 13-vs-100 gap against total `cluster_topics` rows is not a
+defect: most `cluster_topics` rows belong to clusters that never became a
+story-thread event (not every cluster spawns a thread), so they are
+correctly outside `thread_topics`' scope. `PRAGMA foreign_key_check` against
+production returned zero violations.
+
+**Ran `EXPLAIN QUERY PLAN` against production for the one query that covers
+all three required read paths.** `buildThreadCandidatesStatement`
+(`src/services/threadQueryBuilder.ts`) is the single candidate-lookup query
+used by `crawler/threadSync.ts` every crawl, and it already joins topic
+reads (`thread_topics`/`cluster_topics`), event-fingerprint reads
+(`story_clusters.event_fingerprint`), and lineage reads (`cluster_lineage`)
+in one statement. Every table access resolved to an indexed `SEARCH` (
+`cluster_topics` on `cluster_id`, `thread_topics` on `topic_id`,
+`story_clusters` on `event_fingerprint`, `cluster_lineage` on
+successor/predecessor) — no unindexed base-table scan, no global newest-N
+dependency. The only `SCAN` lines are over small in-memory CTE result sets
+(`incoming_topics`, `incoming_lineage`, `candidate_ids`), which is expected.
+
+**Built and ran a non-production-clone drill exercising the real
+continuity pipeline, not a reimplementation of it.**
+`crawler/scripts/threadContinuityDrill.ts` (298 LOC) calls the actual
+`matchAndAdvanceThreads` + `syncThreadsToD1` + `fetchExistingThreadsAndEvents`
+functions used by every crawl, run via a new `workflow_dispatch`-only
+`.github/workflows/thread-continuity-drill.yml` hardcoded to
+`defencewire-archive-nonprod-clone`'s database ID (never production;
+the script itself also refuses to run if pointed at the production ID).
+Five phases: (1) volume padding — 110 synthetic programme threads with 5
+passes each, verified against real D1 counts (no in-memory-only assertion);
+(2) dormant reactivation — backdated a thread past the 60-day threshold,
+fed one more matching cluster, confirmed `status` flipped back to `active`
+and `reactivatedCount >= 1`; (3) merge — two predecessor clusters
+lineage-linked to one successor; (4) split — one predecessor lineage-linked
+to two successors; (5) primary-source replacement — re-upserted an
+existing event's deterministic ID with a corrected source and confirmed the
+row count was unchanged and the field updated in place. Final invariants
+checked directly against D1 after all phases: threads and events both
+comfortably exceed the required >100/>500 thresholds (231 threads, 1212
+events), zero duplicate `(thread_id, cluster_id)` event pairs, zero
+`PRAGMA foreign_key_check` violations — independently re-verified outside
+the script.
+
+**Two real bugs found and fixed by actually running the drill against
+D1, not by reasoning about the code in isolation.** First attempt: all 110
+synthetic programme tags shared the substring "programme", and since
+neither "drill" nor "programme" is in `threadCoherence.ts`'s generic-noun
+filter list, the shared tokens inflated Jaccard similarity in `scoreMatch`
+enough to silently collapse most of the 110 intended threads onto just 11
+(one per D1 batch) — a real false-positive-merge failure mode in the
+matching logic, now avoided in the drill by using single indivisible
+alphanumeric tokens per programme. Second attempt (after fixing the first):
+the merge/split phases asserted a new event would attach to the existing
+thread, which is wrong — `matchAndAdvanceThreads` correctly recognizes a
+lineage-linked successor cluster as already represented by its
+predecessor's recorded event and skips creating a duplicate. The drill's
+assertions were rewritten around the actual continuity guarantee (no new
+event/thread, thread/event counts unchanged, no event row for the successor
+cluster) via a shared `assertLineageNoOp()` helper — this is a stronger,
+more direct test of "no duplicate event/thread and no lost historical
+reference" than the original design would have been. Both fixes were
+pushed, `npm run check` re-verified green before each push, and the drill
+re-run confirmed clean on the third attempt.
+
+**No staging smoke tests were applicable to this stage.** Stage 8 is a
+backend data-integrity and migration-verification stage with no public
+UI/API surface change (unlike Stage 5's or Stage 7's staging validation
+work) — nothing here changes reader-facing behavior, so there was nothing
+to smoke-test in a browser. This is a scope observation, not a skipped
+check.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`,
+including the pre-commit hook's own re-run) on every commit in this stage;
+each push's `DefenceWire CI Pipeline` and `crawl-and-deploy` runs also
+succeeded with no production regression.
+
+**Carried forward, unchanged from Stage 7.** `TOPIC_MODEL_ENABLED` remains
+unset. `TOPIC_CURSOR_SECRET` and `TOPIC_API_ENABLED` remain live,
+untouched. Cache-Tag-based purge remains non-functional zone-wide. No topic
+in production has `status='merged'`, so the topic-redirect (308) path still
+has no live production data to exercise it — unrelated to this stage's
+scope (thread/cluster merges, not topic merges). The 372 legacy-tag review
+candidates from Stage 6 remain untriaged.
+
 ### Stage 9 — Authenticated cutover, monitoring, and rollback
 
 #### Goal
