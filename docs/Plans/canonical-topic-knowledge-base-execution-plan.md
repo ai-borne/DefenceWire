@@ -2752,6 +2752,167 @@ mistaking a locally tested worker for a completed historical migration.
 - Remote D1/R2 failure, retry, queueing, lock-preservation, and reconciliation
   drills pass, with full suite, build, bundle, and security checks green.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code, on both open questions this stage's
+own instructions flagged.** (a) How to supply the D1/R2 credentials the
+backfill script needs — the user chose the `workflow_dispatch` GitHub Actions
+pattern (reusing existing repo secrets, matching the `backfill-cluster-json.yml`
+precedent) over pasting credentials into the terminal. (b) Whether to run one
+small bounded batch first before looping to completion — the user chose the
+bounded-first approach. Added `.github/workflows/backfill-topics.yml`
+(`max_batches` input, wired through a new `BACKFILL_MAX_BATCHES` env var in
+`backfillTopics.ts`) rather than either alternative.
+
+**Verified the retry-ledger index on the non-production D1 clone before
+touching production**, per this stage's validation work. `idx_topic_backfill_failures_retry`
+confirmed present via direct schema query against `defencewire-archive-nonprod-clone`.
+`EXPLAIN QUERY PLAN` on the backfill's own candidate-selection statement
+against the same clone showed a `SCAN sc` over `story_clusters` — a genuine
+finding, not a defect: the query's `LEFT JOIN` against the failure ledger and
+its two `NOT EXISTS`/`EXISTS` correlated subqueries (which do use their
+target indexes) leave no single index for SQLite to drive the outer scan
+from. Immaterial at the current ~110-row `story_clusters` scale; recorded
+here per Rule 12 rather than silently ignored, and worth revisiting only if
+the active-cluster count grows by orders of magnitude.
+
+**Central finding: the authenticated historical backlog was already zero —
+established two independent ways, not just trusted from one run.** The first
+real `backfill:topics` invocation against production D1/R2 reported
+`scanned=0 validated=0 reused=0 failed=0` on its very first batch. Rather than
+take the script's own self-report at face value, a direct D1 query
+cross-checked it independently: every one of the then-90 active
+`story_clusters` (67 of them archived) already had a `topic_assignment_runs`
+row at the current `registry_version`/`CLASSIFIER_VERSION`/
+`ASSIGNMENT_POLICY_VERSION`. Root cause: `classifyAndMarkDurableRun` (called
+from the normal hourly crawl path, not the backfill) already runs every newly
+ingested cluster through the same `classifyDurableTopicsWithRegistry` the
+backfill uses, so real-time classification had already caught up with the
+entire production registry by the time this stage ran — there was no
+backlog left for an authenticated run to prove it could drain. Repeated the
+run a second time to prove the zero-churn exit criterion directly rather than
+assuming it from the first result: `scanned=0` again, `cluster_topics` count
+identical before and after (95 → 95).
+
+**Curator-lock preservation and bounded queueing verified by static/SQL proof
+rather than a new live drill, per an explicit user checkpoint.** Exercising
+this end-to-end through the backfill's own reclassification path would have
+required running the backfill against the non-production D1 clone while
+reading real R2 payloads (no R2 sandbox exists), which the session brief
+flagged as needing a checkpoint; the user chose the static-proof option over
+standing up that mixed real/non-real harness for a guarantee already
+substantially covered. Verified directly: `topicGovernanceHandler.ts`'s
+`enqueue()` — used by every alias/topic/implication-rule mutation — is
+hard-bounded by a literal `LIMIT 500` in its SQL text, confirmed executing
+efficiently via `idx_cluster_topics_topic_cluster` and
+`idx_article_topic_mentions_corroboration` (no scans) on the non-prod clone's
+real schema. `crawler/topicAssignmentService.ts`'s `reconcileTopicAssignments`
+— the same function both the real-time crawl path and the historical
+backfill call — guards every write against a locked assignment at the SQL
+level (`DELETE ... AND locked_by_curator=0`, and the `INSERT ... ON CONFLICT
+DO UPDATE ... WHERE cluster_topics.locked_by_curator=0`, which becomes a
+structural no-op against a locked row regardless of caller). This is the
+identical guard Stage 4's drill #4 ("curator-lock preservation") already
+exercised live against the same real clone via the governance handler; the
+gap this stage's own validation work names — proving it holds through the
+backfill's own dequeue path specifically — is closed by inspection rather
+than re-drilled live, since there was no real queued backlog to drain through
+that path. Documented explicitly per Rule 12 rather than silently claimed as
+re-drilled.
+
+**Inventoried pre-durable legacy R2 hashtags — a distinct gap from the
+backlog check, since real-time classification never reads R2 payloads.**
+Added `crawler/scripts/inventoryLegacyTopicTags.ts`
+(`npm run inventory:legacy-topic-tags`), wired as an opt-in second job on the
+same workflow. All 68 (then 69, as the crawl kept advancing) archived cluster
+R2 payloads read cleanly — zero missing, zero identity mismatches. Of the
+distinct legacy tags found, 8–9 already resolve against the current registry
+(harmless, already covered); **166–170 distinct tags had never been read by
+any code path in production** (real-time classification doesn't read R2;
+the backfill's own `legacyTagsFromPayload`/`resolveLegacyTag` path was never
+exercised, since `scanned=0` meant no cluster ever reached it). Checkpointed
+with the user on disposition — given the mix of clearly deliberate tags
+(`f35`, `ukraine`, `southchinasea`, `project75`) and clearly generic/noisy
+ones from an old broad-brush auto-tagger (`ai`, `army`, `canada`,
+`diplomacy`) — and the user chose to queue all of them as pending review
+candidates rather than leave them undocumented. Exported
+`queueUnknownLegacyTags` from `topicHistoricalBackfill.ts` (previously
+private) and reused it verbatim from the inventory script, so every
+unresolved tag goes through the exact same registry-resolved,
+dedup'd (`INSERT ... ON CONFLICT(id) DO NOTHING`) shadow-migration path the
+backfill itself would have used — nothing is promoted to a canonical topic
+automatically; each of the resulting 372 `topic_candidates` rows (one per
+originating cluster/tag pair, `legacy_source='canonical_entities'`,
+`status='pending'`) still requires curator review through the existing Topic
+Governance UI. This satisfies the exit criterion's "private review candidate"
+disposition for every recoverable legacy variant; none were recorded as
+unrecoverable, since every archived payload was readable and every tag
+resolvable to a review candidate.
+
+**Found and fixed a real, unrelated production incident mid-stage — not
+reasoned about, actually hit live.** The push for this stage's own inventory-job
+commit triggered the hourly `crawl-and-deploy.yml` run, which failed for the
+first time in this repository's visible run history:
+`D1 transactional batch failed: HTTP 400 (CHECK constraint failed:
+last_observed_at >= first_observed_at)` in `persistClusters`. Checkpointed
+with the user on priority (fix now vs. finish Stage 6 first and hand off) —
+the user chose to fix immediately, since the live site's hourly ingestion was
+actively broken and would keep failing every scheduled run until resolved.
+Root cause: `buildInsertClusterStatement`'s `ON CONFLICT` branch
+(`crawler/durableIngestQueryBuilder.ts`) blindly overwrote
+`story_clusters.last_observed_at` with the *current* run's own computed value
+on every re-observation of an existing cluster, with no comparison against
+the previously stored value — unlike `graph_edges`, which already guards its
+own `last_observed_at` update with a monotonic `MAX` `CASE`. A later crawl
+run re-matching the same `event_fingerprint` against an older/republished
+article can compute an earlier `last_observed_at` than the cluster's already
+-established, immutable `first_observed_at`, tripping the table's own CHECK
+constraint and aborting the entire ingestion batch — not just the one
+affected cluster. Fixed by applying the identical monotonic-`MAX` guard
+`graph_edges` already uses. Added a real-SQLite regression test
+(`tests/integration/durableIngestionMigration.test.ts`) that: (1) reproduces
+the exact production failure against the unfixed statement (verified by
+temporarily reverting the fix and confirming the test fails with the same
+`CHECK constraint failed` error before re-applying it), (2) proves the fix
+resolves it while `last_observed_at` correctly stays pinned at its prior
+value rather than regressing, and (3) proves a genuinely newer observation
+still advances it normally. Verified live: the very next `crawl-and-deploy`
+run after the fix succeeded, with `story_clusters` growing from 107 to 110
+rows and a fresh `updated_at` matching the completed crawl — production
+ingestion was actually broken and is now actually confirmed restored, not
+just patched and assumed fixed.
+
+**Final production reconciliation (sanitized counts, no source payloads or
+secrets exposed).** As of this stage's close (hourly crawls kept running
+throughout, so these are a live snapshot, not a static before/after):
+111 active `story_clusters`, 97 `cluster_topics` assignment rows, 120
+`topic_assignment_runs`, 368 `archived_stories`, 0 `topic_backfill_failures`,
+415 `topic_candidates` (415 pending review, 372 from this stage's legacy-tag
+import, the remainder pre-existing). The backfill's own before/after
+assignment counts across its two authenticated runs were internally
+consistent (`95→95` both times) with the delta between runs entirely
+attributable to concurrent real-time crawl activity, not backfill churn.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`,
+including the pre-commit hook's own re-run, after every commit this stage
+made): 1479 tests (up from 1478 at Stage 5's close — the one new
+`durableIngestionMigration` regression test), typecheck, contracts, CSS
+lint, crawler dry-run, build, bundle budget, and security audit all green.
+
+**Carried forward, unchanged from Stage 5.** `TOPIC_MODEL_ENABLED` remains
+unset (Stage 3's shadow-eval corrective plan is still open, out of this
+stage's scope). `TOPIC_CURSOR_SECRET` remains live in production, untouched
+(Stage 5's gate, not this stage's to rotate). Cache-Tag-based purge remains
+non-functional zone-wide. The topic-article resolve query's full `topics`
+-table scan (Stage 5) is unrelated to this stage's own backfill query finding
+above and remains harmless at current scale. The 372 newly queued legacy-tag
+candidates are unreviewed `pending` rows sitting in the existing curator
+queue — no new UI or review workflow was built for them, since the existing
+Topic Governance UI (Stage 4) already handles arbitrary pending candidates;
+a curator has not yet triaged this specific batch.
+
 ### Stage 7 — Durable feed bridge and staged topic UI
 
 #### Goal
