@@ -2956,6 +2956,128 @@ real D1 data.
 - Full suite, build, bundle, CSS, security, migration, and staging smoke tests
   pass with no skipped checks.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code, on both open questions this stage's
+own instructions flagged.** (a) With no staging tier and `TOPIC_CURSOR_SECRET`/
+`TOPIC_API_ENABLED` already live in production from Stage 5, the user chose to
+do all browser/accessibility/responsive validation directly against
+production — the same precedent Stage 5 itself used, not a new decision. (b)
+Whether the reader feed's `canonicalTopics` projection already existed (the
+session brief's stale-text warning) — resolved by reading the code before
+assuming either way (below), which the user's second checkpoint answer then
+scoped the remaining work around: add the missing integration-test coverage,
+then validate whatever UI already renders `canonicalTopics` rather than build
+new UI.
+
+**Verified the carried-forward "Resolved by Phase 10" claim by reading the
+code, not trusting the plan's prose — and this time it was accurate, unlike
+Stage 5's `TOPIC_API_ENABLED` claim.** `crawler/publicTopicProjection.ts`'s
+`hydratePublishedTopics`, called from `crawler/ingest.ts` on every crawl run,
+already joins `cluster_topics` against `topics` filtered to
+`status='active' AND verification_state='published'`, ordered by
+`display_priority DESC, id ASC`, in one batched query per crawl (no per-card
+D1 query) — exactly matching this stage's own validation-work wording.
+Confirmed `cluster_topics` itself can only ever hold accepted effective
+memberships: the `cluster_topics_only_validated_insert`/`_update` triggers in
+`d1/schema.sql` reject any row whose topic isn't active/published or whose
+decision isn't `accepted` at write time, so the projection's job is narrower
+than re-deriving acceptance — it only has to keep excluding a topic that was
+downgraded *after* its `cluster_topics` row was written, since those triggers
+don't fire on `topics`-table updates.
+
+**Closed the resulting test-coverage gap.** The existing
+`tests/unit/publicTopicProjection.test.ts` only exercised the function against
+a mocked `fetch`, so it could assert the code's own row-mapping logic but
+could never prove the actual SQL `WHERE` clause excludes a downgraded topic
+against a real schema. Extracted the inline SQL into
+`buildPublishedTopicsStatement` (`crawler/publicTopicProjection.ts`), matching
+this repo's existing `D1Statement` query-builder SSOT convention (the same
+pattern as `topicGovernanceQueryBuilder.ts` and `durableIngestQueryBuilder.ts`),
+so both the runtime code and a new real-SQLite integration test
+(`tests/integration/publicTopicProjectionQuery.test.ts`) run the identical
+statement. Five new tests: the `#India` assigned-story path ordered by stored
+display priority (discovered mid-write that `india`/`#India` are already
+seeded by migration `0006_seed_topic_taxonomy.sql`, so the test joins a
+synthetic second topic onto the real seeded row rather than colliding with
+it), a display-priority tie broken by ascending canonical ID, a topic
+downgraded to `deprecated`/`rejected` *after* assignment being excluded even
+though its `cluster_topics` row is never deleted, the
+`cluster_topics_only_validated_insert` trigger itself refusing to materialize
+a membership for a `shadow`-state decision, and multi-cluster batching
+returning correctly cluster-scoped rows from one statement.
+
+**Full smoke-test matrix run live against production** (Stage 5's precedent,
+per the checkpoint above — the topic API was already public either way):
+- Canonical ID lookup (`/api/topics/philippines/articles`) returned real
+  published memberships with sources and related thread IDs.
+- Unconditional alias resolution confirmed live: `usa` → `united-states`, full
+  topic object returned. A context-gated alias (`america`, `requires_context=1`)
+  correctly returned 404 rather than resolving — `buildResolvePublicTopicStatement`
+  deliberately excludes `requires_context=1` aliases from this lookup, so this
+  is the query working as designed, not a defect.
+- Unknown topic (`nonexistent-topic-xyz`) → 404. Malformed/XSS-shaped
+  identifier (`<img onerror=alert(1)>`, URL-encoded) → 400 from `cleanLookup`'s
+  own character-class validation, confirming server-side rejection independent
+  of the DOM-safe rendering already in place client-side (`TopicBadgeList.ts`
+  and `StoryClusterView.ts` build elements via `textContent`/`createElement`,
+  never `innerHTML`).
+- Empty state: a published topic with zero current memberships (`jordan`)
+  rendered "0 published stories" / "No published stories have been assigned to
+  this topic yet." with no error and no crash.
+- Pagination: `?limit=2` on `/api/topics/china/articles` (8 total) returned a
+  signed `nextCursor`; following it returned a distinct next page with no
+  overlap. A tampered cursor (`?cursor=tampered.garbage.value`) → clean 400,
+  matching Stage 5's cursor-integrity smoke test.
+- Cache headers present on every response (`public, max-age=60, s-maxage=300,
+  stale-while-revalidate=600`, plus `ratelimit-*` headers) — consistent with
+  Stage 5's finding that Cache-Tag purge is a documented no-op on this zone and
+  short TTLs plus the cursor/version binding are the real invalidation
+  mechanism.
+- End-to-end reader path: clicked a live `#China` badge on the real homepage
+  feed (`TopicBadgeList.ts` → `StoryClusterView.ts` → `location.hash` →
+  `MainFeedRouter.ts`'s `#/topic/:id` route → `TopicKnowledgeBaseViewModel` →
+  `TopicKnowledgeBaseView.ts`) and confirmed it rendered real D1-backed
+  articles, "Related topics," and "Associated story threads" — this is the
+  full Stage 5-built UI pipeline, not new code, and it worked against live
+  production data end to end.
+- Verified at 390×844 (mobile) and in dark mode via the app's own theme
+  toggle: both rendered correctly with no overflow or unstyled elements
+  (screenshots reviewed, not persisted — this is a live verification, not a
+  deliverable).
+- No public routing regression: the Archive tab (unrelated to this stage's
+  changes) still loaded and fetched correctly after the topic-page navigation.
+
+**Carried forward, not newly found — the merged-topic redirect (308) path
+still has no live production data to exercise it.** No topic in production
+has `status='merged'` (confirmed by direct D1 query), so — exactly as Stage 5
+already noted for the deprecated-redirect case — this path remains covered
+only by `tests/unit/topicReadHandler.test.ts`'s existing unit coverage, not a
+live smoke test. Keyboard activation of topic badges was verified by code
+inspection rather than a live focus/Enter drill: `TopicBadgeList.ts` renders
+plain `<button type="button">` elements with no custom key handling, which
+are natively focusable and Enter/Space-activatable by the HTML spec, and the
+live homepage's actual topic badges churn from hour to hour with the crawl
+(the specific badge present during setup was gone by verification time),
+making a live keyboard drill against a specific badge unreliable to script
+against a constantly-changing feed.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`,
+including the pre-commit hook's own re-run): 1484 tests (up from 1479 — the
+five new `publicTopicProjectionQuery` tests), typecheck, contracts, CSS lint,
+crawler dry-run, build, bundle budget, and security audit all green. Both the
+`DefenceWire CI Pipeline` and the `crawl-and-deploy` runs triggered by this
+stage's push succeeded.
+
+**Carried forward, unchanged from Stage 6.** `TOPIC_MODEL_ENABLED` remains
+unset. `TOPIC_CURSOR_SECRET` remains live, untouched. Cache-Tag-based purge
+remains non-functional zone-wide. The topic-resolve query's full `topics`
+-table scan (Stage 5) remains harmless at current scale. The per-isolate,
+non-global rate limiter (Stage 5) is unchanged and out of this stage's scope.
+The 372 legacy-tag review candidates from Stage 6 remain untriaged.
+
 ### Stage 8 — Thread-continuity migration and reconciliation
 
 #### Goal
