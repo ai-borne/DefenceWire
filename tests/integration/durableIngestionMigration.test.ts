@@ -4,7 +4,9 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createMigratedDatabase, insertArticle, insertCluster, insertDecision } from './topicMigrationTestUtils.js';
-import { buildLineageStatements } from '../../crawler/durableIngestQueryBuilder.js';
+import { buildLineageStatements, buildInsertClusterStatement } from '../../crawler/durableIngestQueryBuilder.js';
+import { DurableCluster } from '../../crawler/durableIngestTypes.js';
+import { StoryCluster } from '../../src/types/news.js';
 
 const databases: DatabaseSync[] = [];
 afterEach(() => databases.splice(0).forEach((db) => db.close()));
@@ -99,5 +101,44 @@ describe('Phase 2 durable ingestion migration', () => {
       (ingestion_run_id, event_fingerprint, payload_hash, cluster_id, payload_key)
       VALUES ('run-b', 'event-c', 'hash-3', 'cluster-a', 'cluster-a.json')`).run())
       .toThrow(/UNIQUE constraint failed/);
+  });
+
+  it('never regresses last_observed_at below the stored value on re-observation (production incident 2026-09-14)', () => {
+    const db = createMigratedDatabase();
+    databases.push(db);
+    db.prepare(`INSERT INTO ingestion_runs (id, input_fingerprint, status, started_at)
+      VALUES ('run-a', 'fingerprint-a', 'started', '2026-09-01T00:00:00Z')`).run();
+    db.prepare(`INSERT INTO ingestion_runs (id, input_fingerprint, status, started_at)
+      VALUES ('run-b', 'fingerprint-b', 'started', '2026-09-10T00:00:00Z')`).run();
+
+    const durableCluster = (createdAt: string, updatedAt: string): DurableCluster => ({
+      cluster: { createdAt, updatedAt } as StoryCluster,
+      id: 'cluster-a', eventFingerprint: 'event-a', payloadKey: 'cluster-a.json',
+      payloadHash: 'hash-a', sourceArticleIds: [], previousClusterIds: []
+    });
+
+    const insertFirst = buildInsertClusterStatement(
+      durableCluster('2026-09-10T00:00:00Z', '2026-09-10T00:00:00Z'), 'run-a', '2026-09-10T00:00:00Z');
+    db.prepare(insertFirst.sql).run(...insertFirst.params as Array<string | number | null>);
+    expect(db.prepare("SELECT first_observed_at, last_observed_at FROM story_clusters WHERE id = 'cluster-a'").get())
+      .toEqual({ first_observed_at: '2026-09-10T00:00:00Z', last_observed_at: '2026-09-10T00:00:00Z' });
+
+    // A later run re-matches the same event fingerprint against a republished/backdated article
+    // whose publishedAt predates the cluster's already-established first_observed_at. Blindly
+    // overwriting last_observed_at with this run's own (older) value would push it below the
+    // immutable first_observed_at and trip the story_clusters CHECK constraint
+    // (last_observed_at >= first_observed_at) - exactly the production incident this test locks in.
+    const regressed = buildInsertClusterStatement(
+      durableCluster('2026-09-01T00:00:00Z', '2026-09-01T00:00:00Z'), 'run-b', '2026-09-10T01:00:00Z');
+    expect(() => db.prepare(regressed.sql).run(...regressed.params as Array<string | number | null>)).not.toThrow();
+    expect(db.prepare("SELECT last_observed_at FROM story_clusters WHERE id = 'cluster-a'").get()!.last_observed_at)
+      .toBe('2026-09-10T00:00:00Z');
+
+    // A genuinely newer observation still advances last_observed_at.
+    const advanced = buildInsertClusterStatement(
+      durableCluster('2026-09-10T00:00:00Z', '2026-09-12T00:00:00Z'), 'run-b', '2026-09-12T00:00:00Z');
+    db.prepare(advanced.sql).run(...advanced.params as Array<string | number | null>);
+    expect(db.prepare("SELECT last_observed_at FROM story_clusters WHERE id = 'cluster-a'").get()!.last_observed_at)
+      .toBe('2026-09-12T00:00:00Z');
   });
 });

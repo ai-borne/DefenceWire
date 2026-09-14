@@ -120,7 +120,9 @@ export function buildInsertClusterStatement(cluster: DurableCluster, runId: stri
        updated_at, payload_key, ingestion_run_id)
       VALUES (?, ?, 'active', ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET event_fingerprint = excluded.event_fingerprint,
-        status = 'active', last_observed_at = excluded.last_observed_at,
+        status = 'active',
+        last_observed_at = CASE WHEN excluded.last_observed_at > story_clusters.last_observed_at
+          THEN excluded.last_observed_at ELSE story_clusters.last_observed_at END,
         updated_at = excluded.updated_at, payload_key = excluded.payload_key,
         ingestion_run_id = excluded.ingestion_run_id, merged_into_cluster_id = NULL`,
     params: [cluster.id, cluster.eventFingerprint, cluster.cluster.createdAt,
