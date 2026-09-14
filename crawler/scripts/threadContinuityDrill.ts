@@ -12,6 +12,7 @@ import { matchAndAdvanceThreads } from '../threadContinuityEngine.js';
 import { StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { buildUpsertThreadEventStatement } from '../../src/services/threadQueryBuilder.js';
+import { hashtagToSlug } from '../../src/utils/hashtagUtils.js';
 
 const PROGRAM_COUNT = 110;
 const FOLLOWUP_PASSES = 4; // spawn pass + 4 followups = 5 events per program = 550 events
@@ -129,7 +130,14 @@ async function main(): Promise<void> {
 
   // --- Phase 1: volume padding — spawn PROGRAM_COUNT threads, then FOLLOWUP_PASSES
   // more events each via the same event_fingerprint (fingerprint-match candidate arm). ---
-  const programs = Array.from({ length: PROGRAM_COUNT }, (_, i) => `drill-programme-${String(i + 1).padStart(3, '0')}`);
+  // A per-run ID keeps reruns idempotent (a prior failed attempt's leftover rows
+  // never collide with this run's IDs, so no cleanup is required between runs).
+  // Program tags are a single indivisible alphanumeric token: any shared word
+  // part (e.g. a "drill-programme-NNN" pattern) would inflate cross-program
+  // Jaccard similarity in scoreMatch and falsely merge distinct programs onto
+  // one thread — exactly the failure mode hit by an earlier version of this drill.
+  const runId = `${process.env.GITHUB_RUN_ID ?? Date.now().toString()}${process.env.GITHUB_RUN_ATTEMPT ?? ''}`.replace(/[^0-9a-z]/gi, '').toLowerCase();
+  const programs = Array.from({ length: PROGRAM_COUNT }, (_, i) => `drillprog${runId}n${String(i + 1).padStart(3, '0')}`);
   const fingerprintOf = (p: string) => `fp-${p}`;
 
   const spawnClusters = programs.map((p, i) => makeCluster(`cl-${p}-spawn`, p, daysAgoIso(30 - (i % 10))));
@@ -159,7 +167,7 @@ async function main(): Promise<void> {
   // --- Phase 2: dormant reactivation — backdate one thread past the 60-day
   // dormant threshold, then feed one more matching cluster and confirm reactivation. ---
   const reactivationProgram = programs[0]!;
-  const reactivationThreadId = `th_${reactivationProgram.replace(/[^a-z0-9]+/g, '-')}`;
+  const reactivationThreadId = hashtagToSlug(reactivationProgram);
   await executeD1Query(
     { sql: `UPDATE story_threads SET status='dormant', last_event_at=? WHERE id=?`, params: [daysAgoIso(90), reactivationThreadId] },
     config,
@@ -178,7 +186,7 @@ async function main(): Promise<void> {
   // --- Phase 3: merge — two predecessor clusters collapse into one successor
   // cluster; the lineage-arm candidate query must still surface the thread. ---
   const mergeProgram = programs[1]!;
-  const mergeThreadId = `th_${mergeProgram.replace(/[^a-z0-9]+/g, '-')}`;
+  const mergeThreadId = hashtagToSlug(mergeProgram);
   const mergePredecessorA = `cl-${mergeProgram}-spawn`;
   const mergePredecessorB = `cl-${mergeProgram}-p1`;
   const mergeSuccessor = makeCluster(`cl-${mergeProgram}-merged`, mergeProgram, daysAgoIso(0));
@@ -200,7 +208,7 @@ async function main(): Promise<void> {
   // --- Phase 4: split — one predecessor cluster's coverage splits into two
   // successor clusters, both must resolve back to the original thread. ---
   const splitProgram = programs[2]!;
-  const splitThreadId = `th_${splitProgram.replace(/[^a-z0-9]+/g, '-')}`;
+  const splitThreadId = hashtagToSlug(splitProgram);
   const splitPredecessor = `cl-${splitProgram}-spawn`;
   const splitSuccessorA = makeCluster(`cl-${splitProgram}-splitA`, splitProgram, daysAgoIso(0));
   const splitSuccessorB = makeCluster(`cl-${splitProgram}-splitB`, splitProgram, daysAgoIso(0));
@@ -226,7 +234,7 @@ async function main(): Promise<void> {
   // --- Phase 5: primary-source replacement — re-upsert an existing event's
   // deterministic ID with a corrected source; must update in place, not duplicate. ---
   const sourceReplaceProgram = programs[3]!;
-  const sourceReplaceThreadId = `th_${sourceReplaceProgram.replace(/[^a-z0-9]+/g, '-')}`;
+  const sourceReplaceThreadId = hashtagToSlug(sourceReplaceProgram);
   const sourceReplaceClusterId = `cl-${sourceReplaceProgram}-spawn`;
   const originalEvent = await queryOne(
     config,
