@@ -77,9 +77,21 @@ async function main(): Promise<void> {
   const orphanBlobs = await scalar(config, `SELECT COUNT(*) c FROM ingestion_orphan_candidates WHERE resolution_state = 'pending'`);
   signals.push({ name: 'orphaned_blobs_pending', value: orphanBlobs });
 
-  const incompleteRuns = await scalar(config, `SELECT COUNT(*) c FROM ingestion_runs WHERE status NOT IN ('completed', 'failed')`);
+  // "Incomplete" means genuinely stuck mid-run (never reached completed_at),
+  // not merely a non-'published' terminal status: 'failed_retryable' rows
+  // routinely finish (completed_at set) and are retried by a later run, so
+  // counting them here would be a false alarm, not a real stuck run.
+  const incompleteRuns = await scalar(config, `SELECT COUNT(*) c FROM ingestion_runs WHERE completed_at IS NULL AND started_at < datetime('now', '-1 hour')`);
   signals.push({ name: 'incomplete_ingestion_runs', value: incompleteRuns });
-  if (incompleteRuns > 0) alerts.push(`${incompleteRuns} ingestion_runs row(s) are neither completed nor failed`);
+  if (incompleteRuns > 0) alerts.push(`${incompleteRuns} ingestion_runs row(s) started over an hour ago and never reached completed_at (genuinely stuck)`);
+
+  const failedTerminalRuns = await scalar(config, `SELECT COUNT(*) c FROM ingestion_runs WHERE status = 'failed_terminal'`);
+  signals.push({ name: 'failed_terminal_ingestion_runs', value: failedTerminalRuns });
+  if (failedTerminalRuns > 0) alerts.push(`${failedTerminalRuns} ingestion_runs row(s) have status='failed_terminal'`);
+
+  const staleRetryableRuns = await scalar(config, `SELECT COUNT(*) c FROM ingestion_runs WHERE status = 'failed_retryable' AND started_at < datetime('now', '-24 hours')`);
+  signals.push({ name: 'stale_failed_retryable_ingestion_runs_24h', value: staleRetryableRuns });
+  if (staleRetryableRuns > 0) alerts.push(`${staleRetryableRuns} ingestion_runs row(s) have sat at status='failed_retryable' for over 24h with no successful retry`);
 
   // Structural invariant, not a rate: zero provisional/shadow topics may ever
   // be publicly reachable. cluster_topics_only_validated_insert/_update
