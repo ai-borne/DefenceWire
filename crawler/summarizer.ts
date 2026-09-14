@@ -25,7 +25,7 @@ export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
 export const MIN_REQUEST_INTERVAL_MS = 4500;
 let lastRequestTimestamp = 0;
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
 export function getGeminiModelName(env: NodeJS.ProcessEnv = process.env): string {
   return env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
