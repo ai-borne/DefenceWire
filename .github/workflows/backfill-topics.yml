@@ -8,7 +8,7 @@ on:
         required: false
         default: ''
       run_inventory:
-        description: 'Also run the read-only legacy R2 hashtag inventory job'
+        description: 'Also run the legacy R2 hashtag inventory job (queues unresolved tags as pending topic_candidates)'
         type: boolean
         required: false
         default: false
@@ -63,7 +63,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Inventory Legacy Topic Tags (read-only)
+      - name: Inventory Legacy Topic Tags (queues unresolved as pending candidates)
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

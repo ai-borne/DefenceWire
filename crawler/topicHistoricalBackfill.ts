@@ -109,7 +109,7 @@ function resolveLegacyTag(tag: string, registry: Awaited<ReturnType<typeof fetch
     ?? null;
 }
 
-async function queueUnknownLegacyTags(clusterId: string, tags: string[], now: string, config: D1RestConfig, fetchFn: typeof fetch): Promise<void> {
+export async function queueUnknownLegacyTags(clusterId: string, tags: string[], now: string, config: D1RestConfig, fetchFn: typeof fetch): Promise<void> {
   for (const tag of new Set(tags)) {
     const normalized = normalizeTopicAlias(tag.replace(/^#/, ''));
     if (!normalized) continue;
