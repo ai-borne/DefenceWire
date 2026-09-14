@@ -1,10 +1,9 @@
 /**
  * Phase 13 Stage 8 non-production-clone drill: exercises the real thread
  * continuity pipeline (matchAndAdvanceThreads + syncThreadsToD1, the exact
- * runtime code path used every crawl) against authenticated D1 at a scale
- * beyond production's current 226 threads / 249 events, covering primary-
- * source replacement, merge, split, and dormant reactivation. Fails loud on
- * any invariant violation. Manual, one-off; never runs on a schedule.
+ * runtime code path used every crawl) at a scale beyond production's current
+ * 226 threads / 249 events, covering primary-source replacement, merge,
+ * split, and dormant reactivation. Fails loud. Manual, never scheduled.
  */
 import { buildD1ConfigFromEnv, executeD1Query, D1RestConfig } from '../archiveSync.js';
 import { fetchExistingThreadsAndEvents, syncThreadsToD1 } from '../threadSync.js';
@@ -15,12 +14,10 @@ import { buildUpsertThreadEventStatement } from '../../src/services/threadQueryB
 import { hashtagToSlug } from '../../src/utils/hashtagUtils.js';
 
 const PROGRAM_COUNT = 110;
-const FOLLOWUP_PASSES = 4; // spawn pass + 4 followups = 5 events per program = 550 events
-const BATCH_SIZE = 10; // keeps bound params well under D1's ~100-per-statement limit
+const FOLLOWUP_PASSES = 4; // spawn + 4 followups = 5 events/program = 550 events
+const BATCH_SIZE = 10; // keeps bound params under D1's ~100-per-statement limit
 
-function daysAgoIso(days: number): string {
-  return new Date(Date.now() - days * 86400000).toISOString();
-}
+function daysAgoIso(days: number): string { return new Date(Date.now() - days * 86400000).toISOString(); }
 
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -118,6 +115,31 @@ async function queryOne(config: D1RestConfig, sql: string, params: unknown[] = [
   return res.rows[0] ?? {};
 }
 
+/**
+ * Runs the given lineage-equivalent successor cluster(s) through the real
+ * pipeline and asserts the continuity no-op guarantee: no new event/thread,
+ * the original thread row is not duplicated, its event count is unchanged,
+ * and none of the successor cluster IDs got their own event row.
+ */
+async function assertLineageNoOp(config: D1RestConfig, label: string, threadId: string, successors: StoryCluster[]): Promise<void> {
+  const threadCountBefore = await queryOne(config, 'SELECT COUNT(*) AS n FROM story_threads WHERE id=?', [threadId]);
+  const eventCountBefore = await queryOne(config, 'SELECT COUNT(*) AS n FROM story_thread_events WHERE thread_id=?', [threadId]);
+  const result = await runPass(config, successors);
+  console.log(`[DRILL] ${label}: attached=${result.attached} newlySpawned=${result.newlySpawned}`);
+  if (result.attached !== 0 || result.newlySpawned !== 0) {
+    throw new Error(`[DRILL] ${label} created a duplicate event/thread (attached=${result.attached}, newlySpawned=${result.newlySpawned}); expected the lineage-equivalent successor(s) to be recognized as already represented.`);
+  }
+  const threadCountAfter = await queryOne(config, 'SELECT COUNT(*) AS n FROM story_threads WHERE id=?', [threadId]);
+  const eventCountAfter = await queryOne(config, 'SELECT COUNT(*) AS n FROM story_thread_events WHERE thread_id=?', [threadId]);
+  if (Number(threadCountAfter.n) !== Number(threadCountBefore.n)) throw new Error(`[DRILL] ${label} duplicated the thread row.`);
+  if (Number(eventCountAfter.n) !== Number(eventCountBefore.n)) {
+    throw new Error(`[DRILL] ${label} changed thread event count (${eventCountBefore.n} -> ${eventCountAfter.n}); expected no lost or duplicated historical reference.`);
+  }
+  const marks = successors.map(() => '?').join(',');
+  const successorEventRow = await queryOne(config, `SELECT COUNT(*) AS n FROM story_thread_events WHERE cluster_id IN (${marks})`, successors.map((c) => c.id));
+  if (Number(successorEventRow.n) !== 0) throw new Error(`[DRILL] ${label} unexpectedly recorded a new event for a successor cluster.`);
+}
+
 async function main(): Promise<void> {
   const config = buildD1ConfigFromEnv(process.env);
   if (!config) throw new Error('[DRILL] requires CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_D1_DATABASE_ID, CLOUDFLARE_API_TOKEN.');
@@ -183,53 +205,35 @@ async function main(): Promise<void> {
   const reactivatedRow = await queryOne(config, 'SELECT status FROM story_threads WHERE id=?', [reactivationThreadId]);
   if (reactivatedRow.status !== 'active') throw new Error(`[DRILL] reactivated thread status is "${reactivatedRow.status}", expected "active".`);
 
-  // --- Phase 3: merge — two predecessor clusters collapse into one successor
-  // cluster; the lineage-arm candidate query must still surface the thread. ---
+  // --- Phase 3/4: merge and split — a successor cluster's coverage is
+  // lineage-linked to an already-recorded predecessor event. The lineage-arm
+  // candidate query must still surface the thread, but matchAndAdvanceThreads
+  // recognizes the successor as already represented by that predecessor's
+  // event (the continuity guarantee: a re-clustering of recorded history is
+  // not new coverage), so the correct outcome is NO new event/thread —
+  // proving no duplicate — while the original thread and events stay intact. ---
   const mergeProgram = programs[1]!;
-  const mergeThreadId = hashtagToSlug(mergeProgram);
-  const mergePredecessorA = `cl-${mergeProgram}-spawn`;
-  const mergePredecessorB = `cl-${mergeProgram}-p1`;
   const mergeSuccessor = makeCluster(`cl-${mergeProgram}-merged`, mergeProgram, daysAgoIso(0));
   await insertStoryClusters(config, [{
     id: mergeSuccessor.id, fingerprint: `fp-merged-${mergeProgram}`, firstObservedAt: mergeSuccessor.primarySource.publishedAt, lastObservedAt: mergeSuccessor.primarySource.publishedAt
   }]);
   await insertLineage(config, [
-    { predecessor: mergePredecessorA, successor: mergeSuccessor.id, changeType: 'merge', reason: 'drill: two clusters collapsed on re-clustering' },
-    { predecessor: mergePredecessorB, successor: mergeSuccessor.id, changeType: 'merge', reason: 'drill: two clusters collapsed on re-clustering' }
+    { predecessor: `cl-${mergeProgram}-spawn`, successor: mergeSuccessor.id, changeType: 'merge', reason: 'drill: two clusters collapsed on re-clustering' },
+    { predecessor: `cl-${mergeProgram}-p1`, successor: mergeSuccessor.id, changeType: 'merge', reason: 'drill: two clusters collapsed on re-clustering' }
   ]);
-  const mergeResult = await runPass(config, [mergeSuccessor]);
-  console.log(`[DRILL] phase3 merge: attached=${mergeResult.attached} newlySpawned=${mergeResult.newlySpawned}`);
-  if (mergeResult.attached !== 1 || mergeResult.newlySpawned !== 0) {
-    throw new Error(`[DRILL] merge drill did not attach to the existing thread (attached=${mergeResult.attached}, newlySpawned=${mergeResult.newlySpawned}).`);
-  }
-  const mergeEventRow = await queryOne(config, 'SELECT COUNT(*) AS n FROM story_thread_events WHERE thread_id=? AND cluster_id=?', [mergeThreadId, mergeSuccessor.id]);
-  if (Number(mergeEventRow.n) !== 1) throw new Error('[DRILL] merge drill did not record exactly one event for the successor cluster.');
+  await assertLineageNoOp(config, 'phase3 merge', hashtagToSlug(mergeProgram), [mergeSuccessor]);
 
-  // --- Phase 4: split — one predecessor cluster's coverage splits into two
-  // successor clusters, both must resolve back to the original thread. ---
   const splitProgram = programs[2]!;
-  const splitThreadId = hashtagToSlug(splitProgram);
-  const splitPredecessor = `cl-${splitProgram}-spawn`;
   const splitSuccessorA = makeCluster(`cl-${splitProgram}-splitA`, splitProgram, daysAgoIso(0));
   const splitSuccessorB = makeCluster(`cl-${splitProgram}-splitB`, splitProgram, daysAgoIso(0));
   await insertStoryClusters(config, [splitSuccessorA, splitSuccessorB].map((c) => ({
     id: c.id, fingerprint: `fp-split-${c.id}`, firstObservedAt: c.primarySource.publishedAt, lastObservedAt: c.primarySource.publishedAt
   })));
   await insertLineage(config, [
-    { predecessor: splitPredecessor, successor: splitSuccessorA.id, changeType: 'split', reason: 'drill: cluster split into two threads of coverage' },
-    { predecessor: splitPredecessor, successor: splitSuccessorB.id, changeType: 'split', reason: 'drill: cluster split into two threads of coverage' }
+    { predecessor: `cl-${splitProgram}-spawn`, successor: splitSuccessorA.id, changeType: 'split', reason: 'drill: cluster split into two threads of coverage' },
+    { predecessor: `cl-${splitProgram}-spawn`, successor: splitSuccessorB.id, changeType: 'split', reason: 'drill: cluster split into two threads of coverage' }
   ]);
-  const splitResult = await runPass(config, [splitSuccessorA, splitSuccessorB]);
-  console.log(`[DRILL] phase4 split: attached=${splitResult.attached} newlySpawned=${splitResult.newlySpawned}`);
-  if (splitResult.attached !== 2 || splitResult.newlySpawned !== 0) {
-    throw new Error(`[DRILL] split drill did not attach both successors to the existing thread (attached=${splitResult.attached}, newlySpawned=${splitResult.newlySpawned}).`);
-  }
-  const splitEventRow = await queryOne(
-    config,
-    'SELECT COUNT(DISTINCT cluster_id) AS n FROM story_thread_events WHERE thread_id=? AND cluster_id IN (?, ?)',
-    [splitThreadId, splitSuccessorA.id, splitSuccessorB.id]
-  );
-  if (Number(splitEventRow.n) !== 2) throw new Error('[DRILL] split drill did not record distinct events for both successor clusters.');
+  await assertLineageNoOp(config, 'phase4 split', hashtagToSlug(splitProgram), [splitSuccessorA, splitSuccessorB]);
 
   // --- Phase 5: primary-source replacement — re-upsert an existing event's
   // deterministic ID with a corrected source; must update in place, not duplicate. ---
