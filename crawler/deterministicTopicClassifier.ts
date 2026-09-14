@@ -119,7 +119,17 @@ function ruleAllows(json: string, topicIds: Set<string>, text: string): boolean 
 }
 
 function isIncidental(text: string, start: number): boolean {
-  return /\b(histor(?:y|ical)|previously|former(?:ly)?|background)\b/i.test(text.slice(Math.max(0, start - 70), start + 85));
+  // The "after" window stops at the next clause boundary so a trigger word
+  // describing an unrelated noun in a later clause (e.g. a title/attribution
+  // introduced by ":" — "for Indian Navy: Former Arihant Commander") doesn't
+  // falsely suppress the mention. A trigger word genuinely describing the
+  // mention itself ("...Iran only as historical background.") stays within
+  // the same clause and is still caught.
+  const before = text.slice(Math.max(0, start - 70), start);
+  const afterFull = text.slice(start, start + 85);
+  const clauseBoundary = afterFull.search(/[.!?:]/);
+  const after = clauseBoundary === -1 ? afterFull : afterFull.slice(0, clauseBoundary);
+  return /\b(histor(?:y|ical)|previously|former(?:ly)?|background)\b/i.test(before + after);
 }
 
 function extractCandidates(text: string, hash: string): TopicCandidate[] {
