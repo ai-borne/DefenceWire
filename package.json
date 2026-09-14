@@ -23,6 +23,8 @@
     "backfill:topics": "vite-node --script crawler/scripts/backfillTopics.ts",
     "inventory:legacy-topic-tags": "vite-node --script crawler/scripts/inventoryLegacyTopicTags.ts",
     "drill:thread-continuity": "vite-node --script crawler/scripts/threadContinuityDrill.ts",
+    "monitor:phase10": "vite-node --script crawler/scripts/phase10MonitoringReport.ts",
+    "drill:rollback": "vite-node --script crawler/scripts/rollbackDrill.ts",
     "suppliers:review": "node scripts/review-supplier-candidates.mjs",
     "typecheck": "tsc --noEmit",
     "check:contracts": "node scripts/check-contracts.mjs",
