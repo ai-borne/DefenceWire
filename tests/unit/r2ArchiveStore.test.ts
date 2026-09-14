@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { buildR2ConfigFromEnv, putClusterJson, putJsonObject, getClusterJson } from '../../crawler/r2ArchiveStore.js';
+import { buildR2ConfigFromEnv, putClusterJson, putJsonObject, getClusterJson, listObjectKeys } from '../../crawler/r2ArchiveStore.js';
 
 const config = {
   accountId: 'acct-1',
@@ -106,5 +106,47 @@ describe('getClusterJson', () => {
     const result = await getClusterJson('story-1', config, fetchFn);
 
     expect(result).toEqual({ ok: false, body: null });
+  });
+});
+
+describe('listObjectKeys', () => {
+  function xmlPage(keys: string[], truncated: boolean, nextToken?: string): string {
+    const keyXml = keys.map((k) => `<Contents><Key>${k}</Key></Contents>`).join('');
+    return `<?xml version="1.0"?><ListBucketResult>${keyXml}<IsTruncated>${truncated}</IsTruncated>${
+      nextToken ? `<NextContinuationToken>${nextToken}</NextContinuationToken>` : ''
+    }</ListBucketResult>`;
+  }
+
+  it('signs a GET against the bucket root with list-type=2 and returns every key from a single page', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => xmlPage(['a.json', 'b.json'], false) });
+
+    const keys = await listObjectKeys(config, fetchFn);
+
+    expect(keys).toEqual(['a.json', 'b.json']);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://acct-1.r2.cloudflarestorage.com/defencewire-archive-blobs?list-type=2&max-keys=1000');
+    expect(init.method).toBe('GET');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toContain('AWS4-HMAC-SHA256 Credential=key-1/');
+  });
+
+  it('pages through IsTruncated/NextContinuationToken until exhausted', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => xmlPage(['a.json'], true, 'token-1') })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => xmlPage(['b.json'], false) });
+
+    const keys = await listObjectKeys(config, fetchFn);
+
+    expect(keys).toEqual(['a.json', 'b.json']);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    const secondUrl = fetchFn.mock.calls[1]?.[0] as string;
+    expect(secondUrl).toContain('continuation-token=token-1');
+  });
+
+  it('throws on a non-2xx response rather than silently returning an empty list', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 403, text: async () => 'AccessDenied' });
+
+    await expect(listObjectKeys(config, fetchFn)).rejects.toThrow(/403/);
   });
 });

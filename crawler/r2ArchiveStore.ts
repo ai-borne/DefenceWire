@@ -44,7 +44,7 @@ function amzDateNow(): string {
 }
 
 /** AWS Signature V4 for a single request against R2's S3-compatible API (region "auto", service "s3"). */
-function signRequest(method: string, config: R2Config, host: string, objectPath: string, body: string, amzDate: string): {
+function signRequest(method: string, config: R2Config, host: string, objectPath: string, body: string, amzDate: string, queryString = ''): {
   authorization: string;
   contentSha256: string;
 } {
@@ -55,7 +55,7 @@ function signRequest(method: string, config: R2Config, host: string, objectPath:
 
   const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${contentSha256}\nx-amz-date:${amzDate}\n`;
   const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
-  const canonicalRequest = [method, objectPath, '', canonicalHeaders, signedHeaders, contentSha256].join('\n');
+  const canonicalRequest = [method, objectPath, queryString, canonicalHeaders, signedHeaders, contentSha256].join('\n');
 
   const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
   const stringToSign = ['AWS4-HMAC-SHA256', amzDate, credentialScope, sha256Hex(canonicalRequest)].join('\n');
@@ -108,6 +108,54 @@ export async function putJsonObject(
   } catch {
     return { ok: false };
   }
+}
+
+/**
+ * Lists every object key in the bucket via R2's S3-compatible ListObjectsV2,
+ * paging on IsTruncated/NextContinuationToken. Read-only; used only by the
+ * D1/R2 reconciliation report. Minimal regex XML extraction is deliberate:
+ * R2's ListObjectsV2 response is a small, trusted, well-formed document, not
+ * unbounded user input, so a full XML parser dependency is not warranted.
+ */
+export async function listObjectKeys(
+  config: R2Config,
+  fetchFn: typeof fetch = globalThis.fetch
+): Promise<string[]> {
+  const host = `${config.accountId}.r2.cloudflarestorage.com`;
+  const keys: string[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const params = new URLSearchParams({ 'list-type': '2', 'max-keys': '1000' });
+    if (continuationToken) params.set('continuation-token', continuationToken);
+    const queryString = Array.from(params.entries())
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
+    const objectPath = `/${config.bucketName}`;
+    const amzDate = amzDateNow();
+    const { authorization, contentSha256 } = signRequest('GET', config, host, objectPath, '', amzDate, queryString);
+
+    const response = await fetchFn(`https://${host}${objectPath}?${queryString}`, {
+      method: 'GET',
+      headers: {
+        Host: host,
+        'x-amz-content-sha256': contentSha256,
+        'x-amz-date': amzDate,
+        Authorization: authorization
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`R2 ListObjectsV2 failed: ${response.status} ${await response.text()}`);
+    }
+    const xml = await response.text();
+    for (const match of xml.matchAll(/<Key>([^<]*)<\/Key>/g)) keys.push(match[1] ?? '');
+    const truncated = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+    const tokenMatch = xml.match(/<NextContinuationToken>([^<]*)<\/NextContinuationToken>/);
+    continuationToken = truncated ? tokenMatch?.[1] : undefined;
+  } while (continuationToken);
+
+  return keys;
 }
 
 export interface R2GetResult {
