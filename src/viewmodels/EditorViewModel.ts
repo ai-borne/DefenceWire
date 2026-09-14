@@ -22,7 +22,8 @@ export type EditorDeskPanel =
   | 'scorecard'
   | 'ingest'
   | 'knowledgeBase'
-  | 'patterns';
+  | 'patterns'
+  | 'topicGovernance';
 export type EditorStateListener = () => void;
 
 export class EditorViewModel {

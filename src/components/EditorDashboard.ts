@@ -23,6 +23,9 @@ import knowledgeBaseStrings from '../resources/knowledgeBaseStrings.js';
 import { renderPatternReviewView } from './editor/PatternReviewView.js';
 import { PatternReviewViewModel } from '../viewmodels/PatternReviewViewModel.js';
 import { PATTERN_STRINGS } from '../resources/patternStrings.js';
+import { renderTopicGovernanceView } from './editor/TopicGovernanceView.js';
+import { TopicGovernanceViewModel } from '../viewmodels/TopicGovernanceViewModel.js';
+import { TOPIC_GOVERNANCE_STRINGS } from '../resources/topicGovernanceStrings.js';
 
 // Module-scoped singletons: EditorDashboard.js is already lazy-loaded on first
 // Curator Desk open, so owning these ViewModels here (rather than in the
@@ -56,6 +59,17 @@ function getPatternReviewViewModel(onChange: () => void): PatternReviewViewModel
     void patternReviewVmSingleton.loadPatterns();
   }
   return patternReviewVmSingleton;
+}
+
+let topicGovernanceVmSingleton: TopicGovernanceViewModel | null = null;
+
+function getTopicGovernanceViewModel(onChange: () => void): TopicGovernanceViewModel {
+  if (!topicGovernanceVmSingleton) {
+    topicGovernanceVmSingleton = new TopicGovernanceViewModel();
+    topicGovernanceVmSingleton.subscribe(onChange);
+    void topicGovernanceVmSingleton.loadQueue();
+  }
+  return topicGovernanceVmSingleton;
 }
 
 export function renderEditorDashboard(
@@ -237,7 +251,8 @@ export function renderEditorDashboard(
     { id: 'scorecard', label: STRINGS.curatorDesk.tabScorecard },
     { id: 'ingest', label: STRINGS.ingest.tabLabel },
     { id: 'knowledgeBase', label: knowledgeBaseStrings.tabLabel },
-    { id: 'patterns', label: PATTERN_STRINGS.tabLabel }
+    { id: 'patterns', label: PATTERN_STRINGS.tabLabel },
+    { id: 'topicGovernance', label: TOPIC_GOVERNANCE_STRINGS.tabLabel }
   ];
 
   for (const tab of panelTabs) {
@@ -266,6 +281,8 @@ export function renderEditorDashboard(
     panel.appendChild(renderKnowledgeBaseView(getKnowledgeBaseViewModel(onIngestChange)));
   } else if (editorVm.isPanelActive('patterns')) {
     panel.appendChild(renderPatternReviewView(getPatternReviewViewModel(onIngestChange)));
+  } else if (editorVm.isPanelActive('topicGovernance')) {
+    panel.appendChild(renderTopicGovernanceView(getTopicGovernanceViewModel(onIngestChange)));
   } else {
     panel.appendChild(renderWireCurationView(editorVm));
   }

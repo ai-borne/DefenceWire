@@ -14,6 +14,7 @@ import { renderKnowledgeBaseView } from '../../src/components/editor/KnowledgeBa
 import { CuratorKnowledgeBaseViewModel } from '../../src/viewmodels/CuratorKnowledgeBaseViewModel.js';
 import knowledgeBaseStrings from '../../src/resources/knowledgeBaseStrings.js';
 import { PATTERN_STRINGS } from '../../src/resources/patternStrings.js';
+import { TOPIC_GOVERNANCE_STRINGS } from '../../src/resources/topicGovernanceStrings.js';
 import { EditorViewModel } from '../../src/viewmodels/EditorViewModel.js';
 import { NewsViewModel } from '../../src/viewmodels/NewsViewModel.js';
 import { SupplierCandidatesPanelViewModel } from '../../src/viewmodels/SupplierCandidatesPanelViewModel.js';
@@ -75,10 +76,10 @@ describe('Modular 5-Tab Curator Workstation', () => {
     } as any);
   });
 
-  it('renders all 8 tabs in the workstation navigation bar', () => {
+  it('renders all 9 tabs in the workstation navigation bar', () => {
     const el = renderEditorDashboard(editorVm, supplierCandidatesVm);
     const tabs = el.querySelectorAll('.dw-editor-desk-tab');
-    expect(tabs.length).toBe(8);
+    expect(tabs.length).toBe(9);
 
     const labels = Array.from(tabs).map((t) => t.textContent?.trim());
     expect(labels).toContain(STRINGS.curatorDesk.tabWire);
@@ -89,6 +90,7 @@ describe('Modular 5-Tab Curator Workstation', () => {
     expect(labels).toContain(STRINGS.ingest.tabLabel);
     expect(labels).toContain(knowledgeBaseStrings.tabLabel);
     expect(labels).toContain(PATTERN_STRINGS.tabLabel);
+    expect(labels).toContain(TOPIC_GOVERNANCE_STRINGS.tabLabel);
   });
 
   it('switches between all 5 workstation tabs correctly', () => {

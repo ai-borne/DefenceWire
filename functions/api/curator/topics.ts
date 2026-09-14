@@ -1,7 +1,7 @@
 /** Curator-only topic governance endpoint; writes are audited and never cached. */
 import { handleTopicGovernance, previewTopicGovernance, GovernanceDependencies, TopicGovernanceRequest } from '../../../src/services/topicGovernanceHandler.js';
 import { verifyCuratorAuthorization } from '../../../src/services/curatorAuthHandler.js';
-interface Statement { bind(...params: unknown[]): Statement; all<T>(): Promise<{results:T[]}>; }
+interface Statement { bind(...params: unknown[]): Statement; all<T>(): Promise<{results:T[]}>; run(): Promise<{meta:{changes:number}}>; }
 interface DB { prepare(sql:string): Statement; batch(statements: Statement[]): Promise<unknown>; }
 interface Context { request: Request; env: { DB?: DB; CURATOR_SESSION_SECRET?:string; CURATOR_SESSION_EPOCH?:string; CURATOR_TEAM_DOMAIN?:string; }; }
 async function dependencies(context: Context, authorized: boolean): Promise<GovernanceDependencies> {
@@ -9,7 +9,8 @@ async function dependencies(context: Context, authorized: boolean): Promise<Gove
   return {
     verifyAuth: async()=>authorized,
     runQuery: async(sql,params)=>(await db.prepare(sql).bind(...params).all<Record<string,unknown>>()).results,
-    runBatch: async(statements)=>{ await db.batch(statements.map((item)=>db.prepare(item.sql).bind(...item.params))); }
+    runBatch: async(statements)=>{ await db.batch(statements.map((item)=>db.prepare(item.sql).bind(...item.params))); },
+    runWrite: async(sql,params)=>{ const result=await db.prepare(sql).bind(...params).run(); return { changes: result.meta.changes }; }
   };
 }
 function response(result: {success:boolean;error?:string;preview?:Record<string,unknown>}, authorized:boolean): Response {

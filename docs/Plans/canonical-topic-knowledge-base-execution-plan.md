@@ -2349,6 +2349,161 @@ repository’s new endpoint-only governance foundation.
   unqueued affected cluster, or lost provenance.
 - Full suite, build, bundle, and security checks pass.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code.** Per this stage's own instruction,
+checked with the user on both open questions before touching anything: (a)
+the non-production D1 clone question raised and declined twice in Stage 3 —
+this time the user authorized provisioning one; (b) whether to fold the
+Stage-3-flagged gap (no reject path for an already-promoted auto-created
+topic) into this stage's surface area — the user said yes.
+
+**Provisioned a real non-production D1 clone and used it for real, not just
+as a checkbox.** Created `defencewire-archive-nonprod-clone`
+(id `c83331e1-c5c1-47e2-8d40-c275ad67321d`) via `wrangler d1 create`,
+applied all 16 production migrations to it via `wrangler d1 execute --file`
+in order (not `migrations apply`, per the known trigger-splitting gotcha),
+and verified the resulting schema matched production. Deliberately kept it
+out of `wrangler.toml` — it has no binding and is not reachable from any
+deployed Worker or Pages Function, so it cannot affect production traffic;
+it is driven only by direct `wrangler d1 execute --remote` calls.
+
+**Central finding: the existing optimistic-concurrency check had a real,
+provable lost-update race — found by actually running the drill, not by
+inspection.** `topicGovernanceHandler.ts`'s original `version()`/`bump()`
+pair read the current version, compared it to `expectedVersion` in
+JavaScript, and only *then* issued the write — with nothing in the SQL
+itself re-checking the version at write time. A drill that called the real
+`handleTopicGovernance()` function twice concurrently (via `Promise.all`)
+against the real remote D1 clone — both "curators" renaming the same topic
+with `expectedVersion:0` — proved this out directly: **both requests
+returned `{success:true}`**, one curator's edit silently overwrote the
+other's with no error ever surfacing to either side, and the final
+`registry_version` (3, after two bumps) gave no indication anything had
+gone wrong. This is exactly the "silent overwrite" this stage's own exit
+criteria forbids, and it would have shipped invisibly if the drill had only
+run against local mocks or been reasoned about instead of executed for
+real — the entire reason this stage's validation work insists on a real
+authenticated remote D1 instance.
+
+**Fixed with an atomic compare-and-swap, re-verified against the same real
+clone.** Replaced `version()`+`bump()` with `claimVersion()`
+(`src/services/topicGovernanceHandler.ts`), which folds the version compare
+into the write's own `WHERE version = ?` clause (or a guarded
+`INSERT ... ON CONFLICT ... WHERE version=0` for a resource's first-ever
+mutation) and checks the actual row-change count from a new
+`GovernanceDependencies.runWrite()` method, rather than trusting a
+JavaScript-side comparison made before the write. D1 serializes writes to a
+single database, so folding the check into the SQL statement itself makes
+that serialization the real mutual-exclusion mechanism: at most one
+concurrent caller's write can match the stored version, and every other
+caller deterministically sees `changes:0` and is rejected as stale — before
+any of the actual mutation, audit, or reclassification-queue statements are
+even built, let alone executed. Re-ran the same concurrent-rename drill
+against the same clone after the fix: one request now succeeds and the
+other cleanly receives `Conflict: this record has changed; refresh and
+retry.`, with exactly one audit record and the version counter landing on 1
+(not 2). Every action (`candidate`, `topic`, `alias`, `implication`,
+`merge`/`reverse_merge`, `suppress`/`restore`, `assignment`) now claims its
+version this way.
+
+**Four drills run against the real remote clone, all passing after the
+fix:**
+1. Concurrent rename (`expectedVersion:0` on both sides) — exactly one
+   succeeds, the other gets a clean `Conflict`, no lost update.
+2. Sequential stale write (same stale `expectedVersion` reused) — second
+   attempt cleanly rejected, exactly one audit record.
+3. Suppress → restore round trip — `status` correctly cycles
+   `active → deprecated → active`, `verification_state` cycles
+   `published → rejected → published`, exactly two audit records.
+4. Curator-lock preservation — a locked assignment survives a concurrent,
+   stale-versioned re-assignment attempt on the same cluster/topic key; the
+   locked row's role and `locked_by_curator` flag are unchanged afterward.
+
+The mocked and real-SQLite unit/integration test suites were updated to
+match the new `claimVersion`/`runWrite` contract (`tests/unit/topicGovernanceHandler.test.ts`,
+`tests/integration/topicGovernanceSuppression.test.ts`), including a test
+that asserts the version claim happening with zero DB reads or writes
+attempted downstream when it fails — the strongest local proof available
+that a stale claim short-circuits before any mutation is built.
+
+**Not fully cleaned up: some drill fixture rows remain in the non-production
+clone.** The schema's own immutability triggers (`cluster_topic_decisions`
+rows are immutable by design, and a curator-locked `cluster_topics` row
+cannot be deleted or overwritten without a matching `unlock` audit row at
+the exact `reviewed_at` timestamp) correctly refused a blanket cleanup
+`DELETE`. This is further real evidence those protections hold even against
+direct SQL, not just through the governance handler, so the leftover rows
+were left in place rather than fought — they are isolated to the
+non-production clone, harmless, and clearly namespaced (`drill-%` ids).
+
+**Closed the Stage-3-flagged reject-path gap.** Added `suppress` and
+`restore` governance actions. `topics.status` has no legal database
+transition from `active` directly back to `provisional` (enforced by the
+`topic_lifecycle_transition` trigger — proved directly in
+`tests/integration/topicGovernanceSuppression.test.ts`, which asserts the
+trigger raises on that exact transition), so `suppress` targets the
+already-legal `active → deprecated` transition with
+`verification_state → rejected`, which makes the topic invisible to the
+public read API (which filters on `status='active' AND
+verification_state='published'`) while remaining fully reversible via
+`restore` (`deprecated → active`, `verification_state → published`, both
+legal transitions). Each direction writes exactly one audit record
+(`reject` / `approve`) and enqueues affected clusters for reclassification.
+
+**Built the curator UI panel and its backing read models.** New
+"Topic Governance" tab in the Curator Desk
+(`src/components/EditorDashboard.ts`), following the repo's established
+MVVM/resource-string conventions:
+- `src/resources/topicGovernanceStrings.ts` — SSOT for all panel strings.
+- `src/services/topicGovernanceQueryBuilder.ts` — bounded, curator-only SQL
+  builders for five review queues (pending candidates, provisional topics,
+  alias collisions, possible-duplicate candidates, assignment
+  disagreements) and three evidence lookups (candidate evidence,
+  source-independence via the existing `topic_corroboration_counts` view,
+  and per-cluster/topic assignment history).
+- `src/services/topicGovernanceReadHandler.ts` +
+  `functions/api/curator/topic-review.ts` — new authenticated,
+  never-cached, curator-only endpoint (`GET /api/curator/topic-review`)
+  wired through the same `verifyCuratorAuthorization` used by the existing
+  `/api/curator/topics` endpoint. None of this is reachable from the public
+  topic read API (`topicReadHandler.ts`), which was not touched.
+- `src/services/topicGovernanceService.ts`,
+  `src/viewmodels/TopicGovernanceViewModel.ts`,
+  `src/components/editor/TopicGovernanceView.ts` +
+  `TopicGovernanceRow.ts` — the client MVVM stack. Every mutating action
+  goes through `window.confirm` with an explicit, specific prompt (no bare
+  "are you sure?"), and the ViewModel reads a resource's current version
+  from the server immediately before every submit (defense in depth for UI
+  responsiveness — the actual safety guarantee is the server-side atomic
+  claim above, which is what the drills exercised).
+- Two review queues (`provisionalTopics`, `aliasCollisions`) are
+  intentionally read-only in this pass: no governance action in the
+  repository targets a provisional-status topic directly (promotion is
+  automatic via corroboration, not curator-invoked), and alias collisions
+  are informational flags for a curator to act on manually via the existing
+  `alias` action rather than a bespoke one-click fix. The
+  "possible-duplicate candidates" queue is a practical proxy, not a
+  dedicated near-duplicate table (none exists in the schema) — it flags a
+  pending candidate whose normalized name already matches an existing
+  topic's alias, which is recorded here rather than silently assumed to be
+  what "near duplicates" means.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`):
+1477 tests (up from 1450+ at the start of this stage), typecheck, contracts,
+crawler dry-run, CSS lint, build, and security audit all green. The new
+lazy-loaded `EditorDashboard` chunk grew to 15.58 KB gzipped (curator-only,
+never shipped to readers); the public-facing main reader bundle is
+unaffected, still 38.88 KB against the 100 KB budget.
+
+**Carried forward, unchanged from Stage 3.** `TOPIC_MODEL_ENABLED` remains
+unset (Stage 3's shadow-eval corrective plan is still open and out of this
+stage's scope). `TOPIC_CURSOR_SECRET` remains unset by design (Stage 5's
+job). No production-sample precision/recall data exists yet for the
+semantic path. `crawler/topicModelConfig.ts` still has no per-run spend cap.
+
 ### Stage 5 — Topic read API staged deployment
 
 #### Goal
