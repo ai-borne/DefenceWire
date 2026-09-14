@@ -3269,6 +3269,250 @@ and establish measured cutover safety rather than inferring it from mocks.
 - Full suite, build, bundle, and security checks remain green; no credentials,
   source bodies, or curator evidence are committed.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code, on all three open questions this
+stage's own instructions and the session brief flagged.** (a) Whether Stage
+9's carried-forward "provision `TOPIC_CURSOR_SECRET` ... run in staging"
+language still applied, given the brief's warning that this plan has twice
+carried stale text. Verified directly against production before assuming
+either way (below); the user confirmed treating it as already satisfied by
+Stage 5/7 rather than doing new provisioning work. (b) What monitoring/
+alerting mechanism to build, since no dashboard/alerting tool exists
+anywhere in this repository or its linked infrastructure (confirmed by
+Phase 11/13's own prior write-ups). The user chose a scripted D1-query
+`workflow_dispatch` job over a new Cloudflare-native alerting stack,
+matching this repo's established pattern rather than introducing new paid
+infrastructure. (c) How to run the rollback drill safely. The user chose
+the same non-production-clone `workflow_dispatch` pattern Stage 8
+established, never production.
+
+**Verified the "provision the secret" carried-forward claim against
+production directly, not the plan's prose.** `wrangler pages secret list`
+confirmed `TOPIC_CURSOR_SECRET` is a live encrypted Pages secret;
+`wrangler.toml` confirms `TOPIC_API_ENABLED = "true"` is deployed; a live
+`GET https://defencewire.in/api/topics/india` returned real production data
+(200, real topic object). Nothing remained to provision — Stage 5/7 had
+already closed this. Documented as satisfied-by-prior-stages rather than
+re-done.
+
+**Verified migration `0014` and historical-candidate privacy directly
+against production.** `wrangler d1 migrations list --remote` reports "No
+migrations to apply!" (all 16 migrations applied, including `0014` and the
+two follow-on Stage 2 fixes). Queried `sqlite_master` directly: the
+`canonical_entities` table no longer exists in production. `topic_candidates`
+(415 pending rows as of this stage, up from Stage 6's 372 — ordinary growth
+from ongoing crawl activity, still untriaged) still exists but is reachable
+only through `functions/api/curator/topics.ts`, which requires
+`verifyCuratorAuthorization` before any read; grepped every file under
+`functions/` and `src/` for `topic_candidates` and found no public-route
+reference. The public route (`functions/api/topics/topicEndpoint.ts` →
+`buildResolvePublicTopicStatement`) never references `topic_candidates`,
+`cluster_topic_decisions`, or `canonical_entities` at all. The one remaining
+`canonical_entities` string in `crawler/topicHistoricalBackfill.ts` is a
+`legacy_source` tag literal recorded on already-migrated `topic_candidates`
+rows, not a query against the dropped table.
+
+**Built and ran a read-only Phase 10 operational-monitoring report against
+production** (`crawler/scripts/phase10MonitoringReport.ts`, new
+`workflow_dispatch`-only `.github/workflows/phase10-monitoring.yml`, manual
+only, never scheduled, issues no write). It computes every Phase 10 signal
+actually derivable from D1: eligible/untagged clusters, assignment-source
+mix, pending/provisional/abandoned candidates, classification failures,
+assignment-run reuse (dedup proof), alias-redirect integrity, backfill
+backlog, orphaned blobs, incomplete/failed-terminal/stale-retryable
+ingestion runs, a structural re-check that zero public `cluster_topics` rows
+ever reference a non-active/non-published topic, and an unchanged-input
+assignment-drift check. It fails the job (non-zero exit, alert list printed)
+on any real breach — a red workflow run is the alert-delivery mechanism
+itself, per the user's checkpointed choice. Three signals genuinely cannot
+be measured from this schema/deployment and are reported as
+`not_instrumented` rather than invented: topic-page 404 rate (no request-log
+capture exists; would need Cloudflare Logpush), classification cache
+hit-rate/latency/model cost (never persisted — `model_cache_key` records
+only presence, not timing or spend), and core-topic disagreement across
+near-duplicate clusters (would need a near-duplicate clustering pass this
+read-only report doesn't run). These three are carried forward as a
+corrective-plan gap, not silently dropped, per Rule 12.
+
+**The monitoring report proved its own alert-delivery mechanism by finding
+a real bug on its first production run, not a staged test.** First run
+alerted on "25 `ingestion_runs` row(s) are neither completed nor failed."
+Investigating live (read-only) showed the actual terminal statuses are
+`published`/`failed_terminal`, not `completed`/`failed` as the query
+assumed — a bug in the monitoring script itself, not a production incident;
+the 2 `failed_retryable` rows both had `completed_at` set and low retry
+counts from the last two days, consistent with ordinary transient-failure
+handling (subsequent hourly crawls succeeded). Fixed the signal to define
+"incomplete" as `completed_at IS NULL` for a run started over an hour ago
+(a genuinely stuck run), and split `failed_terminal` and
+stale-`failed_retryable`-past-24h into their own tracked signals. Re-ran
+against production after the fix: zero alerts. This is the same standard
+Stage 8 held itself to — a real bug found by running the tool, not by
+reasoning about the schema in isolation — and it doubles as proof the
+alert-delivery path genuinely fires and is investigable.
+
+**Captured a clean production monitoring baseline** (2026-09-14T14:27Z):
+141 eligible active clusters, 46.8% untagged rate (138 clusters have an
+`topic_assignment_runs` row — i.e., were actually classified — but only 74
+produced an accepted public assignment; the rest were legitimately
+evaluated and found to match no registered topic, not skipped), 1.51
+average topics per tagged cluster, 115 deterministic assignments and zero
+model/curator assignments this window (`TOPIC_MODEL_ENABLED` remains
+unset), 415 pending candidates, 0 provisional topics, 0 abandoned
+provisionals, 0 classification failures, 150 validated / 0 reused
+assignment runs, 0 broken alias redirects, 0 backfill backlog, 4 pending
+orphaned blobs, 0 incomplete/failed-terminal/stale-retryable ingestion
+runs, 0 public-unpublished assignments, 0 unchanged-input drift. No alert
+conditions. Phase 0's precision/recall/p95-latency/cost thresholds remain
+unmeasurable against live traffic without a labeled gold-corpus rerun
+against production inputs, which this read-only signals report does not
+attempt to fabricate — carried forward, not claimed.
+
+**Ran the fifteen Phase 10 acceptance scenarios, thirteen against live
+production data, two against the Phase 0 gold-corpus fixture where no
+live production data currently exercises the scenario (documented, not
+hidden).**
+
+1. **Live.** A real production cluster
+   (`cluster_ecaa2b3c-fa5e-4c9a-b9cc-6e39a901206c`) carries `lac`, `india`,
+   `china`, and `india-china` simultaneously — all three LAC-example topics
+   plus `#IndiaChina` on one real cluster.
+2. **Fixture only, not live.** `iran` and `jordan` are both registered,
+   published topics, but no current production cluster is tagged with both
+   — this specific cross-topic scenario has no live instance right now.
+   Covered by `tests/unit/topicPhase0Corpus.test.ts`'s gold-corpus case, not
+   by a live smoke test. Carried forward as a scope observation, same as
+   Stage 7's merged-topic-redirect note.
+3. **Live.** `usa`, `us`, and `u s` all resolve (`topic_aliases`,
+   `requires_context=0`) to `topic_id='united-states'`, whose own
+   `display_hashtag` is `#UnitedStates` — one canonical knowledge base
+   confirmed directly against production rows (extends Stage 7's live
+   `usa` → `united-states` smoke test with the full alias set).
+4. **Live.** `GET /api/topics/india/articles?limit=100` returned 49
+   articles in one page (`nextCursor: null`) — far beyond the legacy
+   top-30 cutoff, with no truncation.
+5. **Live.** The same response contains one cluster with two distinct
+   `sources` entries (two publications) beneath it.
+6. **Live.** `#India` alone spans 46 distinct clusters in `cluster_topics`
+   — many independent threads/clusters under one broad topic, each its own
+   row, none collapsed into another.
+7. **Live + structural.** The monitoring report's
+   `public_unpublished_assignments` and `compatibility_hashtags_not_resolving`
+   signals are both 0; the public route's own query never joins
+   `topic_candidates`/decision-ledger tables (verified above).
+8. **Live.** `topic_assignment_runs` carries a `UNIQUE(cluster_id,
+   content_fingerprint, registry_version, classifier_version,
+   assignment_policy_version)` constraint enforced at the schema level; the
+   monitoring report's `reused: 0, validated: 150` split and
+   `unchanged_input_assignment_drift: 0` confirm no duplicate assignment
+   was produced by re-running against unchanged input in this window.
+9. **Not exercised live this stage.** Discovering a genuinely new named
+   platform/facility in production requires new crawl content naming one,
+   which cannot be manufactured without fabricating source data. Covered by
+   `tests/integration/topicCandidatePromotion.test.ts`'s real-schema
+   provisional-register → corroborate → promote → backfill path. Carried
+   forward as a live-data gap, not claimed as production-proven.
+10. **Structural + tested.** The `idx_topic_alias_unconditional` unique
+    index makes two unconditional aliases resolving to different topics a
+    schema-level impossibility; `tests/unit/topicPhase0Corpus.test.ts`
+    covers the United States/Su-57 convergence case directly.
+11. **Live.** Same evidence as (8): `unchanged_input_assignment_drift: 0`
+    against real production `topic_assignment_runs` rows.
+12. **Live + tested.** Stage 8's non-production drill already proved a
+    re-clustered event (merge/split) preserves one effective topic set
+    without creating a duplicate; `article_topic_mentions` retains
+    per-source evidence rows independent of the effective `cluster_topics`
+    row.
+13. **Tested, not live.** No near-duplicate cluster pair currently exists
+    in production to compare live; covered by the deterministic-classifier
+    unit/integration suite (unchanged from Stage 0's scope). Same
+    "not_instrumented" gap as the monitoring report's
+    `core_topic_disagreement_near_duplicates` signal.
+14. **Live + tested.** Stage 8's non-production drill directly exercised
+    primary-source replacement and confirmed the event row updates in
+    place (same ID, same thread, same count) rather than duplicating; the
+    public topic-article response's `clusterId` is the same durable ID
+    Phase 0 defined as source-independent.
+15. **Structural.** The `cluster_topics_only_validated_insert`/`_update`
+    triggers (re-verified against production by the monitoring report's
+    `public_unpublished_assignments: 0`) make it schema-impossible for a
+    `shadow`-state or non-`accepted` decision to ever materialize a public
+    hashtag, regardless of the confidence or consistency of whatever
+    produced that decision — publication policy is enforced at the write
+    gate, not by trusting the classifier's output.
+
+**Ran the rollback drill against the non-production clone, never
+production.** `crawler/scripts/rollbackDrill.ts` (new
+`workflow_dispatch`-only `.github/workflows/rollback-drill.yml`, hardcoded
+to `defencewire-archive-nonprod-clone`'s database ID, refuses to run
+against the production ID) simulated a full trigger-valid "bad cutover"
+write (one `topic_assignment_runs` + one accepted `cluster_topic_decisions`
++ one effective `cluster_topics` row against a real published topic in the
+clone), then proved two things directly against real D1: first, that
+`cluster_topic_decisions` genuinely rejects `DELETE` (the immutable-ledger
+trigger fired, confirming the decision/run audit trail cannot be edited
+even during a rollback); second, that the correct rollback procedure —
+`DELETE FROM cluster_topics WHERE cluster_id=? AND topic_id=?` — restores
+public membership to the exact pre-drill baseline count while the decision
+and run ledger rows persist untouched (append-only audit history of "this
+assignment was made, then rolled back"), with zero `PRAGMA
+foreign_key_check` violations afterward. This is a real, previously
+undocumented finding about the system's actual rollback design: rollback
+targets the effective `cluster_topics` table, never the immutable decision
+ledger, because the ledger was deliberately built to reject exactly that.
+The complementary API-level rollback lever — `TOPIC_API_ENABLED` unset/false
+→ 404 — was already covered before this stage by
+`tests/unit/topicReadPagesFunction.test.ts`'s existing
+"stays unavailable until its explicit feature gate is enabled" test; no new
+test was needed there.
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`,
+including the pre-commit hook's own re-run, both before and after the
+monitoring-script fix): 1484/1484 tests, typecheck, contracts, CSS lint,
+crawler dry-run, build, bundle budget, and security audit all green on both
+commits. Both pushes' `DefenceWire CI Pipeline` and `crawl-and-deploy` runs
+succeeded with no production regression (live `GET /api/topics/india`
+verified 200 after each deploy).
+
+**No credentials, source bodies, or curator evidence were committed.** The
+monitoring report and rollback drill scripts print only counts, rates, and
+structural booleans; no article body, curator email, or decision-ledger
+free-text field is read or logged by either.
+
+**Exit criteria assessment.** D1/R2 reconciliation: no unexplained records
+found (Stage 8 already reconciled `thread_topics`; this stage reconciled
+`topic_candidates` privacy and `canonical_entities` removal). Alert
+delivery: proven live by a real (if ultimately false-positive) alert firing
+and being investigated to resolution. Staging smoke tests: not applicable
+beyond what Stage 5/7 already ran — production has served as the only
+available "staging" tier since Stage 5, per established precedent; nothing
+new to gate behind a flag this stage. Production cutover: already live
+since Stage 5/7; this stage found nothing left to cut over. Rollback drill:
+passed against the non-production clone. Quality/stability/latency/cost:
+the measurable subset (assignment stability, alias convergence, public
+non-exposure) is 100% against production; precision/recall/p95-latency/cost
+against a labeled corpus remain unmeasured and are carried forward
+explicitly, not claimed. Full suite/build/bundle/security: green. No
+secrets/source bodies/curator evidence committed: confirmed.
+
+**Carried forward, unchanged from Stage 8, plus this stage's own findings.**
+`TOPIC_MODEL_ENABLED` remains unset. Cache-Tag-based purge remains
+non-functional zone-wide. No topic in production has `status='merged'`, so
+the topic-redirect (308) path still has no live production data — unrelated
+to this stage's scope. The 372 (now 415) legacy-tag review candidates
+remain untriaged. New from this stage: topic-page 404 rate, classification
+cache hit-rate/latency/model cost, and core-topic disagreement across
+near-duplicates remain genuinely unmeasurable without new infrastructure
+(Logpush, cost/timing instrumentation, a near-duplicate clustering pass
+respectively) — explicit corrective-plan gaps for a future phase, not
+silently dropped. Precision/recall/p95-latency/cost against the Phase 0
+gold corpus were never run against live production traffic in this stage
+or any prior one; this is the same measurement gap Phase 14 already exists
+to close once Phase 13 itself is done.
+
 ### Phase 13 exit criteria
 
 Phase 13 as a whole is not closed until every stage above has met its own
@@ -3279,6 +3523,158 @@ exit criteria and:
 - No stage was skipped, reordered, or partially verified to reach closure.
 - The full suite, build, bundle, and security checks remain green after the
   final stage.
+
+### Phase 13 Summary
+
+Closed on 2026-09-14. All nine stages met their own exit criteria (Stage 3
+as an explicit, recorded partial close under Rule 12, not a completed
+stage) with no stage skipped, reordered, or partially verified to reach
+closure.
+
+**Delivered, by stage:**
+
+- **Stage 0.** All 14 originally-pending migrations (not the five assumed)
+  applied to production D1 by Phase 12, re-verified clean before Stage 1.
+- **Stage 1.** Durable ingestion activated in production; two real bugs
+  (a detached `crypto.randomUUID` method call breaking under Node 24's
+  stricter `this` check, and a >100-bound-parameter D1 statement failing at
+  real feed volume) found and fixed only by pushing to the live site, since
+  this repo has no staging tier.
+- **Stage 2.** Full Phase 0 gold corpus (including the NSA/LAC contextual
+  case) passes against the real production registry; D1 reconciliation
+  properties proven directly; a live cross-run manifest `UNIQUE` collision
+  bug found and fixed via two real production migrations (`0015`, `0016`).
+- **Stage 3.** Partial close, recorded honestly: a real 24-case gold-corpus
+  shadow evaluation against the live Gemini provider found and fixed two
+  real prompt/parser contract bugs invisible to every mock, then scored
+  73.3% precision / 33.3% recall — a genuine fail against Phase 0's
+  >=95%/>=90% thresholds. `TOPIC_MODEL_ENABLED` correctly stays unset with a
+  recorded corrective plan (relax the all-or-nothing response-validation
+  rule) rather than being silently retried to a better number.
+- **Stage 4.** Non-production D1 clone provisioned; a real lost-update race
+  in the topic-governance concurrency check was proven live (two concurrent
+  renames, one silently overwriting the other, no error to either caller)
+  and fixed with an atomic SQL-level compare-and-swap, re-verified with four
+  passing drills against the same clone. Curator Governance UI shipped.
+- **Stage 5.** `TOPIC_CURSOR_SECRET` provisioned and the public topic API
+  gate turned on in production (the plan's "cutover" language explicitly
+  superseded here by the user's own in-session approval). A real
+  percent-encoding bug in Cloudflare Pages Functions' route params (`%23Jordan`
+  → 400) found and fixed live; full smoke-test matrix passed against real
+  production data.
+- **Stage 6.** Historical backfill run twice against production, confirming
+  zero backlog (real-time classification had already caught up). 372 legacy
+  R2 hashtags inventoried and queued as private pending review candidates.
+  An unrelated live production ingestion outage (`CHECK constraint failed:
+  last_observed_at >= first_observed_at`) found and fixed mid-stage after an
+  explicit user checkpoint on priority.
+- **Stage 7.** Durable feed bridge's `canonicalTopics` projection verified
+  already correct by reading the code, not assumed from stale plan text;
+  closed its test-coverage gap with a real-SQLite integration test. Full
+  smoke-test matrix (aliases, pagination, error/empty states, dark/mobile,
+  cache headers, end-to-end reader path) run live against production.
+- **Stage 8.** `thread_topics` migration and historical reconciliation
+  verified against production with zero unexplained rows. A non-production
+  drill exercising the real continuity pipeline at record scale (231
+  threads, 1212 events) found and fixed two real bugs (a shared-substring
+  false-positive-merge failure mode, and an incorrect test assumption about
+  lineage-successor no-op behavior).
+- **Stage 9.** Verified `TOPIC_CURSOR_SECRET`/`TOPIC_API_ENABLED`/migration
+  `0014` were already fully live and correct — nothing left to provision.
+  Built and ran a read-only Phase 10 monitoring report against production
+  (new `workflow_dispatch` job), which found and fixed a real bug in its own
+  first run (wrong terminal-status assumption), then confirmed a clean,
+  zero-alert baseline. Ran the fifteen Phase 10 acceptance scenarios, thirteen
+  against live production data. Proved the cutover's data-level rollback
+  lever against the non-production clone (delete from `cluster_topics`,
+  never the immutable decision ledger) and confirmed the existing
+  API-level rollback lever (`TOPIC_API_ENABLED` off → 404) was already
+  covered by a pre-existing test.
+
+**Deep check.** Every public read path across all nine stages was
+independently re-verified — not merely assumed from Phase 10's original
+implementation — to filter on `status='active' AND
+verification_state='published'` at the SQL or application layer, with no
+`topic_candidates`, `cluster_topic_decisions`, `topic_assignment_runs`, or
+(pre-Stage-9-removal) `canonical_entities` reference on any public route.
+Every real bug found across the phase (Stages 1, 2, 4, 5, 6, 8, 9 each
+found at least one) was found by actually executing code against a real
+authenticated environment — production or the non-production D1 clone —
+never by reasoning about the schema or trusting a mock, matching the
+standard the session briefs for this phase explicitly set and repeatedly
+enforced.
+
+**Tech debt discovered and resolved, per stage:**
+
+- Stage 1: detached-`this` crypto call and >100-bound-parameter D1
+  statement — both fixed and regression-tested before the stage closed.
+- Stage 2: unobservable D1 batch error bodies (fixed first, which is what
+  surfaced the real cause) and a table-wide manifest `UNIQUE` constraint
+  wrongly scoped across runs — both fixed via migration `0016` and
+  regression-tested.
+- Stage 3: **not resolved, deliberately** — the semantic-adjudication
+  precision/recall shortfall and the missing curator reject-path for an
+  already-promoted auto-created topic are both recorded as open corrective
+  work, not silently carried as done. `crawler/topicModelConfig.ts`'s
+  missing per-run spend cap is also flagged, unresolved, and low-risk while
+  `TOPIC_MODEL_ENABLED` stays unset.
+- Stage 4: the governance concurrency lost-update race — fixed with an
+  atomic compare-and-swap and re-verified with four live drills.
+- Stage 5: the percent-encoded route-param bug — fixed and
+  regression-tested against the real Pages Function, not just the inner
+  handler.
+- Stage 6: the `last_observed_at` monotonicity gap breaking live ingestion —
+  fixed with the same monotonic-`MAX` guard `graph_edges` already used, and
+  regression-tested by reproducing the exact production failure first.
+- Stage 8: the drill's own false-positive-merge failure mode from shared
+  substrings, and an incorrect assumption about lineage no-op behavior —
+  both fixed in the drill script itself (the underlying continuity engine
+  was already correct in both cases).
+- Stage 9: the monitoring report's own incomplete-ingestion-run false
+  alarm — fixed by redefining "incomplete" as `completed_at IS NULL` for a
+  stuck run rather than a wrong terminal-status assumption.
+
+No stage's tech debt was deferred by simply not looking; every item above
+was found by direct execution against a real database, and every fixable
+item was fixed and re-verified in the same stage before moving on.
+
+**Known limitations, carried forward beyond Phase 13 as explicit corrective
+work (not silently treated as done):**
+
+- `TOPIC_MODEL_ENABLED` remains unset; Stage 3's precision/recall
+  corrective plan (independent validation of `existingTopics` vs.
+  `discoveredConcepts`) is still open, and `topicModelConfig.ts` still has
+  no per-run spend cap.
+- No curator reject/demote path exists for an already-promoted,
+  auto-created (facility/exercise/operation) topic — only `merge` is
+  available today.
+- Cache-Tag-based purge remains a documented no-op on this Cloudflare zone
+  zone-wide; short TTLs plus the cursor/version binding are the real
+  invalidation mechanism.
+- The in-memory topic-API rate limiter remains per-isolate, not global.
+- Topic-page 404 rate, classification cache hit-rate/latency/model cost,
+  and core-topic disagreement across near-duplicate clusters remain
+  genuinely unmeasurable without new infrastructure (Stage 9).
+- Phase 0's precision/recall/p95-latency/cost thresholds have never been
+  measured against live production traffic with a labeled corpus — only
+  Stage 3's one-off 24-case shadow sample (a fail) and Stage 9's
+  structural/stability signals (all passing) exist. This is the same gap
+  Phase 14 already exists to close.
+- 415 legacy/inventoried `topic_candidates` rows remain untriaged in the
+  existing curator queue.
+- The merged-topic redirect (308) path and one Iran/Jordan cross-topic
+  acceptance scenario have no live production data to exercise them yet —
+  both remain covered by unit/fixture tests only.
+- Phase 12's own backup/rollback recovery drill in a non-production clone
+  (distinct from Stage 9's cutover rollback drill, which is closed) remains
+  carried forward as Phase 15.
+
+**Build status:** Passing on every commit across all nine stages, including
+the pre-commit hook's own full re-run before each push.
+
+**Test status:** 1484/1484 full-suite tests passing at Phase 13's close (up
+from 1433 at Phase 12's start); no skipped or pending tests at any stage's
+closure.
 
 ## Phase 14 — Phase 11 production baseline closure (carried-forward gaps)
 
