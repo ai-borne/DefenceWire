@@ -2553,6 +2553,158 @@ indexes at real data volume.
 - Full suite, build, bundle, security checks, remote migration checks, and
   staging smoke tests pass.
 
+#### Stage status
+
+Closed on 2026-09-14.
+
+**Checkpointed before writing any code, on both open questions this stage's
+own instructions flagged.** (a) There is no staging environment in this repo —
+`crawl-and-deploy.yml` pushes straight to production on every push to `main`,
+and the plan's prose assumes an authenticated staging tier throughout. The
+user chose to treat the production Pages deployment itself as this stage's
+"staging," with the rollout done carefully behind the existing feature gate.
+(b) Whether to actually set `TOPIC_CURSOR_SECRET` — the first public-facing
+feature gate in the whole plan going from off to on. The user chose to set it,
+run the full smoke-test matrix live, and keep it on if everything passed
+(rather than testing then reverting to another 503 hold). **This means the
+plan's own exit-criterion wording, "the production feature gate remains
+disabled until approved cutover," is explicitly superseded here — the user's
+in-session decision on (b) is that approval,** not a Phase 10 event still to
+come. Flagged per Rule 7 rather than silently reworded.
+
+**Verified actual state before trusting the plan's carried-forward prose.**
+`TOPIC_API_ENABLED` was already `"true"` in `wrangler.toml` (confirmed by
+reading the file directly — the plan's stale text claiming it "remains false"
+was wrong, as the session brief warned it might be). `TOPIC_CURSOR_SECRET` was
+confirmed absent from the production Pages secret list
+(`wrangler pages secret list`), so the route was genuinely 503 fail-closed
+going into this stage.
+
+**Generated and provisioned the secret, then redeployed to pick it up.**
+Cloudflare Pages does not hot-reload secrets into an already-running
+deployment, so after `wrangler pages secret put TOPIC_CURSOR_SECRET` (64
+hex chars / 256 bits, generated with `openssl rand -hex 32`, never echoed to
+logs or committed) a `gh workflow run crawl-and-deploy.yml` (`workflow_dispatch`,
+no code change) was used to force a fresh deploy before any smoke test — the
+initial verification `curl` still 503'd until that redeploy completed, which
+is itself confirmation the gate fails closed correctly right up to the moment
+the secret is actually live.
+
+**EXPLAIN QUERY PLAN verified against real production D1 for every read-path
+statement** (not the non-prod clone — chosen deliberately, since this is a
+read-only, non-mutating check and running it against the real 29-row `topics`
+table / real `cluster_topics` data gives a truer answer than a smaller or
+stale clone):
+- Topic-article hydration (`buildTopicArticleStatement`, the actual per-card
+  hot path Phase 6/migration `0011` targeted) uses
+  `idx_cluster_topics_topic_cluster` to search by `topic_id`, then primary-key
+  searches into `story_clusters` and `source_articles` — no scan of either
+  table.
+- Cluster-source and thread-ID hydration both use their intended indexes
+  (`idx_cluster_sources_cluster_role`, `idx_story_thread_events_cluster`),
+  bounded to the requested cluster-ID batch — no archive-wide scan, and
+  grepping the topic read path confirms it never touches `ARCHIVE_MEDIA`
+  (R2), i.e. genuinely zero R2 reads per card.
+- The topic list endpoint uses `idx_topics_runtime_registry` on
+  `(status, verification_state, registry_version)`.
+- **Finding, not a defect:** the canonical-ID/hashtag/alias resolve query
+  (`buildResolvePublicTopicStatement`) does a full `SCAN t` of the `topics`
+  table — migration `0011`'s indexes target `cluster_topics`/`cluster_sources`
+  for article hydration and were never meant to cover this query, and
+  `lower(t.display_hashtag)=?` can't use the table's own unique index on
+  `display_hashtag` since SQLite doesn't index expressions here. At the
+  current 29-row table this is immaterial (sub-millisecond); recorded here
+  rather than silently ignored per Rule 12, and worth an expression index if
+  the topic registry ever grows into the thousands.
+
+**Found and fixed a real production bug during live smoke testing, not
+before it — this stage's whole reason for existing.** Cloudflare Pages
+Functions does not URL-decode dynamic route params. `GET
+/api/topics/%23Jordan` (the display-hashtag lookup path — the exact
+"display hashtag" case this stage's own validation work names) returned
+`400 Invalid topic identifier` in production, because `context.params.id`
+arrived at `cleanLookup()` as the literal string `%23Jordan`, which fails
+every downstream check `cleanLookup`'s `#`-stripping logic was written to
+handle. Confirmed definitively with a second, unrelated percent-encoded
+probe (`%6Aordan` for `jordan`, also 400) to rule out anything hashtag-specific.
+The in-app reader UI never hit this path — `topicService.ts` always calls
+with the canonical lowercase-hyphen `id` form, which `encodeURIComponent`
+never actually encodes — so this was reachable by any direct API client
+following the documented hashtag-lookup contract, but invisible to the app's
+own navigation. **Fixed** by decoding once at the shared edge-adapter
+boundary (`functions/api/topics/topicEndpoint.ts`'s new `decodeRawTopic`,
+called at the top of `topicResponse`), with a malformed sequence falling
+through unchanged to `handleTopicRead`'s own existing validation rather than
+throwing. Added a regression test
+(`tests/unit/topicReadPagesFunction.test.ts`) asserting a percent-encoded
+`%23India` param resolves correctly through the real Pages Function
+`onRequestGet`, not just the inner handler (the inner handler's own unit
+tests already passed a pre-decoded `'#UnitedStates'` directly, which is
+exactly why this gap was invisible to the existing suite). Verified live
+against production both before the fix (400) and after redeploying it (200)
+— this is the second stage in a row (after Stage 4's concurrency race) where
+a bug was invisible to every local/mocked test and only surfaced by actually
+exercising the real deployed edge path, confirming the session brief's
+instruction to prefer that over trusting mocks alone.
+
+**Full smoke-test matrix run live against production, all passing:**
+canonical ID, hashtag (post-fix), alias resolution (production actually has
+34 published unconditional aliases — verified end-to-end with `usa`/`us`
+both correctly resolving to `united-states`), deprecated-redirect code path
+(no deprecated topic exists yet in production to exercise end-to-end;
+covered by existing unit tests instead), invalid
+identifier (control chars / length), unknown topic (404), tampered cursor
+(400), stale/mismatched cursor (400), clean pagination round-trip on
+`/api/topics/india/articles` (two pages, four distinct `clusterId`s, no
+duplicates or gaps), rate-limit headers present on every response, and the
+curator-only `/api/curator/topic-review` endpoint correctly redirecting
+(302) unauthenticated public requests rather than exposing governance data.
+
+**Two behaviors confirmed live that match already-known, already-documented
+platform limitations — not new bugs, not fixed in this stage:**
+1. **Cache-Tag purge is a no-op on this zone.** The `Cache-Tag` response
+   header the endpoint sets is simply absent from the live response
+   (confirmed with `curl -D -`) — this is the same zone-wide stripping
+   `curatorPurgeCacheHandler.ts` already documented from an earlier phase
+   (likely an Enterprise-plan-only Cloudflare feature), not something new to
+   the topic API. Cache invalidation after a published assignment or
+   registry change is therefore actually achieved by the cursor/version
+   binding (any registry or assignment change changes `registryVersion`/
+   `assignmentVersion`, which changes the `Cache-Tag` value computed
+   server-side and invalidates any outstanding signed cursor) plus the short
+   `max-age=60, s-maxage=300, stale-while-revalidate=600` TTLs — not by
+   tag-based purge, which does not work on this zone regardless of what the
+   response header claims.
+2. **The in-memory rate limiter does not trip under a live single-client
+   burst.** 61 rapid sequential requests to the same topic all returned 200
+   with `ratelimit-remaining` barely moving, because Cloudflare Pages
+   Functions isolates are not session-affine at the edge — each request can
+   land on a different in-memory bucket. This matches the Phase 6 carried-
+   forward limitation ("rate-limit behavior across isolates ... requires
+   authenticated staging") exactly: the limiter's logic is real and unit-
+   tested, but it is a best-effort per-isolate guard, not a global one.
+   Making it global would need a Durable Object or KV-backed counter — out of
+   this stage's scope, and not requested.
+
+**No unpublished state reachable.** All 29 production topics happen to
+already be `status='active' AND verification_state='published'`, so there is
+currently no live provisional/shadow/suppressed/rejected topic to probe
+end-to-end; every query in `topicReadQueryBuilder.ts` filters on that exact
+pair (confirmed by direct code inspection, and by Stage 4's governance drills
+against the non-prod clone, which already proved `suppress`/`restore`
+correctly move a topic in and out of public visibility).
+
+**Full suite, build, bundle, and security checks pass** (`npm run check`,
+including the pre-commit hook's own re-run): 1478 tests (1477 + the new
+regression test), typecheck, contracts, CSS lint, crawler dry-run, build,
+bundle budget, and security audit all green.
+
+**Carried forward, unchanged from Stage 4.** `TOPIC_MODEL_ENABLED` remains
+unset (Stage 3's shadow-eval corrective plan is still open, out of scope
+here). The topic-article resolve query's full `topics`-table scan (above) is
+harmless today and not worth an index at 29 rows. Cache-Tag-based purge
+remains non-functional zone-wide, unrelated to this stage's own code.
+
 ### Stage 6 — Historical backfill execution
 
 #### Goal
