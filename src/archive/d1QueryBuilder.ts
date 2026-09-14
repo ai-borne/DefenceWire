@@ -147,6 +147,21 @@ export function buildNullClusterJsonStatement(id: string): D1Statement {
 }
 
 /**
+ * Finds which of the given ids currently have an archived_stories row.
+ * Used before deleting a re-entered cluster's R2 blob: only ids that were
+ * actually archived ever had one written by archivePoppedClusters, so this
+ * distinguishes "genuinely returning from archive" from "already live",
+ * which share the same DELETE call but must not share the same R2 delete.
+ */
+export function buildSelectExistingArchivedStoryIdsStatement(ids: string[]): D1Statement {
+  const placeholders = ids.map(() => '?').join(', ');
+  return {
+    sql: `SELECT id FROM archived_stories WHERE id IN (${placeholders})`,
+    params: [...ids]
+  };
+}
+
+/**
  * Removes archived rows for ids that are back in the live feed. A cluster
  * can drop out of the top-N/72h window on one crawl and re-enter on a
  * later one (its source article is still fresh) — without this, it would

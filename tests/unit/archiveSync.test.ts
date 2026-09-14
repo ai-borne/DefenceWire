@@ -148,6 +148,13 @@ describe('archivePoppedClusters', () => {
 });
 
 describe('reconcileArchiveWithLiveFeed', () => {
+  function selectResponse(ids: string[]): { ok: true; text: () => Promise<string> } {
+    return {
+      ok: true,
+      text: async () => JSON.stringify({ success: true, result: [{ success: true, results: ids.map((id) => ({ id })) }] })
+    };
+  }
+
   it('does nothing when D1 config is null', async () => {
     const fetchFn = vi.fn();
     const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], null, r2Config, { fetchFn });
@@ -165,13 +172,15 @@ describe('reconcileArchiveWithLiveFeed', () => {
   });
 
   it('issues one DELETE covering every currently-live cluster id, so a re-surfaced story stops being duplicated in the archive', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse([]))
+      .mockResolvedValueOnce({ ok: true });
     const deleteObjectFn = vi.fn().mockResolvedValue({ ok: true, status: 204 });
     const liveClusters = [makeCluster('a'), makeCluster('b')];
     const result = await reconcileArchiveWithLiveFeed(liveClusters, config, r2Config, { fetchFn, deleteObjectFn });
 
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    const [url, init] = fetchFn.mock.calls[1] as [string, RequestInit];
     expect(url).toBe('https://api.cloudflare.com/client/v4/accounts/acct-1/d1/database/db-1/query');
     const body = JSON.parse(init.body as string);
     expect(body.sql).toContain('DELETE FROM archived_stories');
@@ -179,15 +188,27 @@ describe('reconcileArchiveWithLiveFeed', () => {
     expect(result).toEqual({ removed: 2, failed: 0, r2Failed: 0 });
   });
 
-  it('deletes each re-entered cluster\'s R2 blob so it does not outlive its archived_stories row', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+  it('deletes the R2 blob only for ids that actually have an archived_stories row, not every live cluster', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse(['a']))
+      .mockResolvedValueOnce({ ok: true });
     const deleteObjectFn = vi.fn().mockResolvedValue({ ok: true, status: 204 });
     const liveClusters = [makeCluster('a'), makeCluster('b')];
     await reconcileArchiveWithLiveFeed(liveClusters, config, r2Config, { fetchFn, deleteObjectFn });
 
-    expect(deleteObjectFn).toHaveBeenCalledTimes(2);
+    expect(deleteObjectFn).toHaveBeenCalledTimes(1);
     expect(deleteObjectFn).toHaveBeenCalledWith('a.json', r2Config, fetchFn);
-    expect(deleteObjectFn).toHaveBeenCalledWith('b.json', r2Config, fetchFn);
+  });
+
+  it('deletes no R2 blobs when none of the live clusters were actually archived', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse([]))
+      .mockResolvedValueOnce({ ok: true });
+    const deleteObjectFn = vi.fn();
+    const liveClusters = [makeCluster('a'), makeCluster('b')];
+    await reconcileArchiveWithLiveFeed(liveClusters, config, r2Config, { fetchFn, deleteObjectFn });
+
+    expect(deleteObjectFn).not.toHaveBeenCalled();
   });
 
   it('skips R2 deletion when no R2 config is provided, without failing the D1 reconcile', async () => {
@@ -200,15 +221,30 @@ describe('reconcileArchiveWithLiveFeed', () => {
   });
 
   it('counts a failed R2 delete without blocking the D1 reconcile', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: true });
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse(['a']))
+      .mockResolvedValueOnce({ ok: true });
     const deleteObjectFn = vi.fn().mockResolvedValue({ ok: false, status: 500 });
     const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, r2Config, { fetchFn, deleteObjectFn });
 
     expect(result).toEqual({ removed: 1, failed: 0, r2Failed: 1 });
   });
 
+  it('skips R2 cleanup for this run (without failing) when the existing-ids lookup itself fails', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'error' })
+      .mockResolvedValueOnce({ ok: true });
+    const deleteObjectFn = vi.fn();
+    const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, r2Config, { fetchFn, deleteObjectFn });
+
+    expect(deleteObjectFn).not.toHaveBeenCalled();
+    expect(result).toEqual({ removed: 1, failed: 0, r2Failed: 0 });
+  });
+
   it('counts a failed HTTP response without throwing', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse([]))
+      .mockResolvedValueOnce({ ok: false, status: 500 });
     const deleteObjectFn = vi.fn().mockResolvedValue({ ok: true, status: 204 });
     const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, r2Config, { fetchFn, deleteObjectFn });
 
@@ -216,7 +252,9 @@ describe('reconcileArchiveWithLiveFeed', () => {
   });
 
   it('counts a network error without throwing', async () => {
-    const fetchFn = vi.fn().mockRejectedValue(new Error('network down'));
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(selectResponse([]))
+      .mockRejectedValueOnce(new Error('network down'));
     const deleteObjectFn = vi.fn().mockResolvedValue({ ok: true, status: 204 });
     const result = await reconcileArchiveWithLiveFeed([makeCluster('a')], config, r2Config, { fetchFn, deleteObjectFn });
 

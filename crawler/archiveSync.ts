@@ -11,7 +11,7 @@
 import { StoryCluster } from '../src/types/news.js';
 import { findClustersToArchive } from '../src/archive/archiveDiff.js';
 import { toArchivedStoryRow } from '../src/archive/archiveRow.js';
-import { buildInsertArchivedStoryStatement, buildDeleteArchivedStoriesStatement, D1Statement } from '../src/archive/d1QueryBuilder.js';
+import { buildInsertArchivedStoryStatement, buildDeleteArchivedStoriesStatement, buildSelectExistingArchivedStoryIdsStatement, D1Statement } from '../src/archive/d1QueryBuilder.js';
 import { putClusterJson, deleteObject, R2Config } from './r2ArchiveStore.js';
 
 export interface D1RestConfig {
@@ -163,10 +163,16 @@ export async function archivePoppedClusters(
  * on a later one (its source article is still fresh) — without this, it
  * would stay permanently archived while also showing live, i.e. the same
  * story appearing in both Top Stories and the Archive at once. Also deletes
- * each re-entered cluster's R2 blob (best-effort, non-fatal): without this,
- * every archive/un-archive cycle would leak a permanent orphaned object,
- * since archiving is the only path that writes one and nothing else ever
- * deleted it (found via the Phase 14 D1/R2 reconciliation report).
+ * the R2 blob for ids that were *actually* archived (best-effort,
+ * non-fatal): without this, every archive/un-archive cycle would leak a
+ * permanent orphaned object, since archiving is the only path that writes
+ * one and nothing else ever deleted it (found via the Phase 14 D1/R2
+ * reconciliation report). Deliberately scoped to only ids with an existing
+ * archived_stories row, not every live cluster id: durable ingestion also
+ * writes an R2 payload for every currently-live cluster (for crash-recovery
+ * resumption, unrelated to archiving), and deleting those would destroy
+ * unrelated live data — an incident this exact function caused once
+ * already before this scoping check was added.
  */
 export async function reconcileArchiveWithLiveFeed(
   liveClusters: StoryCluster[],
@@ -183,7 +189,18 @@ export async function reconcileArchiveWithLiveFeed(
 
   let r2Failed = 0;
   if (r2Config) {
-    for (const id of ids) {
+    let archivedIds: string[] = [];
+    try {
+      const { ok, rows, error } = await executeD1Query(buildSelectExistingArchivedStoryIdsStatement(ids), config, fetchFn);
+      if (ok) {
+        archivedIds = rows.map((row) => String(row.id));
+      } else {
+        console.error('[ARCHIVE RECONCILE] failed to look up existing archived ids; skipping R2 cleanup this run:', error);
+      }
+    } catch (err) {
+      console.error('[ARCHIVE RECONCILE] failed to look up existing archived ids; skipping R2 cleanup this run:', err);
+    }
+    for (const id of archivedIds) {
       const result = await deleteObjectFn(`${id}.json`, r2Config, fetchFn);
       if (!result.ok) {
         r2Failed++;
