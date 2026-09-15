@@ -3812,3 +3812,110 @@ Rule 12 — Phase 12 must not be read as fully closed until this drill passes.
 - Full suite, build, and security checks remain green (no repository code
   changes are expected for this phase).
 - The Phase 15 Summary records zero unresolved release-blocking debt.
+
+### Phase status
+
+Descoped by explicit user decision on 2026-09-15, not completed. This is
+recorded under Rule 12 as a deliberate, reviewed non-blocking exception, not a
+silent skip.
+
+**Attempt and findings before descoping.** A disposable test database
+(`defencewire-archive-phase15-restore`) was created to attempt the drill.
+Two genuine infrastructure findings surfaced and are recorded here for any
+future operator who revisits this:
+
+1. `wrangler d1 time-travel restore <db> --bookmark <bookmark>` only restores
+   a database **in place, against itself**. Attempting to apply
+   `defencewire-archive`'s pre-migration bookmark
+   (`00000183-00000000-000050e5-1018be70964380731b6414a23a35694a`) to a
+   different, freshly created database ID failed server-side with `internal
+   error; reference = e_xSb5mO_0c58db1c7ca64d80b48117d882c97b10 [code: 7500]`
+   (HTTP 500) via the Cloudflare API. Direct API probes for `/fork` and
+   `/copy` endpoints on the D1 database resource both returned `"Route not
+   found"`. This account/Wrangler version (4.131.1) does not expose a
+   cross-database Time Travel fork capability contrary to this phase's
+   original assumption ("D1 time-travel restore/fork does not have to target
+   the same database name") — that assumption was incorrect for the tooling
+   actually available.
+2. The Phase 12 pre-migration SQL export (the non-FTS-table backup taken
+   alongside the Time Travel bookmark) is not present on this machine — it
+   was deliberately kept out of the repository and no other storage location
+   was recorded. It could not be located to test the replay path either.
+
+**Why descoped rather than reattempted.** By 2026-09-15, production had
+already advanced three migrations past the Phase 12 bookmark (`0015`, `0016`,
+`0017`, all applied and verified in Phase 13 Stage 2 and Phase 14). Restoring
+to that specific two-day-old pre-`0012` state is no longer a state anyone
+would actually roll back to in a real incident, so proving that exact restore
+path has negligible remaining practical value relative to the cost of working
+around the two findings above (chasing a lost export file, or a
+dashboard-only fork feature not confirmed to exist). The user reviewed this
+trade-off and chose to descope rather than pursue a lower-value drill against
+a stale bookmark.
+
+**Non-blocking residual, owner, and next step.** If a real restore is ever
+needed, the available and confirmed-working mechanism is same-database,
+in-place `wrangler d1 time-travel restore defencewire-archive --bookmark
+<bookmark>` (or `--timestamp`) within Cloudflare's Time Travel retention
+window — this was confirmed reachable via the API in this session, only the
+cross-database variant failed. A future session (owner: whoever next touches
+production D1 schema) should, before any future migration rollout: (a) take a
+fresh Time Travel bookmark and a fresh non-FTS SQL export, (b) store the SQL
+export in a durable location outside the repository (e.g. a password manager
+or private cloud storage, not just local disk), and (c) if a rollback drill
+is wanted at that time, either exercise the confirmed in-place restore
+against a throwaway sandbox database seeded with its own test data (not a
+fork of production), or check the Cloudflare dashboard for a UI-only fork
+feature not exposed via the public API/CLI as tested here.
+
+No production data was read, altered, or restored during this attempt. The
+disposable test database `defencewire-archive-phase15-restore` was created
+and deleted within this session; production `defencewire-archive` was
+re-verified unchanged via `wrangler d1 list` after cleanup. No repository
+code was changed, so build/test status is unchanged from Phase 14
+(1,497/1,497 tests passing).
+
+### Phase 15 Summary
+
+Delivered: A documented, evidence-backed finding that cross-database Time
+Travel fork/copy is not available via the current Wrangler CLI or public
+Cloudflare API for this account, correcting the plan's original assumption;
+confirmation that same-database in-place Time Travel restore is reachable and
+would be the real recovery mechanism if ever needed; and an explicit,
+reviewed decision to descope the full drill rather than complete it against
+an increasingly stale bookmark.
+
+Verification: Production `defencewire-archive` confirmed unchanged
+(`wrangler d1 list` before and after this session's work shows identical
+name, ID, and table count). The disposable test database was deleted and no
+longer appears in `wrangler d1 list`. No repository files were modified other
+than this plan document, so no build/test re-run was required.
+
+Tech debt discovered: The original Phase 12 non-FTS SQL export file is not
+retrievable from this machine and its storage location was never recorded
+outside "kept out of the repository."
+
+Resolution: Not fixed in this phase — recorded as the non-blocking residual
+above with an explicit next step (store future exports in a named durable
+location) for whoever next touches production D1 schema.
+
+Known limitations (fail-loud, Rule 12): The originally scoped drill —
+restoring the exact Phase 12 pre-migration bookmark into a separate
+non-production clone with matching schema/row counts — was never completed.
+This plan is closed with that gap explicitly accepted as non-blocking by the
+user on 2026-09-15, not silently marked done.
+
+Build status: Unchanged from Phase 14 (passing; no repository code changed).
+
+Test status: Unchanged from Phase 14 (1,497/1,497 full-suite tests passing;
+no skipped or pending tests).
+
+---
+
+## Plan closure
+
+As of 2026-09-15, Phases 0 through 14 are complete with all discovered debt
+resolved or explicitly carried forward with an owner, and Phase 15 is closed
+as an explicitly accepted, non-blocking, user-approved descope rather than a
+completed drill. No phase in this plan remains silently unaddressed. This
+execution plan is considered closed.
