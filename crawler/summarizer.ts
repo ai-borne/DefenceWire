@@ -5,6 +5,8 @@
  */
 
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { SSBIntelligence, StoryCluster } from '../src/types/news.js';
 import { generateExtractiveSSBIntel } from './extractiveMiner.js';
 import { sanitizeGeminiSSBIntelligence } from './geminiSalvage.js';
@@ -31,6 +33,14 @@ export function getGeminiModelName(env: NodeJS.ProcessEnv = process.env): string
   return env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
 }
 
+// AI_PROVIDER lets CI route non-production runs (dev pushes, manual dispatch) to the
+// $0 Cloudflare Workers AI fallback instead of live Gemini, without touching the
+// fallback cascade itself — see .github/workflows/crawl-and-deploy.yml.
+export function resolveGeminiApiKey(explicitKey: string | undefined, env: NodeJS.ProcessEnv = process.env): string {
+  if ((env.AI_PROVIDER ?? 'gemini').trim().toLowerCase() !== 'gemini') return '';
+  return explicitKey ?? env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY ?? '';
+}
+
 export function resetThrottleState(): void {
   lastRequestTimestamp = 0;
 }
@@ -38,6 +48,32 @@ export function resetThrottleState(): void {
 export function computeContentHash(headline: string, url: string): string {
   const normalized = `${(headline || '').trim().toLowerCase()}|${(url || '').trim().toLowerCase()}`;
   return crypto.createHash('sha256').update(normalized).digest('hex');
+}
+
+// Local-dev record/replay cache: when GEMINI_REPLAY_DIR is set, a Gemini response is
+// persisted to disk on first (real) call and replayed from disk on every later run —
+// unlike SUMMARY_MEMORY_CACHE, this survives across process restarts, so repeated
+// `vite-node crawler/ingest.ts` runs during development stop re-billing Gemini for
+// clusters already seen. Unset in CI/production; never active unless opted in.
+function loadReplayEntry(hash: string): SSBIntelligence | null {
+  const dir = process.env.GEMINI_REPLAY_DIR;
+  if (!dir) return null;
+  try {
+    return JSON.parse(fs.readFileSync(path.join(dir, `${hash}.json`), 'utf-8')) as SSBIntelligence;
+  } catch {
+    return null;
+  }
+}
+
+function saveReplayEntry(hash: string, intel: SSBIntelligence): void {
+  const dir = process.env.GEMINI_REPLAY_DIR;
+  if (!dir) return;
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${hash}.json`), JSON.stringify(intel));
+  } catch (err) {
+    console.warn('[GEMINI REPLAY] Failed to persist dev cache entry', err instanceof Error ? err.message : String(err));
+  }
 }
 
 export function clearSummaryMemoryCache(): void {
@@ -153,6 +189,13 @@ export async function summarizeWithGemini(
     return cached;
   }
 
+  // 1b. Local-dev disk replay cache (GEMINI_REPLAY_DIR only) -> Instant $0 return
+  const replayed = loadReplayEntry(hash);
+  if (replayed) {
+    cache.set(hash, replayed);
+    return replayed;
+  }
+
   if (!apiKey) {
     return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
   }
@@ -208,6 +251,7 @@ export async function summarizeWithGemini(
           console.warn('[GEMINI PARTIAL SALVAGE]', droppedFields.join('; '));
         }
         cache.set(hash, intel);
+        saveReplayEntry(hash, intel);
         return intel;
       }
 
