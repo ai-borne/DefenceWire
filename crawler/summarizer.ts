@@ -45,6 +45,17 @@ export function resetThrottleState(): void {
   lastRequestTimestamp = 0;
 }
 
+// Circuit breaker for permanent failures (invalid key, spend cap breached, etc).
+// Without this, a single misconfigured/exhausted key still pays the full per-cluster
+// throttle wait before every doomed call — e.g. 142 clusters x 4.5s = ~10.6 minutes of
+// pure sleep, which is what blew the CI job's 15-minute timeout. A 401/403 is not a
+// per-request problem, so open the circuit for the rest of this process's run.
+let geminiCircuitOpen = false;
+
+export function resetGeminiCircuit(): void {
+  geminiCircuitOpen = false;
+}
+
 export function computeContentHash(headline: string, url: string): string {
   const normalized = `${(headline || '').trim().toLowerCase()}|${(url || '').trim().toLowerCase()}`;
   return crypto.createHash('sha256').update(normalized).digest('hex');
@@ -79,6 +90,7 @@ function saveReplayEntry(hash: string, intel: SSBIntelligence): void {
 export function clearSummaryMemoryCache(): void {
   SUMMARY_MEMORY_CACHE.clear();
   resetThrottleState();
+  resetGeminiCircuit();
 }
 
 export function getSummaryMemorySize(): number {
@@ -196,7 +208,7 @@ export async function summarizeWithGemini(
     return replayed;
   }
 
-  if (!apiKey) {
+  if (!apiKey || geminiCircuitOpen) {
     return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
   }
 
@@ -229,6 +241,12 @@ export async function summarizeWithGemini(
       if (!response.ok) {
         const bodyText = await response.text().catch(() => '');
         console.error('[GEMINI ERROR]', `status=${response.status} body=${bodyText.slice(0, 200)}`);
+        // 401/403 (bad key, spend cap breached, etc) won't resolve mid-run — stop paying
+        // the per-cluster throttle wait for calls that are guaranteed to keep failing.
+        if (response.status === 401 || response.status === 403) {
+          geminiCircuitOpen = true;
+          console.error('[GEMINI CIRCUIT OPEN]', 'Permanent auth/billing failure — skipping Gemini for the rest of this run.');
+        }
         return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
       }
 
