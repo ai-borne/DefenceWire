@@ -39,6 +39,14 @@ describe('Unit: Responsive Layout & Text Overflow Hygiene', () => {
     expect(dossierCss).toMatch(/\.dw-modal-close-btn\s*\{[^}]*min-height:\s*44px;/);
   });
 
+  it('spreads nav tabs evenly across the bar on desktop only, keeping them content-sized (scrollable) on mobile', () => {
+    // Desktop: with only 8 tabs left they must fill the bar, not clump left.
+    // 861px is the exact complement of the max-width: 860px mobile block.
+    expect(responsiveCss).toMatch(/@media \(min-width: 861px\)\s*\{\s*\.dw-nav-tab\s*\{[^}]*flex:\s*1 1 0;/);
+    // Mobile: base rule must stay content-sized so the bar still scrolls sideways.
+    expect(layoutCss).toMatch(/\.dw-nav-tab\s*\{[^}]*flex:\s*0 0 auto;/);
+  });
+
   it('supports mobile viewport safe-area insets across backdrop, footer, and search overlay', () => {
     expect(dossierCss).toContain('env(safe-area-inset-bottom)');
     expect(layoutCss).toContain('env(safe-area-inset-bottom)');

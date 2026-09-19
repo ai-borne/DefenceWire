@@ -246,6 +246,10 @@
   }
 }
 
+@media (min-width: 861px) {
+  .dw-nav-tab { flex: 1 1 0; }
+}
+
 @media (min-width: 1200px) {
   .dw-layout-grid {
     grid-template-columns: minmax(0, 1fr) 360px;
