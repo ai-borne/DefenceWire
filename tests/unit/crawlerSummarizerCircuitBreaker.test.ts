@@ -30,32 +30,37 @@ describe('Gemini Circuit Breaker', () => {
     clearSummaryMemoryCache();
   });
 
-  it('opens a circuit breaker after a 401/403 so later clusters skip Gemini instead of re-throttling', async () => {
-    // Regression: a breached spend cap (or revoked key) 403s every call, but without a
-    // breaker each cluster still pays the full MIN_REQUEST_INTERVAL_MS wait before failing
-    // — 142 clusters x 4.5s blew a 15-minute CI job's timeout in production.
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    let callCount = 0;
-    const spendCapFetch = async () => {
-      callCount++;
-      return new Response(JSON.stringify({ error: { code: 403, message: 'Spend cap breached' } }), { status: 403 });
-    };
+  // Regression coverage for every status seen in production breaking the whole run:
+  // 403 (spend cap breached), 404 (gemini-2.5-flash-lite retired for new projects —
+  // found live against a fresh no-billing key), and 429 (daily/rate quota exhausted).
+  // Without a breaker, each cluster still pays the full MIN_REQUEST_INTERVAL_MS wait
+  // before failing — 142 clusters x 4.5s blew a 15-minute CI job's timeout in production.
+  it.each([401, 403, 404, 429])(
+    'opens a circuit breaker after a %i so later clusters skip Gemini instead of re-throttling',
+    async (status) => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let callCount = 0;
+      const permanentFailureFetch = async () => {
+        callCount++;
+        return new Response(JSON.stringify({ error: { code: status, message: 'Permanent failure' } }), { status });
+      };
 
-    const clusterA: StoryCluster = { ...MOCK_CLUSTER, id: 'c-circuit-a', synthesizedHeadline: 'Headline Circuit A' };
-    const clusterB: StoryCluster = { ...MOCK_CLUSTER, id: 'c-circuit-b', synthesizedHeadline: 'Headline Circuit B' };
+      const clusterA: StoryCluster = { ...MOCK_CLUSTER, id: `c-circuit-a-${status}`, synthesizedHeadline: 'Headline Circuit A' };
+      const clusterB: StoryCluster = { ...MOCK_CLUSTER, id: `c-circuit-b-${status}`, synthesizedHeadline: 'Headline Circuit B' };
 
-    const resultA = await summarizeWithGemini(clusterA, 'bad-key', spendCapFetch as typeof fetch);
-    expect(resultA).toBeNull();
-    expect(callCount).toBe(1);
+      const resultA = await summarizeWithGemini(clusterA, 'bad-key', permanentFailureFetch as typeof fetch);
+      expect(resultA).toBeNull();
+      expect(callCount).toBe(1);
 
-    const startedAt = Date.now();
-    const resultB = await summarizeWithGemini(clusterB, 'bad-key', spendCapFetch as typeof fetch);
+      const startedAt = Date.now();
+      const resultB = await summarizeWithGemini(clusterB, 'bad-key', permanentFailureFetch as typeof fetch);
 
-    expect(resultB).toBeNull();
-    expect(callCount).toBe(1); // circuit open: fetch is never invoked again this run
-    expect(Date.now() - startedAt).toBeLessThan(MIN_REQUEST_INTERVAL_MS); // no wasted throttle wait
-    errorSpy.mockRestore();
-  });
+      expect(resultB).toBeNull();
+      expect(callCount).toBe(1); // circuit open: fetch is never invoked again this run
+      expect(Date.now() - startedAt).toBeLessThan(MIN_REQUEST_INTERVAL_MS); // no wasted throttle wait
+      errorSpy.mockRestore();
+    }
+  );
 
   it('does not open the circuit on a transient (non-auth) failure like a 500', async () => {
     vi.useFakeTimers();

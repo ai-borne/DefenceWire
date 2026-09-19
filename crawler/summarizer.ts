@@ -27,7 +27,9 @@ export const SUMMARY_MEMORY_CACHE = new Map<string, SSBIntelligence>();
 export const MIN_REQUEST_INTERVAL_MS = 4500;
 let lastRequestTimestamp = 0;
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+// gemini-2.5-flash-lite 404s ("no longer available to new users") on any project
+// created after Google's cutover — confirmed live against a fresh no-billing key.
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
 export function getGeminiModelName(env: NodeJS.ProcessEnv = process.env): string {
   return env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
@@ -241,11 +243,12 @@ export async function summarizeWithGemini(
       if (!response.ok) {
         const bodyText = await response.text().catch(() => '');
         console.error('[GEMINI ERROR]', `status=${response.status} body=${bodyText.slice(0, 200)}`);
-        // 401/403 (bad key, spend cap breached, etc) won't resolve mid-run — stop paying
-        // the per-cluster throttle wait for calls that are guaranteed to keep failing.
-        if (response.status === 401 || response.status === 403) {
+        // 401/403 (bad key, spend cap breached), 404 (model retired/unavailable to this
+        // project), and 429 (daily/rate quota exhausted) won't resolve mid-run — stop
+        // paying the per-cluster throttle wait for calls that are guaranteed to keep failing.
+        if (response.status === 401 || response.status === 403 || response.status === 404 || response.status === 429) {
           geminiCircuitOpen = true;
-          console.error('[GEMINI CIRCUIT OPEN]', 'Permanent auth/billing failure — skipping Gemini for the rest of this run.');
+          console.error('[GEMINI CIRCUIT OPEN]', `Permanent failure (status=${response.status}) — skipping Gemini for the rest of this run.`);
         }
         return fallbackToMiner ? generateExtractiveSSBIntel(cluster) : null;
       }

@@ -131,9 +131,9 @@ describe('Summarizer & Content-Hash Memory', () => {
     expect(fetchCalled).toBe(false);
   });
 
-  it('defaults to gemini-2.5-flash-lite and respects dynamic GEMINI_MODEL override', async () => {
-    expect(DEFAULT_GEMINI_MODEL).toBe('gemini-2.5-flash-lite');
-    expect(getGeminiModelName({})).toBe('gemini-2.5-flash-lite');
+  it('defaults to gemini-3.5-flash-lite and respects dynamic GEMINI_MODEL override', async () => {
+    expect(DEFAULT_GEMINI_MODEL).toBe('gemini-3.5-flash-lite');
+    expect(getGeminiModelName({})).toBe('gemini-3.5-flash-lite');
     expect(getGeminiModelName({ GEMINI_MODEL: 'gemini-custom-flash' })).toBe('gemini-custom-flash');
 
     let calledUrl = '';
