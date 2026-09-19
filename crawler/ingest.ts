@@ -23,7 +23,6 @@ import { aggregateSourceStats, syncSourceReputationToD1, fetchFeedWithFowlerBrea
 import { runThreadContinuity } from './threadSync.js';
 import { runGraphExtractionAndSync } from './graphSync.js';
 import { runPatternDetectionAndSync } from './patternSync.js';
-import { geminiBudgetConfigFromEnv, getGeminiDailyCallCount, recordGeminiCalls } from './geminiBudget.js';
 import {
   advanceDurableRun, buildDurableIngestConfigFromEnv, failDurableRun,
   persistDurableInput
@@ -134,8 +133,6 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     console.log('[CURATOR OVERRIDES] D1 not configured; using disk-JSON override heuristic only.');
   }
 
-  const geminiBudget = geminiBudgetConfigFromEnv(d1Config);
-  let geminiDailyCount = apiKey ? await getGeminiDailyCallCount(geminiBudget, fetchFn, now) : 0;
   let geminiCount = 0;
   let cfAiCount = 0;
   let heuristicCount = 0;
@@ -159,12 +156,10 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
       continue;
     }
 
-    // 1. Primary: Gemini Flash Free Tier (skipped once the daily D1 budget is exhausted)
-    const geminiAllowed = Boolean(apiKey) && (!geminiBudget || geminiDailyCount < geminiBudget.dailyLimit);
-    let intel = geminiAllowed ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
+    // 1. Primary: Gemini Flash Free Tier
+    let intel = apiKey ? await summarizeWithGemini(cluster, apiKey, fetchFn) : null;
     if (intel) {
       geminiCount++;
-      geminiDailyCount++;
     } else {
       // 2. Secondary: Cloudflare Workers AI Free Tier
       intel = await summarizeWithCloudflareAI(cluster, { fetchFn });
@@ -180,11 +175,8 @@ export async function runIngestionPipeline(options: IngestOptions = {}): Promise
     cluster.ssbIntel = intel;
   }
 
-  await recordGeminiCalls(geminiBudget, geminiCount, fetchFn, now);
-
   const cfLog = cfAiCount > 0 ? `${cfAiCount} Cloudflare AI, ` : '';
-  const budgetLog = geminiBudget ? ` | [GEMINI BUDGET] ${geminiDailyCount}/${geminiBudget.dailyLimit} today` : '';
-  console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run${budgetLog}`);
+  console.log(`[SSB ENRICHMENT] ${geminiCount} via Gemini, ${cfLog}${heuristicCount} heuristic fallback, ${preservedCount} preserved from prior run`);
 
   if (durableRun && durableConfig) {
     const byId = new Map(lockedProtectedClusters.map((cluster) => [cluster.id, cluster]));

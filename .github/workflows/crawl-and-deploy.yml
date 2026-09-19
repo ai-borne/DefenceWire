@@ -68,9 +68,6 @@ jobs:
           # instead, unless a manual run explicitly opts in via use_gemini — this is
           # what was driving Gemini charges from repeated dev-cycle crawler runs.
           AI_PROVIDER: ${{ (github.event_name == 'schedule' || github.event.inputs.use_gemini == 'true') && 'gemini' || 'workers-ai' }}
-          # Extra ceiling even on cron runs: caps live Gemini calls per UTC day and
-          # falls back to Workers AI/heuristic once hit. Raise if the free tier allows more.
-          GEMINI_DAILY_LIMIT: '200'
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

@@ -1155,13 +1155,3 @@ INSERT OR IGNORE INTO topic_aliases (normalized_alias, topic_id, alias_type, req
   ('indo pacific', 'indo-pacific', 'canonical', 0, NULL, 'published', '2026-09-14T00:00:00Z'),
   ('rafale', 'rafale', 'canonical', 0, NULL, 'published', '2026-09-14T00:00:00Z'),
   ('s 400', 's-400', 'canonical', 0, NULL, 'published', '2026-09-14T00:00:00Z');
-
--- Source migration: 0018_phase16_gemini_daily_budget.sql
--- Phase 16: track Gemini calls per UTC day so the crawler can hard-cap
--- live API usage at a configurable daily budget and fall back to the
--- existing Cloudflare Workers AI / heuristic cascade once exhausted,
--- instead of relying solely on client-side RPM throttling.
-CREATE TABLE IF NOT EXISTS gemini_usage (
-  usage_date TEXT PRIMARY KEY,   -- YYYY-MM-DD (UTC)
-  call_count INTEGER NOT NULL DEFAULT 0
-);
