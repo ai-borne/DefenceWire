@@ -29,20 +29,16 @@ describe('NavigationBar Component', () => {
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-    expect(tabs.length).toBe(12);
+    expect(tabs.length).toBe(8);
 
     const expectedLabels = [
       STRINGS.nav.all,
       STRINGS.nav.river,
-      STRINGS.nav.tech,
-      STRINGS.nav.strategic,
       STRINGS.nav.programs,
-      STRINGS.nav.procurement,
       STRINGS.nav.suppliers,
       STRINGS.nav.threads,
       STRINGS.nav.graph,
       STRINGS.nav.ssb,
-      STRINGS.nav.official,
       STRINGS.nav.archive
     ];
 
@@ -71,11 +67,7 @@ describe('NavigationBar Component', () => {
 
   it('should highlight the active category when viewModel is pre-configured', () => {
     const categoriesToTest: FilterCategory[] = [
-      'official',
       'programs',
-      'tech',
-      'strategic',
-      'procurement',
       'threads',
       'ssb',
       'river',
@@ -102,12 +94,6 @@ describe('NavigationBar Component', () => {
     const navElement = renderNavigationBar(newsVm);
 
     const tabs = Array.from(navElement.querySelectorAll<HTMLButtonElement>('.dw-nav-tab'));
-
-    // Click Official tab
-    const officialTab = tabs.find((t) => t.textContent === STRINGS.nav.official);
-    expect(officialTab).toBeDefined();
-    officialTab!.click();
-    expect(newsVm.getActiveCategory()).toBe('official');
 
     // Click Programs tab
     const programsTab = tabs.find((t) => t.textContent === STRINGS.nav.programs);

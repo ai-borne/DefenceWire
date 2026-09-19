@@ -23,9 +23,8 @@ export const STRINGS = {
     onlineNotice: 'Live feed connected.'
   },
   nav: {
-    all: 'Top Stories', official: 'Official', programs: 'Programs',
-    tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', tech: 'Tech',
-    strategic: 'Geopolitics', procurement: 'Procurement', ssb: 'SSB Intel',
+    all: 'Top Stories', programs: 'Programs',
+    tenders: 'Tenders & RFPs', idex: 'iDEX & Startups', ssb: 'SSB Intel',
     river: 'Wire', archive: 'Archive', army: 'Army', navy: 'Navy', airforce: 'Air Force',
     suppliers: supplierStrings.navTab, graph: graphStrings.tabTitle, threads: threadStrings.tabTitle,
     categoriesAriaLabel: 'Defence Categories'

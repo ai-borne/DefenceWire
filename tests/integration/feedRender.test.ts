@@ -43,9 +43,9 @@ describe('Integration: Feed Rendering & UI Components', () => {
     const searchInput = app?.querySelector('input[type="search"]');
     expect(searchInput).not.toBeNull();
 
-    // Verify Navigation Tabs (12 tabs)
+    // Verify Navigation Tabs (8 tabs)
     const navTabs = app?.querySelectorAll('.dw-nav-tab');
-    expect(navTabs?.length).toBe(12);
+    expect(navTabs?.length).toBe(8);
 
     // Verify Story Clusters
     const clusters = app?.querySelectorAll('article.dw-cluster');
@@ -66,26 +66,26 @@ describe('Integration: Feed Rendering & UI Components', () => {
     expect(footer?.textContent).toContain(STRINGS.footer.copyright);
   });
 
-  it('should filter clusters when a category tab is clicked', () => {
+  it('should activate the SSB Intel tab and keep rendering story clusters', () => {
     initializeApp();
 
-    const officialTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
-      (el) => el.textContent === STRINGS.nav.official
-    ) as HTMLButtonElement;
+    const findSsbTab = () =>
+      Array.from(document.querySelectorAll('.dw-nav-tab')).find(
+        (el) => el.textContent === STRINGS.nav.ssb
+      ) as HTMLButtonElement;
 
-    expect(officialTab).toBeDefined();
-    officialTab.click();
+    expect(findSsbTab().classList.contains('active')).toBe(false);
+    findSsbTab().click();
 
-    const activeOfficialTab = Array.from(document.querySelectorAll('.dw-nav-tab')).find(
-      (el) => el.textContent === STRINGS.nav.official
-    ) as HTMLButtonElement;
-    expect(activeOfficialTab.classList.contains('active')).toBe(true);
-    expect(activeOfficialTab.getAttribute('aria-selected')).toBe('true');
+    // The nav bar re-renders on category change, so re-query the tab.
+    const activeSsbTab = findSsbTab();
+    expect(activeSsbTab.classList.contains('active')).toBe(true);
+    expect(activeSsbTab.getAttribute('aria-selected')).toBe('true');
+    expect(document.querySelectorAll('.dw-nav-tab.active').length).toBe(1);
 
-    const headlines = Array.from(document.querySelectorAll('.dw-headline')).map(
-      (h) => h.textContent
-    );
-    expect(headlines.some((h) => h?.toLowerCase().includes('tejas') || h?.toLowerCase().includes('defence') || h?.toLowerCase().includes('ministry'))).toBe(true);
+    // Filter logic itself is covered by viewmodels.test.ts; every seed cluster
+    // carries 'ssb', so only tab state and non-empty rendering are asserted here.
+    expect(document.querySelectorAll('article.dw-cluster').length).toBeGreaterThan(0);
   });
 
   it('should render River of News view when River tab is clicked', () => {
