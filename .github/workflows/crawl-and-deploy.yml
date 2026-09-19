@@ -35,7 +35,12 @@ concurrency:
 jobs:
   crawl-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Live-measured: ~120 clusters of genuine (non-failing) Gemini enrichment alone takes
+    # ~9 minutes at the free-tier-safe 4.5s/request throttle, and the feed fetch + D1
+    # sync/archive/graph/pattern stages take another ~9-10 minutes on top of that — the
+    # old 15-minute limit only ever worked because Gemini was failing fast (spend cap /
+    # wrong model), not because the pipeline is actually that quick when Gemini succeeds.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout Repository
