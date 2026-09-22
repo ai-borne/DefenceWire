@@ -16,6 +16,7 @@ import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
 import { isNoiseTag } from '../utils/hashtagUtils.js';
 import { renderTopicBadgeList } from './topics/TopicBadgeList.js';
+import threadStrings from '../resources/threadStrings.js';
 
 interface StoryBadgeInfo {
   label: string;
@@ -75,7 +76,7 @@ export function renderStoryCluster(
       threadBadge.className = 'dw-story-thread-badge';
       threadBadge.type = 'button';
       threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${badgeInfo.label}`);
-      threadBadge.textContent = badgeInfo.label;
+      threadBadge.textContent = `${threadStrings.badgePrefix} ${badgeInfo.label}`;
       threadBadge.addEventListener('click', (e) => {
         e.stopPropagation();
         import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {

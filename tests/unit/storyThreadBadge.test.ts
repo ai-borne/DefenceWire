@@ -64,7 +64,7 @@ describe('Story Cluster Thread Badge Placement', () => {
 
     const threadBadge = kickerRow?.querySelector('.dw-story-thread-badge');
     expect(threadBadge).not.toBeNull();
-    expect(threadBadge?.textContent).toContain('Sukhoi-30 Fighters with RVV BD Missiles');
+    expect(threadBadge?.textContent).toBe('🔗 Sukhoi-30 Fighters with RVV BD Missiles');
 
     // Crucial: Ensure badge is NOT in footer left
     const footerLeft = card.querySelector('.dw-cluster-footer-left');
@@ -74,6 +74,12 @@ describe('Story Cluster Thread Badge Placement', () => {
     const headline = card.querySelector('.dw-headline');
     expect(headline).not.toBeNull();
     expect(card.children[0]).toBe(kickerRow);
+  });
+
+  it('encodes timeline linkage affordance with thread link icon prefix', () => {
+    const card = renderStoryCluster(baseCluster, mockNewsVm, false);
+    const threadBadge = card.querySelector('.dw-story-thread-badge');
+    expect(threadBadge?.textContent).toMatch(/^🔗\s+/);
   });
 
   it('renders lead tag alongside thread badge in kicker row for lead stories', () => {
