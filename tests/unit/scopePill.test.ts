@@ -127,4 +127,72 @@ describe('ScopePill Component (renderScopePill)', () => {
     const position = scopePill!.compareDocumentPosition(threadBadge!);
     expect((position & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
   });
+
+  it('safely handles null or undefined cluster by defaulting to domestic scope without throwing', () => {
+    const pillNull = renderScopePill(null as any);
+    expect(pillNull.classList.contains('dw-scope-pill--domestic')).toBe(true);
+    expect(pillNull.textContent).toBe(STRINGS.story.domesticScopePill);
+
+    const pillUndef = renderScopePill(undefined as any);
+    expect(pillUndef.classList.contains('dw-scope-pill--domestic')).toBe(true);
+    expect(pillUndef.textContent).toBe(STRINGS.story.domesticScopePill);
+  });
+
+  it('validates WCAG 2.1 AA contrast compliance (ratio >= 4.5:1) for scope pill color tokens', () => {
+    function hexToRgb(hex: string): [number, number, number] {
+      const clean = hex.replace('#', '');
+      return [
+        parseInt(clean.slice(0, 2), 16),
+        parseInt(clean.slice(2, 4), 16),
+        parseInt(clean.slice(4, 6), 16)
+      ];
+    }
+
+    function channelLuminance(val: number): number {
+      const s = val / 255;
+      return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    }
+
+    function relativeLuminance([r, g, b]: [number, number, number]): number {
+      return 0.2126 * channelLuminance(r) + 0.7152 * channelLuminance(g) + 0.0722 * channelLuminance(b);
+    }
+
+    function contrastRatio(rgb1: [number, number, number], rgb2: [number, number, number]): number {
+      const l1 = relativeLuminance(rgb1);
+      const l2 = relativeLuminance(rgb2);
+      const lighter = Math.max(l1, l2);
+      const darker = Math.min(l1, l2);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function compositeRgbaOverRgb(fgRgb: [number, number, number], alpha: number, bgRgb: [number, number, number]): [number, number, number] {
+      return [
+        Math.round(alpha * fgRgb[0] + (1 - alpha) * bgRgb[0]),
+        Math.round(alpha * fgRgb[1] + (1 - alpha) * bgRgb[1]),
+        Math.round(alpha * fgRgb[2] + (1 - alpha) * bgRgb[2])
+      ];
+    }
+
+    // Light Theme:
+    // Domestic: text #9A3412 on bg #FFF7ED
+    const lightDomesticRatio = contrastRatio(hexToRgb('#9A3412'), hexToRgb('#FFF7ED'));
+    expect(lightDomesticRatio).toBeGreaterThanOrEqual(4.5);
+
+    // Global: text #1D4ED8 on bg #EFF6FF
+    const lightGlobalRatio = contrastRatio(hexToRgb('#1D4ED8'), hexToRgb('#EFF6FF'));
+    expect(lightGlobalRatio).toBeGreaterThanOrEqual(4.5);
+
+    // Dark Theme: Card background #13181E
+    const darkCardBg = hexToRgb('#13181E');
+
+    // Domestic: text #FB923C on rgba(234, 88, 12, 0.15) over darkCardBg
+    const darkDomesticBg = compositeRgbaOverRgb([234, 88, 12], 0.15, darkCardBg);
+    const darkDomesticRatio = contrastRatio(hexToRgb('#FB923C'), darkDomesticBg);
+    expect(darkDomesticRatio).toBeGreaterThanOrEqual(4.5);
+
+    // Global: text #38BDF8 on rgba(2, 132, 199, 0.15) over darkCardBg
+    const darkGlobalBg = compositeRgbaOverRgb([2, 132, 199], 0.15, darkCardBg);
+    const darkGlobalRatio = contrastRatio(hexToRgb('#38BDF8'), darkGlobalBg);
+    expect(darkGlobalRatio).toBeGreaterThanOrEqual(4.5);
+  });
 });

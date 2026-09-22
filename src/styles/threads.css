@@ -189,6 +189,13 @@
   margin-bottom: 0;
 }
 
+@media (max-width: 640px) {
+  .dw-cluster-kicker-row {
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+}
+
 /* Contextual Thread Badge on News Cards */
 .dw-story-thread-badge {
   display: inline-flex;
