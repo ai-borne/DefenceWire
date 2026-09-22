@@ -53,7 +53,7 @@ export const STRINGS = {
     permalinkCopied: '✓ Link copied', shareBtnText: 'Share', shareBtnCopiedText: 'Copied',
     sourceTierTooltip: 'Institutional Reliability Tier', officialSignalBadge: 'Verified Signal',
     lokSabhaBadge: '🏛️ Lok Sabha Q&A', rajyaSabhaBadge: '🏛️ Rajya Sabha Q&A', pibModBadge: '📄 PIB MoD Official',
-    domesticFlag: '🇮🇳', globalFlag: '🌏',
+    domesticFlag: '🇮🇳', globalFlag: '🌏', domesticScopePill: '🇮🇳 India Wire', globalScopePill: '🌍 Global Wire',
     sourcesTogglePrefix: '+', sourcesToggleSuffix: 'sources',
     sourcesCollapse: '▴ Hide sources', sourcesSingular: 'source',
     perspectivesHeading: 'Perspectives & Official Quotes'

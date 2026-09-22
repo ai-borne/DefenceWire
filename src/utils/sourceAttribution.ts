@@ -4,7 +4,7 @@
  * Hard limit: <= 300 LOC.
  */
 
-import { StorySourceItem } from '../types/news.js';
+import { StorySourceItem, StoryCluster } from '../types/news.js';
 import { STRINGS } from '../resources/strings.js';
 import { sanitizePlainText } from './security.js';
 import { cleanSourceName } from './snippetCleaner.js';
@@ -87,17 +87,19 @@ function cleanHostname(domainOrUrl: string): string {
   return str.replace(/^www\./, '').split('/')[0] || '';
 }
 
+export type GeopoliticalScope = 'domestic' | 'global';
+
 /**
- * Resolves whether a story source is Indian sovereign/national (🇮🇳) or foreign/international (🌏).
+ * Determines whether a source is Indian sovereign/national or foreign/international.
  */
-export function resolveGeopoliticalScope(source: StorySourceItem): string {
+export function isDomesticSource(source?: StorySourceItem | null): boolean {
   if (!source) {
-    return STRINGS.story.domesticFlag;
+    return true;
   }
 
   // 1. Parliament questions and official government types are strictly sovereign Indian
   if (source.parliamentMeta || source.officialType) {
-    return STRINGS.story.domesticFlag;
+    return true;
   }
 
   const domain = cleanHostname(source.sourceDomain || source.url || '');
@@ -105,11 +107,11 @@ export function resolveGeopoliticalScope(source: StorySourceItem): string {
 
   // 2. Explicit International Domain check (takes precedence over generic "India" beat titles in foreign wires)
   if (INTERNATIONAL_DOMAINS.has(domain)) {
-    return STRINGS.story.globalFlag;
+    return false;
   }
   for (const intDomain of INTERNATIONAL_DOMAINS) {
     if (domain.endsWith(`.${intDomain}`)) {
-      return STRINGS.story.globalFlag;
+      return false;
     }
   }
 
@@ -120,13 +122,13 @@ export function resolveGeopoliticalScope(source: StorySourceItem): string {
     domain.includes('.nic.in') ||
     INDIAN_DOMAINS.has(domain)
   ) {
-    return STRINGS.story.domesticFlag;
+    return true;
   }
 
   // 4. Subdomain check for known Indian domains
   for (const indianDomain of INDIAN_DOMAINS) {
     if (domain.endsWith(`.${indianDomain}`)) {
-      return STRINGS.story.domesticFlag;
+      return true;
     }
   }
 
@@ -148,11 +150,35 @@ export function resolveGeopoliticalScope(source: StorySourceItem): string {
     name.includes('lok sabha') ||
     name.includes('rajya sabha')
   ) {
-    return STRINGS.story.domesticFlag;
+    return true;
   }
 
   // 6. Foreign / International source default
-  return STRINGS.story.globalFlag;
+  return false;
+}
+
+/**
+ * Resolves semantic scope classification ('domestic' | 'global') for a source.
+ */
+export function resolveGeopoliticalScopeType(source?: StorySourceItem | null): GeopoliticalScope {
+  return isDomesticSource(source) ? 'domestic' : 'global';
+}
+
+/**
+ * Resolves semantic scope classification ('domestic' | 'global') for a story cluster based on its primary source.
+ */
+export function resolveClusterScope(cluster?: StoryCluster | null): GeopoliticalScope {
+  if (!cluster || !cluster.primarySource) {
+    return 'domestic';
+  }
+  return resolveGeopoliticalScopeType(cluster.primarySource);
+}
+
+/**
+ * Resolves whether a story source is Indian sovereign/national (🇮🇳) or foreign/international (🌏).
+ */
+export function resolveGeopoliticalScope(source: StorySourceItem): string {
+  return isDomesticSource(source) ? STRINGS.story.domesticFlag : STRINGS.story.globalFlag;
 }
 
 /**

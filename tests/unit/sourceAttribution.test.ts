@@ -6,8 +6,14 @@
 
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { resolveGeopoliticalScope, renderSourceAttribution } from '../../src/utils/sourceAttribution.js';
-import { StorySourceItem } from '../../src/types/news.js';
+import {
+  resolveGeopoliticalScope,
+  renderSourceAttribution,
+  isDomesticSource,
+  resolveGeopoliticalScopeType,
+  resolveClusterScope
+} from '../../src/utils/sourceAttribution.js';
+import { StorySourceItem, StoryCluster } from '../../src/types/news.js';
 import { SourceTier } from '../../src/types/source.js';
 import { STRINGS } from '../../src/resources/strings.js';
 
@@ -95,6 +101,72 @@ describe('Geopolitical Flag Resolution (resolveGeopoliticalScope)', () => {
       } as StorySourceItem;
       expect(resolveGeopoliticalScope(full)).toBe(STRINGS.story.globalFlag);
     }
+  });
+
+  it('exposes defined string tokens for domestic and global scope pills', () => {
+    expect(STRINGS.story.domesticScopePill).toBe('🇮🇳 India Wire');
+    expect(STRINGS.story.globalScopePill).toBe('🌍 Global Wire');
+  });
+
+  it('determines domestic vs global source status via isDomesticSource and resolveGeopoliticalScopeType', () => {
+    const indianSrc: StorySourceItem = {
+      id: 'ind-1',
+      title: 'MoD DAC Approval',
+      url: 'https://pib.gov.in/release1',
+      sourceName: 'PIB MoD',
+      sourceDomain: 'pib.gov.in',
+      tier: SourceTier.TIER_1_OFFICIAL,
+      publishedAt: '2026-09-01T10:00:00Z',
+      officialType: 'pib_mod'
+    };
+    const foreignSrc: StorySourceItem = {
+      id: 'for-1',
+      title: 'Global Defense Spending',
+      url: 'https://reuters.com/news',
+      sourceName: 'Reuters',
+      sourceDomain: 'reuters.com',
+      tier: SourceTier.TIER_2_NATIONAL,
+      publishedAt: '2026-09-01T10:00:00Z'
+    };
+
+    expect(isDomesticSource(indianSrc)).toBe(true);
+    expect(resolveGeopoliticalScopeType(indianSrc)).toBe('domestic');
+
+    expect(isDomesticSource(foreignSrc)).toBe(false);
+    expect(resolveGeopoliticalScopeType(foreignSrc)).toBe('global');
+    expect(isDomesticSource(null)).toBe(true);
+    expect(resolveGeopoliticalScopeType(undefined)).toBe('domestic');
+  });
+
+  it('resolves cluster geopolitical scope based on primary source', () => {
+    const domesticCluster: Partial<StoryCluster> = {
+      id: 'cluster-ind',
+      primarySource: {
+        id: 'ind-src',
+        title: 'HAL Tejas Mk1A Sortie',
+        url: 'https://idrw.org/tejas',
+        sourceName: 'IDRW',
+        sourceDomain: 'idrw.org',
+        tier: SourceTier.TIER_3_SPECIALIZED,
+        publishedAt: '2026-09-01T10:00:00Z'
+      }
+    };
+    const globalCluster: Partial<StoryCluster> = {
+      id: 'cluster-global',
+      primarySource: {
+        id: 'global-src',
+        title: 'NGAD Fighter Tests',
+        url: 'https://defensenews.com/air/ngad',
+        sourceName: 'Defense News',
+        sourceDomain: 'defensenews.com',
+        tier: SourceTier.TIER_3_SPECIALIZED,
+        publishedAt: '2026-09-01T10:00:00Z'
+      }
+    };
+
+    expect(resolveClusterScope(domesticCluster as StoryCluster)).toBe('domestic');
+    expect(resolveClusterScope(globalCluster as StoryCluster)).toBe('global');
+    expect(resolveClusterScope(null)).toBe('domestic');
   });
 });
 

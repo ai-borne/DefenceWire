@@ -33,6 +33,14 @@
   --dw-status-online-bg: #1E7E34;
   --dw-status-online-text: #FFFFFF;
 
+  /* Geopolitical Scope Pill Tokens */
+  --dw-scope-domestic-bg: #FFF7ED;
+  --dw-scope-domestic-border: #FDBA74;
+  --dw-scope-domestic-text: #9A3412;
+  --dw-scope-global-bg: #EFF6FF;
+  --dw-scope-global-border: #BFDBFE;
+  --dw-scope-global-text: #1D4ED8;
+
   /* Strategic Program Domains */
   --dw-domain-aerospace: #0284C7;
   --dw-domain-naval: #0F766E;
@@ -118,6 +126,14 @@
   --dw-status-online-bg: #1E7E34;
   --dw-status-online-text: #FFFFFF;
 
+  /* Geopolitical Scope Pill Tokens (Dark) */
+  --dw-scope-domestic-bg: rgba(234, 88, 12, 0.15);
+  --dw-scope-domestic-border: rgba(249, 115, 22, 0.35);
+  --dw-scope-domestic-text: #FB923C;
+  --dw-scope-global-bg: rgba(2, 132, 199, 0.15);
+  --dw-scope-global-border: rgba(56, 189, 248, 0.35);
+  --dw-scope-global-text: #38BDF8;
+
   --dw-domain-aerospace: #38BDF8;
   --dw-domain-naval: #2DD4BF;
   --dw-domain-land: #FACC15;
@@ -189,6 +205,14 @@
     --dw-status-offline-text: #1A1A1A;
     --dw-status-online-bg: #1E7E34;
     --dw-status-online-text: #FFFFFF;
+
+    /* Geopolitical Scope Pill Tokens (Dark Media Query) */
+    --dw-scope-domestic-bg: rgba(234, 88, 12, 0.15);
+    --dw-scope-domestic-border: rgba(249, 115, 22, 0.35);
+    --dw-scope-domestic-text: #FB923C;
+    --dw-scope-global-bg: rgba(2, 132, 199, 0.15);
+    --dw-scope-global-border: rgba(56, 189, 248, 0.35);
+    --dw-scope-global-text: #38BDF8;
 
     --dw-domain-aerospace: #38BDF8;
     --dw-domain-naval: #2DD4BF;
