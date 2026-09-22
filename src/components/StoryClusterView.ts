@@ -16,6 +16,7 @@ import { pushStoryUrl, copyStoryLink } from '../services/permalinkService.js';
 import { renderSourceAttribution } from '../utils/sourceAttribution.js';
 import { isNoiseTag } from '../utils/hashtagUtils.js';
 import { renderTopicBadgeList } from './topics/TopicBadgeList.js';
+import { renderScopePill } from './ScopePill.js';
 import threadStrings from '../resources/threadStrings.js';
 
 interface StoryBadgeInfo {
@@ -54,44 +55,44 @@ export function renderStoryCluster(
   article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''}`;
   article.id = `cluster-${cluster.id}`;
 
-  // 1. Top Kicker Ribbon (Lead Story Tag, Contextual Story Thread Badge, and Canonical Topics)
+  // 1. Top Kicker Ribbon (Lead Story Tag, Scope Pill, Contextual Story Thread Badge, and Canonical Topics)
+  const kickerRow = document.createElement('div');
+  kickerRow.className = 'dw-cluster-kicker-row';
+
+  if (isLead) {
+    const leadTag = document.createElement('span');
+    leadTag.className = 'dw-lead-tag';
+    leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
+    kickerRow.appendChild(leadTag);
+  }
+
+  const scopePill = renderScopePill(cluster);
+  kickerRow.appendChild(scopePill);
+
   const badgeInfo = resolveStoryBadge(cluster);
+  if (badgeInfo) {
+    const threadBadge = document.createElement('button');
+    threadBadge.className = 'dw-story-thread-badge';
+    threadBadge.type = 'button';
+    threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${badgeInfo.label}`);
+    threadBadge.textContent = `${threadStrings.badgePrefix} ${badgeInfo.label}`;
+    threadBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
+        openThreadDetailModal(badgeInfo.target);
+      }).catch(() => {});
+    });
+    kickerRow.appendChild(threadBadge);
+  }
+
   const topics = renderTopicBadgeList(cluster.canonicalTopics ?? [], (topicId) => {
     window.location.hash = `#/topic/${encodeURIComponent(topicId)}`;
   });
-
-  if (isLead || badgeInfo || topics) {
-    const kickerRow = document.createElement('div');
-    kickerRow.className = 'dw-cluster-kicker-row';
-
-    if (isLead) {
-      const leadTag = document.createElement('span');
-      leadTag.className = 'dw-lead-tag';
-      leadTag.textContent = `★ ${STRINGS.nav.all.toUpperCase()} / LEAD BRIEFING`;
-      kickerRow.appendChild(leadTag);
-    }
-
-    if (badgeInfo) {
-      const threadBadge = document.createElement('button');
-      threadBadge.className = 'dw-story-thread-badge';
-      threadBadge.type = 'button';
-      threadBadge.setAttribute('aria-label', `${STRINGS.threads.tabTitle}: ${badgeInfo.label}`);
-      threadBadge.textContent = `${threadStrings.badgePrefix} ${badgeInfo.label}`;
-      threadBadge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        import('./threads/ThreadDetailModal.js').then(({ openThreadDetailModal }) => {
-          openThreadDetailModal(badgeInfo.target);
-        }).catch(() => {});
-      });
-      kickerRow.appendChild(threadBadge);
-    }
-
-    if (topics) {
-      kickerRow.appendChild(topics);
-    }
-
-    article.appendChild(kickerRow);
+  if (topics) {
+    kickerRow.appendChild(topics);
   }
+
+  article.appendChild(kickerRow);
 
   // 2. Synthesized Headline (Headline First Scannability)
   const headlineEl = document.createElement('h2');

@@ -124,7 +124,7 @@ describe('Story Cluster Thread Badge Placement', () => {
     expect(directTopicList).toBeNull();
   });
 
-  it('does not render kicker row when story has no program or platform tags', () => {
+  it('does not render thread badge when story has no program or platform tags', () => {
     const clusterNoTags: StoryCluster = {
       ...baseCluster,
       id: 'cluster-general',
@@ -133,8 +133,13 @@ describe('Story Cluster Thread Badge Placement', () => {
     };
 
     const card = renderStoryCluster(clusterNoTags, mockNewsVm, false);
+    const threadBadge = card.querySelector('.dw-story-thread-badge');
+    expect(threadBadge).toBeNull();
+
+    // Kicker row is retained for scope pill alignment
     const kickerRow = card.querySelector('.dw-cluster-kicker-row');
-    expect(kickerRow).toBeNull();
+    expect(kickerRow).not.toBeNull();
+    expect(kickerRow?.querySelector('.dw-scope-pill')).not.toBeNull();
   });
 
   it('does not derive a narrative thread badge from legacy public hashtags', () => {
@@ -211,8 +216,11 @@ describe('Story Cluster Thread Badge Placement', () => {
     };
 
     const card = renderStoryCluster(clusterPlaceholder, mockNewsVm, false);
+    const badge = card.querySelector('.dw-story-thread-badge');
+    expect(badge).toBeNull();
     const kickerRow = card.querySelector('.dw-cluster-kicker-row');
-    expect(kickerRow).toBeNull();
+    expect(kickerRow).not.toBeNull();
+    expect(kickerRow?.querySelector('.dw-scope-pill')).not.toBeNull();
   });
 
   it('suppresses polluted publisher tags (#India-News, #IdrwTeam, #Space) and falls through to valid program tags', () => {
