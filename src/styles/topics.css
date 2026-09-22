@@ -1,5 +1,6 @@
 /* Canonical topic badges and knowledge-base view. */
 .dw-topic-badge-list { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+.dw-cluster-kicker-row .dw-topic-badge-list { margin:0; display:inline-flex; align-items:center; }
 .dw-topic-badge { border:1px solid var(--dw-border-primary); border-radius:var(--dw-radius-sm); background:var(--dw-badge-bg); color:var(--dw-badge-text); font:600 .72rem var(--dw-font-sans); padding:3px 7px; }
 button.dw-topic-badge { cursor:pointer; } button.dw-topic-badge:hover, button.dw-topic-badge:focus-visible { background:var(--dw-bg-hover); outline:2px solid var(--dw-link); outline-offset:2px; }
 .dw-topic-badge--more { cursor:default; }

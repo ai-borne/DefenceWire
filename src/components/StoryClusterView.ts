@@ -53,9 +53,13 @@ export function renderStoryCluster(
   article.className = `dw-cluster ${isLead ? 'dw-cluster--lead' : ''}`;
   article.id = `cluster-${cluster.id}`;
 
-  // 1. Top Kicker Ribbon (Lead Story Tag and/or Contextual Story Thread Badge)
+  // 1. Top Kicker Ribbon (Lead Story Tag, Contextual Story Thread Badge, and Canonical Topics)
   const badgeInfo = resolveStoryBadge(cluster);
-  if (isLead || badgeInfo) {
+  const topics = renderTopicBadgeList(cluster.canonicalTopics ?? [], (topicId) => {
+    window.location.hash = `#/topic/${encodeURIComponent(topicId)}`;
+  });
+
+  if (isLead || badgeInfo || topics) {
     const kickerRow = document.createElement('div');
     kickerRow.className = 'dw-cluster-kicker-row';
 
@@ -81,13 +85,12 @@ export function renderStoryCluster(
       kickerRow.appendChild(threadBadge);
     }
 
+    if (topics) {
+      kickerRow.appendChild(topics);
+    }
+
     article.appendChild(kickerRow);
   }
-
-  const topics = renderTopicBadgeList(cluster.canonicalTopics ?? [], (topicId) => {
-    window.location.hash = `#/topic/${encodeURIComponent(topicId)}`;
-  });
-  if (topics) article.appendChild(topics);
 
   // 2. Synthesized Headline (Headline First Scannability)
   const headlineEl = document.createElement('h2');

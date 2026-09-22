@@ -89,6 +89,35 @@ describe('Story Cluster Thread Badge Placement', () => {
     expect(threadBadge).not.toBeNull();
   });
 
+  it('renders thread badge and canonical topics in a single kicker row with thread badge first', () => {
+    const clusterWithTopics: StoryCluster = {
+      ...baseCluster,
+      id: 'cluster-with-topics',
+      canonicalTopics: [
+        { id: 'hal', displayName: 'Hindustan Aeronautics Limited', displayHashtag: '#HAL', topicType: 'company', description: null, registryVersion: 1, displayPriority: 75 },
+        { id: 'iaf', displayName: 'Indian Air Force', displayHashtag: '#IndianAirForce', topicType: 'military_service', description: null, registryVersion: 1, displayPriority: 80 }
+      ]
+    };
+
+    const card = renderStoryCluster(clusterWithTopics, mockNewsVm, false);
+    const kickerRow = card.querySelector('.dw-cluster-kicker-row');
+    expect(kickerRow).not.toBeNull();
+
+    // Verify both exist inside the single kicker row
+    const threadBadge = kickerRow?.querySelector('.dw-story-thread-badge');
+    const topicList = kickerRow?.querySelector('.dw-topic-badge-list');
+    expect(threadBadge).not.toBeNull();
+    expect(topicList).not.toBeNull();
+
+    // Verify order: thread badge comes BEFORE topic list
+    const position = threadBadge!.compareDocumentPosition(topicList!);
+    expect((position & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
+
+    // Verify no separate topic list outside kicker row
+    const directTopicList = card.querySelector(':scope > .dw-topic-badge-list');
+    expect(directTopicList).toBeNull();
+  });
+
   it('does not render kicker row when story has no program or platform tags', () => {
     const clusterNoTags: StoryCluster = {
       ...baseCluster,
